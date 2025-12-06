@@ -4,36 +4,28 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
+import { HeightWeightPicker } from "../../components/ui/HeightWeightPicker";
 import { ProgressBar } from "../../components/ui/ProgressBar";
-import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 
-type WorkoutFrequency = "0-2" | "3-5" | "6+";
-
 /**
- * Экран второго шага онбординга - Количество тренировок
+ * Экран третьего шага онбординга - Рост и вес
  */
-export default function Step2() {
+export default function Step3() {
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const [selectedFrequency, setSelectedFrequency] =
-    useState<WorkoutFrequency | null>(null);
+  const [height, setHeight] = useState<number>(175); // Значение по умолчанию
+  const [weight, setWeight] = useState<number>(70); // Значение по умолчанию
 
   if (!fontsLoaded) {
     return null;
   }
 
   const handleNextPress = () => {
-    if (!selectedFrequency) {
-      // TODO: Показать ошибку валидации
-      return;
-    }
-    // TODO: Сохранить выбранное значение в состояние/БД
-    // Переход на следующий шаг (step3)
-    router.push({
-      pathname: "/steps/step3",
-    } as any);
+    // TODO: Сохранить выбранные значения в состояние/БД
+    // TODO: Переход на следующий шаг (step4)
+    console.log("Рост:", height, "Вес:", weight);
   };
 
   const handleBackPress = () => {
@@ -48,37 +40,38 @@ export default function Step2() {
         showsVerticalScrollIndicator={false}
       >
         {/* Заголовок с индикатором шага */}
-        <StepHeader stepNumber={2} onBack={handleBackPress} />
+        <StepHeader stepNumber={3} onBack={handleBackPress} />
 
         {/* Прогресс-бар */}
-        <ProgressBar currentStep={2} totalSteps={9} />
+        <ProgressBar currentStep={3} totalSteps={9} />
 
         {/* Контент */}
         <View style={styles.contentContainer}>
           {/* Заголовок и подзаголовок */}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Количество тренировок</Text>
+            <Text style={styles.title}>Рост и вес</Text>
             <Text style={styles.subtitle}>
-              Сколько раз в неделю вы занимаетесь?
+              Укажите ваши параметры для точного расчета
             </Text>
           </View>
 
-          {/* Варианты выбора */}
-          <View style={styles.optionsContainer}>
-            <RadioButton
-              label="0–2 тренировки"
-              selected={selectedFrequency === "0-2"}
-              onPress={() => setSelectedFrequency("0-2")}
+          {/* Пикеры для роста и веса */}
+          <View style={styles.pickersContainer}>
+            <HeightWeightPicker
+              label="Рост"
+              value={height}
+              onValueChange={setHeight}
+              unit="см"
+              min={140}
+              max={220}
             />
-            <RadioButton
-              label="3–5 тренировок"
-              selected={selectedFrequency === "3-5"}
-              onPress={() => setSelectedFrequency("3-5")}
-            />
-            <RadioButton
-              label="6+ тренировок"
-              selected={selectedFrequency === "6+"}
-              onPress={() => setSelectedFrequency("6+")}
+            <HeightWeightPicker
+              label="Вес"
+              value={weight}
+              onValueChange={setWeight}
+              unit="кг"
+              min={40}
+              max={150}
             />
           </View>
         </View>
@@ -115,7 +108,7 @@ const styles = StyleSheet.create({
   },
   textSection: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 20,
     gap: 12,
   },
   title: {
@@ -134,11 +127,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Inter_400Regular",
   },
-  optionsContainer: {
-    gap: 16,
+  pickersContainer: {
+    flexDirection: "row",
+    gap: 24,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    paddingTop: 20,
   },
   buttonContainer: {
     paddingHorizontal: 24,
     paddingTop: 24,
   },
 });
+

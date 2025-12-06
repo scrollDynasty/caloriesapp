@@ -4,35 +4,34 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
+import { GenderRadioButton } from "../../components/ui/GenderRadioButton";
 import { ProgressBar } from "../../components/ui/ProgressBar";
-import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 
-type WorkoutFrequency = "0-2" | "3-5" | "6+";
+type Gender = "male" | "female";
 
 /**
- * Экран второго шага онбординга - Количество тренировок
+ * Экран первого шага онбординга - Выбор пола
  */
-export default function Step2() {
+export default function Step1() {
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const [selectedFrequency, setSelectedFrequency] =
-    useState<WorkoutFrequency | null>(null);
+  const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
 
   if (!fontsLoaded) {
     return null;
   }
 
   const handleNextPress = () => {
-    if (!selectedFrequency) {
+    if (!selectedGender) {
       // TODO: Показать ошибку валидации
       return;
     }
     // TODO: Сохранить выбранное значение в состояние/БД
-    // Переход на следующий шаг (step3)
+    // TODO: Переход на следующий шаг (step2)
     router.push({
-      pathname: "/steps/step3",
+      pathname: "/steps/step2",
     } as any);
   };
 
@@ -48,37 +47,34 @@ export default function Step2() {
         showsVerticalScrollIndicator={false}
       >
         {/* Заголовок с индикатором шага */}
-        <StepHeader stepNumber={2} onBack={handleBackPress} />
+        <StepHeader stepNumber={1} />
 
         {/* Прогресс-бар */}
-        <ProgressBar currentStep={2} totalSteps={9} />
+        <ProgressBar currentStep={1} totalSteps={9} />
 
         {/* Контент */}
         <View style={styles.contentContainer}>
           {/* Заголовок и подзаголовок */}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Количество тренировок</Text>
+            <Text style={styles.title}>Выберите пол</Text>
             <Text style={styles.subtitle}>
-              Сколько раз в неделю вы занимаетесь?
+              Это поможет нам рассчитать вашу суточную норму калорий
             </Text>
           </View>
 
           {/* Варианты выбора */}
           <View style={styles.optionsContainer}>
-            <RadioButton
-              label="0–2 тренировки"
-              selected={selectedFrequency === "0-2"}
-              onPress={() => setSelectedFrequency("0-2")}
+            <GenderRadioButton
+              label="Мужской"
+              icon="man"
+              selected={selectedGender === "male"}
+              onPress={() => setSelectedGender("male")}
             />
-            <RadioButton
-              label="3–5 тренировок"
-              selected={selectedFrequency === "3-5"}
-              onPress={() => setSelectedFrequency("3-5")}
-            />
-            <RadioButton
-              label="6+ тренировок"
-              selected={selectedFrequency === "6+"}
-              onPress={() => setSelectedFrequency("6+")}
+            <GenderRadioButton
+              label="Женский"
+              icon="woman"
+              selected={selectedGender === "female"}
+              onPress={() => setSelectedGender("female")}
             />
           </View>
         </View>
@@ -135,10 +131,13 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
   optionsContainer: {
+    flexDirection: "row",
     gap: 16,
+    alignSelf: "stretch",
   },
   buttonContainer: {
     paddingHorizontal: 24,
     paddingTop: 24,
   },
 });
+

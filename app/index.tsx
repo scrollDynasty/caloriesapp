@@ -25,7 +25,7 @@ export default function Index() {
 
   const handleStartPress = () => {
     router.push({
-      pathname: "/steps/step2",
+      pathname: "/steps/step1",
     } as any);
   };
 

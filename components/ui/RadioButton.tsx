@@ -1,4 +1,10 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import { colors } from "../../constants/theme";
 
 interface RadioButtonProps {
@@ -11,19 +17,61 @@ interface RadioButtonProps {
  * Компонент радио-кнопки для выбора опций
  */
 export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
+  const scale = useSharedValue(1);
+
+  // Анимация контейнера
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: scale.value }],
+    };
+  });
+
+  const handlePressIn = () => {
+    // Плавное нажатие
+    scale.value = withSpring(0.97, {
+      damping: 15,
+      stiffness: 300,
+    });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handlePressOut = () => {
+    // Плавное возвращение
+    scale.value = withSpring(1, {
+      damping: 15,
+      stiffness: 300,
+    });
+  };
+
+  const handlePress = () => {
+    if (!selected) {
+      // Haptic feedback при выборе
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    onPress();
+  };
+
   return (
-    <TouchableOpacity
-      style={[styles.radioContainer, selected && styles.radioContainerSelected]}
-      onPress={onPress}
-      activeOpacity={0.7}
+    <Pressable
+      onPress={handlePress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
     >
-      <Text style={styles.radioText}>{label}</Text>
-      {selected && (
-        <View style={styles.checkmarkContainer}>
-          <View style={styles.checkmark} />
-        </View>
-      )}
-    </TouchableOpacity>
+      <Animated.View
+        style={[
+          styles.radioContainer,
+          selected && styles.radioContainerSelected,
+          animatedStyle,
+        ]}
+      >
+        <Text style={styles.radioText}>{label}</Text>
+        {selected && (
+          <View style={styles.checkmarkContainer}>
+            <View style={styles.checkmark} />
+          </View>
+        )}
+      </Animated.View>
+    </Pressable>
   );
 }
 
