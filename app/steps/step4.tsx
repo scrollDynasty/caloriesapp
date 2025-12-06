@@ -4,31 +4,29 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
+import { DatePicker } from "../../components/ui/DatePicker";
 import { ProgressBar } from "../../components/ui/ProgressBar";
-import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
- * Экран четвертого шага онбординга
+ * Экран четвертого шага онбординга - Дата рождения
  */
 export default function Step4() {
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  // Устанавливаем дату по умолчанию (например, 15 февраля 2007)
+  const [birthDate, setBirthDate] = useState(new Date(2007, 1, 15));
 
   if (!fontsLoaded) {
     return null;
   }
 
   const handleNextPress = () => {
-    if (!selectedOption) {
-      // TODO: Показать ошибку валидации
-      return;
-    }
-    // TODO: Сохранить выбранное значение в состояние/БД
-    // TODO: Переход на следующий шаг (step5)
-    console.log("Выбрано:", selectedOption);
+    // TODO: Сохранить выбранную дату в состояние/БД
+    router.push({
+      pathname: "/steps/step5",
+    } as any);
   };
 
   const handleBackPress = () => {
@@ -52,29 +50,15 @@ export default function Step4() {
         <View style={styles.contentContainer}>
           {/* Заголовок и подзаголовок */}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Заголовок шага 4</Text>
+            <Text style={styles.title}>Дата рождения</Text>
             <Text style={styles.subtitle}>
-              Подзаголовок шага 4
+              Это поможет скорректировать программу питания
             </Text>
           </View>
 
-          {/* Варианты выбора */}
-          <View style={styles.optionsContainer}>
-            <RadioButton
-              label="Опция 1"
-              selected={selectedOption === "option1"}
-              onPress={() => setSelectedOption("option1")}
-            />
-            <RadioButton
-              label="Опция 2"
-              selected={selectedOption === "option2"}
-              onPress={() => setSelectedOption("option2")}
-            />
-            <RadioButton
-              label="Опция 3"
-              selected={selectedOption === "option3"}
-              onPress={() => setSelectedOption("option3")}
-            />
+          {/* Пicker для выбора даты */}
+          <View style={styles.pickerContainer}>
+            <DatePicker value={birthDate} onValueChange={setBirthDate} />
           </View>
         </View>
 
@@ -129,8 +113,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Inter_400Regular",
   },
-  optionsContainer: {
-    gap: 16,
+  pickerContainer: {
+    width: "100%",
+    paddingTop: 0,
   },
   buttonContainer: {
     paddingHorizontal: 24,

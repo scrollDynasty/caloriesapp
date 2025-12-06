@@ -1,22 +1,20 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
-import { HeightWeightPicker } from "../../components/ui/HeightWeightPicker";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
- * Экран третьего шага онбординга - Рост и вес
+ * Экран пятого шага онбординга
+ * TODO: Добавить контент согласно макету Figma
  */
-export default function Step3() {
+export default function Step5() {
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const [height, setHeight] = useState<number>(175); // Значение по умолчанию
-  const [weight, setWeight] = useState<number>(70); // Значение по умолчанию
+  // TODO: Добавить состояние для выбранных значений
 
   if (!fontsLoaded) {
     return null;
@@ -24,9 +22,11 @@ export default function Step3() {
 
   const handleNextPress = () => {
     // TODO: Сохранить выбранные значения в состояние/БД
-    router.push({
-      pathname: "/steps/step4",
-    } as any);
+    // TODO: Переход на следующий шаг (step6)
+    console.log("Шаг 5 завершен");
+    // router.push({
+    //   pathname: "/steps/step6",
+    // } as any);
   };
 
   const handleBackPress = () => {
@@ -41,40 +41,22 @@ export default function Step3() {
         showsVerticalScrollIndicator={false}
       >
         {/* Заголовок с индикатором шага */}
-        <StepHeader stepNumber={3} onBack={handleBackPress} />
+        <StepHeader stepNumber={5} onBack={handleBackPress} />
 
         {/* Прогресс-бар */}
-        <ProgressBar currentStep={3} totalSteps={9} />
+        <ProgressBar currentStep={5} totalSteps={9} />
 
         {/* Контент */}
         <View style={styles.contentContainer}>
           {/* Заголовок и подзаголовок */}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Рост и вес</Text>
+            <Text style={styles.title}>Заголовок шага 5</Text>
             <Text style={styles.subtitle}>
-              Укажите ваши параметры для точного расчета
+              Описание шага 5
             </Text>
           </View>
 
-          {/* Пикеры для роста и веса */}
-          <View style={styles.pickersContainer}>
-            <HeightWeightPicker
-              label="Рост"
-              value={height}
-              onValueChange={setHeight}
-              unit="см"
-              min={140}
-              max={220}
-            />
-            <HeightWeightPicker
-              label="Вес"
-              value={weight}
-              onValueChange={setWeight}
-              unit="кг"
-              min={40}
-              max={150}
-            />
-          </View>
+          {/* TODO: Добавить компоненты выбора согласно макету */}
         </View>
 
         {/* Кнопка "Продолжить" */}
@@ -127,13 +109,6 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     textAlign: "center",
     fontFamily: "Inter_400Regular",
-  },
-  pickersContainer: {
-    flexDirection: "row",
-    gap: 16,
-    justifyContent: "center",
-    alignItems: "flex-start",
-    paddingTop: 0,
   },
   buttonContainer: {
     paddingHorizontal: 24,

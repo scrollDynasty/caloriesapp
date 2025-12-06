@@ -65,11 +65,11 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
         ]}
       >
         <Text style={styles.radioText}>{label}</Text>
-        {selected && (
-          <View style={styles.checkmarkContainer}>
-            <View style={styles.checkmark} />
+        <View style={styles.radioCircleContainer}>
+          <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
+            {selected && <View style={styles.radioCircleInner} />}
           </View>
-        )}
+        </View>
       </Animated.View>
     </Pressable>
   );
@@ -115,19 +115,33 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     lineHeight: 21.78,
     fontFamily: "Inter_600SemiBold",
+    flex: 1,
   },
-  checkmarkContainer: {
+  radioCircleContainer: {
     width: 24,
     height: 24,
     justifyContent: "center",
     alignItems: "center",
-    padding: 7, // (24 - 10) / 2 = 7
   },
-  checkmark: {
+  radioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.secondary,
+    backgroundColor: "transparent",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  radioCircleSelected: {
+    borderColor: colors.primary,
+  },
+  radioCircleInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: colors.primary,
   },
 });
+
 
