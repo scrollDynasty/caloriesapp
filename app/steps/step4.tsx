@@ -4,29 +4,31 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
-import { HeightWeightPicker } from "../../components/ui/HeightWeightPicker";
 import { ProgressBar } from "../../components/ui/ProgressBar";
+import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
- * Экран третьего шага онбординга - Рост и вес
+ * Экран четвертого шага онбординга
  */
-export default function Step3() {
+export default function Step4() {
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const [height, setHeight] = useState<number>(175); // Значение по умолчанию
-  const [weight, setWeight] = useState<number>(70); // Значение по умолчанию
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   if (!fontsLoaded) {
     return null;
   }
 
   const handleNextPress = () => {
-    // TODO: Сохранить выбранные значения в состояние/БД
-    router.push({
-      pathname: "/steps/step4",
-    } as any);
+    if (!selectedOption) {
+      // TODO: Показать ошибку валидации
+      return;
+    }
+    // TODO: Сохранить выбранное значение в состояние/БД
+    // TODO: Переход на следующий шаг (step5)
+    console.log("Выбрано:", selectedOption);
   };
 
   const handleBackPress = () => {
@@ -41,38 +43,37 @@ export default function Step3() {
         showsVerticalScrollIndicator={false}
       >
         {/* Заголовок с индикатором шага */}
-        <StepHeader stepNumber={3} onBack={handleBackPress} />
+        <StepHeader stepNumber={4} onBack={handleBackPress} />
 
         {/* Прогресс-бар */}
-        <ProgressBar currentStep={3} totalSteps={9} />
+        <ProgressBar currentStep={4} totalSteps={9} />
 
         {/* Контент */}
         <View style={styles.contentContainer}>
           {/* Заголовок и подзаголовок */}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Рост и вес</Text>
+            <Text style={styles.title}>Заголовок шага 4</Text>
             <Text style={styles.subtitle}>
-              Укажите ваши параметры для точного расчета
+              Подзаголовок шага 4
             </Text>
           </View>
 
-          {/* Пикеры для роста и веса */}
-          <View style={styles.pickersContainer}>
-            <HeightWeightPicker
-              label="Рост"
-              value={height}
-              onValueChange={setHeight}
-              unit="см"
-              min={140}
-              max={220}
+          {/* Варианты выбора */}
+          <View style={styles.optionsContainer}>
+            <RadioButton
+              label="Опция 1"
+              selected={selectedOption === "option1"}
+              onPress={() => setSelectedOption("option1")}
             />
-            <HeightWeightPicker
-              label="Вес"
-              value={weight}
-              onValueChange={setWeight}
-              unit="кг"
-              min={40}
-              max={150}
+            <RadioButton
+              label="Опция 2"
+              selected={selectedOption === "option2"}
+              onPress={() => setSelectedOption("option2")}
+            />
+            <RadioButton
+              label="Опция 3"
+              selected={selectedOption === "option3"}
+              onPress={() => setSelectedOption("option3")}
             />
           </View>
         </View>
@@ -128,12 +129,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: "Inter_400Regular",
   },
-  pickersContainer: {
-    flexDirection: "row",
-    gap: 24,
-    justifyContent: "center",
-    alignItems: "flex-start",
-    paddingTop: 0,
+  optionsContainer: {
+    gap: 16,
   },
   buttonContainer: {
     paddingHorizontal: 24,

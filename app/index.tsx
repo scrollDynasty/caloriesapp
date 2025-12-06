@@ -8,12 +8,23 @@ import { colors } from "../constants/theme";
 import { useFonts } from "../hooks/use-fonts";
 import { getImageHeight, getImageWidth } from "../utils/responsive";
 
+// Предзагрузка всех шагов для устранения задержек при переходе
+// Импортируем компоненты, чтобы они были загружены в память
+import Step1 from "./steps/step1";
+import Step2 from "./steps/step2";
+import Step3 from "./steps/step3";
+import Step4 from "./steps/step4";
+
 /**
  * Экран первого шага - Умный подсчет калорий
  */
 export default function Index() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+
+  // Полная предзагрузка всех шагов при монтировании компонента
+  // Скрытые компоненты внизу будут полностью инициализированы, но не видны пользователю
+  // Это гарантирует их полную инициализацию до первого перехода
 
   if (!fontsLoaded) {
     return null;
@@ -66,6 +77,15 @@ export default function Index() {
           />
         </View>
       </ScrollView>
+
+      {/* Скрытые экземпляры всех шагов для полной предзагрузки */}
+      {/* Они рендерятся, но не видны пользователю, что гарантирует их полную инициализацию */}
+      <View style={styles.preloadContainer} pointerEvents="none">
+        <Step1 />
+        <Step2 />
+        <Step3 />
+        <Step4 />
+      </View>
     </SafeAreaView>
   );
 }
@@ -92,5 +112,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 24,
     gap: 16, // gap: 16px из Figma
+  },
+  preloadContainer: {
+    position: "absolute",
+    top: -9999,
+    left: -9999,
+    width: 1,
+    height: 1,
+    opacity: 0,
+    overflow: "hidden",
+    pointerEvents: "none",
   },
 });

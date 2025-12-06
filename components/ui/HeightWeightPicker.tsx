@@ -14,8 +14,18 @@ interface HeightWeightPickerProps {
 }
 
 const ITEM_HEIGHT = 56;
+const ITEM_SPACING = 12; // Увеличенный отступ между элементами
+const ITEM_TOTAL_HEIGHT = ITEM_HEIGHT + ITEM_SPACING; // Общая высота элемента с отступом
 const PICKER_HEIGHT = 280;
 const CENTER_OFFSET = (PICKER_HEIGHT - ITEM_HEIGHT) / 2; // 112px
+
+// Функция для расчета точного offset элемента с учетом центрирования
+const getItemOffset = (index: number): number => {
+  // Первый элемент (index 0) должен быть на позиции 0
+  // Каждый следующий элемент смещается на ITEM_TOTAL_HEIGHT
+  // Это обеспечивает правильное центрирование с учетом paddingTop = CENTER_OFFSET
+  return index * ITEM_TOTAL_HEIGHT;
+};
 
 // Мемоизированный компонент элемента для оптимизации
 const PickerItem = React.memo(
@@ -33,10 +43,19 @@ const PickerItem = React.memo(
         </Text>
       )}
     </View>
-  )
+  ),
+  (prevProps, nextProps) => {
+    // Оптимизированное сравнение - перерисовываем только если изменилось selected или item
+    return (
+      prevProps.item === nextProps.item &&
+      prevProps.isSelected === nextProps.isSelected &&
+      prevProps.unit === nextProps.unit
+    );
+  }
 );
 
-export function HeightWeightPicker({
+// Мемоизированный основной компонент для предотвращения лишних ререндеров
+export const HeightWeightPicker = React.memo(function HeightWeightPicker({
   label,
   value,
   onValueChange,
@@ -54,14 +73,17 @@ export function HeightWeightPicker({
   const isScrollingRef = useRef<boolean>(false);
   const isInitializedRef = useRef<boolean>(false);
   const shouldUpdateScrollRef = useRef<boolean>(true);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingValueRef = useRef<number | null>(null);
 
   // Быстрая инициализация без задержек
   const handleLayout = useCallback(() => {
     if (scrollViewRef.current && !isInitializedRef.current) {
       const selectedIndex = items.indexOf(value);
       if (selectedIndex >= 0) {
-        const targetOffset = selectedIndex * ITEM_HEIGHT;
-        requestAnimationFrame(() => {
+        const targetOffset = getItemOffset(selectedIndex);
+        // Используем setTimeout вместо requestAnimationFrame для более быстрой инициализации
+        setTimeout(() => {
           if (scrollViewRef.current && !isInitializedRef.current) {
             scrollViewRef.current.scrollTo({
               y: targetOffset,
@@ -70,7 +92,7 @@ export function HeightWeightPicker({
             isInitializedRef.current = true;
             shouldUpdateScrollRef.current = false;
           }
-        });
+        }, 0);
       }
     }
   }, [items, value]);
@@ -85,14 +107,33 @@ export function HeightWeightPicker({
     ) {
       const selectedIndex = items.indexOf(value);
       if (selectedIndex >= 0) {
-        const targetOffset = selectedIndex * ITEM_HEIGHT;
-        scrollViewRef.current.scrollTo({
-          y: targetOffset,
-          animated: true,
+        const targetOffset = getItemOffset(selectedIndex);
+        // Используем requestAnimationFrame для плавного скролла
+        requestAnimationFrame(() => {
+          if (scrollViewRef.current && !isScrollingRef.current) {
+            scrollViewRef.current.scrollTo({
+              y: targetOffset,
+              animated: true,
+            });
+          }
         });
       }
     }
   }, [value, items]);
+
+  // Cleanup timeout при размонтировании и при изменении зависимостей
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
+      }
+      // Сбрасываем все refs при размонтировании
+      isScrollingRef.current = false;
+      isInitializedRef.current = false;
+      pendingValueRef.current = null;
+    };
+  }, []);
 
   const handleScroll = useCallback((event: any) => {
     if (!isInitializedRef.current) return;
@@ -101,38 +142,87 @@ export function HeightWeightPicker({
     shouldUpdateScrollRef.current = false;
     const scrollY = event.nativeEvent.contentOffset.y;
     
-    // Оптимизированный расчет индекса
-    const index = Math.round(scrollY / ITEM_HEIGHT);
+    // Упрощенный расчет индекса с учетом spacing
+    const index = Math.round(scrollY / ITEM_TOTAL_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
     const newValue = items[clampedIndex];
 
-    // Вибрация при изменении значения
+    // Обновляем значение только если оно изменилось
     if (newValue !== previousValueRef.current) {
+      previousValueRef.current = newValue;
+      pendingValueRef.current = newValue;
+
+      // Оптимизированная вибрация - только при значительном изменении и с большим интервалом
       const now = Date.now();
-      if (now - lastHapticTimeRef.current > 120) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      if (now - lastHapticTimeRef.current > 200) {
+        // Используем requestIdleCallback для неблокирующей вибрации
+        requestAnimationFrame(() => {
+          try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          } catch (e) {
+            // Игнорируем ошибки вибрации
+          }
+        });
         lastHapticTimeRef.current = now;
       }
-      previousValueRef.current = newValue;
-      onValueChange(newValue);
+
+      // Debounce для onValueChange - очищаем предыдущий timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+        scrollTimeoutRef.current = null;
+      }
+      
+      // Устанавливаем новый timeout только если значение действительно изменилось
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (pendingValueRef.current !== null && pendingValueRef.current !== value) {
+          onValueChange(pendingValueRef.current);
+          pendingValueRef.current = null;
+        }
+        scrollTimeoutRef.current = null;
+      }, 100);
     }
-  }, [items, onValueChange]);
+  }, [items, onValueChange, value]);
 
   const handleMomentumScrollEnd = useCallback((event: any) => {
+    // Очищаем pending timeout перед финальным обновлением
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = null;
+    }
+
     isScrollingRef.current = false;
     shouldUpdateScrollRef.current = true;
     const scrollY = event.nativeEvent.contentOffset.y;
-    const index = Math.round(scrollY / ITEM_HEIGHT);
+    
+    // Точный расчет индекса - округляем к ближайшему элементу
+    const index = Math.round(scrollY / ITEM_TOTAL_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
     const newValue = items[clampedIndex];
 
     if (scrollViewRef.current) {
-      const targetOffset = clampedIndex * ITEM_HEIGHT;
-      scrollViewRef.current.scrollTo({
-        y: targetOffset,
-        animated: true,
+      // Используем точную функцию для расчета offset
+      const targetOffset = getItemOffset(clampedIndex);
+      
+      // Используем requestAnimationFrame для плавного скролла
+      requestAnimationFrame(() => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({
+            y: targetOffset,
+            animated: true,
+          });
+        }
       });
+      
       if (newValue !== value) {
+        previousValueRef.current = newValue;
+        // Вибрация только при окончании скролла для финального значения
+        requestAnimationFrame(() => {
+          try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          } catch (e) {
+            // Игнорируем ошибки вибрации
+          }
+        });
         onValueChange(newValue);
       }
     }
@@ -163,17 +253,26 @@ export function HeightWeightPicker({
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
-          snapToInterval={ITEM_HEIGHT}
+          snapToInterval={ITEM_TOTAL_HEIGHT}
           decelerationRate="fast"
           onLayout={handleLayout}
           onScroll={handleScroll}
           onMomentumScrollEnd={handleMomentumScrollEnd}
           onScrollBeginDrag={() => {
+            // Очищаем pending timeout при начале скролла
+            if (scrollTimeoutRef.current) {
+              clearTimeout(scrollTimeoutRef.current);
+              scrollTimeoutRef.current = null;
+            }
             isScrollingRef.current = true;
             shouldUpdateScrollRef.current = false;
           }}
-          scrollEventThrottle={8}
+          scrollEventThrottle={64}
           removeClippedSubviews={true}
+          nestedScrollEnabled={false}
+          bounces={false}
+          overScrollMode="never"
+          scrollEnabled={true}
         >
           {items.map((item) => (
             <PickerItem
@@ -184,13 +283,20 @@ export function HeightWeightPicker({
             />
           ))}
         </ScrollView>
-
-        {/* Граница */}
-        <View style={styles.border} />
       </View>
     </View>
   );
-}
+}, (prevProps, nextProps) => {
+  // Мемоизация компонента - перерисовываем только если изменились важные пропсы
+  return (
+    prevProps.value === nextProps.value &&
+    prevProps.min === nextProps.min &&
+    prevProps.max === nextProps.max &&
+    prevProps.unit === nextProps.unit &&
+    prevProps.label === nextProps.label &&
+    prevProps.onValueChange === nextProps.onValueChange
+  );
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -205,7 +311,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     letterSpacing: 1,
     textTransform: "uppercase",
-    marginBottom: 24,
+    marginBottom: 32,
   },
   pickerWrapper: {
     width: 120,
@@ -237,7 +343,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: ITEM_HEIGHT,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#E6E1D8",
@@ -256,6 +361,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 8,
+    marginBottom: ITEM_SPACING,
   },
   itemText: {
     fontSize: 20,
@@ -280,18 +386,6 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     marginLeft: 4,
     paddingTop: 8,
-  },
-  border: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderWidth: 1,
-    borderColor: "#E6E1D8",
-    borderRadius: 8,
-    zIndex: 0,
-    pointerEvents: "none",
   },
 });
 
