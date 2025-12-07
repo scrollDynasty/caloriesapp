@@ -20,6 +20,11 @@ export const API_ENDPOINTS = {
   // Данные онбординга
   ONBOARDING: "/api/v1/onboarding",
   
+  // Фотографии еды
+  MEALS_UPLOAD: "/api/v1/meals/upload",
+  MEALS_PHOTOS: "/api/v1/meals/photos",
+  MEALS_PHOTO: "/api/v1/meals/photos",
+  
   // Системные
   HEALTH: "/health",
 } as const;

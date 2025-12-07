@@ -1,0 +1,545 @@
+import { Ionicons } from "@expo/vector-icons";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFonts } from "../hooks/use-fonts";
+import { apiService } from "../services/api";
+
+// Цвет слоновая кость (ivory) - более теплый бежевый оттенок
+const IVORY_COLOR = "#F5F0E8";
+
+export default function ScanMealScreen() {
+  const fontsLoaded = useFonts();
+  const router = useRouter();
+  const [permission, requestPermission] = useCameraPermissions();
+  const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
+  const cameraRef = useRef<CameraView>(null);
+  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [scanned, setScanned] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
+  const [cameraActive, setCameraActive] = useState(true);
+  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+
+  // Запрос разрешения при монтировании
+  useEffect(() => {
+    if (permission && !permission.granted && !permission.canAskAgain) {
+      Alert.alert(
+        "Разрешение камеры",
+        "Для сканирования еды необходимо разрешение на использование камеры. Пожалуйста, разрешите доступ в настройках.",
+        [{ text: "ОК" }]
+      );
+    } else if (permission && !permission.granted && permission.canAskAgain) {
+      requestPermission();
+    }
+
+    // Запрашиваем разрешение галереи
+    if (galleryPermission && !galleryPermission.granted && galleryPermission.canAskAgain) {
+      requestGalleryPermission();
+    }
+  }, [permission, galleryPermission]);
+
+  const handleBarCodeScanned = ({ data }: { data: string }) => {
+    if (!scanned) {
+      setScanned(true);
+      setScannedBarcode(data);
+      Alert.alert("Штрих-код отсканирован", `Код: ${data}`, [
+        {
+          text: "OK",
+          onPress: () => setScanned(false),
+        },
+      ]);
+    }
+  };
+
+  const toggleFlash = () => {
+    setFlashEnabled(!flashEnabled);
+  };
+
+  const handleTakePicture = async () => {
+    if (!cameraRef.current || uploading || isProcessingPhoto) {
+      console.log("Cannot take picture:", { hasCameraRef: !!cameraRef.current, uploading, isProcessingPhoto });
+      return;
+    }
+
+    try {
+      setIsProcessingPhoto(true);
+      setUploading(true);
+      console.log("Taking picture...");
+      
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: false,
+      });
+
+      console.log("Photo taken:", photo?.uri ? "Success" : "Failed");
+
+      if (photo?.uri) {
+        await uploadPhoto(photo.uri, scannedBarcode || undefined);
+      } else {
+        setUploading(false);
+        setIsProcessingPhoto(false);
+        Alert.alert("Ошибка", "Не удалось сделать фотографию");
+      }
+    } catch (error: any) {
+      console.error("Error taking picture:", error);
+      setUploading(false);
+      setIsProcessingPhoto(false);
+      Alert.alert("Ошибка", error.message || "Не удалось сделать фотографию");
+    }
+  };
+
+  const handleGalleryPress = async () => {
+    if (!galleryPermission?.granted) {
+      if (galleryPermission?.canAskAgain) {
+        const result = await requestGalleryPermission();
+        if (!result.granted) {
+          Alert.alert(
+            "Разрешение галереи",
+            "Для выбора фотографий необходимо разрешение на доступ к галерее."
+          );
+          return;
+        }
+      } else {
+        Alert.alert(
+          "Разрешение галереи",
+          "Пожалуйста, разрешите доступ к галерее в настройках приложения."
+        );
+        return;
+      }
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        await uploadPhoto(result.assets[0].uri, scannedBarcode || undefined);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Ошибка", "Не удалось выбрать фотографию");
+    }
+  };
+
+  const uploadPhoto = async (uri: string, barcode?: string) => {
+    try {
+      setUploading(true);
+      console.log("Starting photo upload, URI:", uri);
+
+      // Получаем имя файла из URI
+      const fileName = uri.split("/").pop() || `photo_${Date.now()}.jpg`;
+      const mimeType = "image/jpeg";
+
+      console.log("Uploading file:", fileName, "mimeType:", mimeType, "barcode:", barcode);
+
+      // Загружаем фото на сервер
+      const response = await apiService.uploadMealPhoto(
+        uri,
+        fileName,
+        mimeType,
+        barcode
+      );
+
+      console.log("Photo uploaded successfully:", response);
+      
+      setIsProcessingPhoto(false);
+
+      Alert.alert(
+        "Успешно",
+        "Фотография успешно загружена",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              router.back();
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      setIsProcessingPhoto(false);
+      console.error("Error uploading photo:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      
+      const errorMessage = 
+        error.response?.data?.detail || 
+        error.response?.data?.message ||
+        (error.response?.status === 422 ? "Некорректные данные для загрузки. Проверьте формат файла." : null) ||
+        error.message || 
+        "Не удалось загрузить фотографию";
+      
+      Alert.alert("Ошибка", errorMessage);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleBarcodePress = () => {
+    setScanned(false);
+    setScannedBarcode(null);
+  };
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
+  if (!permission) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#000" />
+        <Text style={styles.loadingText}>Загрузка...</Text>
+      </View>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => router.back()}
+          >
+            <View style={styles.headerButtonCircle}>
+              <Ionicons name="close" size={24} color="#000" />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Scan Meal</Text>
+          <View style={styles.headerButton} />
+        </View>
+
+        <View style={styles.permissionContainer}>
+          <Text style={styles.permissionText}>
+            Разрешите доступ к камере для сканирования еды
+          </Text>
+          <TouchableOpacity
+            style={styles.permissionButton}
+            onPress={requestPermission}
+          >
+            <Text style={styles.permissionButtonText}>
+              Предоставить разрешение
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => router.back()}
+        >
+          <View style={styles.headerButtonCircle}>
+            <Ionicons name="close" size={24} color="#000" />
+          </View>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Scan Meal</Text>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={toggleFlash}
+        >
+          <View style={styles.headerButtonCircle}>
+            <Ionicons
+              name={flashEnabled ? "flash" : "flash-off"}
+              size={24}
+              color="#000"
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Camera View */}
+      <View style={styles.cameraContainer}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing="back"
+          enableTorch={flashEnabled && cameraActive}
+          onBarcodeScanned={scanned || !cameraActive ? undefined : handleBarCodeScanned}
+          barcodeScannerSettings={{
+            barcodeTypes: [
+              "ean13",
+              "ean8",
+              "upc_a",
+              "upc_e",
+              "code128",
+              "code39",
+              "code93",
+              "codabar",
+              "itf14",
+            ],
+          }}
+        />
+        
+        {/* Corner Brackets Overlay - вне CameraView */}
+        <View style={styles.scanArea} pointerEvents="none">
+          <View style={[styles.corner, styles.cornerTopLeft]} />
+          <View style={[styles.corner, styles.cornerTopRight]} />
+          <View style={[styles.corner, styles.cornerBottomLeft]} />
+          <View style={[styles.corner, styles.cornerBottomRight]} />
+        </View>
+
+        {/* Center Food Instruction - вне CameraView */}
+        <View style={styles.instructionContainer} pointerEvents="none">
+          <View style={styles.instructionButton}>
+            <Ionicons
+              name="scan-outline"
+              size={20}
+              color="#FFFFFF"
+              style={styles.instructionIcon}
+            />
+            <Text style={styles.instructionText}>Center your food</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Bottom Controls */}
+      <View style={styles.controls}>
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={handleGalleryPress}
+        >
+          <View style={styles.galleryThumbnail}>
+            <Ionicons name="images-outline" size={24} color="#000" />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.shutterButton}
+          onPress={handleTakePicture}
+          disabled={uploading || isProcessingPhoto}
+        >
+          <View style={styles.shutterButtonOuter}>
+            {uploading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <View style={styles.shutterButtonInner} />
+            )}
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={handleBarcodePress}
+        >
+          <View style={styles.barcodeIcon}>
+            <Ionicons name="barcode-outline" size={24} color="#000" />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: IVORY_COLOR,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: IVORY_COLOR,
+  },
+  headerButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerButtonCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    color: "#000",
+  },
+  cameraContainer: {
+    flex: 1,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#000",
+    position: "relative",
+  },
+  camera: {
+    flex: 1,
+  },
+  scanArea: {
+    position: "absolute",
+    top: 40,
+    left: 40,
+    right: 40,
+    bottom: 40,
+    zIndex: 1,
+  },
+  corner: {
+    position: "absolute",
+    width: 40,
+    height: 40,
+    borderColor: "#FFFFFF",
+    borderWidth: 3,
+  },
+  cornerTopLeft: {
+    top: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderBottomWidth: 0,
+  },
+  cornerTopRight: {
+    top: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
+  },
+  cornerBottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderRightWidth: 0,
+    borderTopWidth: 0,
+  },
+  cornerBottomRight: {
+    bottom: 0,
+    right: 0,
+    borderLeftWidth: 0,
+    borderTopWidth: 0,
+  },
+  instructionContainer: {
+    position: "absolute",
+    bottom: 40,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 1,
+  },
+  instructionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    gap: 8,
+  },
+  instructionIcon: {
+    marginRight: 4,
+  },
+  instructionText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+  },
+  controls: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 32,
+    paddingVertical: 24,
+    backgroundColor: IVORY_COLOR,
+  },
+  controlButton: {
+    width: 56,
+    height: 56,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  galleryThumbnail: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shutterButton: {
+    width: 80,
+    height: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shutterButtonOuter: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 6,
+    borderColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#000",
+  },
+  shutterButtonInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#000",
+  },
+  barcodeIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  permissionContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  permissionText: {
+    fontSize: 16,
+    fontFamily: "Inter_400Regular",
+    color: "#000",
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  permissionButton: {
+    backgroundColor: "#000",
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  permissionButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Inter_600SemiBold",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    fontFamily: "Inter_400Regular",
+    color: "#000",
+  },
+});

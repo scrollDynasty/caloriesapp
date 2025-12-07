@@ -34,4 +34,5 @@ def init_db():
     """Инициализация базы данных - создание таблиц"""
     from app.models.user import User  # noqa: F401
     from app.models.onboarding_data import OnboardingData  # noqa: F401
+    from app.models.meal_photo import MealPhoto  # noqa: F401
     Base.metadata.create_all(bind=engine)

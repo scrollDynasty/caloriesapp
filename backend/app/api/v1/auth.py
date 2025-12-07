@@ -40,7 +40,7 @@ async def auth_google_initiate(state: str = Query(default="caloriesapp://auth/ca
         # Для локальной разработки формируем на основе настроек хоста
         if settings.host == "0.0.0.0":
             # Если хост 0.0.0.0, используем localhost для redirect_uri
-        redirect_uri = f"http://localhost:{settings.port}/api/v1/auth/google/callback"
+            redirect_uri = f"http://localhost:{settings.port}/api/v1/auth/google/callback"
         else:
             redirect_uri = f"http://{settings.host}:{settings.port}/api/v1/auth/google/callback"
     
@@ -85,7 +85,7 @@ async def auth_google_callback(
         else:
             # Для локальной разработки формируем на основе настроек хоста
             if settings.host == "0.0.0.0":
-            callback_redirect_uri = f"http://localhost:{settings.port}/api/v1/auth/google/callback"
+                callback_redirect_uri = f"http://localhost:{settings.port}/api/v1/auth/google/callback"
             else:
                 callback_redirect_uri = f"http://{settings.host}:{settings.port}/api/v1/auth/google/callback"
         

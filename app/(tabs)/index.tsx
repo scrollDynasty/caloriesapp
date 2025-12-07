@@ -1,8 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { useCameraPermissions } from "expo-camera";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Animated,
   ScrollView,
   StyleSheet,
@@ -19,16 +22,17 @@ import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 import { apiService } from "../../services/api";
-
 /**
  * Главный экран приложения
  */
 export default function HomeScreen() {
   const fontsLoaded = useFonts();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
   const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   
   const getToday = () => {
     const today = new Date();
@@ -106,7 +110,23 @@ export default function HomeScreen() {
       isMountedRef.current = false;
       isLoadingRef.current = false;
     };
-  }, []); 
+  }, []);
+
+  // Запрос разрешения камеры при первом входе
+  useEffect(() => {
+    const requestCameraPermissionOnFirstLaunch = async () => {
+      try {
+        if (cameraPermission && !cameraPermission.granted && cameraPermission.canAskAgain) {
+          // Автоматически запрашиваем разрешение при первом входе
+          await requestCameraPermission();
+        }
+      } catch (error) {
+        console.error("Error requesting camera permission:", error);
+      }
+    };
+
+    requestCameraPermissionOnFirstLaunch();
+  }, [cameraPermission]); 
 
   useEffect(() => {
     if (selectedDateTimestamp === lastLoadedDateRef.current) {
@@ -161,10 +181,32 @@ export default function HomeScreen() {
     }).start();
   };
 
-  const handleScanFood = () => {
-    console.log("Сканировать еду");
+  const handleScanFood = async () => {
     toggleFab();
-    // TODO: Navigate to scan screen
+    
+    // Проверяем разрешение камеры перед переходом
+    if (cameraPermission && !cameraPermission.granted) {
+      if (cameraPermission.canAskAgain) {
+        const result = await requestCameraPermission();
+        if (result.granted) {
+          router.push("/scan-meal" as any);
+        } else {
+          Alert.alert(
+            "Разрешение камеры",
+            "Для сканирования еды необходимо разрешение на использование камеры. Пожалуйста, разрешите доступ в настройках приложения.",
+            [{ text: "ОК" }]
+          );
+        }
+      } else {
+        Alert.alert(
+          "Разрешение камеры",
+          "Для сканирования еды необходимо разрешение на использование камеры. Пожалуйста, разрешите доступ в настройках приложения.",
+          [{ text: "ОК" }]
+        );
+      }
+    } else {
+      router.push("/scan-meal" as any);
+    }
   };
 
   const handleAddManually = () => {

@@ -144,6 +144,45 @@ class ApiService {
     return response.data;
   }
 
+  // Фотографии еды
+  async uploadMealPhoto(
+    uri: string,
+    fileName: string,
+    mimeType: string,
+    barcode?: string,
+    mealName?: string
+  ) {
+    const formData = new FormData();
+    
+    formData.append("file", {
+      uri: uri, // URI как есть, axios и FastAPI обработают его
+      name: fileName,
+      type: mimeType,
+    } as any);
+    
+    formData.append("barcode", barcode || "");
+    formData.append("meal_name", mealName || "");
+
+    const response = await this.api.post(API_ENDPOINTS.MEALS_UPLOAD, formData);
+    
+    return response.data;
+  }
+
+  async getMealPhotos(skip: number = 0, limit: number = 100) {
+    const response = await this.api.get(API_ENDPOINTS.MEALS_PHOTOS, {
+      params: { skip, limit },
+    });
+    return response.data;
+  }
+
+  async deleteMealPhoto(photoId: number) {
+    await this.api.delete(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
+  }
+
+  getMealPhotoUrl(photoId: number): string {
+    return `${API_BASE_URL}${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`;
+  }
+
   // Проверка здоровья сервера
   async healthCheck() {
     try {
