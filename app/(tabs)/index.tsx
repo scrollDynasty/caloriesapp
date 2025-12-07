@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CaloriesCard } from "../../components/home/CaloriesCard";
 import { HomeHeader } from "../../components/home/HomeHeader";
 import { MacrosCards } from "../../components/home/MacrosCards";
@@ -23,6 +23,7 @@ import { apiService } from "../../services/api";
  */
 export default function HomeScreen() {
   const fontsLoaded = useFonts();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<any>(null);
   const [onboardingData, setOnboardingData] = useState<any>(null);
@@ -55,30 +56,13 @@ export default function HomeScreen() {
   // Используем ref для предотвращения дублирования запросов
   const isLoadingRef = useRef(false);
   const isMountedRef = useRef(true);
+  const hasLoadedRef = useRef(false); // Флаг того, что данные уже были загружены
   const lastLoadedDateRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    isMountedRef.current = true;
-    loadUserData();
-    
-    return () => {
-      isMountedRef.current = false;
-      isLoadingRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    // Предотвращаем загрузку той же даты повторно
-    if (selectedDateTimestamp === lastLoadedDateRef.current) {
-      return;
-    }
-    
-    loadDailyData(selectedDateTimestamp);
-  }, [selectedDateTimestamp]);
-
-  const loadUserData = async () => {
-    // Предотвращаем параллельные вызовы
-    if (isLoadingRef.current) {
+  // Мемоизируем функцию загрузки данных пользователя
+  const loadUserData = useCallback(async () => {
+    // Предотвращаем повторные вызовы - если уже загружаем или уже загрузили
+    if (isLoadingRef.current || hasLoadedRef.current) {
       return;
     }
     
@@ -88,6 +72,7 @@ export default function HomeScreen() {
     }
     
     isLoadingRef.current = true;
+    hasLoadedRef.current = true; // Отмечаем что начинаем загрузку
     
     try {
       // Загружаем данные пользователя
@@ -107,13 +92,38 @@ export default function HomeScreen() {
       if (isMountedRef.current) {
         console.error("Error loading data:", error);
       }
+      // Сбрасываем флаг при ошибке, чтобы можно было повторить попытку
+      hasLoadedRef.current = false;
     } finally {
       isLoadingRef.current = false;
       if (isMountedRef.current) {
         setLoading(false);
       }
     }
-  };
+  }, []); // Пустой массив зависимостей - функция стабильна
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    
+    // Загружаем данные только один раз при монтировании
+    loadUserData();
+    
+    return () => {
+      isMountedRef.current = false;
+      isLoadingRef.current = false;
+      // НЕ сбрасываем hasLoadedRef - данные уже загружены
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Пустой массив - загружаем только один раз при монтировании
+
+  useEffect(() => {
+    // Предотвращаем загрузку той же даты повторно
+    if (selectedDateTimestamp === lastLoadedDateRef.current) {
+      return;
+    }
+    
+    loadDailyData(selectedDateTimestamp);
+  }, [selectedDateTimestamp]);
 
   const loadDailyData = async (dateTimestamp: number) => {
     // Предотвращаем параллельные вызовы для той же даты
@@ -227,8 +237,12 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* Floating Add Button - чуть выше нижней панели */}
-      {/* Tab bar height = 80 (из _layout.tsx: height: 80) + SafeArea bottom */}
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity 
+        style={[
+          styles.fab, 
+          { bottom: 50 + Math.max(insets.bottom, 2) + 4 }
+        ]}
+      >
         <Ionicons name="add" size={32} color={colors.white} />
       </TouchableOpacity>
     </SafeAreaView>
@@ -255,11 +269,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 110, // Увеличено для FAB и нижней панели
+    paddingBottom: 100, // Увеличено для FAB и нижней панели
   },
   fab: {
     position: "absolute",
-    bottom: 78, // Чуть выше нижней панели: tab bar (75) + небольшой отступ (3)
     right: 24,
     width: 64,
     height: 64,
