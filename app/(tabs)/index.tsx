@@ -92,7 +92,6 @@ export default function HomeScreen() {
       if (isMountedRef.current) {
         console.error("Error loading data:", error);
       }
-      // Сбрасываем флаг при ошибке, чтобы можно было повторить попытку
       hasLoadedRef.current = false;
     } finally {
       isLoadingRef.current = false;
@@ -100,21 +99,18 @@ export default function HomeScreen() {
         setLoading(false);
       }
     }
-  }, []); // Пустой массив зависимостей - функция стабильна
+  }, []); 
 
   useEffect(() => {
     isMountedRef.current = true;
     
-    // Загружаем данные только один раз при монтировании
     loadUserData();
     
     return () => {
       isMountedRef.current = false;
       isLoadingRef.current = false;
-      // НЕ сбрасываем hasLoadedRef - данные уже загружены
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Пустой массив - загружаем только один раз при монтировании
+  }, []); 
 
   useEffect(() => {
     // Предотвращаем загрузку той же даты повторно
@@ -134,10 +130,6 @@ export default function HomeScreen() {
     lastLoadedDateRef.current = dateTimestamp;
     
     try {
-      // TODO: Загружать данные из БД по выбранной дате
-      // const date = new Date(dateTimestamp);
-      // const dateStr = date.toISOString().split('T')[0];
-      // const data = await apiService.getDailyData(dateStr);
       
       // Пока используем заглушку
       if (!isMountedRef.current) return;
@@ -240,10 +232,10 @@ export default function HomeScreen() {
       <TouchableOpacity 
         style={[
           styles.fab, 
-          { bottom: 50 + Math.max(insets.bottom, 2) + 4 }
+          { bottom: insets.bottom + 58 }
         ]}
       >
-        <Ionicons name="add" size={32} color={colors.white} />
+        <Ionicons name="add" size={32} color="#FFFFFF" />
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -277,7 +269,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.primary,
+    backgroundColor: "#000000",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
