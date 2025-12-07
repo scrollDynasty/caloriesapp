@@ -7,6 +7,7 @@ import { PrimaryButton } from "../../components/ui/Button";
 import { DatePicker } from "../../components/ui/DatePicker";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { colors } from "../../constants/theme";
+import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
@@ -15,6 +16,7 @@ import { useFonts } from "../../hooks/use-fonts";
 export default function Step4() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   // Устанавливаем дату по умолчанию (например, 15 февраля 2007)
   const [birthDate, setBirthDate] = useState(new Date(2007, 1, 15));
 
@@ -23,7 +25,8 @@ export default function Step4() {
   }
 
   const handleNextPress = () => {
-    // TODO: Сохранить выбранную дату в состояние/БД
+    // Сохраняем данные в контекст
+    updateData({ birthDate });
     router.push({
       pathname: "/steps/step5",
     } as any);

@@ -7,6 +7,7 @@ import { PrimaryButton } from "../../components/ui/Button";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
+import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
@@ -15,6 +16,7 @@ import { useFonts } from "../../hooks/use-fonts";
 export default function Step7() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   const [selectedBarrier, setSelectedBarrier] = useState<string | null>("lack-of-ideas");
 
   if (!fontsLoaded) {
@@ -22,8 +24,11 @@ export default function Step7() {
   }
 
   const handleNextPress = () => {
-    // TODO: Сохранить выбранное значение в состояние/БД
-    console.log("Барьер:", selectedBarrier);
+    if (!selectedBarrier) {
+      return;
+    }
+    // Сохраняем данные в контекст
+    updateData({ barrier: selectedBarrier });
     router.push({
       pathname: "/steps/step8",
     } as any);

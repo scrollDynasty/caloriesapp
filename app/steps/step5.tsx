@@ -7,11 +7,13 @@ import { PrimaryButton } from "../../components/ui/Button";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
+import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 export default function Step5() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   const [hasTrainer, setHasTrainer] = useState<boolean | null>(true);
 
   if (!fontsLoaded) {
@@ -19,8 +21,8 @@ export default function Step5() {
   }
 
   const handleNextPress = () => {
-    // TODO: Сохранить выбранное значение в состояние/БД
-    console.log("Работа с тренером:", hasTrainer);
+    // Сохраняем данные в контекст
+    updateData({ hasTrainer: hasTrainer ?? false });
     router.push({
       pathname: "/steps/step6",
     } as any);

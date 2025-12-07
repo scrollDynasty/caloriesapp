@@ -7,6 +7,7 @@ import { PrimaryButton } from "../../components/ui/Button";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
+import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
@@ -15,6 +16,7 @@ import { useFonts } from "../../hooks/use-fonts";
 export default function Step6() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   const [selectedGoal, setSelectedGoal] = useState<string | null>("maintain");
 
   if (!fontsLoaded) {
@@ -22,8 +24,11 @@ export default function Step6() {
   }
 
   const handleNextPress = () => {
-    // TODO: Сохранить выбранное значение в состояние/БД
-    console.log("Цель пользователя:", selectedGoal);
+    if (!selectedGoal) {
+      return;
+    }
+    // Сохраняем данные в контекст
+    updateData({ goal: selectedGoal as "lose" | "maintain" | "gain" });
     router.push({
       pathname: "/steps/step7",
     } as any);

@@ -8,6 +8,7 @@ import { ProgressBar } from "../../components/ui/ProgressBar";
 import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
+import { useOnboarding } from "../../context/OnboardingContext";
 
 type WorkoutFrequency = "0-2" | "3-5" | "6+";
 
@@ -17,6 +18,7 @@ type WorkoutFrequency = "0-2" | "3-5" | "6+";
 export default function Step2() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   const [selectedFrequency, setSelectedFrequency] =
     useState<WorkoutFrequency | null>(null);
 
@@ -29,8 +31,9 @@ export default function Step2() {
       // TODO: Показать ошибку валидации
       return;
     }
-    // TODO: Сохранить выбранное значение в состояние/БД
-    // Переход на следующий шаг (step3)
+    // Сохраняем данные в контекст
+    updateData({ workoutFrequency: selectedFrequency });
+    // Переход на следующий шаг
     router.push({
       pathname: "/steps/step3",
     } as any);

@@ -4,40 +4,52 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { PrimaryButton } from "../components/ui/Button";
 import { colors } from "../constants/theme";
+import { useOnboarding } from "../context/OnboardingContext";
 import { useFonts } from "../hooks/use-fonts";
 import { calculateCalories, UserData } from "../utils/calorieCalculator";
 
 /**
  * Экран результатов расчета калорий и макронутриентов
- * TODO: Получать данные из контекста/состояния/БД
  */
 export default function Results() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { data: onboardingData } = useOnboarding();
 
   if (!fontsLoaded) {
     return null;
   }
 
-  // TODO: Получать реальные данные из контекста/состояния/БД
-  // Временные данные для демонстрации
-  const userData: UserData = {
-    gender: "male",
-    age: 25,
-    height: 175,
-    weight: 75,
-    workoutFrequency: "3-5",
-    goal: "maintain",
-  };
+  // Получаем данные из контекста и рассчитываем калории
+  const userData: UserData | null = onboardingData.gender &&
+    onboardingData.height &&
+    onboardingData.weight &&
+    onboardingData.workoutFrequency &&
+    onboardingData.goal
+    ? {
+        gender: onboardingData.gender,
+        age: onboardingData.birthDate
+          ? new Date().getFullYear() - new Date(onboardingData.birthDate).getFullYear()
+          : 25,
+        height: onboardingData.height,
+        weight: onboardingData.weight,
+        workoutFrequency: onboardingData.workoutFrequency,
+        goal: onboardingData.goal,
+      }
+    : null;
 
-  const result = calculateCalories(userData);
+  const result = userData ? calculateCalories(userData) : null;
+
+  if (!result) {
+    // Если данных недостаточно, возвращаемся назад
+    return null;
+  }
 
   const handleStartPress = () => {
-    // TODO: Переход на главный экран приложения
-    console.log("Начать путь");
-    // router.push({
-    //   pathname: "/home",
-    // } as any);
+    // Переход на экран сохранения прогресса
+    router.push({
+      pathname: "/save-progress",
+    } as any);
   };
 
   return (
@@ -60,24 +72,30 @@ export default function Results() {
 
           {/* Калории */}
           <View style={styles.caloriesSection}>
-            <Text style={styles.caloriesValue}>{result.targetCalories}</Text>
+            <Text style={styles.caloriesValue}>{result?.targetCalories || 0}</Text>
             <Text style={styles.caloriesLabel}>ккал / день</Text>
           </View>
 
           {/* Макронутриенты */}
           <View style={styles.macrosSection}>
             <View style={styles.macroCard}>
-              <Text style={styles.macroValue}>{result.macros.carbs.grams}</Text>
+              <Text style={styles.macroValue}>
+                {result?.macros.carbs.grams || 0}
+              </Text>
               <Text style={styles.macroUnit}>г</Text>
               <Text style={styles.macroLabel}>Углеводы</Text>
             </View>
             <View style={styles.macroCard}>
-              <Text style={styles.macroValue}>{result.macros.protein.grams}</Text>
+              <Text style={styles.macroValue}>
+                {result?.macros.protein.grams || 0}
+              </Text>
               <Text style={styles.macroUnit}>г</Text>
               <Text style={styles.macroLabel}>Белки</Text>
             </View>
             <View style={styles.macroCard}>
-              <Text style={styles.macroValue}>{result.macros.fats.grams}</Text>
+              <Text style={styles.macroValue}>
+                {result?.macros.fats.grams || 0}
+              </Text>
               <Text style={styles.macroUnit}>г</Text>
               <Text style={styles.macroLabel}>Жиры</Text>
             </View>

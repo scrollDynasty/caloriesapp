@@ -7,6 +7,7 @@ import { PrimaryButton } from "../../components/ui/Button";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
+import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
@@ -15,6 +16,7 @@ import { useFonts } from "../../hooks/use-fonts";
 export default function Step8() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   const [selectedDiet, setSelectedDiet] = useState<string | null>("classic");
 
   if (!fontsLoaded) {
@@ -22,8 +24,13 @@ export default function Step8() {
   }
 
   const handleNextPress = () => {
-    // TODO: Сохранить выбранное значение в состояние/БД
-    console.log("Тип питания:", selectedDiet);
+    if (!selectedDiet) {
+      return;
+    }
+    // Сохраняем данные в контекст
+    updateData({
+      dietType: selectedDiet as "classic" | "pescatarian" | "vegetarian" | "vegan",
+    });
     router.push({
       pathname: "/steps/step9",
     } as any);

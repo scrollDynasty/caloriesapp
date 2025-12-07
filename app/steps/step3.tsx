@@ -7,6 +7,7 @@ import { PrimaryButton } from "../../components/ui/Button";
 import { HeightWeightPicker } from "../../components/ui/HeightWeightPicker";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { colors } from "../../constants/theme";
+import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 /**
@@ -15,6 +16,7 @@ import { useFonts } from "../../hooks/use-fonts";
 export default function Step3() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   const [height, setHeight] = useState<number>(175); // Значение по умолчанию
   const [weight, setWeight] = useState<number>(70); // Значение по умолчанию
 
@@ -23,7 +25,8 @@ export default function Step3() {
   }
 
   const handleNextPress = () => {
-    // TODO: Сохранить выбранные значения в состояние/БД
+    // Сохраняем данные в контекст
+    updateData({ height, weight });
     router.push({
       pathname: "/steps/step4",
     } as any);

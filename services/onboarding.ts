@@ -1,0 +1,158 @@
+/**
+ * Сервис для работы с данными онбординга
+ */
+import { calculateCalories, UserData } from "../utils/calorieCalculator";
+import { apiService } from "./api";
+
+export interface OnboardingData {
+  // Шаг 1
+  gender?: "male" | "female";
+
+  // Шаг 2
+  workoutFrequency?: "0-2" | "3-5" | "6+";
+
+  // Шаг 3
+  height?: number;
+  weight?: number;
+
+  // Шаг 4
+  birthDate?: Date;
+
+  // Шаг 5
+  hasTrainer?: boolean;
+
+  // Шаг 6
+  goal?: "lose" | "maintain" | "gain";
+
+  // Шаг 7
+  barrier?: string;
+
+  // Шаг 8
+  dietType?: "classic" | "pescatarian" | "vegetarian" | "vegan";
+
+  // Шаг 9
+  motivation?: string;
+}
+
+/**
+ * Сохранить данные онбординга с расчетом калорий
+ */
+export async function saveOnboardingData(data: OnboardingData) {
+  try {
+    // Проверяем, что есть минимальные данные для расчета
+    if (
+      !data.gender ||
+      !data.height ||
+      !data.weight ||
+      !data.workoutFrequency ||
+      !data.goal
+    ) {
+      throw new Error("Недостаточно данных для расчета");
+    }
+
+    // Рассчитываем возраст из даты рождения
+    let age = 25; // По умолчанию
+    if (data.birthDate) {
+      const today = new Date();
+      const birth = new Date(data.birthDate);
+      age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+    }
+
+    // Подготавливаем данные для расчета
+    const userData: UserData = {
+      gender: data.gender,
+      age,
+      height: data.height,
+      weight: data.weight,
+      workoutFrequency: data.workoutFrequency,
+      goal: data.goal,
+    };
+
+    // Рассчитываем калории и макронутриенты
+    const calculations = calculateCalories(userData);
+
+    // Формируем данные для отправки на сервер
+    const payload = {
+      gender: data.gender,
+      workout_frequency: data.workoutFrequency,
+      height: data.height,
+      weight: data.weight,
+      birth_date: data.birthDate?.toISOString().split("T")[0],
+      has_trainer: data.hasTrainer,
+      goal: data.goal,
+      barrier: data.barrier,
+      diet_type: data.dietType,
+      motivation: data.motivation,
+      // Рассчитанные данные
+      bmr: calculations.bmr,
+      tdee: calculations.tdee,
+      target_calories: calculations.targetCalories,
+      // Макронутриенты
+      protein_grams: calculations.macros.protein.grams,
+      protein_calories: calculations.macros.protein.calories,
+      protein_percentage: calculations.macros.protein.percentage,
+      carbs_grams: calculations.macros.carbs.grams,
+      carbs_calories: calculations.macros.carbs.calories,
+      carbs_percentage: calculations.macros.carbs.percentage,
+      fats_grams: calculations.macros.fats.grams,
+      fats_calories: calculations.macros.fats.calories,
+      fats_percentage: calculations.macros.fats.percentage,
+    };
+
+    // Отправляем на сервер
+    const result = await apiService.saveOnboardingData(payload);
+    return { success: true, data: result };
+  } catch (error: any) {
+    console.error("Ошибка сохранения данных:", error);
+    
+    // Формируем понятное сообщение об ошибке
+    let errorMessage = "Ошибка при сохранении данных";
+    
+    if (error.response) {
+      // Ошибка от сервера
+      const status = error.response.status;
+      const detail = error.response.data?.detail;
+      
+      if (status === 401) {
+        errorMessage = "Ошибка авторизации. Попробуйте войти снова.";
+      } else if (status === 422) {
+        errorMessage = "Некорректные данные: " + (detail || "проверьте заполненные поля");
+      } else if (status === 500) {
+        errorMessage = "Ошибка сервера. Попробуйте позже.";
+      } else {
+        errorMessage = detail || `Ошибка сервера (${status})`;
+      }
+    } else if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+      errorMessage = "Сервер не отвечает. Проверьте подключение.";
+    } else if (error.code === "ECONNREFUSED" || error.code === "ENOTFOUND") {
+      errorMessage = "Не удалось подключиться к серверу.";
+    } else {
+      errorMessage = error.message || "Неизвестная ошибка";
+    }
+    
+    return {
+      success: false,
+      error: errorMessage,
+    };
+  }
+}
+
+/**
+ * Получить сохраненные данные онбординга
+ */
+export async function getOnboardingData() {
+  try {
+    const data = await apiService.getOnboardingData();
+    return { success: true, data };
+  } catch (error: any) {
+    console.error("Error getting onboarding data:", error);
+    return {
+      success: false,
+      error: error.message || "Ошибка при получении данных",
+    };
+  }
+}

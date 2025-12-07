@@ -7,6 +7,7 @@ import { PrimaryButton } from "../../components/ui/Button";
 import { GenderRadioButton } from "../../components/ui/GenderRadioButton";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { colors } from "../../constants/theme";
+import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 type Gender = "male" | "female";
@@ -17,6 +18,7 @@ type Gender = "male" | "female";
 export default function Step1() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { updateData } = useOnboarding();
   const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
 
   if (!fontsLoaded) {
@@ -28,8 +30,9 @@ export default function Step1() {
       // TODO: Показать ошибку валидации
       return;
     }
-    // TODO: Сохранить выбранное значение в состояние/БД
-    // TODO: Переход на следующий шаг (step2)
+    // Сохраняем данные в контекст
+    updateData({ gender: selectedGender });
+    // Переход на следующий шаг
     router.push({
       pathname: "/steps/step2",
     } as any);
