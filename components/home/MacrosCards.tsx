@@ -21,33 +21,15 @@ export const MacrosCards = memo(function MacrosCards({ protein, carbs, fats }: M
     <View style={styles.macrosContainer}>
       <View style={styles.macroCard}>
         <Text style={styles.macroValue}>{proteinRemaining}Г</Text>
-        <Text style={styles.macroLabel}>Белки ост.</Text>
-        <Ionicons
-          name="fish"
-          size={24}
-          color="#FF6B6B"
-          style={styles.macroIcon}
-        />
+        <Text style={styles.macroLabel}>Белки осталось</Text>
       </View>
       <View style={styles.macroCard}>
         <Text style={styles.macroValue}>{carbsRemaining}Г</Text>
-        <Text style={styles.macroLabel}>Углеводы ост.</Text>
-        <Ionicons
-          name="pizza"
-          size={24}
-          color="#FFB84D"
-          style={styles.macroIcon}
-        />
+        <Text style={styles.macroLabel}>Углеводы осталось</Text>
       </View>
       <View style={styles.macroCard}>
         <Text style={styles.macroValue}>{fatsRemaining}Г</Text>
-        <Text style={styles.macroLabel}>Жиры ост.</Text>
-        <Ionicons
-          name="water"
-          size={24}
-          color="#4D9EFF"
-          style={styles.macroIcon}
-        />
+        <Text style={styles.macroLabel}>Жиры осталось</Text>
       </View>
     </View>
   );
