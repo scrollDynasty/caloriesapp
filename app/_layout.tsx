@@ -29,7 +29,7 @@ export default function RootLayout() {
           options={{
             gestureEnabled: false, // Отключаем жест назад на экране авторизации
           }}
-        />
+      />
       </Stack>
     </OnboardingProvider>
   );

@@ -53,10 +53,25 @@ export default function CallbackScreen() {
         await apiService.saveToken(token);
         console.log("✅ Token saved");
 
-        // Сохраняем данные онбординга
-        if (onboardingData && Object.keys(onboardingData).length > 0) {
+        // Проверяем, есть ли уже данные онбординга на сервере
+        let hasExistingData = false;
+        try {
+          const existingData = await apiService.getOnboardingData();
+          if (existingData && Object.keys(existingData).length > 0) {
+            hasExistingData = true;
+            console.log("ℹ️ Onboarding data already exists on server, skipping save");
+          }
+        } catch (error: any) {
+          // Если данных нет (404), продолжаем сохранять
+          if (error?.response?.status !== 404) {
+            console.warn("⚠️ Error checking existing data:", error);
+          }
+        }
+
+        // Сохраняем данные онбординга только если их еще нет на сервере
+        if (!hasExistingData && onboardingData && Object.keys(onboardingData).length > 0) {
           try {
-            console.log("💾 Saving onboarding data...");
+            console.log("💾 Saving new onboarding data...");
             const saveResult = await saveOnboardingData(onboardingData);
             if (saveResult.success) {
               console.log("✅ Onboarding data saved");
@@ -67,7 +82,7 @@ export default function CallbackScreen() {
             console.error("❌ Ошибка сохранения данных онбординга:", saveError);
             // Продолжаем даже если сохранение не удалось
           }
-        } else {
+        } else if (!hasExistingData) {
           console.log("ℹ️ No onboarding data to save");
         }
 

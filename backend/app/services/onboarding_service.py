@@ -14,18 +14,13 @@ def get_onboarding_data(db: Session, user_id: int) -> OnboardingData | None:
 def create_or_update_onboarding_data(
     db: Session, user_id: int, data: OnboardingDataCreate
 ) -> OnboardingData:
-    """Создать или обновить данные онбординга"""
+    """Создать данные онбординга (не обновляет существующие)"""
     existing_data = get_onboarding_data(db, user_id)
 
     if existing_data:
-        # Обновляем существующие данные
-        for key, value in data.dict(exclude_unset=True).items():
-            setattr(existing_data, key, value)
-        db.commit()
-        db.refresh(existing_data)
         return existing_data
     else:
-        # Создаем новые данные
+        # Создаем новые данные только если их еще нет
         onboarding_data = OnboardingData(
             user_id=user_id,
             **data.dict(exclude_unset=True),

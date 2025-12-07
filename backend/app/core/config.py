@@ -24,9 +24,8 @@ class Settings(BaseSettings):
     # API Domain (для продакшена)
     api_domain: str = "https://api.yeb-ich.com"
 
-    # CORS - разрешаем запросы с мобильного приложения
-    # Для мобильных приложений Expo/React Native CORS не нужен, но оставляем для веб-клиентов
-    cors_origins: str = "https://api.yeb-ich.com,https://yeb-ich.com,http://localhost:3000,http://localhost:8081"
+    # Добавлены различные порты для веб-версии Expo
+    cors_origins: str = "https://api.yeb-ich.com,https://yeb-ich.com,http://localhost:3000,http://localhost:8081,http://localhost:19006,http://127.0.0.1:8081,http://127.0.0.1:19006"
 
     # JWT
     jwt_secret_key: str = ""
