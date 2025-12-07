@@ -4,12 +4,12 @@
 import Constants from "expo-constants";
 
 // Базовый URL API
-// Для разработки используйте ваш локальный IP (например, http://192.168.100.13:8000)
-// Для продакшена укажите реальный URL
+// Продакшен: https://api.yeb-ich.com
+// Для локальной разработки можно переопределить через EXPO_PUBLIC_API_URL
 export const API_BASE_URL =
   Constants.expoConfig?.extra?.apiUrl ||
   process.env.EXPO_PUBLIC_API_URL ||
-  "http://192.168.100.13:8000"; // Замените на ваш локальный IP
+  "https://api.yeb-ich.com";
 
 export const API_ENDPOINTS = {
   // Аутентификация

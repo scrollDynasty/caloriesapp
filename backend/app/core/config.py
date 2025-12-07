@@ -7,8 +7,8 @@ from typing import List
 
 class Settings(BaseSettings):
     # Environment
-    environment: str = "development"
-    debug: bool = True
+    environment: str = "production"
+    debug: bool = False
 
     # Database
     db_host: str = "localhost"
@@ -18,21 +18,24 @@ class Settings(BaseSettings):
     db_name: str = "caloriesapp"
 
     # Server
-    host: str = "0.0.0.0"  # 0.0.0.0 для доступа из локальной сети
+    host: str = "0.0.0.0"
     port: int = 8000
+    
+    # API Domain (для продакшена)
+    api_domain: str = "https://api.yeb-ich.com"
 
-    # CORS
-    cors_origins: str = "http://localhost:3000"
+    # CORS - разрешаем запросы с мобильного приложения и веб-клиентов
+    cors_origins: str = "https://api.yeb-ich.com,http://localhost:3000,http://localhost:8081,exp://192.168.100.13:8081"
 
     # JWT
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 30
+    jwt_access_token_expire_minutes: int = 43200  # 30 дней для мобильного приложения
 
     # OAuth
     google_client_id: str = ""
     google_client_secret: str = ""
-    google_redirect_uri: str = ""
+    google_redirect_uri: str = "https://api.yeb-ich.com/api/v1/auth/google/callback"
     apple_client_id: str = ""
     apple_team_id: str = ""
     apple_key_id: str = ""
