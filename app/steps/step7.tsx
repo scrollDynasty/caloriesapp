@@ -9,10 +9,13 @@ import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 
-export default function Step5() {
+/**
+ * Экран седьмого шага онбординга - Что мешает достигать цели
+ */
+export default function Step7() {
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const [hasTrainer, setHasTrainer] = useState<boolean | null>(true);
+  const [selectedBarrier, setSelectedBarrier] = useState<string | null>("lack-of-ideas");
 
   if (!fontsLoaded) {
     return null;
@@ -20,9 +23,9 @@ export default function Step5() {
 
   const handleNextPress = () => {
     // TODO: Сохранить выбранное значение в состояние/БД
-    console.log("Работа с тренером:", hasTrainer);
+    console.log("Барьер:", selectedBarrier);
     router.push({
-      pathname: "/steps/step6",
+      pathname: "/steps/step8",
     } as any);
   };
 
@@ -38,32 +41,47 @@ export default function Step5() {
         showsVerticalScrollIndicator={false}
       >
         {/* Заголовок с индикатором шага */}
-        <StepHeader stepNumber={5} onBack={handleBackPress} />
+        <StepHeader stepNumber={7} onBack={handleBackPress} />
 
         {/* Прогресс-бар */}
-        <ProgressBar currentStep={5} totalSteps={9} />
+        <ProgressBar currentStep={7} totalSteps={9} />
 
         {/* Контент */}
         <View style={styles.contentContainer}>
           {/* Заголовок и подзаголовок */}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Работа с персональным тренером</Text>
+            <Text style={styles.title}>Что мешает достигать цели</Text>
             <Text style={styles.subtitle}>
-              Хотите подключить профессиональное сопровождение?
+              Выберите основной барьер
             </Text>
           </View>
 
           {/* Варианты выбора */}
           <View style={styles.optionsContainer}>
             <RadioButton
-              label="Да"
-              selected={hasTrainer === true}
-              onPress={() => setHasTrainer(true)}
+              label="Непоследовательность"
+              selected={selectedBarrier === "inconsistency"}
+              onPress={() => setSelectedBarrier("inconsistency")}
             />
             <RadioButton
-              label="Нет"
-              selected={hasTrainer === false}
-              onPress={() => setHasTrainer(false)}
+              label="Вредные пищевые привычки"
+              selected={selectedBarrier === "bad-habits"}
+              onPress={() => setSelectedBarrier("bad-habits")}
+            />
+            <RadioButton
+              label="Отсутствие поддержки"
+              selected={selectedBarrier === "lack-of-support"}
+              onPress={() => setSelectedBarrier("lack-of-support")}
+            />
+            <RadioButton
+              label="Загруженный график"
+              selected={selectedBarrier === "busy-schedule"}
+              onPress={() => setSelectedBarrier("busy-schedule")}
+            />
+            <RadioButton
+              label="Нехватка идей или блюд"
+              selected={selectedBarrier === "lack-of-ideas"}
+              onPress={() => setSelectedBarrier("lack-of-ideas")}
             />
           </View>
         </View>
@@ -128,4 +146,3 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
 });
-

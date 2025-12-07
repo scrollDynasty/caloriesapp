@@ -51,6 +51,7 @@ const PickerColumn = ({
   if (!items || items.length === 0) {
     return (
       <View style={containerStyle}>
+        <Text style={styles.columnLabel}>{label}</Text>
         <View style={styles.pickerWrapper}>
           <Text>Нет данных</Text>
         </View>
@@ -68,7 +69,12 @@ const PickerColumn = ({
 
   return (
     <View style={containerStyle}>
+      <Text style={styles.columnLabel}>{label}</Text>
       <View style={wrapperStyle}>
+        {/* Overlay для фона выбранного элемента (только для Android) */}
+        {Platform.OS === "android" && (
+          <View style={styles.selectedItemOverlay} pointerEvents="none" />
+        )}
         <Picker
           selectedValue={value}
           onValueChange={onValueChange}
@@ -201,7 +207,7 @@ export const DatePicker = React.memo(function DatePicker({
           columnWidth={200}
         />
         <PickerColumn
-          label="год"
+          label="ГОД"
           items={years}
           value={year}
           onValueChange={handleYearChange}
@@ -218,18 +224,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   pickersRow: {
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    gap: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "flex-start",
     width: "100%",
-    paddingHorizontal: 0,
-    alignItems: "center",
+    gap: 16,
+    paddingHorizontal: 24,
   },
   columnContainer: {
     alignItems: "center",
     marginBottom: 0,
     marginTop: 0,
     paddingVertical: 0,
+    flexShrink: 0,
   },
   columnLabel: {
     color: colors.secondary,
@@ -239,15 +246,28 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     letterSpacing: 1,
     textTransform: "uppercase",
-    marginBottom: 32,
+    marginBottom: 16,
   },
   pickerWrapper: {
-    height: 120,
-    overflow: "visible",
+    height: 280,
+    overflow: "hidden",
+    position: "relative",
+  },
+  selectedItemOverlay: {
+    position: "absolute",
+    top: "50%",
+    left: 0,
+    right: 0,
+    height: 40,
+    marginTop: -20,
+    backgroundColor: "#F4F2EF",
+    borderRadius: 12,
+    zIndex: 0,
   },
   picker: {
     width: "100%",
     height: "100%",
+    zIndex: 1,
     ...(Platform.OS === "ios" && {
       backgroundColor: "transparent",
     }),

@@ -9,10 +9,13 @@ import { RadioButton } from "../../components/ui/RadioButton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 
-export default function Step5() {
+/**
+ * Экран девятого шага онбординга - Чего вы хотите достичь?
+ */
+export default function Step9() {
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const [hasTrainer, setHasTrainer] = useState<boolean | null>(true);
+  const [selectedMotivation, setSelectedMotivation] = useState<string | null>("eat-healthy");
 
   if (!fontsLoaded) {
     return null;
@@ -20,9 +23,10 @@ export default function Step5() {
 
   const handleNextPress = () => {
     // TODO: Сохранить выбранное значение в состояние/БД
-    console.log("Работа с тренером:", hasTrainer);
+    console.log("Мотивация:", selectedMotivation);
+    // Переход на экран результатов
     router.push({
-      pathname: "/steps/step6",
+      pathname: "/results",
     } as any);
   };
 
@@ -38,32 +42,42 @@ export default function Step5() {
         showsVerticalScrollIndicator={false}
       >
         {/* Заголовок с индикатором шага */}
-        <StepHeader stepNumber={5} onBack={handleBackPress} />
+        <StepHeader stepNumber={9} onBack={handleBackPress} />
 
         {/* Прогресс-бар */}
-        <ProgressBar currentStep={5} totalSteps={9} />
+        <ProgressBar currentStep={9} totalSteps={9} />
 
         {/* Контент */}
         <View style={styles.contentContainer}>
           {/* Заголовок и подзаголовок */}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Работа с персональным тренером</Text>
+            <Text style={styles.title}>Чего вы хотите достичь?</Text>
             <Text style={styles.subtitle}>
-              Хотите подключить профессиональное сопровождение?
+              Ваша главная мотивация
             </Text>
           </View>
 
           {/* Варианты выбора */}
           <View style={styles.optionsContainer}>
             <RadioButton
-              label="Да"
-              selected={hasTrainer === true}
-              onPress={() => setHasTrainer(true)}
+              label="Питаться и жить здорово"
+              selected={selectedMotivation === "eat-healthy"}
+              onPress={() => setSelectedMotivation("eat-healthy")}
             />
             <RadioButton
-              label="Нет"
-              selected={hasTrainer === false}
-              onPress={() => setHasTrainer(false)}
+              label="Повысить энергию и настроение"
+              selected={selectedMotivation === "boost-energy"}
+              onPress={() => setSelectedMotivation("boost-energy")}
+            />
+            <RadioButton
+              label="Оставаться мотивированным"
+              selected={selectedMotivation === "stay-motivated"}
+              onPress={() => setSelectedMotivation("stay-motivated")}
+            />
+            <RadioButton
+              label="Чувствовать себя лучше в теле"
+              selected={selectedMotivation === "feel-better"}
+              onPress={() => setSelectedMotivation("feel-better")}
             />
           </View>
         </View>
@@ -128,4 +142,3 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
 });
-

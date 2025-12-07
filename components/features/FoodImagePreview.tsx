@@ -112,8 +112,6 @@ export default function FoodImagePreview({
 const styles = StyleSheet.create({
   imageContainer: {
     borderRadius: 40,
-    borderWidth: 8,
-    borderColor: colors.white,
     overflow: "hidden",
     alignSelf: "center",
     // Тень из Figma: 0px 24px 48px -12px rgba(0, 0, 0, 0.15)

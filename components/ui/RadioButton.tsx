@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -67,7 +68,9 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
         <Text style={styles.radioText}>{label}</Text>
         <View style={styles.radioCircleContainer}>
           <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
-            {selected && <View style={styles.radioCircleInner} />}
+            {selected && (
+              <Ionicons name="checkmark" size={16} color={colors.white} />
+            )}
           </View>
         </View>
       </Animated.View>
@@ -135,11 +138,6 @@ const styles = StyleSheet.create({
   },
   radioCircleSelected: {
     borderColor: colors.primary,
-  },
-  radioCircleInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
     backgroundColor: colors.primary,
   },
 });

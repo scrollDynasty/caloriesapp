@@ -15,6 +15,10 @@ import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
 import Step4 from "./steps/step4";
 import Step5 from "./steps/step5";
+import Step6 from "./steps/step6";
+import Step7 from "./steps/step7";
+import Step8 from "./steps/step8";
+import Step9 from "./steps/step9";
 
 /**
  * Экран первого шага - Умный подсчет калорий
@@ -87,6 +91,10 @@ export default function Index() {
         <Step3 />
         <Step4 />
         <Step5 />
+        <Step6 />
+        <Step7 />
+        <Step8 />
+        <Step9 />
       </View>
     </SafeAreaView>
   );

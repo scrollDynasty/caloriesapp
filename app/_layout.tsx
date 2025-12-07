@@ -6,11 +6,15 @@ export default function RootLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: "slide_from_right",
-        animationDuration: 350,
+        // Плавная fade анимация для красивого перехода
+        animation: "fade",
+        animationDuration: 400,
         gestureEnabled: true,
         gestureDirection: "horizontal",
         fullScreenGestureEnabled: true,
+        contentStyle: {
+          backgroundColor: "#F9F7F5",
+        },
       }}
     />
   );
