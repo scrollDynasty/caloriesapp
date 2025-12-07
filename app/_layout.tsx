@@ -8,7 +8,6 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          // Плавная fade анимация для красивого перехода
           animation: "fade",
           animationDuration: 400,
           gestureEnabled: true,
@@ -18,7 +17,20 @@ export default function RootLayout() {
             backgroundColor: "#F9F7F5",
           },
         }}
-      />
+      >
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            gestureEnabled: false, // Отключаем жест назад на главном экране
+          }}
+        />
+        <Stack.Screen
+          name="save-progress"
+          options={{
+            gestureEnabled: false, // Отключаем жест назад на экране авторизации
+          }}
+        />
+      </Stack>
     </OnboardingProvider>
   );
 }

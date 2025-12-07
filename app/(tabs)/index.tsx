@@ -1,5 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -7,40 +9,197 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { CaloriesCard } from "../../components/home/CaloriesCard";
+import { HomeHeader } from "../../components/home/HomeHeader";
+import { MacrosCards } from "../../components/home/MacrosCards";
+import { RecentMeals } from "../../components/home/RecentMeals";
+import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
+import { apiService } from "../../services/api";
 
 /**
  * Главный экран приложения
  */
 export default function HomeScreen() {
   const fontsLoaded = useFonts();
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<any>(null);
+  const [onboardingData, setOnboardingData] = useState<any>(null);
+  
+  // Автоматически выбираем сегодняшнюю дату (используем строку для стабильности)
+  const getToday = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today.getTime(); // Используем timestamp для сравнения
+  };
+  const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getToday);
+  
+  // Данные по выбранной дате
+  const [dailyData, setDailyData] = useState({
+    consumedCalories: 0,
+    consumedProtein: 0,
+    consumedCarbs: 0,
+    consumedFats: 0,
+    meals: [] as Array<{
+      id: number;
+      name: string;
+      time: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+    }>,
+  });
 
-  if (!fontsLoaded) {
-    return null;
-  }
+  // Используем ref для предотвращения дублирования запросов
+  const isLoadingRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const lastLoadedDateRef = useRef<number | null>(null);
 
-  // Моковые данные для примера
-  const stats = {
-    targetCalories: 2320,
-    consumedCalories: 815,
-    remainingCalories: 1505,
-    protein: { consumed: 54, target: 166 },
-    carbs: { consumed: 39, target: 227 },
-    fats: { consumed: 60, target: 83 },
+  useEffect(() => {
+    isMountedRef.current = true;
+    loadUserData();
+    
+    return () => {
+      isMountedRef.current = false;
+      isLoadingRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Предотвращаем загрузку той же даты повторно
+    if (selectedDateTimestamp === lastLoadedDateRef.current) {
+      return;
+    }
+    
+    loadDailyData(selectedDateTimestamp);
+  }, [selectedDateTimestamp]);
+
+  const loadUserData = async () => {
+    // Предотвращаем параллельные вызовы
+    if (isLoadingRef.current) {
+      return;
+    }
+    
+    // Проверяем что компонент еще смонтирован
+    if (!isMountedRef.current) {
+      return;
+    }
+    
+    isLoadingRef.current = true;
+    
+    try {
+      // Загружаем данные пользователя
+      const user = await apiService.getCurrentUser();
+      if (!isMountedRef.current) return;
+      setUserData(user);
+
+      // Загружаем данные онбординга
+      try {
+        const onboarding = await apiService.getOnboardingData();
+        if (!isMountedRef.current) return;
+        setOnboardingData(onboarding);
+      } catch (err) {
+        // Нет данных онбординга - это нормально
+      }
+    } catch (error: any) {
+      if (isMountedRef.current) {
+        console.error("Error loading data:", error);
+      }
+    } finally {
+      isLoadingRef.current = false;
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
   };
 
-  const recentMeals = [
-    {
-      id: 1,
-      name: "Жареная курица",
-      time: "22:10",
-      calories: 988,
-      protein: 54,
-      carbs: 39,
-      fats: 60,
-    },
-  ];
+  const loadDailyData = async (dateTimestamp: number) => {
+    // Предотвращаем параллельные вызовы для той же даты
+    if (lastLoadedDateRef.current === dateTimestamp) {
+      return;
+    }
+    
+    lastLoadedDateRef.current = dateTimestamp;
+    
+    try {
+      // TODO: Загружать данные из БД по выбранной дате
+      // const date = new Date(dateTimestamp);
+      // const dateStr = date.toISOString().split('T')[0];
+      // const data = await apiService.getDailyData(dateStr);
+      
+      // Пока используем заглушку
+      if (!isMountedRef.current) return;
+      setDailyData({
+        consumedCalories: 0,
+        consumedProtein: 0,
+        consumedCarbs: 0,
+        consumedFats: 0,
+        meals: [],
+      });
+    } catch (error: any) {
+      if (isMountedRef.current) {
+        console.error("Error loading daily data:", error);
+      }
+    }
+  };
+
+  const handleDateSelect = useMemo(() => (date: Date) => {
+    const timestamp = date.getTime();
+    if (timestamp !== selectedDateTimestamp) {
+      setSelectedDateTimestamp(timestamp);
+    }
+  }, [selectedDateTimestamp]);
+
+  // Мемоизируем преобразование timestamp обратно в Date для календаря
+  const selectedDate = useMemo(() => new Date(selectedDateTimestamp), [selectedDateTimestamp]);
+
+  // Мемоизируем статистику из данных онбординга и дневных данных
+  // ВАЖНО: Все хуки должны быть ВЫШЕ условного return!
+  const stats = useMemo(() => {
+    const targetCalories = onboardingData?.target_calories || 0;
+    const remainingCalories = Math.max(0, targetCalories - dailyData.consumedCalories);
+
+    return {
+      targetCalories,
+      consumedCalories: dailyData.consumedCalories,
+      remainingCalories,
+      protein: {
+        consumed: dailyData.consumedProtein,
+        target: onboardingData?.protein_grams || 0,
+      },
+      carbs: {
+        consumed: dailyData.consumedCarbs,
+        target: onboardingData?.carbs_grams || 0,
+      },
+      fats: {
+        consumed: dailyData.consumedFats,
+        target: onboardingData?.fats_grams || 0,
+      },
+    };
+  }, [
+    onboardingData?.target_calories,
+    onboardingData?.protein_grams,
+    onboardingData?.carbs_grams,
+    onboardingData?.fats_grams,
+    dailyData.consumedCalories,
+    dailyData.consumedProtein,
+    dailyData.consumedCarbs,
+    dailyData.consumedFats,
+  ]);
+
+  // Условный return должен быть ПОСЛЕ всех хуков
+  if (!fontsLoaded || loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Загрузка данных...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -49,138 +208,26 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerTitle}>
-            <Ionicons name="nutrition" size={28} color={colors.primary} />
-            <Text style={styles.appName}>Cal AI</Text>
-          </View>
-          <View style={styles.streakBadge}>
-            <Ionicons name="flame" size={16} color="#FF6B35" />
-            <Text style={styles.streakText}>1</Text>
-          </View>
-        </View>
+        <HomeHeader />
 
-        {/* Calendar Week */}
-        <View style={styles.calendarContainer}>
-          {["С", "Ч", "П", "С", "В", "П", "В"].map((day, index) => {
-            const date = 27 + index;
-            const isToday = index === 5;
-            return (
-              <View key={index} style={styles.calendarDay}>
-                <Text style={styles.calendarDayName}>{day}</Text>
-                <View
-                  style={[
-                    styles.calendarDate,
-                    isToday && styles.calendarDateActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.calendarDateText,
-                      isToday && styles.calendarDateTextActive,
-                    ]}
-                  >
-                    {date > 31 ? date - 31 : date}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
+        <WeekCalendar 
+          selectedDate={selectedDate} 
+          onDateSelect={handleDateSelect} 
+        />
 
-        {/* Calories Card */}
-        <View style={styles.caloriesCard}>
-          <Text style={styles.caloriesNumber}>
-            {stats.remainingCalories}
-          </Text>
-          <Text style={styles.caloriesLabel}>Осталось ккал</Text>
-          <Ionicons
-            name="flame-outline"
-            size={32}
-            color={colors.primary}
-            style={styles.caloriesIcon}
-          />
-        </View>
+        <CaloriesCard remainingCalories={stats.remainingCalories} />
 
-        {/* Macros */}
-        <View style={styles.macrosContainer}>
-          <View style={styles.macroCard}>
-            <Text style={styles.macroValue}>
-              {stats.protein.consumed}S
-            </Text>
-            <Text style={styles.macroLabel}>Белки ост.</Text>
-            <Ionicons
-              name="fish"
-              size={24}
-              color="#FF6B6B"
-              style={styles.macroIcon}
-            />
-          </View>
-          <View style={styles.macroCard}>
-            <Text style={styles.macroValue}>
-              {stats.carbs.consumed}S
-            </Text>
-            <Text style={styles.macroLabel}>Углеводы ост.</Text>
-            <Ionicons
-              name="pizza"
-              size={24}
-              color="#FFB84D"
-              style={styles.macroIcon}
-            />
-          </View>
-          <View style={styles.macroCard}>
-            <Text style={styles.macroValue}>
-              {stats.fats.consumed}S
-            </Text>
-            <Text style={styles.macroLabel}>Жиры ост.</Text>
-            <Ionicons
-              name="water"
-              size={24}
-              color="#4D9EFF"
-              style={styles.macroIcon}
-            />
-          </View>
-        </View>
+        <MacrosCards 
+          protein={stats.protein}
+          carbs={stats.carbs}
+          fats={stats.fats}
+        />
 
-        {/* Recent Meals */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Недавно добавлено</Text>
-          {recentMeals.map((meal) => (
-            <View key={meal.id} style={styles.mealCard}>
-              <View style={styles.mealImage}>
-                <Ionicons name="fast-food" size={40} color={colors.primary} />
-              </View>
-              <View style={styles.mealInfo}>
-                <View style={styles.mealHeader}>
-                  <Text style={styles.mealName}>{meal.name}</Text>
-                  <Text style={styles.mealTime}>{meal.time}</Text>
-                </View>
-                <Text style={styles.mealCalories}>
-                  <Ionicons name="flame" size={16} color="#FF6B35" />{" "}
-                  {meal.calories} ккал
-                </Text>
-                <View style={styles.mealMacros}>
-                  <Text style={styles.mealMacro}>
-                    <Ionicons name="fish" size={14} color="#FF6B6B" />{" "}
-                    {meal.protein}S
-                  </Text>
-                  <Text style={styles.mealMacro}>
-                    <Ionicons name="pizza" size={14} color="#FFB84D" />{" "}
-                    {meal.carbs}S
-                  </Text>
-                  <Text style={styles.mealMacro}>
-                    <Ionicons name="water" size={14} color="#4D9EFF" />{" "}
-                    {meal.fats}S
-                  </Text>
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
+        <RecentMeals meals={dailyData.meals} />
       </ScrollView>
 
-      {/* Floating Add Button */}
+      {/* Floating Add Button - чуть выше нижней панели */}
+      {/* Tab bar height = 80 (из _layout.tsx: height: 80) + SafeArea bottom */}
       <TouchableOpacity style={styles.fab}>
         <Ionicons name="add" size={32} color={colors.white} />
       </TouchableOpacity>
@@ -193,205 +240,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: colors.secondary,
+    fontFamily: "Inter_400Regular",
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 24,
-  },
-  headerTitle: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  appName: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: colors.primary,
-    fontFamily: "Inter_700Bold",
-  },
-  streakBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  streakText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FF6B35",
-    fontFamily: "Inter_600SemiBold",
-  },
-  calendarContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
-    marginBottom: 24,
-  },
-  calendarDay: {
-    alignItems: "center",
-    gap: 8,
-  },
-  calendarDayName: {
-    fontSize: 14,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
-  },
-  calendarDate: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  calendarDateActive: {
-    borderWidth: 2,
-    borderColor: colors.primary,
-    borderStyle: "dashed",
-  },
-  calendarDateText: {
-    fontSize: 16,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
-  },
-  calendarDateTextActive: {
-    color: colors.primary,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-  },
-  caloriesCard: {
-    backgroundColor: colors.white,
-    marginHorizontal: 24,
-    marginBottom: 24,
-    padding: 32,
-    borderRadius: 20,
-    alignItems: "center",
-    position: "relative",
-  },
-  caloriesNumber: {
-    fontSize: 64,
-    fontWeight: "700",
-    color: colors.primary,
-    fontFamily: "Inter_700Bold",
-  },
-  caloriesLabel: {
-    fontSize: 16,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
-    marginTop: 4,
-  },
-  caloriesIcon: {
-    position: "absolute",
-    top: 32,
-    right: 32,
-  },
-  macrosContainer: {
-    flexDirection: "row",
-    gap: 12,
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  macroCard: {
-    flex: 1,
-    backgroundColor: colors.white,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: "center",
-    position: "relative",
-  },
-  macroValue: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: colors.primary,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 4,
-  },
-  macroLabel: {
-    fontSize: 12,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-  },
-  macroIcon: {
-    position: "absolute",
-    bottom: 16,
-  },
-  section: {
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.primary,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 16,
-  },
-  mealCard: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    gap: 16,
-    marginBottom: 12,
-  },
-  mealImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  mealInfo: {
-    flex: 1,
-  },
-  mealHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  mealName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.primary,
-    fontFamily: "Inter_600SemiBold",
-  },
-  mealTime: {
-    fontSize: 14,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
-  },
-  mealCalories: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.primary,
-    fontFamily: "Inter_700Bold",
-    marginBottom: 8,
-  },
-  mealMacros: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  mealMacro: {
-    fontSize: 12,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
+    paddingBottom: 110, // Увеличено для FAB и нижней панели
   },
   fab: {
     position: "absolute",
-    bottom: 100,
+    bottom: 78, // Чуть выше нижней панели: tab bar (75) + небольшой отступ (3)
     right: 24,
     width: 64,
     height: 64,
@@ -404,5 +272,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    zIndex: 10,
   },
 });

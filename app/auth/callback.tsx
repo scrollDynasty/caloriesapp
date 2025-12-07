@@ -19,43 +19,72 @@ export default function CallbackScreen() {
 
   const handleCallback = async () => {
     try {
+      console.log("🔍 Callback received with params:", JSON.stringify(params, null, 2));
+      
       if (params.error) {
-        setError("Ошибка авторизации через Google");
-        setTimeout(() => router.replace("/save-progress"), 2000);
+        console.error("❌ OAuth error:", params.error);
+        setError(`Ошибка авторизации: ${params.error}`);
+        setTimeout(() => router.replace("/save-progress"), 3000);
         return;
       }
 
       const token = params.token as string;
       let userStr = params.user as string;
 
+      console.log("📦 Token present:", !!token);
+      console.log("📦 User string present:", !!userStr);
+
       if (!token || !userStr) {
-        setError("Ошибка авторизации: отсутствуют данные");
-        setTimeout(() => router.replace("/save-progress"), 2000);
+        console.error("❌ Missing data - token:", !!token, "user:", !!userStr);
+        console.error("❌ All params:", Object.keys(params));
+        setError("Ошибка: отсутствуют данные авторизации");
+        setTimeout(() => router.replace("/save-progress"), 3000);
         return;
       }
 
-      userStr = decodeURIComponent(userStr);
-      userStr = userStr.replace(/#.*$/, "");
-
-      const user = JSON.parse(userStr);
-
-      // Сохраняем токен
-      await apiService.saveToken(token);
-
-      // Сохраняем данные онбординга
       try {
-        await saveOnboardingData(onboardingData);
-      } catch (saveError) {
-        console.error("Ошибка сохранения данных онбординга:", saveError);
-        // Продолжаем даже если сохранение не удалось
-      }
+        userStr = decodeURIComponent(userStr);
+        userStr = userStr.replace(/#.*$/, "");
+        const user = JSON.parse(userStr);
+        
+        console.log("✅ User data parsed:", { email: user.email, user_id: user.user_id });
 
-      // Переход на главный экран
-      router.replace("/(tabs)");
-    } catch (err) {
-      console.error("Callback error:", err);
-      setError("Ошибка при обработке данных авторизации");
-      setTimeout(() => router.replace("/save-progress"), 2000);
+        // Сохраняем токен
+        await apiService.saveToken(token);
+        console.log("✅ Token saved");
+
+        // Сохраняем данные онбординга
+        if (onboardingData && Object.keys(onboardingData).length > 0) {
+          try {
+            console.log("💾 Saving onboarding data...");
+            const saveResult = await saveOnboardingData(onboardingData);
+            if (saveResult.success) {
+              console.log("✅ Onboarding data saved");
+            } else {
+              console.warn("⚠️ Onboarding save failed:", saveResult.error);
+            }
+          } catch (saveError: any) {
+            console.error("❌ Ошибка сохранения данных онбординга:", saveError);
+            // Продолжаем даже если сохранение не удалось
+          }
+        } else {
+          console.log("ℹ️ No onboarding data to save");
+        }
+
+        // Переход на главный экран
+        console.log("🚀 Redirecting to main screen...");
+        router.replace("/(tabs)");
+      } catch (parseError: any) {
+        console.error("❌ Error parsing user data:", parseError);
+        console.error("❌ User string:", userStr);
+        setError("Ошибка при обработке данных");
+        setTimeout(() => router.replace("/save-progress"), 3000);
+      }
+    } catch (err: any) {
+      console.error("❌ Callback error:", err);
+      console.error("❌ Error stack:", err.stack);
+      setError(`Ошибка: ${err.message || "Неизвестная ошибка"}`);
+      setTimeout(() => router.replace("/save-progress"), 3000);
     }
   };
 

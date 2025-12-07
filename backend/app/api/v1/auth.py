@@ -160,10 +160,17 @@ async def auth_google_callback(
         
         # Редиректим на фронтенд с токеном и данными
         redirect_uri = state or "caloriesapp://auth/callback"
+        
+        # Формируем URL с токеном и данными пользователя
         user_param = quote(json.dumps(user_data))
         callback_url = f"{redirect_uri}?token={access_token}&user={user_param}"
         
-        return RedirectResponse(url=callback_url)
+        logger.info(f"✅ OAuth successful! Redirecting to: {redirect_uri}")
+        logger.info(f"📦 Token length: {len(access_token)}, User data keys: {list(user_data.keys())}")
+        logger.info(f"🔗 Full callback URL: {callback_url}")
+        
+        # Используем простой редирект - WebBrowser.openAuthSessionAsync должен перехватить его
+        return RedirectResponse(url=callback_url, status_code=302)
         
     except httpx.HTTPStatusError as e:
         # Обработка ошибок HTTP от Google OAuth

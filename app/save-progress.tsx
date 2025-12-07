@@ -1,14 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthButton } from "../components/ui/AuthButton";
 import { colors } from "../constants/theme";
 import { useOnboarding } from "../context/OnboardingContext";
 import { useFonts } from "../hooks/use-fonts";
 import { authService } from "../services/auth";
-import { saveOnboardingData } from "../services/onboarding";
 
 /**
  * Экран сохранения прогресса с авторизацией
@@ -23,9 +22,6 @@ export default function SaveProgress() {
     return null;
   }
 
-  const handleBackPress = () => {
-    router.back();
-  };
 
   const handleAppleAuth = async () => {
     setLoading(true);
@@ -48,14 +44,18 @@ export default function SaveProgress() {
   };
 
   const handleGoogleAuth = async () => {
+    if (loading) {
+      return;
+    }
+    
     setLoading(true);
     try {
       const result = await authService.signInWithGoogle();
       
-      if (result.success) {
-        // После успешной авторизации callback экран обработает переход
-        // Здесь просто ждем, callback.tsx сохранит данные и перейдет
-        return;
+      if (result.success && result.token && result.user) {
+        // Переход на главный экран
+        // Данные онбординга будут сохранены на главном экране если нужно
+        router.replace("/(tabs)");
       } else {
         // Показываем детальную ошибку
         const errorMessage = result.error || "Не удалось войти через Google";
@@ -72,7 +72,7 @@ export default function SaveProgress() {
         );
       }
     } catch (error: any) {
-      console.error("Ошибка авторизации:", error);
+      console.error("Auth error:", error);
       Alert.alert(
         "Ошибка",
         error.message || "Произошла ошибка при авторизации"
@@ -82,20 +82,6 @@ export default function SaveProgress() {
     }
   };
 
-  const saveOnboardingDataToServer = async (): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const result = await saveOnboardingData(onboardingData);
-      
-      if (!result.success) {
-        return { success: false, error: result.error };
-      }
-      
-      return { success: true };
-    } catch (error: any) {
-      console.error("Ошибка при сохранении данных:", error);
-      return { success: false, error: error.message || "Неизвестная ошибка" };
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -104,13 +90,6 @@ export default function SaveProgress() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Кнопка назад */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-
         {/* Контент */}
         <View style={styles.contentContainer}>
           {/* Иконка и заголовки */}
@@ -163,17 +142,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 48,
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
   },
   contentContainer: {
     flex: 1,

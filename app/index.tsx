@@ -1,11 +1,13 @@
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FoodImagePreview from "../components/features/FoodImagePreview";
 import TextContent from "../components/features/TextContent";
 import { PrimaryButton, SecondaryButton } from "../components/ui/Button";
 import { colors } from "../constants/theme";
 import { useFonts } from "../hooks/use-fonts";
+import { authService } from "../services/auth";
 import { getImageHeight, getImageWidth } from "../utils/responsive";
 
 // Предзагрузка всех шагов для устранения задержек при переходе
@@ -26,13 +28,40 @@ import Step9 from "./steps/step9";
 export default function Index() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Проверяем авторизацию при запуске приложения
+  useEffect(() => {
+    checkAuthAndRedirect();
+  }, []);
+
+  const checkAuthAndRedirect = async () => {
+    try {
+      const isAuthenticated = await authService.isAuthenticated();
+      if (isAuthenticated) {
+        // Пользователь уже авторизован - сразу переходим на главный экран
+        router.replace("/(tabs)");
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking auth:", error);
+    } finally {
+      setCheckingAuth(false);
+    }
+  };
 
   // Полная предзагрузка всех шагов при монтировании компонента
   // Скрытые компоненты внизу будут полностью инициализированы, но не видны пользователю
   // Это гарантирует их полную инициализацию до первого перехода
 
-  if (!fontsLoaded) {
-    return null;
+  if (!fontsLoaded || checkingAuth) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
   }
 
   // Адаптивные размеры изображения
@@ -40,9 +69,7 @@ export default function Index() {
   const imageHeight = getImageHeight(imageWidth);
 
   const handleStartPress = () => {
-    router.push({
-      pathname: "/steps/step1",
-    } as any);
+    router.push("/steps/step1");
   };
 
   const handleLoginPress = () => {
@@ -117,6 +144,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 16,
     width: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   textContainer: {
     paddingHorizontal: 24,

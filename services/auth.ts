@@ -9,25 +9,21 @@ import { apiService } from "./api";
 // Завершаем сессию веб-браузера после OAuth
 WebBrowser.maybeCompleteAuthSession();
 
-// Google OAuth конфигурация
-const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "";
-
-// Discovery endpoints для Google
-const discovery = {
-  authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
-  tokenEndpoint: "https://oauth2.googleapis.com/token",
-  revocationEndpoint: "https://oauth2.googleapis.com/revoke",
-};
-
 export class AuthService {
   /**
    * Авторизация через Google
    */
-  async signInWithGoogle(): Promise<{ success: boolean; error?: string }> {
+  async signInWithGoogle(): Promise<{ 
+    success: boolean; 
+    error?: string; 
+    token?: string; 
+    user?: any;
+  }> {
     try {
       const { API_BASE_URL } = await import("../constants/api");
       
       // Redirect URI для мобильного приложения
+      // В Expo Go будет exp://, в production build - caloriesapp://
       const redirectUri = AuthSession.makeRedirectUri({
         scheme: "caloriesapp",
         path: "auth/callback",
@@ -38,18 +34,44 @@ export class AuthService {
 
       // Открываем браузер для авторизации
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
-
+      
       if (result.type === "success") {
-        // Если успешно, callback экран обработает результат
-        // Просто возвращаем success, callback.tsx сделает остальное
-        return { success: true };
+        // Извлекаем токен и данные пользователя из URL
+        const url = result.url;
+        
+        if (url.includes('token=')) {
+          const tokenMatch = url.match(/token=([^&]+)/);
+          const userMatch = url.match(/user=([^&#]+)/);
+          
+          if (tokenMatch && userMatch) {
+            const token = decodeURIComponent(tokenMatch[1]);
+            let userStr = decodeURIComponent(userMatch[1]);
+            userStr = userStr.replace(/#.*$/, '');
+            const user = JSON.parse(userStr);
+            
+            // Сохраняем токен
+            await apiService.saveToken(token);
+            
+            return { 
+              success: true, 
+              token,
+              user 
+            };
+          }
+          
+          return { success: false, error: "Не удалось извлечь данные из ответа" };
+        }
+        
+        return { success: false, error: "Ответ не содержит токен" };
       } else if (result.type === "cancel") {
         return { success: false, error: "Вход отменён" };
+      } else if (result.type === "dismiss") {
+        return { success: false, error: "Окно входа закрыто" };
       }
 
       return { success: false, error: "Не удалось получить токен" };
     } catch (error: any) {
-      console.error("Ошибка авторизации:", error);
+      console.error("Auth error:", error);
       return {
         success: false,
         error: error.response?.data?.detail || error.message || "Ошибка авторизации",
