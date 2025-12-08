@@ -1,14 +1,18 @@
 """
 API endpoints для работы с фотографиями еды
 """
-import os
 import uuid
 import logging
+import json
+import base64
+import re
 from pathlib import Path
-from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status
+from typing import Optional, List, Dict, Any
+
+import httpx
+from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status, Query, Header
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from typing import Optional, List
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.models.meal_photo import MealPhoto
@@ -19,10 +23,9 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 _BACKEND_DIR = Path(__file__).parent.parent.parent.parent  # backend/
-_PROJECT_ROOT = _BACKEND_DIR.parent  # Поднимаемся на уровень выше backend (корень проекта)
+_PROJECT_ROOT = _BACKEND_DIR.parent  
 MEDIA_ROOT = _PROJECT_ROOT / "media" / "meal_photos"
 
-# Создаем директорию, если её нет
 try:
     MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
     logger.info(f"Media directory initialized at: {MEDIA_ROOT}")
@@ -30,12 +33,130 @@ except Exception as e:
     logger.error(f"Failed to create media directory at {MEDIA_ROOT}: {e}")
     raise
 
-# Создаем поддиректории для каждого пользователя
 def get_user_media_dir(user_id: int) -> Path:
     """Получить директорию для медиа файлов пользователя"""
     user_dir = MEDIA_ROOT / str(user_id)
     user_dir.mkdir(parents=True, exist_ok=True)
     return user_dir
+
+
+async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str]) -> Optional[Dict[str, Any]]:
+
+    api_key = settings.ai_nutrition_api_key
+    if not api_key:
+        return None
+
+    base_url = getattr(settings, "ai_nutrition_base_url", "https://router.huggingface.co/v1").rstrip("/")
+    api_url = f"{base_url}/chat/completions"
+    model_name = getattr(settings, "ai_nutrition_model", "Qwen/Qwen2.5-VL-7B-Instruct")
+
+    try:
+        mime_guess = "image/jpeg"
+        suffix = file_path.suffix.lower()
+        if suffix in {".png"}:
+            mime_guess = "image/png"
+        elif suffix in {".webp"}:
+            mime_guess = "image/webp"
+        elif suffix in {".heic", ".heif"}:
+            mime_guess = "image/heic"
+
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        }
+
+        with open(file_path, "rb") as f:
+            b64_image = base64.b64encode(f.read()).decode("utf-8")
+
+        prompt = (
+            "You are a nutrition assistant. Given a food photo, respond ONLY with JSON "
+            'like {\"name\":\"...\",\"calories\":number,\"protein\":number,\"fat\":number,\"carbs\":number}. '
+            "Use integers, no units."
+        )
+        if meal_name_hint:
+            prompt = f"{prompt} Hint: {meal_name_hint}."
+
+        payload = {
+            "model": model_name,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_guess};base64,{b64_image}"
+                            },
+                        }
+                    ],
+                }
+            ],
+            "max_tokens": 256,
+            "temperature": 0.1,
+        }
+
+        async with httpx.AsyncClient(timeout=settings.ai_nutrition_timeout) as client:
+            response = await client.post(
+                api_url,
+                headers=headers,
+                data=json.dumps(payload),
+            )
+            if response.status_code in (401, 403, 410, 400):
+                logger.warning(f"Hugging Face returned {response.status_code}. Body: {response.text}")
+                return None
+            response.raise_for_status()
+
+        resp_json = response.json()
+        generated_text = None
+        if isinstance(resp_json, dict):
+            choices = resp_json.get("choices") or []
+            if choices:
+                msg = choices[0].get("message") or {}
+                generated_text = msg.get("content")
+
+        if not generated_text:
+            return None
+
+        extracted = None
+        try:
+            # Найти JSON в тексте
+            matches = re.findall(r"\{.*\}", generated_text, flags=re.DOTALL)
+            for m in matches:
+                try:
+                    extracted = json.loads(m)
+                    break
+                except Exception:
+                    continue
+        except Exception:
+            extracted = None
+
+        if extracted:
+            def _num(val: Any) -> Optional[int]:
+                try:
+                    if val is None:
+                        return None
+                    if isinstance(val, (int, float)):
+                        return int(val)
+                    if isinstance(val, str):
+                        digits = "".join(ch for ch in val if (ch.isdigit() or ch == "." or ch == "-"))
+                        return int(float(digits)) if digits else None
+                except Exception:
+                    return None
+                return None
+
+            return {
+                "calories": _num(extracted.get("calories")),
+                "protein": _num(extracted.get("protein")),
+                "fat": _num(extracted.get("fat")),
+                "carbs": _num(extracted.get("carbs")),
+                "detected_meal_name": extracted.get("name") or meal_name_hint,
+            }
+
+        return None
+    except Exception as e:
+        logger.warning(f"AI nutrition call failed: {e}")
+        return None
 
 
 @router.post("/meals/upload", response_model=MealPhotoUploadResponse, status_code=status.HTTP_201_CREATED)
@@ -52,11 +173,20 @@ async def upload_meal_photo(
     logger.info(f"Upload request from user {current_user.id}, filename: {file.filename}, content_type: {file.content_type}")
     
     # Проверяем тип файла
+    allowed_mime_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/heic",
+        "image/heif",
+    }
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Файл должен быть изображением"
         )
+    if file.content_type not in allowed_mime_types:
+        logger.warning(f"Unexpected mime type {file.content_type}, proceeding but ensure client sends correct type")
     
     # Обрабатываем опциональные параметры
     barcode_value = barcode.strip() if barcode and barcode.strip() else None
@@ -85,6 +215,12 @@ async def upload_meal_photo(
         
         # Сохраняем путь относительно media директории
         relative_path = f"meal_photos/{current_user.id}/{unique_filename}"
+
+        # Вызываем внешнюю AI-модель для получения БЖУ
+        nutrition = await get_nutrition_insights(
+            file_path=file_path,
+            meal_name_hint=meal_name_value,
+        )
         
         # Создаем запись в БД
         meal_photo = MealPhoto(
@@ -95,6 +231,11 @@ async def upload_meal_photo(
             mime_type=file.content_type,
             barcode=barcode_value,
             meal_name=meal_name_value,
+            detected_meal_name=nutrition.get("detected_meal_name") if nutrition else None,
+            calories=nutrition.get("calories") if nutrition else None,
+            protein=nutrition.get("protein") if nutrition else None,
+            fat=nutrition.get("fat") if nutrition else None,
+            carbs=nutrition.get("carbs") if nutrition else None,
         )
         
         db.add(meal_photo)
@@ -149,12 +290,44 @@ def get_user_meal_photos(
 @router.get("/meals/photos/{photo_id}", response_class=FileResponse)
 def get_meal_photo(
     photo_id: int,
-    current_user: User = Depends(get_current_user),
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(default=None),
     db: Session = Depends(get_db),
 ):
     """
     Получить фотографию еды по ID
     """
+    # Авторизация: сначала Authorization header, иначе пробуем token из query
+    current_user: Optional[User] = None
+    if authorization:
+        try:
+            # Используем существующий dependency вручную
+            # Формат "Bearer xxx"
+            scheme, _, cred = authorization.partition(" ")
+            if scheme.lower() == "bearer" and cred:
+                from app.utils.auth import verify_token, get_user_by_id
+                payload = verify_token(cred)
+                if payload and payload.get("sub"):
+                    user = get_user_by_id(db, int(payload.get("sub")))
+                    if user:
+                        current_user = user
+        except Exception:
+            current_user = None
+
+    if current_user is None and token:
+        from app.utils.auth import verify_token, get_user_by_id
+        payload = verify_token(token)
+        if payload and payload.get("sub"):
+            user = get_user_by_id(db, int(payload.get("sub")))
+            if user:
+                current_user = user
+
+    if current_user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+
     photo = db.query(MealPhoto).filter(
         MealPhoto.id == photo_id,
         MealPhoto.user_id == current_user.id

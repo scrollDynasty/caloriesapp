@@ -12,8 +12,9 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LatestAIMealCard } from "../components/home/LatestAIMealCard";
 import { useFonts } from "../hooks/use-fonts";
-import { apiService } from "../services/api";
+import { apiService, type MealPhotoUploadResponse } from "../services/api";
 
 // Цвет слоновая кость (ivory) - более теплый бежевый оттенок
 const IVORY_COLOR = "#F5F0E8";
@@ -31,6 +32,7 @@ export default function ScanMealScreen() {
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+  const [lastResult, setLastResult] = useState<MealPhotoUploadResponse | null>(null);
 
   // Запрос разрешения при монтировании
   useEffect(() => {
@@ -137,14 +139,29 @@ export default function ScanMealScreen() {
     }
   };
 
+  const getFileInfoFromUri = (uri: string) => {
+    const name = uri.split("/").pop() || `photo_${Date.now()}`;
+    const ext = name.split(".").pop()?.toLowerCase();
+    const mimeMap: Record<string, string> = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      webp: "image/webp",
+      heic: "image/heic",
+      heif: "image/heif",
+    };
+    const mimeType = ext && mimeMap[ext] ? mimeMap[ext] : "image/jpeg";
+    const fileName = name.includes(".") ? name : `${name}.jpg`;
+    return { fileName, mimeType };
+  };
+
   const uploadPhoto = async (uri: string, barcode?: string) => {
     try {
       setUploading(true);
       console.log("Starting photo upload, URI:", uri);
 
-      // Получаем имя файла из URI
-      const fileName = uri.split("/").pop() || `photo_${Date.now()}.jpg`;
-      const mimeType = "image/jpeg";
+      // Получаем имя файла и mime из URI
+      const { fileName, mimeType } = getFileInfoFromUri(uri);
 
       console.log("Uploading file:", fileName, "mimeType:", mimeType, "barcode:", barcode);
 
@@ -157,21 +174,10 @@ export default function ScanMealScreen() {
       );
 
       console.log("Photo uploaded successfully:", response);
-      
+      setLastResult(response);
       setIsProcessingPhoto(false);
-
-      Alert.alert(
-        "Успешно",
-        "Фотография успешно загружена",
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              router.back();
-            },
-          },
-        ]
-      );
+      setCameraActive(true);
+      Alert.alert("Успешно", "Фотография успешно загружена");
     } catch (error: any) {
       setIsProcessingPhoto(false);
       console.error("Error uploading photo:", error);
@@ -186,6 +192,7 @@ export default function ScanMealScreen() {
         "Не удалось загрузить фотографию";
       
       Alert.alert("Ошибка", errorMessage);
+      setCameraActive(true);
     } finally {
       setUploading(false);
     }
@@ -313,6 +320,24 @@ export default function ScanMealScreen() {
           </View>
         </View>
       </View>
+
+      {lastResult && (
+        <View style={styles.resultSection}>
+          <Text style={styles.resultTitle}>Распознанное блюдо</Text>
+          <LatestAIMealCard
+            title={
+              lastResult.photo.detected_meal_name ||
+              lastResult.photo.meal_name ||
+              "Блюдо"
+            }
+            calories={lastResult.photo.calories}
+            protein={lastResult.photo.protein}
+            fat={lastResult.photo.fat}
+            carbs={lastResult.photo.carbs}
+            imageUrl={apiService.getMealPhotoUrl(lastResult.photo.id, apiService.getCachedToken() || undefined)}
+          />
+        </View>
+      )}
 
       {/* Bottom Controls */}
       <View style={styles.controls}>
@@ -468,6 +493,17 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     backgroundColor: IVORY_COLOR,
   },
+  resultSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    backgroundColor: IVORY_COLOR,
+    gap: 12,
+  },
+  resultTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: "#000",
+  },
   controlButton: {
     width: 56,
     height: 56,
@@ -478,7 +514,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F6F0E6",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -493,22 +529,22 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: 36,
     borderWidth: 6,
-    borderColor: "#FFFFFF",
+    borderColor: "#E6DED0",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#000",
+    backgroundColor: IVORY_COLOR,
   },
   shutterButtonInner: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#000",
+    backgroundColor: "#E0D6C8",
   },
   barcodeIcon: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F6F0E6",
     alignItems: "center",
     justifyContent: "center",
   },

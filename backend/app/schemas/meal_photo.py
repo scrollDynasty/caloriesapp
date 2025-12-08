@@ -10,6 +10,11 @@ class MealPhotoBase(BaseModel):
     """Базовая схема фотографии"""
     meal_name: Optional[str] = None
     barcode: Optional[str] = None
+    detected_meal_name: Optional[str] = None
+    calories: Optional[int] = None
+    protein: Optional[int] = None
+    fat: Optional[int] = None
+    carbs: Optional[int] = None
 
 
 class MealPhotoCreate(MealPhotoBase):

@@ -8,10 +8,34 @@ import axios, {
   AxiosInstance,
   InternalAxiosRequestConfig,
 } from "axios";
+import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
 
 // Ключ для хранения токена
 const TOKEN_KEY = "@caloriesapp:auth_token";
+
+export interface MealPhoto {
+  id: number;
+  user_id: number;
+  file_path: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+  barcode?: string | null;
+  meal_name?: string | null;
+  detected_meal_name?: string | null;
+  calories?: number | null;
+  protein?: number | null;
+  fat?: number | null;
+  carbs?: number | null;
+  created_at: string;
+  updated_at?: string | null;
+}
+
+export interface MealPhotoUploadResponse {
+  photo: MealPhoto;
+  url: string;
+}
 
 class ApiService {
   private api: AxiosInstance;
@@ -106,6 +130,10 @@ class ApiService {
     }
   }
 
+  getCachedToken(): string | null {
+    return this.cachedToken;
+  }
+
   // Аутентификация
   async authGoogle(idToken: string) {
     const response = await this.api.post(API_ENDPOINTS.AUTH_GOOGLE, {
@@ -151,25 +179,36 @@ class ApiService {
     mimeType: string,
     barcode?: string,
     mealName?: string
-  ) {
+  ): Promise<MealPhotoUploadResponse> {
     const formData = new FormData();
+    const normalizedUri =
+      Platform.OS === "ios" ? uri.replace("file://", "") : uri;
+    const ensuredFileName = fileName && fileName.includes(".")
+      ? fileName
+      : `${fileName || `photo_${Date.now()}`}.jpg`;
+    const ensuredMime = mimeType || "image/jpeg";
     
     formData.append("file", {
-      uri: uri, // URI как есть, axios и FastAPI обработают его
-      name: fileName,
-      type: mimeType,
+      uri: normalizedUri,
+      name: ensuredFileName,
+      type: ensuredMime,
     } as any);
     
     formData.append("barcode", barcode || "");
     formData.append("meal_name", mealName || "");
 
-    const response = await this.api.post(API_ENDPOINTS.MEALS_UPLOAD, formData);
+    const response = await this.api.post<MealPhotoUploadResponse>(API_ENDPOINTS.MEALS_UPLOAD, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 20000,
+    });
     
     return response.data;
   }
 
-  async getMealPhotos(skip: number = 0, limit: number = 100) {
-    const response = await this.api.get(API_ENDPOINTS.MEALS_PHOTOS, {
+  async getMealPhotos(skip: number = 0, limit: number = 100): Promise<MealPhoto[]> {
+    const response = await this.api.get<MealPhoto[]>(API_ENDPOINTS.MEALS_PHOTOS, {
       params: { skip, limit },
     });
     return response.data;
@@ -179,8 +218,9 @@ class ApiService {
     await this.api.delete(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
   }
 
-  getMealPhotoUrl(photoId: number): string {
-    return `${API_BASE_URL}${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`;
+  getMealPhotoUrl(photoId: number, token?: string): string {
+    const qs = token ? `?token=${token}` : "";
+    return `${API_BASE_URL}${API_ENDPOINTS.MEALS_PHOTO}/${photoId}${qs}`;
   }
 
   // Проверка здоровья сервера

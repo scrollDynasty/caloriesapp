@@ -20,7 +20,14 @@ class MealPhoto(Base):
     
     # Опциональные метаданные
     barcode = Column(String(100), nullable=True, index=True)  # Если фото было сделано через сканирование штрих-кода
-    meal_name = Column(String(255), nullable=True)  # Название блюда (если распознано)
+    meal_name = Column(String(255), nullable=True)  # Название блюда (если указал пользователь)
+    detected_meal_name = Column(String(255), nullable=True)  # Название блюда, распознанное моделью
+
+    # Питательные показатели (из AI)
+    calories = Column(Integer, nullable=True)  # ккал
+    protein = Column(Integer, nullable=True)   # грамм
+    fat = Column(Integer, nullable=True)       # грамм
+    carbs = Column(Integer, nullable=True)     # грамм
     
     # Дата и время
     created_at = Column(DateTime(timezone=True), server_default=func.now())

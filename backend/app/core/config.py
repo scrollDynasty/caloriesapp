@@ -41,6 +41,12 @@ class Settings(BaseSettings):
     apple_key_id: str = ""
     apple_private_key_path: str = ""
 
+    ai_nutrition_base_url: str = "https://router.huggingface.co/v1"
+    ai_nutrition_model: str = "Qwen/Qwen2.5-VL-7B-Instruct"
+    ai_nutrition_api_key: str = "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"
+    ai_nutrition_timeout: int = 20  # seconds
+    ai_nutrition_provider: str = "huggingface"  #
+
     @property
     def database_url(self) -> str:
         """URL для подключения к базе данных"""

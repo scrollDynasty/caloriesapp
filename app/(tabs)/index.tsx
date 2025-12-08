@@ -21,7 +21,7 @@ import { RecentMeals } from "../../components/home/RecentMeals";
 import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
-import { apiService } from "../../services/api";
+import { apiService, MealPhoto } from "../../services/api";
 /**
  * Главный экран приложения
  */
@@ -64,6 +64,28 @@ export default function HomeScreen() {
   const isMountedRef = useRef(true);
   const hasLoadedRef = useRef(false); 
   const lastLoadedDateRef = useRef<number | null>(null);
+  const [latestMeal, setLatestMeal] = useState<MealPhoto | null>(null);
+
+  const recentMealsData = useMemo(() => {
+    const baseMeals = dailyData.meals ?? [];
+    if (!latestMeal) return baseMeals;
+    const created = latestMeal.created_at ? new Date(latestMeal.created_at) : null;
+    const time = created
+      ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "";
+    return [
+      {
+        id: latestMeal.id,
+        name: latestMeal.detected_meal_name || latestMeal.meal_name || "Блюдо",
+        time,
+        calories: latestMeal.calories ?? 0,
+        protein: latestMeal.protein ?? 0,
+        carbs: latestMeal.carbs ?? 0,
+        fats: latestMeal.fat ?? 0,
+      },
+      ...baseMeals,
+    ];
+  }, [latestMeal, dailyData.meals]);
 
   const loadUserData = useCallback(async () => {
     if (isLoadingRef.current || hasLoadedRef.current) {
@@ -87,6 +109,13 @@ export default function HomeScreen() {
         if (!isMountedRef.current) return;
         setOnboardingData(onboarding);
       } catch (err) {
+      }
+      try {
+        const meals = await apiService.getMealPhotos(0, 1);
+        if (!isMountedRef.current) return;
+        setLatestMeal(meals[0] || null);
+      } catch (err) {
+        console.warn("Failed to load latest meal", err);
       }
     } catch (error: any) {
       if (isMountedRef.current) {
@@ -332,7 +361,7 @@ export default function HomeScreen() {
           fats={stats.fats}
         />
 
-        <RecentMeals meals={dailyData.meals} />
+        <RecentMeals meals={recentMealsData} />
       </ScrollView>
 
       {/* Размытый фон */}
@@ -491,6 +520,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 120, 
+  },
+  section: {
+    gap: 12,
+    paddingHorizontal: 20,
+    marginTop: 12,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
+    color: colors.primary,
   },
   blurBackdrop: {
     ...StyleSheet.absoluteFillObject,
