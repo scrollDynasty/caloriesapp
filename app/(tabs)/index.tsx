@@ -42,6 +42,7 @@ export default function HomeScreen() {
       protein: number;
       carbs: number;
       fats: number;
+      imageUrl?: string;
     }>
   >([]);
   
@@ -104,6 +105,7 @@ export default function HomeScreen() {
         const meals = await apiService.getMealPhotos(0, 10);
         if (!isMountedRef.current) return;
         setLatestMeal(meals[0] || null);
+        const token = apiService.getCachedToken() || undefined;
         const mappedMeals = meals.map((m) => {
           const created = m.created_at ? new Date(m.created_at) : null;
           const time = created
@@ -117,9 +119,17 @@ export default function HomeScreen() {
             protein: m.protein ?? 0,
             carbs: m.carbs ?? 0,
             fats: m.fat ?? 0,
+            imageUrl: apiService.getMealPhotoUrl(m.id, token),
           };
         });
-        setRecentMeals(mappedMeals);
+        const filtered = mappedMeals.filter(
+          (meal) =>
+            (meal.calories ?? 0) > 0 ||
+            (meal.protein ?? 0) > 0 ||
+            (meal.carbs ?? 0) > 0 ||
+            (meal.fats ?? 0) > 0
+        );
+        setRecentMeals(filtered);
       } catch (err) {
         console.warn("Failed to load latest meal", err);
       }

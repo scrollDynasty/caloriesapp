@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { memo, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { colors } from "../../constants/theme";
 
 interface Meal {
@@ -11,6 +11,7 @@ interface Meal {
   protein: number;
   carbs: number;
   fats: number;
+  imageUrl?: string;
 }
 
 interface RecentMealsProps {
@@ -27,7 +28,11 @@ export const RecentMeals = memo(function RecentMeals({ meals }: RecentMealsProps
         meals.map((meal) => (
           <View key={meal.id} style={styles.mealCard}>
             <View style={styles.mealImage}>
-              <Ionicons name="fast-food" size={40} color={colors.primary} />
+              {meal.imageUrl ? (
+                <Image source={{ uri: meal.imageUrl }} style={styles.image} resizeMode="cover" />
+              ) : (
+                <Ionicons name="fast-food" size={40} color={colors.primary} />
+              )}
             </View>
             <View style={styles.mealInfo}>
               <View style={styles.mealHeader}>
@@ -96,6 +101,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
   },
   mealInfo: {
     flex: 1,
