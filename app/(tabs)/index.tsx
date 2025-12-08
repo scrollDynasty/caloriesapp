@@ -33,6 +33,17 @@ export default function HomeScreen() {
   const [userData, setUserData] = useState<any>(null);
   const [onboardingData, setOnboardingData] = useState<any>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [recentMeals, setRecentMeals] = useState<
+    Array<{
+      id: number;
+      name: string;
+      time: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+    }>
+  >([]);
   
   const getToday = () => {
     const today = new Date();
@@ -66,27 +77,6 @@ export default function HomeScreen() {
   const lastLoadedDateRef = useRef<number | null>(null);
   const [latestMeal, setLatestMeal] = useState<MealPhoto | null>(null);
 
-  const recentMealsData = useMemo(() => {
-    const baseMeals = dailyData.meals ?? [];
-    if (!latestMeal) return baseMeals;
-    const created = latestMeal.created_at ? new Date(latestMeal.created_at) : null;
-    const time = created
-      ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      : "";
-    return [
-      {
-        id: latestMeal.id,
-        name: latestMeal.detected_meal_name || latestMeal.meal_name || "Блюдо",
-        time,
-        calories: latestMeal.calories ?? 0,
-        protein: latestMeal.protein ?? 0,
-        carbs: latestMeal.carbs ?? 0,
-        fats: latestMeal.fat ?? 0,
-      },
-      ...baseMeals,
-    ];
-  }, [latestMeal, dailyData.meals]);
-
   const loadUserData = useCallback(async () => {
     if (isLoadingRef.current || hasLoadedRef.current) {
       return;
@@ -111,9 +101,25 @@ export default function HomeScreen() {
       } catch (err) {
       }
       try {
-        const meals = await apiService.getMealPhotos(0, 1);
+        const meals = await apiService.getMealPhotos(0, 10);
         if (!isMountedRef.current) return;
         setLatestMeal(meals[0] || null);
+        const mappedMeals = meals.map((m) => {
+          const created = m.created_at ? new Date(m.created_at) : null;
+          const time = created
+            ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            : "";
+          return {
+            id: m.id,
+            name: m.detected_meal_name || m.meal_name || "Блюдо",
+            time,
+            calories: m.calories ?? 0,
+            protein: m.protein ?? 0,
+            carbs: m.carbs ?? 0,
+            fats: m.fat ?? 0,
+          };
+        });
+        setRecentMeals(mappedMeals);
       } catch (err) {
         console.warn("Failed to load latest meal", err);
       }
@@ -361,7 +367,7 @@ export default function HomeScreen() {
           fats={stats.fats}
         />
 
-        <RecentMeals meals={recentMealsData} />
+        <RecentMeals meals={recentMeals} />
       </ScrollView>
 
       {/* Размытый фон */}
