@@ -1,6 +1,7 @@
 import { BlurView } from "expo-blur";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { colors } from "../../constants/theme";
 
 interface FoodImagePreviewProps {
@@ -39,7 +40,8 @@ export default function FoodImagePreview({
       <Image
         source={require("../../assets/images/food-demo-6453ad.png")}
         style={styles.foodImage}
-        resizeMode="cover"
+        contentFit="cover"
+        cachePolicy="disk"
       />
 
       {/* Градиентный оверлей */}

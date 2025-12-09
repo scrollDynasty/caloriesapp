@@ -11,6 +11,8 @@ import axios, {
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
 
+const TASHKENT_OFFSET_MINUTES = 300; // UTC+5
+
 // Ключ для хранения токена
 const TOKEN_KEY = "@caloriesapp:auth_token";
 
@@ -39,8 +41,11 @@ export interface MealPhotoUploadResponse {
 
 class ApiService {
   private api: AxiosInstance;
-  // Храним токен в памяти для быстрого доступа (избегаем race condition с AsyncStorage)
   private cachedToken: string | null = null;
+  private mealPhotosCache: { data: MealPhoto[]; timestamp: number | null } = {
+    data: [],
+    timestamp: null,
+  };
 
   constructor() {
     this.api = axios.create({
@@ -196,6 +201,8 @@ class ApiService {
     
     formData.append("barcode", barcode || "");
     formData.append("meal_name", mealName || "");
+    formData.append("client_timestamp", new Date().toISOString());
+    formData.append("client_tz_offset_minutes", String(TASHKENT_OFFSET_MINUTES));
 
     const response = await this.api.post<MealPhotoUploadResponse>(API_ENDPOINTS.MEALS_UPLOAD, formData, {
       headers: {
@@ -210,6 +217,53 @@ class ApiService {
   async getMealPhotos(skip: number = 0, limit: number = 100): Promise<MealPhoto[]> {
     const response = await this.api.get<MealPhoto[]>(API_ENDPOINTS.MEALS_PHOTOS, {
       params: { skip, limit },
+    });
+    return response.data;
+  }
+
+  async getMealPhotosCached(
+    skip: number = 0,
+    limit: number = 100,
+    ttlMs: number = 30000
+  ): Promise<MealPhoto[]> {
+    const now = Date.now();
+    const isCacheValid =
+      this.mealPhotosCache.timestamp &&
+      now - (this.mealPhotosCache.timestamp || 0) < ttlMs &&
+      skip === 0;
+
+    if (isCacheValid) {
+      return this.mealPhotosCache.data.slice(0, limit);
+    }
+
+    const data = await this.getMealPhotos(skip, limit);
+    if (skip === 0) {
+      this.mealPhotosCache = { data, timestamp: now };
+    }
+    return data;
+  }
+
+  async getDailyMeals(
+    date: string,
+    tzOffsetMinutes: number = TASHKENT_OFFSET_MINUTES
+  ): Promise<{
+    date: string;
+    total_calories: number;
+    total_protein: number;
+    total_fat: number;
+    total_carbs: number;
+    meals: Array<{
+      id: number;
+      name: string;
+      time: string;
+      calories: number;
+      protein: number;
+      carbs: number;
+      fats: number;
+    }>;
+  }> {
+    const response = await this.api.get(API_ENDPOINTS.MEALS_DAILY, {
+      params: { date, tz_offset_minutes: tzOffsetMinutes },
     });
     return response.data;
   }

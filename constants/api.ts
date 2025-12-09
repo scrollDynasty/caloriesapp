@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   MEALS_UPLOAD: "/api/v1/meals/upload",
   MEALS_PHOTOS: "/api/v1/meals/photos",
   MEALS_PHOTO: "/api/v1/meals/photos",
+  MEALS_DAILY: "/api/v1/meals/daily",
   
   // Системные
   HEALTH: "/health",

@@ -7,6 +7,7 @@ import json
 import base64
 import re
 from pathlib import Path
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 
 import httpx
@@ -165,6 +166,8 @@ async def upload_meal_photo(
     file: UploadFile = File(...),
     barcode: str = Form(default=""),
     meal_name: str = Form(default=""),
+    client_timestamp: Optional[str] = Form(default=None),
+    client_tz_offset_minutes: Optional[int] = Form(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -217,6 +220,23 @@ async def upload_meal_photo(
         # Сохраняем путь относительно media директории
         relative_path = f"meal_photos/{current_user.id}/{unique_filename}"
 
+        # Определяем время создания с учётом клиента
+        client_created_at = None
+        try:
+            if client_timestamp:
+                ts_str = client_timestamp.replace("Z", "+00:00")
+                parsed_ts = datetime.fromisoformat(ts_str)
+                if parsed_ts.tzinfo is None:
+                    tz = timezone(timedelta(minutes=client_tz_offset_minutes or 0))
+                    parsed_ts = parsed_ts.replace(tzinfo=tz)
+                client_created_at = parsed_ts.astimezone(timezone.utc)
+            elif client_tz_offset_minutes is not None:
+                # Если пришёл только сдвиг, сохраняем текущее время в UTC
+                client_created_at = datetime.now(timezone.utc)
+        except Exception as e:
+            logger.warning(f"Failed to parse client timestamp '{client_timestamp}': {e}")
+            client_created_at = None
+
         # Вызываем внешнюю AI-модель для получения БЖУ
         nutrition = await get_nutrition_insights(
             file_path=file_path,
@@ -237,6 +257,7 @@ async def upload_meal_photo(
             protein=nutrition.get("protein") if nutrition else None,
             fat=nutrition.get("fat") if nutrition else None,
             carbs=nutrition.get("carbs") if nutrition else None,
+            created_at=client_created_at or datetime.now(timezone.utc),
         )
         
         db.add(meal_photo)
@@ -393,9 +414,6 @@ def confirm_meal_photo(
     if carbs is not None:
         photo.carbs = carbs
     
-    # Помечаем как подтвержденное
-    photo.is_confirmed = True
-    
     db.commit()
     db.refresh(photo)
     
@@ -405,13 +423,15 @@ def confirm_meal_photo(
 @router.get("/meals/daily")
 def get_daily_meals(
     date: str = Query(..., description="Дата в формате YYYY-MM-DD"),
+    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """
-    Получить блюда за конкретный день
+    Получить блюда за конкретный день с учётом часового пояса клиента.
+    tz_offset_minutes передаём как -new Date().getTimezoneOffset().
     """
-    from datetime import datetime
+    from datetime import datetime, timedelta, timezone
     
     try:
         target_date = datetime.strptime(date, "%Y-%m-%d").date()
@@ -420,15 +440,26 @@ def get_daily_meals(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный формат даты. Используйте YYYY-MM-DD"
         )
+
+    offset = timedelta(minutes=tz_offset_minutes)
+    tz = timezone(offset)
+    start_local = datetime.combine(target_date, datetime.min.time())
+    end_local = start_local + timedelta(days=1)
+
+    # Переводим границы локального дня в UTC
+    start_utc = (start_local - offset).replace(tzinfo=timezone.utc)
+    end_utc = (end_local - offset).replace(tzinfo=timezone.utc)
     
-    photos = db.query(MealPhoto)\
+    photos = (
+        db.query(MealPhoto)
         .filter(
             MealPhoto.user_id == current_user.id,
-            MealPhoto.is_confirmed == True,
-            func.date(MealPhoto.created_at) == target_date
-        )\
-        .order_by(MealPhoto.created_at.desc())\
+            MealPhoto.created_at >= start_utc,
+            MealPhoto.created_at < end_utc,
+        )
+        .order_by(MealPhoto.created_at.desc())
         .all()
+    )
     
     # Суммируем КБЖУ за день
     total_calories = sum(p.calories or 0 for p in photos)
@@ -446,7 +477,7 @@ def get_daily_meals(
             {
                 "id": p.id,
                 "name": p.meal_name or p.detected_meal_name or "Блюдо",
-                "time": p.created_at.strftime("%H:%M"),
+                "time": p.created_at.astimezone(tz).strftime("%H:%M"),
                 "calories": p.calories or 0,
                 "protein": p.protein or 0,
                 "carbs": p.carbs or 0,

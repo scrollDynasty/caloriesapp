@@ -59,6 +59,12 @@ async def health_check():
     return {"status": "healthy"}
 
 
+@app.head("/health")
+async def health_head():
+    """Проверка здоровья (HEAD) для curl/мониторинга"""
+    return {"status": "healthy"}
+
+
 if __name__ == "__main__":
     import uvicorn
 

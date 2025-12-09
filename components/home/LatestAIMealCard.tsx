@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
-import { Image, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const IVORY = "#F5F0E8";
 const IVORY_DARK = "#E6DED0";
@@ -28,7 +29,12 @@ export const LatestAIMealCard: React.FC<LatestMealProps> = ({
     <View style={styles.card}>
       <View style={styles.imageWrapper}>
         {imageUrl ? (
-          <Image source={{ uri: imageUrl }} style={styles.image} resizeMode="cover" />
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            contentFit="cover"
+            cachePolicy="disk"
+          />
         ) : (
           <View style={[styles.image, styles.imagePlaceholder]}>
             <Ionicons name="image-outline" size={36} color={TEXT_SECONDARY} />

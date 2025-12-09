@@ -2,12 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { BlurView } from "expo-blur";
 import { useCameraPermissions } from "expo-camera";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Animated,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,14 +24,38 @@ import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 import { apiService, MealPhoto } from "../../services/api";
-/**
- * Главный экран приложения
- */
+
+const TASHKENT_TIMEZONE = "Asia/Tashkent";
+const TASHKENT_OFFSET_MINUTES = 300; // UTC+5
+const TASHKENT_OFFSET_MS = TASHKENT_OFFSET_MINUTES * 60 * 1000;
+
+const parseMealDate = (value?: string | null): Date | null => {
+  if (!value) return null;
+  const hasTz = /[+-]\d\d:\d\d$/.test(value) || value.endsWith("Z");
+  const normalized = hasTz ? value : `${value}Z`;
+  const d = new Date(normalized);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const getTashkentDayRange = (timestampUtcMs: number = Date.now()) => {
+  const tzMs = timestampUtcMs + TASHKENT_OFFSET_MS;
+  const tzDate = new Date(tzMs);
+  tzDate.setHours(0, 0, 0, 0);
+  const startUtcMs = tzDate.getTime() - TASHKENT_OFFSET_MS;
+  const endUtcMs = startUtcMs + 24 * 60 * 60 * 1000;
+  const dateStr = `${tzDate.getFullYear()}-${String(tzDate.getMonth() + 1).padStart(2, "0")}-${String(tzDate.getDate()).padStart(2, "0")}`;
+  return { startUtcMs, endUtcMs, dateStr };
+};
+
 export default function HomeScreen() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [dailyError, setDailyError] = useState<string | null>(null);
   const [userData, setUserData] = useState<any>(null);
   const [onboardingData, setOnboardingData] = useState<any>(null);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -46,13 +71,12 @@ export default function HomeScreen() {
       imageUrl?: string;
     }>
   >([]);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [recentError, setRecentError] = useState<string | null>(null);
+  const [recentLimit, setRecentLimit] = useState(10);
+  const [recentHasMore, setRecentHasMore] = useState(true);
   
-  const getToday = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today.getTime(); 
-  };
-  const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getToday);
+  const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getTashkentDayRange().startUtcMs);
   
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
@@ -77,17 +101,31 @@ export default function HomeScreen() {
   const isMountedRef = useRef(true);
   const hasLoadedRef = useRef(false); 
   const lastLoadedDateRef = useRef<number | null>(null);
+  const hasInitializedRecentRef = useRef(false);
   const [latestMeal, setLatestMeal] = useState<MealPhoto | null>(null);
-  const fetchLatestMeals = useCallback(async () => {
+  const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: number }) => {
     try {
-      const meals = await apiService.getMealPhotos(0, 10);
+      const limit = opts?.limit ?? recentLimit;
+      setRecentLoading(true);
+      setRecentError(null);
+      const meals = await apiService.getMealPhotos(0, limit);
       if (!isMountedRef.current) return;
-      setLatestMeal(meals[0] || null);
+
+      const { startUtcMs, endUtcMs } = getTashkentDayRange(selectedDateTimestamp);
+
+      const mealsForSelectedDay = meals.filter((m) => {
+        const created = parseMealDate((m as any).created_at);
+        if (!created) return false;
+        const createdMs = created.getTime();
+        return createdMs >= startUtcMs && createdMs < endUtcMs;
+      });
+
+      setLatestMeal(mealsForSelectedDay[0] || null);
       const token = apiService.getCachedToken() || undefined;
-      const mappedMeals = meals.map((m) => {
-        const created = m.created_at ? new Date(m.created_at) : null;
+      const mappedMeals = mealsForSelectedDay.map((m) => {
+        const created = parseMealDate((m as any).created_at);
         const time = created
-          ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: TASHKENT_TIMEZONE })
           : "";
         return {
           id: m.id,
@@ -108,10 +146,15 @@ export default function HomeScreen() {
           (meal.fats ?? 0) > 0
       );
       setRecentMeals(filtered);
+      setRecentHasMore(mealsForSelectedDay.length >= limit);
     } catch (err) {
       console.warn("Failed to load latest meal", err);
+      setRecentError("Не удалось загрузить последние блюда");
     }
-  }, []);
+    finally {
+      setRecentLoading(false);
+    }
+  }, [recentLimit, selectedDateTimestamp]);
 
   const loadUserData = useCallback(async () => {
     if (isLoadingRef.current || hasLoadedRef.current) {
@@ -126,20 +169,15 @@ export default function HomeScreen() {
     hasLoadedRef.current = true; 
     
     try {
-      const user = await apiService.getCurrentUser();
+      const userPromise = apiService.getCurrentUser();
+      const onboardingPromise = apiService.getOnboardingData().catch(() => null);
+      const mealsPromise = fetchLatestMeals().catch(() => null);
+
+      const [user, onboarding] = await Promise.all([userPromise, onboardingPromise, mealsPromise]);
       if (!isMountedRef.current) return;
       setUserData(user);
-
-      try {
-        const onboarding = await apiService.getOnboardingData();
-        if (!isMountedRef.current) return;
+      if (onboarding) {
         setOnboardingData(onboarding);
-      } catch (err) {
-      }
-      try {
-        await fetchLatestMeals();
-      } catch (err) {
-        console.warn("Failed to load latest meal", err);
       }
     } catch (error: any) {
       if (isMountedRef.current) {
@@ -165,22 +203,6 @@ export default function HomeScreen() {
     };
   }, []);
 
-  // Запрос разрешения камеры при первом входе
-  useEffect(() => {
-    const requestCameraPermissionOnFirstLaunch = async () => {
-      try {
-        if (cameraPermission && !cameraPermission.granted && cameraPermission.canAskAgain) {
-          // Автоматически запрашиваем разрешение при первом входе
-          await requestCameraPermission();
-        }
-      } catch (error) {
-        console.error("Error requesting camera permission:", error);
-      }
-    };
-
-    requestCameraPermissionOnFirstLaunch();
-  }, [cameraPermission]); 
-
   useEffect(() => {
     if (selectedDateTimestamp === lastLoadedDateRef.current) {
       return;
@@ -195,6 +217,24 @@ export default function HomeScreen() {
     }, [fetchLatestMeals])
   );
 
+  useEffect(() => {
+    if (!hasInitializedRecentRef.current) {
+      hasInitializedRecentRef.current = true;
+      return;
+    }
+    fetchLatestMeals({ append: false, limit: recentLimit });
+  }, [fetchLatestMeals, recentLimit, selectedDateTimestamp]);
+
+  useEffect(() => {
+    if (params?.refresh) {
+      hasLoadedRef.current = false;
+      lastLoadedDateRef.current = null;
+      loadUserData();
+      loadDailyData(selectedDateTimestamp);
+      fetchLatestMeals({ append: false, limit: recentLimit });
+    }
+  }, [params?.refresh]);
+
   const loadDailyData = async (dateTimestamp: number) => {
     if (lastLoadedDateRef.current === dateTimestamp) {
       return;
@@ -203,30 +243,53 @@ export default function HomeScreen() {
     lastLoadedDateRef.current = dateTimestamp;
     
     try {
-      
+      setDailyLoading(true);
+      setDailyError(null);
+
+      const { dateStr } = getTashkentDayRange(dateTimestamp);
+
+      const data = await apiService.getDailyMeals(
+        dateStr,
+        TASHKENT_OFFSET_MINUTES
+      );
+
       if (!isMountedRef.current) return;
       setDailyData({
-        consumedCalories: 0,
-        consumedProtein: 0,
-        consumedCarbs: 0,
-        consumedFats: 0,
-        meals: [],
+        consumedCalories: data.total_calories,
+        consumedProtein: data.total_protein,
+        consumedCarbs: data.total_carbs,
+        consumedFats: data.total_fat,
+        meals: data.meals,
       });
     } catch (error: any) {
       if (isMountedRef.current) {
         console.error("Error loading daily data:", error);
+        setDailyError("Не удалось загрузить данные за день");
+        setDailyData({
+          consumedCalories: 0,
+          consumedProtein: 0,
+          consumedCarbs: 0,
+          consumedFats: 0,
+          meals: [],
+        });
       }
+    }
+    finally {
+      setDailyLoading(false);
     }
   };
 
   const handleDateSelect = useMemo(() => (date: Date) => {
-    const timestamp = date.getTime();
-    if (timestamp !== selectedDateTimestamp) {
-      setSelectedDateTimestamp(timestamp);
+    const utcMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+    const { startUtcMs } = getTashkentDayRange(utcMs);
+    if (startUtcMs !== selectedDateTimestamp) {
+      setSelectedDateTimestamp(startUtcMs);
     }
   }, [selectedDateTimestamp]);
 
-  const selectedDate = useMemo(() => new Date(selectedDateTimestamp), [selectedDateTimestamp]);
+  const selectedDate = useMemo(() => {
+    return new Date(selectedDateTimestamp + TASHKENT_OFFSET_MS);
+  }, [selectedDateTimestamp]);
 
   const toggleFab = () => {
     const toValue = fabExpanded ? 0 : 1;
@@ -243,7 +306,6 @@ export default function HomeScreen() {
   const handleScanFood = async () => {
     toggleFab();
     
-    // Проверяем разрешение камеры перед переходом
     if (cameraPermission && !cameraPermission.granted) {
       if (cameraPermission.canAskAgain) {
         const result = await requestCameraPermission();
@@ -278,6 +340,27 @@ export default function HomeScreen() {
     console.log("Вода");
     toggleFab();
     // TODO: Navigate to water screen or show modal
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    hasLoadedRef.current = false;
+    lastLoadedDateRef.current = null;
+    try {
+      await loadUserData();
+      await loadDailyData(selectedDateTimestamp);
+      await fetchLatestMeals({ append: false, limit: recentLimit });
+    } catch (err) {
+      console.warn("Refresh error", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    const nextLimit = recentLimit + 10;
+    setRecentLimit(nextLimit);
+    await fetchLatestMeals({ append: true, limit: nextLimit });
   };
 
   const stats = useMemo(() => {
@@ -323,13 +406,11 @@ export default function HomeScreen() {
     );
   }
 
-  const fabBottom = 20; // Same for both iOS and Android
+  const fabBottom = 20; 
 
-  // Анимация для подкнопок - одинаковые отступы 12px, ближе к главной кнопке
-  // Высота иконки 52px, расстояние между кнопками 12px
   const button1TranslateY = fabAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -40], // Ближе к главной кнопке (меньше поднимаем)
+    outputRange: [0, -40], 
   });
   const button1TranslateX = fabAnimation.interpolate({
     inputRange: [0, 1],
@@ -338,7 +419,7 @@ export default function HomeScreen() {
 
   const button2TranslateY = fabAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -104], // 40 + 12 (отступ) + 52 (высота) = 104px
+    outputRange: [0, -104], 
   });
   const button2TranslateX = fabAnimation.interpolate({
     inputRange: [0, 1],
@@ -347,7 +428,7 @@ export default function HomeScreen() {
 
   const button3TranslateY = fabAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -168], // 104 + 12 (отступ) + 52 (высота) = 168px
+    outputRange: [0, -168], 
   });
   const button3TranslateX = fabAnimation.interpolate({
     inputRange: [0, 1],
@@ -375,6 +456,9 @@ export default function HomeScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
       >
         <HomeHeader />
 
@@ -383,18 +467,40 @@ export default function HomeScreen() {
           onDateSelect={handleDateSelect} 
         />
 
-        <CaloriesCard remainingCalories={stats.remainingCalories} />
+        {dailyLoading ? (
+          <View style={styles.loadingBlock}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={styles.loadingText}>Загружаем данные за день...</Text>
+          </View>
+        ) : (
+          <>
+            <CaloriesCard remainingCalories={stats.remainingCalories} />
 
-        <MacrosCards 
-          protein={stats.protein}
-          carbs={stats.carbs}
-          fats={stats.fats}
+            <MacrosCards 
+              protein={stats.protein}
+              carbs={stats.carbs}
+              fats={stats.fats}
+            />
+          </>
+        )}
+
+        {dailyError ? (
+          <TouchableOpacity style={styles.errorBox} onPress={() => loadDailyData(selectedDateTimestamp)}>
+            <Text style={styles.errorText}>{dailyError}</Text>
+            <Text style={styles.errorLink}>Повторить</Text>
+          </TouchableOpacity>
+        ) : null}
+
+        <RecentMeals
+          meals={recentMeals}
+          loading={recentLoading}
+          error={recentError}
+          onRetry={() => fetchLatestMeals({ append: false, limit: recentLimit })}
+          onAddPress={handleScanFood}
+          onLoadMore={recentHasMore ? handleLoadMore : undefined}
         />
-
-        <RecentMeals meals={recentMeals} />
       </ScrollView>
 
-      {/* Размытый фон */}
       {fabExpanded && (
         <TouchableOpacity
           style={styles.blurBackdrop}
@@ -414,12 +520,11 @@ export default function HomeScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Сканировать еду */}
       <Animated.View
         style={[
           styles.fabSubButtonContainer,
           {
-            bottom: fabBottom + 64 - 2, // 2px отступ от верха главной кнопки (ближе к плюсику)
+            bottom: fabBottom + 64 - 2, 
             opacity: buttonOpacity,
             transform: [
               { translateY: button1TranslateY },
@@ -444,7 +549,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Добавить вручную */}
       <Animated.View
         style={[
           styles.fabSubButtonContainer,
@@ -474,7 +578,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Вода */}
       <Animated.View
         style={[
           styles.fabSubButtonContainer,
@@ -504,7 +607,6 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Main FAB */}
       <TouchableOpacity 
         style={[
           styles.fab, 
@@ -544,6 +646,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.secondary,
     fontFamily: "Inter_400Regular",
+  },
+  loadingBlock: {
+    marginTop: 12,
+    marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    gap: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  errorBox: {
+    marginTop: 8,
+    padding: 14,
+    backgroundColor: "#FFF3F3",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#F2C2C2",
+    gap: 6,
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#C62828",
+    fontFamily: "Inter_600SemiBold",
+  },
+  errorLink: {
+    fontSize: 14,
+    color: colors.primary,
+    fontFamily: "Inter_600SemiBold",
   },
   scrollView: {
     flex: 1,
