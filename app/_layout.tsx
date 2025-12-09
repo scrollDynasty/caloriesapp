@@ -29,7 +29,28 @@ export default function RootLayout() {
           options={{
             gestureEnabled: false, // Отключаем жест назад на экране авторизации
           }}
-      />
+        />
+        <Stack.Screen
+          name="scan-meal"
+          options={{
+            presentation: "fullScreenModal",
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="meal-result"
+          options={{
+            presentation: "fullScreenModal",
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
+          name="auth/login"
+          options={{
+            gestureEnabled: false,
+            animation: "fade",
+          }}
+        />
       </Stack>
     </OnboardingProvider>
   );

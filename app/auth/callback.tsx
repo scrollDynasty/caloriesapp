@@ -62,28 +62,28 @@ export default function CallbackScreen() {
             console.log("ℹ️ Onboarding data already exists on server, skipping save");
           }
         } catch (error: any) {
-          // Если данных нет (404), продолжаем сохранять
           if (error?.response?.status !== 404) {
             console.warn("⚠️ Error checking existing data:", error);
           }
         }
 
-        // Сохраняем данные онбординга только если их еще нет на сервере
-        if (!hasExistingData && onboardingData && Object.keys(onboardingData).length > 0) {
-          try {
-            console.log("💾 Saving new onboarding data...");
-            const saveResult = await saveOnboardingData(onboardingData);
-            if (saveResult.success) {
-              console.log("✅ Onboarding data saved");
-            } else {
-              console.warn("⚠️ Onboarding save failed:", saveResult.error);
+        // Если данных нет на сервере, сохраняем из контекста (для новых пользователей)
+        if (!hasExistingData) {
+          if (onboardingData && Object.keys(onboardingData).length > 0) {
+            try {
+              console.log("💾 Saving onboarding data (first time)...");
+              const saveResult = await saveOnboardingData(onboardingData);
+              if (saveResult.success) {
+                console.log("✅ Onboarding data saved");
+              } else {
+                console.warn("⚠️ Onboarding save failed:", saveResult.error);
+              }
+            } catch (saveError: any) {
+              console.error("❌ Ошибка сохранения данных онбординга:", saveError);
             }
-          } catch (saveError: any) {
-            console.error("❌ Ошибка сохранения данных онбординга:", saveError);
-            // Продолжаем даже если сохранение не удалось
+          } else {
+            console.log("ℹ️ No onboarding data in context to save");
           }
-        } else if (!hasExistingData) {
-          console.log("ℹ️ No onboarding data to save");
         }
 
         // Переход на главный экран

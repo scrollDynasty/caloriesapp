@@ -4,6 +4,7 @@
 import httpx
 import json
 import logging
+import time
 from urllib.parse import urlencode, quote
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import RedirectResponse
@@ -21,6 +22,8 @@ from app.services.user_service import get_or_create_user_by_google, get_or_creat
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+_processed_codes: dict[str, float] = {}
+_CODE_TTL_SECONDS = 120
 
 
 @router.get("/google")
@@ -76,14 +79,23 @@ async def auth_google_callback(
     if not code:
         redirect_uri = state or "caloriesapp://auth/callback"
         return RedirectResponse(url=f"{redirect_uri}?error=no_code")
+
+    # Блокируем повторное использование одного и того же code в течение короткого времени
+    now = time.time()
+    # удаляем протухшие записи
+    for k, v in list(_processed_codes.items()):
+        if now - v > _CODE_TTL_SECONDS:
+            _processed_codes.pop(k, None)
+    if code in _processed_codes:
+        logger.warning("Google OAuth: repeated code usage detected, skipping.")
+        redirect_uri = state or "caloriesapp://auth/callback"
+        return RedirectResponse(url=f"{redirect_uri}?error=code_already_used")
+    _processed_codes[code] = now
     
     try:
-        # Определяем redirect_uri для обмена токена (должен ТОЧНО совпадать с тем что в Google Console)
-        # ВАЖНО: Этот URI должен быть HTTP/HTTPS и должен быть зарегистрирован в Google Cloud Console
         if settings.google_redirect_uri:
             callback_redirect_uri = settings.google_redirect_uri
         else:
-            # Для локальной разработки формируем на основе настроек хоста
             if settings.host == "0.0.0.0":
                 callback_redirect_uri = f"http://localhost:{settings.port}/api/v1/auth/google/callback"
             else:

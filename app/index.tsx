@@ -73,8 +73,7 @@ export default function Index() {
   };
 
   const handleLoginPress = () => {
-    // TODO: Переход на экран входа
-    console.log("Войти");
+    router.push("/auth/login" as any);
   };
 
   return (
