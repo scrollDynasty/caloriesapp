@@ -86,6 +86,8 @@ export default function HomeScreen() {
     consumedProtein: 0,
     consumedCarbs: 0,
     consumedFats: 0,
+    waterTotal: 0,
+    waterGoal: 0,
     meals: [] as Array<{
       id: number;
       name: string;
@@ -127,6 +129,10 @@ export default function HomeScreen() {
         const time = created
           ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: TASHKENT_TIMEZONE })
           : "";
+        const imageUrl =
+          m.mime_type === "manual" || !m.file_path
+            ? undefined
+            : apiService.getMealPhotoUrl(m.id, token);
         return {
           id: m.id,
           name: m.detected_meal_name || m.meal_name || "Блюдо",
@@ -135,7 +141,7 @@ export default function HomeScreen() {
           protein: m.protein ?? 0,
           carbs: m.carbs ?? 0,
           fats: m.fat ?? 0,
-          imageUrl: apiService.getMealPhotoUrl(m.id, token),
+          imageUrl,
         };
       });
       const filtered = mappedMeals.filter(
@@ -252,6 +258,10 @@ export default function HomeScreen() {
         dateStr,
         TASHKENT_OFFSET_MINUTES
       );
+      const water = await apiService.getDailyWater(
+        dateStr,
+        TASHKENT_OFFSET_MINUTES
+      );
 
       if (!isMountedRef.current) return;
       setDailyData({
@@ -259,6 +269,8 @@ export default function HomeScreen() {
         consumedProtein: data.total_protein,
         consumedCarbs: data.total_carbs,
         consumedFats: data.total_fat,
+        waterTotal: water.total_ml,
+        waterGoal: water.goal_ml || 0,
         meals: data.meals,
       });
     } catch (error: any) {
@@ -270,6 +282,8 @@ export default function HomeScreen() {
           consumedProtein: 0,
           consumedCarbs: 0,
           consumedFats: 0,
+          waterTotal: 0,
+          waterGoal: 0,
           meals: [],
         });
       }
@@ -331,15 +345,13 @@ export default function HomeScreen() {
   };
 
   const handleAddManually = () => {
-    console.log("Добавить вручную");
     toggleFab();
-    // TODO: Navigate to manual add screen
+    router.push("/add-manual" as any);
   };
 
   const handleAddWater = () => {
-    console.log("Вода");
     toggleFab();
-    // TODO: Navigate to water screen or show modal
+    router.push("/add-water" as any);
   };
 
   const handleRefresh = async () => {
@@ -383,6 +395,10 @@ export default function HomeScreen() {
         consumed: dailyData.consumedFats,
         target: onboardingData?.fats_grams || 0,
       },
+      water: {
+        consumed: dailyData.waterTotal,
+        target: dailyData.waterGoal || 0,
+      },
     };
   }, [
     onboardingData?.target_calories,
@@ -393,6 +409,8 @@ export default function HomeScreen() {
     dailyData.consumedProtein,
     dailyData.consumedCarbs,
     dailyData.consumedFats,
+    dailyData.waterTotal,
+    dailyData.waterGoal,
   ]);
 
   if (!fontsLoaded || loading) {
@@ -480,6 +498,7 @@ export default function HomeScreen() {
               protein={stats.protein}
               carbs={stats.carbs}
               fats={stats.fats}
+              water={stats.water}
             />
           </>
         )}

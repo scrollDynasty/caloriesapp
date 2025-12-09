@@ -39,6 +39,35 @@ export interface MealPhotoUploadResponse {
   url: string;
 }
 
+export interface ManualMealPayload {
+  meal_name: string;
+  calories?: number | null;
+  protein?: number | null;
+  fat?: number | null;
+  carbs?: number | null;
+  created_at?: string;
+}
+
+export interface WaterPayload {
+  amount_ml: number;
+  goal_ml?: number | null;
+  created_at?: string;
+}
+
+export interface WaterEntry {
+  id: number;
+  amount_ml: number;
+  goal_ml?: number | null;
+  created_at: string;
+}
+
+export interface WaterDaily {
+  date: string;
+  total_ml: number;
+  goal_ml?: number | null;
+  entries: WaterEntry[];
+}
+
 class ApiService {
   private api: AxiosInstance;
   private cachedToken: string | null = null;
@@ -212,6 +241,41 @@ class ApiService {
     });
     
     return response.data;
+  }
+
+  async createManualMeal(payload: ManualMealPayload) {
+    const data = {
+      ...payload,
+      created_at: payload.created_at || new Date().toISOString(),
+    };
+    const response = await this.api.post(API_ENDPOINTS.MEALS_MANUAL, data, {
+      params: {
+        client_timestamp: data.created_at,
+        client_tz_offset_minutes: TASHKENT_OFFSET_MINUTES,
+      },
+    });
+    return response.data as MealPhoto;
+  }
+
+  async addWater(payload: WaterPayload) {
+    const data = {
+      ...payload,
+      created_at: payload.created_at || new Date().toISOString(),
+    };
+    const response = await this.api.post(API_ENDPOINTS.WATER, data, {
+      params: { tz_offset_minutes: TASHKENT_OFFSET_MINUTES },
+    });
+    return response.data as WaterEntry;
+  }
+
+  async getDailyWater(
+    date: string,
+    tzOffsetMinutes: number = TASHKENT_OFFSET_MINUTES
+  ): Promise<WaterDaily> {
+    const response = await this.api.get(API_ENDPOINTS.WATER_DAILY, {
+      params: { date, tz_offset_minutes: tzOffsetMinutes },
+    });
+    return response.data as WaterDaily;
   }
 
   async getMealPhotos(skip: number = 0, limit: number = 100): Promise<MealPhoto[]> {

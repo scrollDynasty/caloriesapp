@@ -36,6 +36,7 @@ def init_db():
     from app.models.user import User  # noqa: F401
     from app.models.onboarding_data import OnboardingData  # noqa: F401
     from app.models.meal_photo import MealPhoto  # noqa: F401
+    from app.models.water_log import WaterLog  # noqa: F401
     Base.metadata.create_all(bind=engine)
 
     # Гарантируем наличие новых столбцов для MealPhoto (детектированные БЖУ)

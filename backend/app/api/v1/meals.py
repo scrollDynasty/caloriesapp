@@ -11,7 +11,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 
 import httpx
-from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status, Query, Header
+from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status, Query, Header, Body
 from fastapi.responses import FileResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -19,6 +19,9 @@ from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.models.meal_photo import MealPhoto
 from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, MealPhotoCreate
+from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
+from app.models.water_log import WaterLog
+from app.core.database import get_db
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -309,6 +312,60 @@ def get_user_meal_photos(
     return photos
 
 
+@router.post("/meals/manual", response_model=MealPhotoResponse, status_code=status.HTTP_201_CREATED)
+def create_manual_meal(
+    payload: MealPhotoCreate = Body(...),
+    client_timestamp: Optional[str] = Query(default=None),
+    client_tz_offset_minutes: Optional[int] = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Создать блюдо вручную без фото. Сохраняем в MealPhoto, но без файла.
+    """
+    from datetime import datetime, timezone, timedelta
+
+    if not payload.meal_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="meal_name is required",
+        )
+    created_at = None
+    try:
+        if client_timestamp:
+            ts_str = client_timestamp.replace("Z", "+00:00")
+            parsed_ts = datetime.fromisoformat(ts_str)
+            if parsed_ts.tzinfo is None:
+                tz = timezone(timedelta(minutes=client_tz_offset_minutes or 0))
+                parsed_ts = parsed_ts.replace(tzinfo=tz)
+            created_at = parsed_ts.astimezone(timezone.utc)
+        elif client_tz_offset_minutes is not None:
+            created_at = datetime.now(timezone.utc)
+    except Exception as e:
+        logger.warning(f"Failed to parse client timestamp '{client_timestamp}': {e}")
+        created_at = None
+
+    meal_photo = MealPhoto(
+        user_id=current_user.id,
+        file_path="manual",
+        file_name="manual",
+        file_size=0,
+        mime_type="manual",
+        meal_name=payload.meal_name,
+        detected_meal_name=payload.meal_name,
+        calories=payload.calories,
+        protein=payload.protein,
+        fat=payload.fat,
+        carbs=payload.carbs,
+        created_at=created_at or datetime.now(timezone.utc),
+    )
+
+    db.add(meal_photo)
+    db.commit()
+    db.refresh(meal_photo)
+    return meal_photo
+
+
 @router.get("/meals/photos/{photo_id}", response_class=FileResponse)
 def get_meal_photo(
     photo_id: int,
@@ -359,6 +416,12 @@ def get_meal_photo(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Фотография не найдена"
+        )
+
+    if photo.mime_type == "manual" or photo.file_path in (None, "", "manual"):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Файл отсутствует для ручной записи"
         )
     
     # Полный путь к файлу
@@ -555,3 +618,84 @@ def delete_meal_photo(
     db.commit()
     
     return None
+
+
+@router.post("/water", response_model=WaterEntry, status_code=status.HTTP_201_CREATED)
+def add_water(
+    payload: WaterCreate,
+    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Добавить запись воды.
+    """
+    from datetime import timezone, timedelta
+
+    created_at = payload.created_at
+    if created_at is None:
+        created_at = datetime.now(timezone.utc)
+    elif created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone(timedelta(minutes=tz_offset_minutes or 0))).astimezone(timezone.utc)
+
+    entry = WaterLog(
+        user_id=current_user.id,
+        amount_ml=payload.amount_ml,
+        goal_ml=payload.goal_ml,
+        created_at=created_at,
+    )
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+@router.get("/water/daily", response_model=WaterDailyResponse)
+def get_water_daily(
+    date: str = Query(..., description="Дата в формате YYYY-MM-DD"),
+    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Получить воду за день с учётом часового пояса.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    try:
+        target_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неверный формат даты. Используйте YYYY-MM-DD"
+        )
+
+    offset = timedelta(minutes=tz_offset_minutes)
+    start_local = datetime.combine(target_date, datetime.min.time())
+    end_local = start_local + timedelta(days=1)
+    start_utc = (start_local - offset).replace(tzinfo=timezone.utc)
+    end_utc = (end_local - offset).replace(tzinfo=timezone.utc)
+
+    entries = (
+        db.query(WaterLog)
+        .filter(
+            WaterLog.user_id == current_user.id,
+            WaterLog.created_at >= start_utc,
+            WaterLog.created_at < end_utc,
+        )
+        .order_by(WaterLog.created_at.desc())
+        .all()
+    )
+
+    total_ml = sum(e.amount_ml or 0 for e in entries)
+    goal_ml = None
+    if entries:
+        last = entries[0]
+        goal_ml = last.goal_ml
+
+    return WaterDailyResponse(
+        date=date,
+        total_ml=total_ml,
+        goal_ml=goal_ml,
+        entries=entries,
+    )
