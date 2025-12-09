@@ -12,9 +12,8 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LatestAIMealCard } from "../components/home/LatestAIMealCard";
 import { useFonts } from "../hooks/use-fonts";
-import { apiService, type MealPhotoUploadResponse } from "../services/api";
+import { apiService } from "../services/api";
 
 // Цвет слоновая кость (ivory) - более теплый бежевый оттенок
 const IVORY_COLOR = "#F5F0E8";
@@ -27,12 +26,10 @@ export default function ScanMealScreen() {
   const cameraRef = useRef<CameraView>(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [scanned, setScanned] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
-  const [lastResult, setLastResult] = useState<MealPhotoUploadResponse | null>(null);
 
   // Запрос разрешения при монтировании
   useEffect(() => {
@@ -78,6 +75,7 @@ export default function ScanMealScreen() {
     try {
       setIsProcessingPhoto(true);
       setUploading(true);
+      setCameraActive(false);
       console.log("Taking picture...");
       
       const photo = await cameraRef.current.takePictureAsync({
@@ -158,6 +156,7 @@ export default function ScanMealScreen() {
   const uploadPhoto = async (uri: string, barcode?: string) => {
     try {
       setUploading(true);
+      setCameraActive(false);
       console.log("Starting photo upload, URI:", uri);
 
       // Получаем имя файла и mime из URI
@@ -174,10 +173,24 @@ export default function ScanMealScreen() {
       );
 
       console.log("Photo uploaded successfully:", response);
-      setLastResult(response);
-      setIsProcessingPhoto(false);
-      setCameraActive(true);
-      Alert.alert("Успешно", "Фотография успешно загружена");
+      
+      const imageUrl = apiService.getMealPhotoUrl(
+        response.photo.id,
+        apiService.getCachedToken() || undefined
+      );
+
+      router.replace({
+        pathname: "/meal-result",
+        params: {
+          photoId: response.photo.id.toString(),
+          mealName: response.photo.detected_meal_name || response.photo.meal_name || "Блюдо",
+          calories: (response.photo.calories || 0).toString(),
+          protein: (response.photo.protein || 0).toString(),
+          fat: (response.photo.fat || 0).toString(),
+          carbs: (response.photo.carbs || 0).toString(),
+          imageUrl: imageUrl,
+        },
+      } as any);
     } catch (error: any) {
       setIsProcessingPhoto(false);
       console.error("Error uploading photo:", error);
@@ -321,21 +334,15 @@ export default function ScanMealScreen() {
         </View>
       </View>
 
-      {lastResult && (
-        <View style={styles.resultSection}>
-          <Text style={styles.resultTitle}>Распознанное блюдо</Text>
-          <LatestAIMealCard
-            title={
-              lastResult.photo.detected_meal_name ||
-              lastResult.photo.meal_name ||
-              "Блюдо"
-            }
-            calories={lastResult.photo.calories}
-            protein={lastResult.photo.protein}
-            fat={lastResult.photo.fat}
-            carbs={lastResult.photo.carbs}
-            imageUrl={apiService.getMealPhotoUrl(lastResult.photo.id, apiService.getCachedToken() || undefined)}
-          />
+      {uploading && (
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color="#000" />
+            <Text style={styles.loadingTitle}>Анализируем блюдо...</Text>
+            <Text style={styles.loadingSubtitle}>
+              AI распознает еду и считает КБЖУ
+            </Text>
+          </View>
         </View>
       )}
 
@@ -577,5 +584,38 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_400Regular",
     color: "#000",
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 100,
+  },
+  loadingCard: {
+    backgroundColor: IVORY_COLOR,
+    borderRadius: 20,
+    padding: 32,
+    alignItems: "center",
+    marginHorizontal: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  loadingTitle: {
+    marginTop: 20,
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    color: "#000",
+    textAlign: "center",
+  },
+  loadingSubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: "#666",
+    textAlign: "center",
   },
 });

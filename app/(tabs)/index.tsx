@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { BlurView } from "expo-blur";
 import { useCameraPermissions } from "expo-camera";
 import { useRouter } from "expo-router";
@@ -77,6 +78,40 @@ export default function HomeScreen() {
   const hasLoadedRef = useRef(false); 
   const lastLoadedDateRef = useRef<number | null>(null);
   const [latestMeal, setLatestMeal] = useState<MealPhoto | null>(null);
+  const fetchLatestMeals = useCallback(async () => {
+    try {
+      const meals = await apiService.getMealPhotos(0, 10);
+      if (!isMountedRef.current) return;
+      setLatestMeal(meals[0] || null);
+      const token = apiService.getCachedToken() || undefined;
+      const mappedMeals = meals.map((m) => {
+        const created = m.created_at ? new Date(m.created_at) : null;
+        const time = created
+          ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          : "";
+        return {
+          id: m.id,
+          name: m.detected_meal_name || m.meal_name || "Блюдо",
+          time,
+          calories: m.calories ?? 0,
+          protein: m.protein ?? 0,
+          carbs: m.carbs ?? 0,
+          fats: m.fat ?? 0,
+          imageUrl: apiService.getMealPhotoUrl(m.id, token),
+        };
+      });
+      const filtered = mappedMeals.filter(
+        (meal) =>
+          (meal.calories ?? 0) > 0 ||
+          (meal.protein ?? 0) > 0 ||
+          (meal.carbs ?? 0) > 0 ||
+          (meal.fats ?? 0) > 0
+      );
+      setRecentMeals(filtered);
+    } catch (err) {
+      console.warn("Failed to load latest meal", err);
+    }
+  }, []);
 
   const loadUserData = useCallback(async () => {
     if (isLoadingRef.current || hasLoadedRef.current) {
@@ -102,34 +137,7 @@ export default function HomeScreen() {
       } catch (err) {
       }
       try {
-        const meals = await apiService.getMealPhotos(0, 10);
-        if (!isMountedRef.current) return;
-        setLatestMeal(meals[0] || null);
-        const token = apiService.getCachedToken() || undefined;
-        const mappedMeals = meals.map((m) => {
-          const created = m.created_at ? new Date(m.created_at) : null;
-          const time = created
-            ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-            : "";
-          return {
-            id: m.id,
-            name: m.detected_meal_name || m.meal_name || "Блюдо",
-            time,
-            calories: m.calories ?? 0,
-            protein: m.protein ?? 0,
-            carbs: m.carbs ?? 0,
-            fats: m.fat ?? 0,
-            imageUrl: apiService.getMealPhotoUrl(m.id, token),
-          };
-        });
-        const filtered = mappedMeals.filter(
-          (meal) =>
-            (meal.calories ?? 0) > 0 ||
-            (meal.protein ?? 0) > 0 ||
-            (meal.carbs ?? 0) > 0 ||
-            (meal.fats ?? 0) > 0
-        );
-        setRecentMeals(filtered);
+        await fetchLatestMeals();
       } catch (err) {
         console.warn("Failed to load latest meal", err);
       }
@@ -180,6 +188,12 @@ export default function HomeScreen() {
     
     loadDailyData(selectedDateTimestamp);
   }, [selectedDateTimestamp]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchLatestMeals();
+    }, [fetchLatestMeals])
+  );
 
   const loadDailyData = async (dateTimestamp: number) => {
     if (lastLoadedDateRef.current === dateTimestamp) {

@@ -12,11 +12,12 @@ from typing import Optional, List, Dict, Any
 import httpx
 from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, status, Query, Header
 from fastapi.responses import FileResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.models.meal_photo import MealPhoto
-from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse
+from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, MealPhotoCreate
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -353,6 +354,144 @@ def get_meal_photo(
         media_type=photo.mime_type,
         filename=photo.file_name,
     )
+
+
+@router.put("/meals/photos/{photo_id}/confirm", response_model=MealPhotoResponse)
+def confirm_meal_photo(
+    photo_id: int,
+    meal_name: str = Form(None),
+    calories: int = Form(None),
+    protein: int = Form(None),
+    fat: int = Form(None),
+    carbs: int = Form(None),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Подтвердить и сохранить данные блюда (с возможностью редактирования)
+    """
+    photo = db.query(MealPhoto).filter(
+        MealPhoto.id == photo_id,
+        MealPhoto.user_id == current_user.id
+    ).first()
+    
+    if not photo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Фотография не найдена"
+        )
+    
+    # Обновляем данные если переданы
+    if meal_name is not None:
+        photo.meal_name = meal_name
+    if calories is not None:
+        photo.calories = calories
+    if protein is not None:
+        photo.protein = protein
+    if fat is not None:
+        photo.fat = fat
+    if carbs is not None:
+        photo.carbs = carbs
+    
+    # Помечаем как подтвержденное
+    photo.is_confirmed = True
+    
+    db.commit()
+    db.refresh(photo)
+    
+    return photo
+
+
+@router.get("/meals/daily")
+def get_daily_meals(
+    date: str = Query(..., description="Дата в формате YYYY-MM-DD"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Получить блюда за конкретный день
+    """
+    from datetime import datetime
+    
+    try:
+        target_date = datetime.strptime(date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неверный формат даты. Используйте YYYY-MM-DD"
+        )
+    
+    photos = db.query(MealPhoto)\
+        .filter(
+            MealPhoto.user_id == current_user.id,
+            MealPhoto.is_confirmed == True,
+            func.date(MealPhoto.created_at) == target_date
+        )\
+        .order_by(MealPhoto.created_at.desc())\
+        .all()
+    
+    # Суммируем КБЖУ за день
+    total_calories = sum(p.calories or 0 for p in photos)
+    total_protein = sum(p.protein or 0 for p in photos)
+    total_fat = sum(p.fat or 0 for p in photos)
+    total_carbs = sum(p.carbs or 0 for p in photos)
+    
+    return {
+        "date": date,
+        "total_calories": total_calories,
+        "total_protein": total_protein,
+        "total_fat": total_fat,
+        "total_carbs": total_carbs,
+        "meals": [
+            {
+                "id": p.id,
+                "name": p.meal_name or p.detected_meal_name or "Блюдо",
+                "time": p.created_at.strftime("%H:%M"),
+                "calories": p.calories or 0,
+                "protein": p.protein or 0,
+                "carbs": p.carbs or 0,
+                "fats": p.fat or 0,
+            }
+            for p in photos
+        ]
+    }
+
+
+@router.put("/meals/photos/{photo_id}", response_model=MealPhotoResponse)
+def update_meal_photo(
+    photo_id: int,
+    payload: MealPhotoCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Обновить данные фотографии (название, КБЖУ)
+    """
+    photo = db.query(MealPhoto).filter(
+        MealPhoto.id == photo_id,
+        MealPhoto.user_id == current_user.id
+    ).first()
+
+    if not photo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Фотография не найдена"
+        )
+
+    if payload.meal_name is not None:
+        photo.meal_name = payload.meal_name
+    if payload.calories is not None:
+        photo.calories = payload.calories
+    if payload.protein is not None:
+        photo.protein = payload.protein
+    if payload.fat is not None:
+        photo.fat = payload.fat
+    if payload.carbs is not None:
+        photo.carbs = payload.carbs
+
+    db.commit()
+    db.refresh(photo)
+    return photo
 
 
 @router.delete("/meals/photos/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)

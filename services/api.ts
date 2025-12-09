@@ -223,6 +223,20 @@ class ApiService {
     return `${API_BASE_URL}${API_ENDPOINTS.MEALS_PHOTO}/${photoId}${qs}`;
   }
 
+  async updateMealPhoto(photoId: number, data: {
+    meal_name?: string;
+    calories?: number;
+    protein?: number;
+    fat?: number;
+    carbs?: number;
+  }): Promise<MealPhoto> {
+    const response = await this.api.put<MealPhoto>(
+      `${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`,
+      data,
+    );
+    return response.data;
+  }
+
   // Проверка здоровья сервера
   async healthCheck() {
     try {
