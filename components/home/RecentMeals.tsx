@@ -65,8 +65,13 @@ export const RecentMeals = memo(function RecentMeals({
               </View>
               <View style={styles.mealInfo}>
                 <View style={styles.mealHeader}>
-                  <Text style={styles.mealName}>{meal.name}</Text>
-                  <Text style={styles.mealTime}>{meal.time}</Text>
+                  <Text style={styles.mealName} numberOfLines={2}>
+                    {meal.name}
+                  </Text>
+                  <View style={styles.mealTimeBadge}>
+                    <Ionicons name="time-outline" size={14} color={colors.primary} />
+                    <Text style={styles.mealTime}>{meal.time}</Text>
+                  </View>
                 </View>
                 <Text style={styles.mealCalories}>
                   <Ionicons name="flame" size={16} color="#FF6B35" /> {meal.calories} ккал
@@ -153,6 +158,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   mealImage: {
     width: 80,
@@ -173,19 +185,31 @@ const styles = StyleSheet.create({
   mealHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
+    alignItems: "flex-start",
+    marginBottom: 8,
+    gap: 8,
+    flexWrap: "wrap",
   },
   mealName: {
     fontSize: 16,
     fontWeight: "600",
     color: colors.primary,
     fontFamily: "Inter_600SemiBold",
+    flexShrink: 1,
+  },
+  mealTimeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#F5F7FB",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
   },
   mealTime: {
-    fontSize: 14,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    color: colors.primary,
+    fontFamily: "Inter_600SemiBold",
   },
   mealCalories: {
     fontSize: 16,
