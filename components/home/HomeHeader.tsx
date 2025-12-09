@@ -3,7 +3,11 @@ import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { colors } from "../../constants/theme";
 
-export const HomeHeader = memo(function HomeHeader() {
+interface HomeHeaderProps {
+  streak?: number;
+}
+
+export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderProps) {
   return (
     <View style={styles.header}>
       <View style={styles.headerTitle}>
@@ -12,7 +16,7 @@ export const HomeHeader = memo(function HomeHeader() {
       </View>
       <View style={styles.streakBadge}>
         <Ionicons name="flame" size={16} color="#FF6B35" />
-        <Text style={styles.streakText}>1</Text>
+        <Text style={styles.streakText}>{streak}</Text>
       </View>
     </View>
   );
@@ -42,7 +46,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: colors.white,
+    backgroundColor: colors.background,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,

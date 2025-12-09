@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -30,6 +31,18 @@ export default function ScanMealScreen() {
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
+
+  // Включаем/выключаем камеру при фокусе, чтобы не грелась в фоне
+  useFocusEffect(
+    useCallback(() => {
+      setCameraActive(true);
+      return () => {
+        setCameraActive(false);
+        setFlashEnabled(false);
+        setScanned(false);
+      };
+    }, [])
+  );
 
   // Запрос разрешения при монтировании
   useEffect(() => {
@@ -394,8 +407,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 28,
-    paddingBottom: 14,
+    paddingTop: 46,
+    paddingBottom: 24,
     backgroundColor: IVORY_COLOR,
   },
   headerButton: {

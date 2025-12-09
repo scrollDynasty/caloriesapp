@@ -5,9 +5,10 @@ import { colors } from "../../constants/theme";
 interface WeekCalendarProps {
   selectedDate: Date;
   onDateSelect: (date: Date) => void;
+  achievedDates?: Record<string, boolean>;
 }
 
-export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSelect }: WeekCalendarProps) {
+export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSelect, achievedDates }: WeekCalendarProps) {
   // Мемоизируем сегодняшнюю дату
   const today = useMemo(() => {
     const d = new Date();
@@ -60,6 +61,8 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
         const dateTimestamp = date.getTime();
         const isSelected = dateTimestamp === selectedDateTimestamp;
         const isToday = isSameDay(date, today);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        const isAchieved = achievedDates?.[key];
 
         return (
           <TouchableOpacity
@@ -72,6 +75,7 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
               style={[
                 styles.calendarDate,
                 isSelected && styles.calendarDateActive,
+                isAchieved && styles.calendarDateAchieved,
               ]}
             >
               <Text
@@ -92,7 +96,8 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
   // Кастомная функция сравнения для оптимизации
   // Сравниваем только timestamp даты, не сам объект Date
   return prevProps.selectedDate.getTime() === nextProps.selectedDate.getTime() &&
-         prevProps.onDateSelect === nextProps.onDateSelect;
+         prevProps.onDateSelect === nextProps.onDateSelect &&
+         prevProps.achievedDates === nextProps.achievedDates;
 });
 
 const styles = StyleSheet.create({
@@ -122,6 +127,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.primary,
     borderStyle: "dashed",
+  },
+  calendarDateAchieved: {
+    backgroundColor: "rgba(255,69,0,0.28)", // светло-оранжевый (R255,G69,B0)
   },
   calendarDateText: {
     fontSize: 16,

@@ -47,6 +47,38 @@ const getTashkentDayRange = (timestampUtcMs: number = Date.now()) => {
   return { startUtcMs, endUtcMs, dateStr };
 };
 
+const getDateStr = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+const computeWeekDays = (baseDate: Date) => {
+  const start = new Date(baseDate);
+  start.setHours(0, 0, 0, 0);
+  const day = start.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  start.setDate(start.getDate() + mondayOffset);
+  const days: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+  return days;
+};
+
+const getWeekStartTimestamp = (dateUtcMs: number) => {
+  const d = new Date(dateUtcMs + TASHKENT_OFFSET_MS);
+  const day = d.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + mondayOffset);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime() - TASHKENT_OFFSET_MS;
+};
+
+const dateStrFromTimestamp = (ts: number) => {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
 export default function HomeScreen() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -68,6 +100,7 @@ export default function HomeScreen() {
       protein: number;
       carbs: number;
       fats: number;
+      isManual?: boolean;
       imageUrl?: string;
     }>
   >([]);
@@ -75,8 +108,15 @@ export default function HomeScreen() {
   const [recentError, setRecentError] = useState<string | null>(null);
   const [recentLimit, setRecentLimit] = useState(10);
   const [recentHasMore, setRecentHasMore] = useState(true);
-  
+  const [recentSkip, setRecentSkip] = useState(0);
   const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getTashkentDayRange().startUtcMs);
+  const [weekAchievements, setWeekAchievements] = useState<Record<string, boolean>>({});
+  const [streakCount, setStreakCount] = useState(0);
+  const [weekStartTs, setWeekStartTs] = useState<number>(getWeekStartTimestamp(getTashkentDayRange().startUtcMs));
+  const weekLoadInProgress = useRef(false);
+  const lastWeekLoadedRef = useRef<number | null>(null);
+  const todayTs = useMemo(() => getTashkentDayRange().startUtcMs, []);
+  const isTodaySelected = selectedDateTimestamp === todayTs;
   
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
@@ -108,9 +148,10 @@ export default function HomeScreen() {
   const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: number }) => {
     try {
       const limit = opts?.limit ?? recentLimit;
+      const skip = opts?.append ? recentSkip : 0;
       setRecentLoading(true);
       setRecentError(null);
-      const meals = await apiService.getMealPhotos(0, limit);
+      const meals = await apiService.getMealPhotos(skip, limit);
       if (!isMountedRef.current) return;
 
       const { startUtcMs, endUtcMs } = getTashkentDayRange(selectedDateTimestamp);
@@ -122,7 +163,7 @@ export default function HomeScreen() {
         return createdMs >= startUtcMs && createdMs < endUtcMs;
       });
 
-      setLatestMeal(mealsForSelectedDay[0] || null);
+      setLatestMeal((opts?.append ? mealsForSelectedDay : mealsForSelectedDay)[0] || null);
       const token = apiService.getCachedToken() || undefined;
       const mappedMeals = mealsForSelectedDay.map((m) => {
         const created = parseMealDate((m as any).created_at);
@@ -141,6 +182,7 @@ export default function HomeScreen() {
           protein: m.protein ?? 0,
           carbs: m.carbs ?? 0,
           fats: m.fat ?? 0,
+          isManual: m.mime_type === "manual",
           imageUrl,
         };
       });
@@ -153,6 +195,7 @@ export default function HomeScreen() {
       );
       setRecentMeals(filtered);
       setRecentHasMore(mealsForSelectedDay.length >= limit);
+      setRecentSkip(skip + limit);
     } catch (err) {
       console.warn("Failed to load latest meal", err);
       setRecentError("Не удалось загрузить последние блюда");
@@ -208,14 +251,6 @@ export default function HomeScreen() {
       isLoadingRef.current = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (selectedDateTimestamp === lastLoadedDateRef.current) {
-      return;
-    }
-    
-    loadDailyData(selectedDateTimestamp);
-  }, [selectedDateTimestamp]);
 
   useFocusEffect(
     useCallback(() => {
@@ -273,6 +308,14 @@ export default function HomeScreen() {
         waterGoal: water.goal_ml || 0,
         meals: data.meals,
       });
+      // Обновляем достижения для выбранной даты без лишних запросов
+      const key = dateStr;
+      setWeekAchievements((prev) => {
+        const next = { ...prev, [key]: data.total_calories >= (onboardingData?.target_calories || 0) };
+        recomputeStreak(next);
+        return next;
+      });
+      loadWeekAchievements(new Date(dateTimestamp));
     } catch (error: any) {
       if (isMountedRef.current) {
         console.error("Error loading daily data:", error);
@@ -318,6 +361,11 @@ export default function HomeScreen() {
   };
 
   const handleScanFood = async () => {
+    if (!isTodaySelected) {
+      Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
+      if (fabExpanded) toggleFab();
+      return;
+    }
     toggleFab();
     
     if (cameraPermission && !cameraPermission.granted) {
@@ -345,14 +393,93 @@ export default function HomeScreen() {
   };
 
   const handleAddManually = () => {
+    if (!isTodaySelected) {
+      Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
+      if (fabExpanded) toggleFab();
+      return;
+    }
     toggleFab();
     router.push("/add-manual" as any);
   };
 
   const handleAddWater = () => {
+    if (!isTodaySelected) {
+      Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
+      if (fabExpanded) toggleFab();
+      return;
+    }
     toggleFab();
     router.push("/add-water" as any);
   };
+
+  const recomputeStreak = useCallback((map: Record<string, boolean>) => {
+    let streak = 0;
+    for (let i = 0; i < 30; i++) {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - i);
+      const key = getDateStr(date);
+      if (map[key]) {
+        streak += 1;
+      } else {
+        break;
+      }
+    }
+    setStreakCount(streak);
+  }, []);
+
+  const loadWeekAchievements = useCallback(
+    async (baseDate: Date) => {
+      if (!onboardingData?.target_calories) {
+        setWeekAchievements({});
+        setStreakCount(0);
+        return;
+      }
+      const weekTs = getWeekStartTimestamp(baseDate.getTime());
+      if (weekLoadInProgress.current) return;
+      if (lastWeekLoadedRef.current === weekTs) return;
+      weekLoadInProgress.current = true;
+      try {
+        const days = computeWeekDays(baseDate);
+        const results = await Promise.all(
+          days.map(async (d) => {
+            const dateStr = getDateStr(d);
+            const data = await apiService.getDailyMeals(dateStr, TASHKENT_OFFSET_MINUTES);
+            const achieved = data.total_calories >= onboardingData.target_calories;
+            return { dateStr, achieved };
+          })
+        );
+        const map: Record<string, boolean> = {};
+        results.forEach((r) => (map[r.dateStr] = r.achieved));
+        setWeekAchievements(map);
+        recomputeStreak(map);
+        lastWeekLoadedRef.current = weekTs;
+      } catch (e) {
+        console.warn("Week achievements failed", e);
+      } finally {
+        weekLoadInProgress.current = false;
+      }
+    },
+    [onboardingData?.target_calories, recomputeStreak]
+  );
+
+  useEffect(() => {
+    if (selectedDateTimestamp === lastLoadedDateRef.current) {
+      return;
+    }
+    
+    loadDailyData(selectedDateTimestamp);
+    const weekTs = getWeekStartTimestamp(selectedDateTimestamp);
+    if (weekTs !== weekStartTs) {
+      setWeekStartTs(weekTs);
+      loadWeekAchievements(new Date(selectedDateTimestamp));
+    } else {
+      // если неделя та же, а достижения ещё не были загружены — подгрузим один раз
+      if (lastWeekLoadedRef.current !== weekStartTs) {
+        loadWeekAchievements(new Date(selectedDateTimestamp));
+      }
+    }
+  }, [selectedDateTimestamp, weekStartTs, loadWeekAchievements]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -370,9 +497,9 @@ export default function HomeScreen() {
   };
 
   const handleLoadMore = async () => {
-    const nextLimit = recentLimit + 10;
-    setRecentLimit(nextLimit);
-    await fetchLatestMeals({ append: true, limit: nextLimit });
+    const pageSize = 10;
+    setRecentLimit(pageSize);
+    await fetchLatestMeals({ append: true, limit: pageSize });
   };
 
   const stats = useMemo(() => {
@@ -478,11 +605,12 @@ export default function HomeScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
-        <HomeHeader />
+        <HomeHeader streak={streakCount} />
 
         <WeekCalendar 
           selectedDate={selectedDate} 
           onDateSelect={handleDateSelect} 
+          achievedDates={weekAchievements}
         />
 
         {dailyLoading ? (
@@ -492,7 +620,10 @@ export default function HomeScreen() {
           </View>
         ) : (
           <>
-            <CaloriesCard remainingCalories={stats.remainingCalories} />
+            <CaloriesCard 
+              consumedCalories={stats.consumedCalories}
+              targetCalories={stats.targetCalories}
+            />
 
             <MacrosCards 
               protein={stats.protein}
@@ -510,12 +641,12 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ) : null}
 
-        <RecentMeals
+            <RecentMeals
           meals={recentMeals}
           loading={recentLoading}
           error={recentError}
           onRetry={() => fetchLatestMeals({ append: false, limit: recentLimit })}
-          onAddPress={handleScanFood}
+          onAddPress={isTodaySelected ? handleScanFood : undefined}
           onLoadMore={recentHasMore ? handleLoadMore : undefined}
         />
       </ScrollView>

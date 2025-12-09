@@ -12,6 +12,7 @@ interface Meal {
   protein: number;
   carbs: number;
   fats: number;
+  isManual?: boolean;
   imageUrl?: string;
 }
 
@@ -68,6 +69,12 @@ export const RecentMeals = memo(function RecentMeals({
                   <Text style={styles.mealName} numberOfLines={2}>
                     {meal.name}
                   </Text>
+                  {meal.isManual ? (
+                    <View style={styles.manualBadge}>
+                      <Ionicons name="create-outline" size={14} color={colors.primary} />
+                      <Text style={styles.manualBadgeText}>Ручное</Text>
+                    </View>
+                  ) : null}
                   <View style={styles.mealTimeBadge}>
                     <Ionicons name="time-outline" size={14} color={colors.primary} />
                     <Text style={styles.mealTime}>{meal.time}</Text>
@@ -205,6 +212,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
+  },
+  manualBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#F3F0FF",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  manualBadgeText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontFamily: "Inter_600SemiBold",
   },
   mealTime: {
     fontSize: 13,

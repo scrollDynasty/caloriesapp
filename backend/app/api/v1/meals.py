@@ -223,22 +223,8 @@ async def upload_meal_photo(
         # Сохраняем путь относительно media директории
         relative_path = f"meal_photos/{current_user.id}/{unique_filename}"
 
-        # Определяем время создания с учётом клиента
-        client_created_at = None
-        try:
-            if client_timestamp:
-                ts_str = client_timestamp.replace("Z", "+00:00")
-                parsed_ts = datetime.fromisoformat(ts_str)
-                if parsed_ts.tzinfo is None:
-                    tz = timezone(timedelta(minutes=client_tz_offset_minutes or 0))
-                    parsed_ts = parsed_ts.replace(tzinfo=tz)
-                client_created_at = parsed_ts.astimezone(timezone.utc)
-            elif client_tz_offset_minutes is not None:
-                # Если пришёл только сдвиг, сохраняем текущее время в UTC
-                client_created_at = datetime.now(timezone.utc)
-        except Exception as e:
-            logger.warning(f"Failed to parse client timestamp '{client_timestamp}': {e}")
-            client_created_at = None
+        # Жёстко ставим время создания как текущее (UTC), чтобы нельзя было добавлять в прошлое/будущее
+        created_at_now = datetime.now(timezone.utc)
 
         # Вызываем внешнюю AI-модель для получения БЖУ
         nutrition = await get_nutrition_insights(
@@ -260,7 +246,7 @@ async def upload_meal_photo(
             protein=nutrition.get("protein") if nutrition else None,
             fat=nutrition.get("fat") if nutrition else None,
             carbs=nutrition.get("carbs") if nutrition else None,
-            created_at=client_created_at or datetime.now(timezone.utc),
+            created_at=created_at_now,
         )
         
         db.add(meal_photo)
@@ -315,8 +301,6 @@ def get_user_meal_photos(
 @router.post("/meals/manual", response_model=MealPhotoResponse, status_code=status.HTTP_201_CREATED)
 def create_manual_meal(
     payload: MealPhotoCreate = Body(...),
-    client_timestamp: Optional[str] = Query(default=None),
-    client_tz_offset_minutes: Optional[int] = Query(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -330,20 +314,7 @@ def create_manual_meal(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="meal_name is required",
         )
-    created_at = None
-    try:
-        if client_timestamp:
-            ts_str = client_timestamp.replace("Z", "+00:00")
-            parsed_ts = datetime.fromisoformat(ts_str)
-            if parsed_ts.tzinfo is None:
-                tz = timezone(timedelta(minutes=client_tz_offset_minutes or 0))
-                parsed_ts = parsed_ts.replace(tzinfo=tz)
-            created_at = parsed_ts.astimezone(timezone.utc)
-        elif client_tz_offset_minutes is not None:
-            created_at = datetime.now(timezone.utc)
-    except Exception as e:
-        logger.warning(f"Failed to parse client timestamp '{client_timestamp}': {e}")
-        created_at = None
+    created_at = datetime.now(timezone.utc)
 
     meal_photo = MealPhoto(
         user_id=current_user.id,
@@ -357,7 +328,7 @@ def create_manual_meal(
         protein=payload.protein,
         fat=payload.fat,
         carbs=payload.carbs,
-        created_at=created_at or datetime.now(timezone.utc),
+        created_at=created_at,
     )
 
     db.add(meal_photo)

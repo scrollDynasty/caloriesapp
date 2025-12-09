@@ -50,7 +50,6 @@ export default function AddManualScreen() {
         protein: Number(protein) || 0,
         fat: Number(fat) || 0,
         carbs: Number(carbs) || 0,
-        created_at: new Date().toISOString(),
       });
       Alert.alert("Сохранено", "Блюдо добавлено.");
       router.push({ pathname: "/", params: { refresh: Date.now().toString() } } as any);

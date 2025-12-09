@@ -103,8 +103,10 @@ class ApiService {
     this.api.interceptors.response.use(
       (response: AxiosResponse) => response,
       async (error: AxiosError) => {
-        // НЕ удаляем токен автоматически при 401 - это вызывает проблемы
-        // Токен будет удалён только при явном выходе
+        if (error.response?.status === 401) {
+          // Авто-логаут и очистка токена при 401
+          await this.removeToken();
+        }
         return Promise.reject(error);
       }
     );

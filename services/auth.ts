@@ -38,6 +38,11 @@ export class AuthService {
       if (result.type === "success") {
         // Извлекаем токен и данные пользователя из URL
         const url = result.url;
+        if (url.includes("error=")) {
+          const errMatch = url.match(/error=([^&]+)/);
+          const errMsg = errMatch ? decodeURIComponent(errMatch[1]) : "Ошибка авторизации";
+          return { success: false, error: errMsg };
+        }
         
         if (url.includes('token=')) {
           const tokenMatch = url.match(/token=([^&]+)/);
