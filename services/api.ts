@@ -318,6 +318,7 @@ class ApiService {
     total_protein: number;
     total_fat: number;
     total_carbs: number;
+    streak_count?: number;
     meals: Array<{
       id: number;
       name: string;

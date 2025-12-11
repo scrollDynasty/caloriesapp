@@ -111,7 +111,6 @@ export default function HomeScreen() {
   const [recentSkip, setRecentSkip] = useState(0);
   const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getTashkentDayRange().startUtcMs);
   const [weekAchievements, setWeekAchievements] = useState<Record<string, boolean>>({});
-  const [streakMap, setStreakMap] = useState<Record<string, boolean>>({});
   const [streakCount, setStreakCount] = useState(0);
   const [weekStartTs, setWeekStartTs] = useState<number>(getWeekStartTimestamp(getTashkentDayRange().startUtcMs));
   const weekLoadInProgress = useRef(false);
@@ -348,23 +347,6 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
     router.push("/add-water" as any);
   };
 
-  const recomputeStreak = useCallback((map: Record<string, boolean>) => {
-    let streak = 0;
-    for (let i = 0; i < 30; i++) {
-      const date = new Date();
-      date.setHours(0, 0, 0, 0);
-      date.setDate(date.getDate() - i);
-      const key = getDateStr(date);
-      if (map[key]) {
-        streak += 1;
-      } else {
-        break;
-      }
-    }
-    setStreakCount(streak);
-    setStreakMap(map);
-  }, []);
-
   const loadWeekAchievements = useCallback(
     async (baseDate: Date) => {
       if (!onboardingData?.target_calories) {
@@ -393,34 +375,8 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
         weekLoadInProgress.current = false;
       }
     },
-    [onboardingData?.target_calories, recomputeStreak]
+    [onboardingData?.target_calories]
   );
-
-  const loadStreakData = useCallback(async () => {
-    if (!onboardingData?.target_calories) {
-      setStreakCount(0);
-      setStreakMap({});
-      return;
-    }
-    try {
-      const dates: string[] = [];
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        dates.push(getDateStr(d));
-      }
-      const results = await apiService.getDailyMealsBatch(dates, TASHKENT_OFFSET_MINUTES);
-      const map: Record<string, boolean> = {};
-      results.forEach((r) => {
-        map[r.date] = r.total_calories >= onboardingData.target_calories;
-      });
-      recomputeStreak(map);
-    } catch (e) {
-      console.warn("Streak load failed", e);
-    }
-  }, [onboardingData?.target_calories, recomputeStreak]);
 
   const loadDailyData = useCallback(async (dateTimestamp: number, force: boolean = false) => {
     if (!force && lastLoadedDateRef.current === dateTimestamp) {
@@ -453,15 +409,14 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
         waterGoal: water.goal_ml || 0,
         meals: data.meals,
       });
+      setStreakCount(data.streak_count ?? 0);
       // Обновляем достижения для выбранной даты без лишних запросов
       const key = dateStr;
       setWeekAchievements((prev) => {
         const next = { ...prev, [key]: data.total_calories >= (onboardingData?.target_calories || 0) };
-        recomputeStreak(next);
         return next;
       });
       loadWeekAchievements(new Date(dateTimestamp));
-      loadStreakData();
     } catch (error: any) {
       if (isMountedRef.current) {
         console.error("Error loading daily data:", error);
@@ -480,7 +435,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
     finally {
       setDailyLoading(false);
     }
-  }, [onboardingData?.target_calories, loadWeekAchievements, recomputeStreak, loadStreakData]);
+  }, [onboardingData?.target_calories, loadWeekAchievements]);
 
   useFocusEffect(
     useCallback(() => {
@@ -488,8 +443,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
       // Принудительно обновляем дневные данные и достижения текущей недели при возврате на экран
       loadDailyData(selectedDateTimestamp, true);
       loadWeekAchievements(new Date(selectedDateTimestamp));
-      loadStreakData();
-    }, [fetchLatestMeals, loadDailyData, loadWeekAchievements, loadStreakData, selectedDateTimestamp])
+    }, [fetchLatestMeals, loadDailyData, loadWeekAchievements, selectedDateTimestamp])
   );
 
   useEffect(() => {

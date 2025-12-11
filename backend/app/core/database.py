@@ -39,7 +39,6 @@ def init_db():
     from app.models.water_log import WaterLog  # noqa: F401
     Base.metadata.create_all(bind=engine)
 
-    # Гарантируем наличие новых столбцов для MealPhoto (детектированные БЖУ)
     with engine.begin() as conn:
         inspector = inspect(conn)
         columns = {col["name"] for col in inspector.get_columns("meal_photos")}
@@ -57,3 +56,14 @@ def init_db():
         if alters:
             sql = "ALTER TABLE meal_photos " + ", ".join(alters)
             conn.execute(text(sql))
+
+        user_columns = {col["name"] for col in inspector.get_columns("users")}
+        user_alters = []
+        if "streak_count" not in user_columns:
+            user_alters.append("ADD COLUMN streak_count INT NULL")
+        if "last_streak_date" not in user_columns:
+            # MariaDB/MySQL не поддерживают TIMESTAMP WITH TIME ZONE — используем DATETIME (UTC)
+            user_alters.append("ADD COLUMN last_streak_date DATETIME NULL")
+        if user_alters:
+            sql_users = "ALTER TABLE users " + ", ".join(user_alters)
+            conn.execute(text(sql_users))

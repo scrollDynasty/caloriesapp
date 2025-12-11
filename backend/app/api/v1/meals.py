@@ -21,6 +21,7 @@ from app.models.meal_photo import MealPhoto
 from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, MealPhotoCreate
 from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
 from app.models.water_log import WaterLog
+from app.models.onboarding_data import OnboardingData
 from app.core.database import get_db
 from app.core.config import settings
 
@@ -500,6 +501,51 @@ def get_daily_meals(
     total_protein = sum(p.protein or 0 for p in photos)
     total_fat = sum(p.fat or 0 for p in photos)
     total_carbs = sum(p.carbs or 0 for p in photos)
+
+    # Получаем целевые калории (последний онбординг)
+    target_calories = None
+    onboarding = (
+        db.query(OnboardingData)
+        .filter(OnboardingData.user_id == current_user.id, OnboardingData.target_calories != None)
+        .order_by(OnboardingData.id.desc())
+        .first()
+    )
+    if onboarding:
+        target_calories = onboarding.target_calories
+
+    # Обновляем стрик, если дата не в будущем и не раньше последнего зафиксированного дня
+    streak_count = current_user.streak_count or 0
+    last_streak_date = current_user.last_streak_date.date() if current_user.last_streak_date else None
+    try:
+        today_date = datetime.now(timezone.utc).date()
+        if target_calories is not None and target_calories > 0 and target_date <= today_date:
+            achieved = total_calories >= target_calories
+            if last_streak_date and target_date < last_streak_date:
+                pass  # не трогаем прошлые даты до последнего зафиксированного
+            else:
+                if achieved:
+                    if last_streak_date is None:
+                        streak_count = 1
+                    else:
+                        delta = (target_date - last_streak_date).days
+                        if delta == 0:
+                            # тот же день — оставляем
+                            streak_count = current_user.streak_count or 0
+                        elif delta == 1:
+                            streak_count = (current_user.streak_count or 0) + 1
+                        else:
+                            streak_count = 1
+                    current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())  # UTC naive
+                    current_user.streak_count = streak_count
+                else:
+                    # пропуск — сбрасываем
+                    streak_count = 0
+                    current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())  # UTC naive
+                    current_user.streak_count = streak_count
+                db.commit()
+                db.refresh(current_user)
+    except Exception as e:
+        logger.warning(f"Failed to update streak: {e}")
     
     return {
         "date": date,
@@ -507,6 +553,7 @@ def get_daily_meals(
         "total_protein": total_protein,
         "total_fat": total_fat,
         "total_carbs": total_carbs,
+        "streak_count": current_user.streak_count or 0,
         "meals": [
             {
                 "id": p.id,
