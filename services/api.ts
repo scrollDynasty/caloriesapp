@@ -334,6 +334,22 @@ class ApiService {
     return response.data;
   }
 
+  async getDailyMealsBatch(
+    dates: string[],
+    tzOffsetMinutes: number = TASHKENT_OFFSET_MINUTES
+  ): Promise<Array<{
+    date: string;
+    total_calories: number;
+    total_protein: number;
+    total_fat: number;
+    total_carbs: number;
+  }>> {
+    const response = await this.api.post(API_ENDPOINTS.MEALS_DAILY_BATCH, { dates }, {
+      params: { tz_offset_minutes: tzOffsetMinutes },
+    });
+    return response.data;
+  }
+
   async deleteMealPhoto(photoId: number) {
     await this.api.delete(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
   }

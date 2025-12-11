@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFonts } from "../hooks/use-fonts";
 import { apiService } from "../services/api";
 
@@ -22,6 +22,7 @@ const IVORY_COLOR = "#F5F0E8";
 export default function ScanMealScreen() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
   const cameraRef = useRef<CameraView>(null);
@@ -245,7 +246,7 @@ export default function ScanMealScreen() {
   if (!permission.granted) {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 12, paddingBottom: 14 }]}>
           <TouchableOpacity
             style={styles.headerButton}
             onPress={() => router.back()}
@@ -278,7 +279,7 @@ export default function ScanMealScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12, paddingBottom: 14 }]}>
         <TouchableOpacity
           style={styles.headerButton}
           onPress={() => router.back()}
@@ -407,8 +408,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 46,
-    paddingBottom: 24,
+    paddingTop: 0,
+    paddingBottom: 0,
     backgroundColor: IVORY_COLOR,
   },
   headerButton: {

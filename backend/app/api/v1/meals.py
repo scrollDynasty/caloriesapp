@@ -522,6 +522,73 @@ def get_daily_meals(
     }
 
 
+@router.post("/meals/daily/batch")
+def get_daily_meals_batch(
+    payload: dict = Body(..., example={"dates": ["2025-12-10", "2025-12-11"]}),
+    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Получить данные по нескольким датам за один запрос (для календаря).
+    """
+    from datetime import datetime, timedelta, timezone
+
+    dates: list = payload.get("dates") or []
+    results = []
+    offset = timedelta(minutes=tz_offset_minutes)
+    tz = timezone(offset)
+
+    for date_str in dates:
+      try:
+          target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+      except ValueError:
+          continue
+
+      start_local = datetime.combine(target_date, datetime.min.time())
+      end_local = start_local + timedelta(days=1)
+      start_utc = (start_local - offset).replace(tzinfo=timezone.utc)
+      end_utc = (end_local - offset).replace(tzinfo=timezone.utc)
+
+      photos = (
+          db.query(MealPhoto)
+          .filter(
+              MealPhoto.user_id == current_user.id,
+              MealPhoto.created_at >= start_utc,
+              MealPhoto.created_at < end_utc,
+          )
+          .order_by(MealPhoto.created_at.desc())
+          .all()
+      )
+
+      total_calories = sum(p.calories or 0 for p in photos)
+      total_protein = sum(p.protein or 0 for p in photos)
+      total_fat = sum(p.fat or 0 for p in photos)
+      total_carbs = sum(p.carbs or 0 for p in photos)
+
+      results.append({
+          "date": date_str,
+          "total_calories": total_calories,
+          "total_protein": total_protein,
+          "total_fat": total_fat,
+          "total_carbs": total_carbs,
+          "meals": [
+              {
+                  "id": p.id,
+                  "name": p.meal_name or p.detected_meal_name or "Блюдо",
+                  "time": p.created_at.astimezone(tz).strftime("%H:%M"),
+                  "calories": p.calories or 0,
+                  "protein": p.protein or 0,
+                  "carbs": p.carbs or 0,
+                  "fats": p.fat or 0,
+              }
+              for p in photos
+          ]
+      })
+
+    return results
+
+
 @router.put("/meals/photos/{photo_id}", response_model=MealPhotoResponse)
 def update_meal_photo(
     photo_id: int,

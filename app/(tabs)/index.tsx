@@ -111,6 +111,7 @@ export default function HomeScreen() {
   const [recentSkip, setRecentSkip] = useState(0);
   const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getTashkentDayRange().startUtcMs);
   const [weekAchievements, setWeekAchievements] = useState<Record<string, boolean>>({});
+  const [streakMap, setStreakMap] = useState<Record<string, boolean>>({});
   const [streakCount, setStreakCount] = useState(0);
   const [weekStartTs, setWeekStartTs] = useState<number>(getWeekStartTimestamp(getTashkentDayRange().startUtcMs));
   const weekLoadInProgress = useRef(false);
@@ -145,8 +146,9 @@ export default function HomeScreen() {
   const lastLoadedDateRef = useRef<number | null>(null);
   const hasInitializedRecentRef = useRef(false);
   const [latestMeal, setLatestMeal] = useState<MealPhoto | null>(null);
-  const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: number }) => {
+const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: number; force?: boolean }) => {
     try {
+    if (!opts?.force && recentLoading) return;
       const limit = opts?.limit ?? recentLimit;
       const skip = opts?.append ? recentSkip : 0;
       setRecentLoading(true);
@@ -252,18 +254,12 @@ export default function HomeScreen() {
     };
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchLatestMeals();
-    }, [fetchLatestMeals])
-  );
-
   useEffect(() => {
     if (!hasInitializedRecentRef.current) {
       hasInitializedRecentRef.current = true;
       return;
     }
-    fetchLatestMeals({ append: false, limit: recentLimit });
+    fetchLatestMeals({ append: false, limit: recentLimit, force: true });
   }, [fetchLatestMeals, recentLimit, selectedDateTimestamp]);
 
   useEffect(() => {
@@ -271,70 +267,10 @@ export default function HomeScreen() {
       hasLoadedRef.current = false;
       lastLoadedDateRef.current = null;
       loadUserData();
-      loadDailyData(selectedDateTimestamp);
-      fetchLatestMeals({ append: false, limit: recentLimit });
+      loadDailyData(selectedDateTimestamp, true);
+      fetchLatestMeals({ append: false, limit: recentLimit, force: true });
     }
   }, [params?.refresh]);
-
-  const loadDailyData = async (dateTimestamp: number) => {
-    if (lastLoadedDateRef.current === dateTimestamp) {
-      return;
-    }
-    
-    lastLoadedDateRef.current = dateTimestamp;
-    
-    try {
-      setDailyLoading(true);
-      setDailyError(null);
-
-      const { dateStr } = getTashkentDayRange(dateTimestamp);
-
-      const data = await apiService.getDailyMeals(
-        dateStr,
-        TASHKENT_OFFSET_MINUTES
-      );
-      const water = await apiService.getDailyWater(
-        dateStr,
-        TASHKENT_OFFSET_MINUTES
-      );
-
-      if (!isMountedRef.current) return;
-      setDailyData({
-        consumedCalories: data.total_calories,
-        consumedProtein: data.total_protein,
-        consumedCarbs: data.total_carbs,
-        consumedFats: data.total_fat,
-        waterTotal: water.total_ml,
-        waterGoal: water.goal_ml || 0,
-        meals: data.meals,
-      });
-      // Обновляем достижения для выбранной даты без лишних запросов
-      const key = dateStr;
-      setWeekAchievements((prev) => {
-        const next = { ...prev, [key]: data.total_calories >= (onboardingData?.target_calories || 0) };
-        recomputeStreak(next);
-        return next;
-      });
-      loadWeekAchievements(new Date(dateTimestamp));
-    } catch (error: any) {
-      if (isMountedRef.current) {
-        console.error("Error loading daily data:", error);
-        setDailyError("Не удалось загрузить данные за день");
-        setDailyData({
-          consumedCalories: 0,
-          consumedProtein: 0,
-          consumedCarbs: 0,
-          consumedFats: 0,
-          waterTotal: 0,
-          waterGoal: 0,
-          meals: [],
-        });
-      }
-    }
-    finally {
-      setDailyLoading(false);
-    }
-  };
 
   const handleDateSelect = useMemo(() => (date: Date) => {
     const utcMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
@@ -426,6 +362,7 @@ export default function HomeScreen() {
       }
     }
     setStreakCount(streak);
+    setStreakMap(map);
   }, []);
 
   const loadWeekAchievements = useCallback(
@@ -441,18 +378,14 @@ export default function HomeScreen() {
       weekLoadInProgress.current = true;
       try {
         const days = computeWeekDays(baseDate);
-        const results = await Promise.all(
-          days.map(async (d) => {
-            const dateStr = getDateStr(d);
-            const data = await apiService.getDailyMeals(dateStr, TASHKENT_OFFSET_MINUTES);
-            const achieved = data.total_calories >= onboardingData.target_calories;
-            return { dateStr, achieved };
-          })
-        );
+        const dates = days.map((d) => getDateStr(d));
+        const results = await apiService.getDailyMealsBatch(dates, TASHKENT_OFFSET_MINUTES);
         const map: Record<string, boolean> = {};
-        results.forEach((r) => (map[r.dateStr] = r.achieved));
+        results.forEach((r) => {
+          map[r.date] = r.total_calories >= onboardingData.target_calories;
+        });
         setWeekAchievements(map);
-        recomputeStreak(map);
+        // Не пересчитываем streak тут, делаем отдельной выборкой 30 дней
         lastWeekLoadedRef.current = weekTs;
       } catch (e) {
         console.warn("Week achievements failed", e);
@@ -461,6 +394,102 @@ export default function HomeScreen() {
       }
     },
     [onboardingData?.target_calories, recomputeStreak]
+  );
+
+  const loadStreakData = useCallback(async () => {
+    if (!onboardingData?.target_calories) {
+      setStreakCount(0);
+      setStreakMap({});
+      return;
+    }
+    try {
+      const dates: string[] = [];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        dates.push(getDateStr(d));
+      }
+      const results = await apiService.getDailyMealsBatch(dates, TASHKENT_OFFSET_MINUTES);
+      const map: Record<string, boolean> = {};
+      results.forEach((r) => {
+        map[r.date] = r.total_calories >= onboardingData.target_calories;
+      });
+      recomputeStreak(map);
+    } catch (e) {
+      console.warn("Streak load failed", e);
+    }
+  }, [onboardingData?.target_calories, recomputeStreak]);
+
+  const loadDailyData = useCallback(async (dateTimestamp: number, force: boolean = false) => {
+    if (!force && lastLoadedDateRef.current === dateTimestamp) {
+      return;
+    }
+    lastLoadedDateRef.current = dateTimestamp;
+    
+    try {
+      setDailyLoading(true);
+      setDailyError(null);
+
+      const { dateStr } = getTashkentDayRange(dateTimestamp);
+
+      const data = await apiService.getDailyMeals(
+        dateStr,
+        TASHKENT_OFFSET_MINUTES
+      );
+      const water = await apiService.getDailyWater(
+        dateStr,
+        TASHKENT_OFFSET_MINUTES
+      );
+
+      if (!isMountedRef.current) return;
+      setDailyData({
+        consumedCalories: data.total_calories,
+        consumedProtein: data.total_protein,
+        consumedCarbs: data.total_carbs,
+        consumedFats: data.total_fat,
+        waterTotal: water.total_ml,
+        waterGoal: water.goal_ml || 0,
+        meals: data.meals,
+      });
+      // Обновляем достижения для выбранной даты без лишних запросов
+      const key = dateStr;
+      setWeekAchievements((prev) => {
+        const next = { ...prev, [key]: data.total_calories >= (onboardingData?.target_calories || 0) };
+        recomputeStreak(next);
+        return next;
+      });
+      loadWeekAchievements(new Date(dateTimestamp));
+      loadStreakData();
+    } catch (error: any) {
+      if (isMountedRef.current) {
+        console.error("Error loading daily data:", error);
+        setDailyError("Не удалось загрузить данные за день");
+        setDailyData({
+          consumedCalories: 0,
+          consumedProtein: 0,
+          consumedCarbs: 0,
+          consumedFats: 0,
+          waterTotal: 0,
+          waterGoal: 0,
+          meals: [],
+        });
+      }
+    }
+    finally {
+      setDailyLoading(false);
+    }
+  }, [onboardingData?.target_calories, loadWeekAchievements, recomputeStreak, loadStreakData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchLatestMeals();
+      // Принудительно обновляем дневные данные и достижения текущей недели при возврате на экран
+      loadDailyData(selectedDateTimestamp, true);
+      loadWeekAchievements(new Date(selectedDateTimestamp));
+      loadStreakData();
+    }, [fetchLatestMeals, loadDailyData, loadWeekAchievements, loadStreakData, selectedDateTimestamp])
   );
 
   useEffect(() => {
@@ -474,10 +503,10 @@ export default function HomeScreen() {
       setWeekStartTs(weekTs);
       loadWeekAchievements(new Date(selectedDateTimestamp));
     } else {
-      // если неделя та же, а достижения ещё не были загружены — подгрузим один раз
-      if (lastWeekLoadedRef.current !== weekStartTs) {
-        loadWeekAchievements(new Date(selectedDateTimestamp));
-      }
+        // если неделя та же, а достижения ещё не были загружены — подгрузим один раз
+        if (lastWeekLoadedRef.current !== weekStartTs) {
+          loadWeekAchievements(new Date(selectedDateTimestamp));
+        }
     }
   }, [selectedDateTimestamp, weekStartTs, loadWeekAchievements]);
 
