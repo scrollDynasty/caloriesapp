@@ -7,29 +7,49 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// Custom Progress Icon Component
+// Custom Progress Icon Component - три полоски как на дизайне
 const ProgressIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
-  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'flex-end', flexDirection: 'row', gap: 2, paddingBottom: 2 }}>
+  <View style={{ width: size, height: size, justifyContent: 'flex-end', alignItems: 'center', flexDirection: 'row', gap: 2 }}>
     <View style={{ width: 4, height: size * 0.4, backgroundColor: color, borderRadius: 2 }} />
     <View style={{ width: 4, height: size * 0.65, backgroundColor: color, borderRadius: 2 }} />
-    <View style={{ width: 4, height: size * 0.85, backgroundColor: color, borderRadius: 2 }} />
+    <View style={{ width: 4, height: size * 0.9, backgroundColor: color, borderRadius: 2 }} />
   </View>
 );
 
-const FAB_SIZE = 72;
-const TAB_BAR_HEIGHT = 72;
+const FAB_SIZE = 70;
+const TAB_BAR_HEIGHT = 70;
 const MARGIN = 16;
-const GAP = 8;
+const GAP_BETWEEN = 2;
+
+// Custom Tab Button с закруглённым фоном при активном состоянии
+const CustomTabButton = ({ children, onPress, accessibilityState }: any) => {
+  const focused = accessibilityState?.selected;
+  
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={[
+        styles.tabButton,
+        focused && styles.tabButtonActive,
+      ]}
+    >
+      <View style={styles.tabButtonContent}>
+        {children}
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
-  const tabBarBottom = Math.max(insets.bottom, 16);
+  const tabBarBottom = Math.max(insets.bottom, 12);
 
-  // Ширина панели табов = экран - отступы - FAB - gap
-  const tabBarWidth = SCREEN_WIDTH - MARGIN * 2 - FAB_SIZE - GAP;
+  // Вычисляем ширину панели табов так, чтобы FAB был вплотную (2px gap)
+  const tabBarWidth = SCREEN_WIDTH - MARGIN * 2 - FAB_SIZE - GAP_BETWEEN;
 
   const toggleFab = () => {
     const toValue = fabExpanded ? 0 : 1;
@@ -99,48 +119,32 @@ export default function TabsLayout() {
     outputRange: ['0deg', '45deg'],
   });
 
-  // FAB позиция справа от панели табов
-  const fabRight = MARGIN;
-
   return (
     <View style={{ flex: 1 }}>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#8A8A8A",
-          tabBarInactiveTintColor: "#C4C4C4",
-          tabBarShowLabel: true,
-          tabBarLabelStyle: {
-            fontSize: 11,
-            fontFamily: "Inter_500Medium",
-            marginTop: 4,
-          },
+          tabBarActiveTintColor: "#1A1A1A",
+          tabBarInactiveTintColor: "#9CA3AF",
+          tabBarShowLabel: false,
+          tabBarButton: (props) => <CustomTabButton {...props} />,
           tabBarStyle: {
             position: "absolute",
             bottom: tabBarBottom,
             left: MARGIN,
             width: tabBarWidth,
             height: TAB_BAR_HEIGHT,
-            backgroundColor: "#FAFAFA",
+            backgroundColor: "#FFFFFF",
             borderTopWidth: 0,
-            borderRadius: 36,
+            borderRadius: 35,
             elevation: 8,
             shadowColor: "#000",
-            shadowOpacity: 0.06,
-            shadowRadius: 20,
+            shadowOpacity: 0.08,
+            shadowRadius: 24,
             shadowOffset: { width: 0, height: 4 },
-            paddingHorizontal: 8,
-            paddingTop: 12,
-            paddingBottom: 12,
-            borderWidth: 1,
-            borderColor: "rgba(0,0,0,0.04)",
-          },
-          tabBarItemStyle: {
-            height: TAB_BAR_HEIGHT - 24,
-            paddingVertical: 0,
-          },
-          tabBarIconStyle: {
-            marginBottom: 0,
+            paddingHorizontal: 6,
+            paddingTop: 0,
+            paddingBottom: 0,
           },
         }}
       >
@@ -162,7 +166,7 @@ export default function TabsLayout() {
           options={{
             title: "Прогресс",
             tabBarIcon: ({ color }) => (
-              <ProgressIcon color={color} size={24} />
+              <ProgressIcon color={color} size={22} />
             ),
           }}
         />
@@ -185,8 +189,8 @@ export default function TabsLayout() {
             title: "Профиль",
             tabBarIcon: ({ color, focused }) => (
               <Ionicons 
-                name={focused ? "person" : "person-outline"} 
-                size={24} 
+                name={focused ? "person-circle" : "person-circle-outline"} 
+                size={26} 
                 color={color} 
               />
             ),
@@ -217,8 +221,8 @@ export default function TabsLayout() {
         style={[
           styles.fabSubButtonContainer,
           {
-            right: fabRight,
-            bottom: tabBarBottom + TAB_BAR_HEIGHT + 8,
+            right: MARGIN,
+            bottom: tabBarBottom + FAB_SIZE + 8,
             opacity: buttonOpacity,
             transform: [{ translateY: button1TranslateY }],
           },
@@ -242,8 +246,8 @@ export default function TabsLayout() {
         style={[
           styles.fabSubButtonContainer,
           {
-            right: fabRight,
-            bottom: tabBarBottom + TAB_BAR_HEIGHT + 8,
+            right: MARGIN,
+            bottom: tabBarBottom + FAB_SIZE + 8,
             opacity: buttonOpacity,
             transform: [{ translateY: button2TranslateY }],
           },
@@ -267,8 +271,8 @@ export default function TabsLayout() {
         style={[
           styles.fabSubButtonContainer,
           {
-            right: fabRight,
-            bottom: tabBarBottom + TAB_BAR_HEIGHT + 8,
+            right: MARGIN,
+            bottom: tabBarBottom + FAB_SIZE + 8,
             opacity: buttonOpacity,
             transform: [{ translateY: button3TranslateY }],
           },
@@ -288,12 +292,12 @@ export default function TabsLayout() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Main FAB Button - справа от панели табов */}
+      {/* Main FAB Button - справа, вплотную к панели табов */}
       <TouchableOpacity 
         style={[
           styles.fab, 
           { 
-            right: fabRight,
+            right: MARGIN,
             bottom: tabBarBottom,
           }
         ]}
@@ -303,7 +307,7 @@ export default function TabsLayout() {
         <Animated.View style={{ transform: [{ rotate: fabRotation }] }}>
           <Ionicons 
             name="add" 
-            size={36} 
+            size={32} 
             color="#FFFFFF" 
           />
         </Animated.View>
@@ -313,6 +317,23 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 3,
+    marginVertical: 6,
+    borderRadius: 24,
+  },
+  tabButtonContent: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabButtonActive: {
+    backgroundColor: '#F3F4F6',
+  },
   blurBackdrop: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 8,
@@ -329,10 +350,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
     zIndex: 100,
   },
   fabSubButtonContainer: {
