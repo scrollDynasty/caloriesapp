@@ -7,14 +7,29 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const GAP_BETWEEN_PANEL_AND_FAB = -8;
+// Custom Progress Icon Component
+const ProgressIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
+  <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'flex-end', flexDirection: 'row', gap: 2, paddingBottom: 2 }}>
+    <View style={{ width: 4, height: size * 0.4, backgroundColor: color, borderRadius: 2 }} />
+    <View style={{ width: 4, height: size * 0.65, backgroundColor: color, borderRadius: 2 }} />
+    <View style={{ width: 4, height: size * 0.85, backgroundColor: color, borderRadius: 2 }} />
+  </View>
+);
+
+const FAB_SIZE = 72;
+const TAB_BAR_HEIGHT = 72;
+const MARGIN = 16;
+const GAP = 8;
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
-  const fabBottom = insets.bottom + 16;
+  const tabBarBottom = Math.max(insets.bottom, 16);
+
+  // Ширина панели табов = экран - отступы - FAB - gap
+  const tabBarWidth = SCREEN_WIDTH - MARGIN * 2 - FAB_SIZE - GAP;
 
   const toggleFab = () => {
     const toValue = fabExpanded ? 0 : 1;
@@ -56,29 +71,17 @@ export default function TabsLayout() {
 
   const button1TranslateY = fabAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -40],
-  });
-  const button1TranslateX = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -20],
+    outputRange: [0, -70],
   });
 
   const button2TranslateY = fabAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -104],
-  });
-  const button2TranslateX = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -15],
+    outputRange: [0, -140],
   });
 
   const button3TranslateY = fabAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -168],
-  });
-  const button3TranslateX = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -10],
+    outputRange: [0, -210],
   });
 
   const blurOpacity = fabAnimation.interpolate({
@@ -96,46 +99,47 @@ export default function TabsLayout() {
     outputRange: ['0deg', '45deg'],
   });
 
+  // FAB позиция справа от панели табов
+  const fabRight = MARGIN;
+
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#1A1A1A",
-          tabBarInactiveTintColor: "#8A8A8A",
+          tabBarActiveTintColor: "#8A8A8A",
+          tabBarInactiveTintColor: "#C4C4C4",
           tabBarShowLabel: true,
           tabBarLabelStyle: {
             fontSize: 11,
             fontFamily: "Inter_500Medium",
-            marginTop: 2,
-            marginBottom: 0,
+            marginTop: 4,
           },
           tabBarStyle: {
             position: "absolute",
-            bottom: insets.bottom + 16,
-            left: 100,
-            right: 20,
-            height: 72,
-            backgroundColor: "#F8F8F8",
+            bottom: tabBarBottom,
+            left: MARGIN,
+            width: tabBarWidth,
+            height: TAB_BAR_HEIGHT,
+            backgroundColor: "#FAFAFA",
             borderTopWidth: 0,
             borderRadius: 36,
             elevation: 8,
             shadowColor: "#000",
-            shadowOpacity: 0.08,
-            shadowRadius: 16,
+            shadowOpacity: 0.06,
+            shadowRadius: 20,
             shadowOffset: { width: 0, height: 4 },
-            paddingHorizontal: 12,
-            paddingTop: 8,
-            paddingBottom: insets.bottom > 0 ? 8 : 12,
+            paddingHorizontal: 8,
+            paddingTop: 12,
+            paddingBottom: 12,
+            borderWidth: 1,
+            borderColor: "rgba(0,0,0,0.04)",
           },
           tabBarItemStyle: {
-            height: "auto",
-            paddingVertical: 4,
-            borderRadius: 12,
+            height: TAB_BAR_HEIGHT - 24,
+            paddingVertical: 0,
           },
-          tabBarActiveBackgroundColor: "#E8E8E8",
           tabBarIconStyle: {
-            marginTop: 0,
             marginBottom: 0,
           },
         }}
@@ -145,13 +149,11 @@ export default function TabsLayout() {
           options={{
             title: "Главная",
             tabBarIcon: ({ color, focused }) => (
-              <View style={styles.iconContainer}>
-                <Ionicons 
-                  name={focused ? "home" : "home-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+              <Ionicons 
+                name={focused ? "home" : "home-outline"} 
+                size={24} 
+                color={color} 
+              />
             ),
           }}
         />
@@ -159,14 +161,8 @@ export default function TabsLayout() {
           name="progress"
           options={{
             title: "Прогресс",
-            tabBarIcon: ({ color, focused }) => (
-              <View style={styles.iconContainer}>
-                <Ionicons 
-                  name={focused ? "stats-chart" : "stats-chart-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+            tabBarIcon: ({ color }) => (
+              <ProgressIcon color={color} size={24} />
             ),
           }}
         />
@@ -175,13 +171,11 @@ export default function TabsLayout() {
           options={{
             title: "Группы",
             tabBarIcon: ({ color, focused }) => (
-              <View style={styles.iconContainer}>
-                <Ionicons 
-                  name={focused ? "people" : "people-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+              <Ionicons 
+                name={focused ? "people" : "people-outline"} 
+                size={24} 
+                color={color} 
+              />
             ),
           }}
         />
@@ -190,18 +184,17 @@ export default function TabsLayout() {
           options={{
             title: "Профиль",
             tabBarIcon: ({ color, focused }) => (
-              <View style={styles.iconContainer}>
-                <Ionicons 
-                  name={focused ? "person" : "person-outline"} 
-                  size={24} 
-                  color={color} 
-                />
-              </View>
+              <Ionicons 
+                name={focused ? "person" : "person-outline"} 
+                size={24} 
+                color={color} 
+              />
             ),
           }}
         />
       </Tabs>
 
+      {/* Blur Backdrop when FAB is expanded */}
       {fabExpanded && (
         <TouchableOpacity
           style={styles.blurBackdrop}
@@ -211,9 +204,7 @@ export default function TabsLayout() {
           <Animated.View
             style={[
               styles.blurContainer,
-              {
-                opacity: blurOpacity,
-              },
+              { opacity: blurOpacity },
             ]}
           >
             <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
@@ -221,32 +212,29 @@ export default function TabsLayout() {
         </TouchableOpacity>
       )}
 
+      {/* FAB Sub-buttons */}
       <Animated.View
         style={[
           styles.fabSubButtonContainer,
           {
-            bottom: fabBottom + 64 - 2,
+            right: fabRight,
+            bottom: tabBarBottom + TAB_BAR_HEIGHT + 8,
             opacity: buttonOpacity,
-            transform: [
-              { translateY: button1TranslateY },
-              { translateX: button1TranslateX },
-            ],
+            transform: [{ translateY: button1TranslateY }],
           },
         ]}
       >
         <TouchableOpacity 
-          style={styles.fabSubButtonTextContainer}
+          style={styles.fabSubButtonRow}
           onPress={handleScanFood}
           activeOpacity={0.7}
         >
-          <Text style={styles.fabSubButtonText}>Сканировать еду</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.fabSubButtonIconContainer}
-          onPress={handleScanFood}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="scan-circle-outline" size={24} color="#1A1A1A" />
+          <View style={styles.fabSubButtonTextContainer}>
+            <Text style={styles.fabSubButtonText}>Сканировать еду</Text>
+          </View>
+          <View style={styles.fabSubButtonIconContainer}>
+            <Ionicons name="scan-outline" size={22} color="#1A1A1A" />
+          </View>
         </TouchableOpacity>
       </Animated.View>
 
@@ -254,28 +242,24 @@ export default function TabsLayout() {
         style={[
           styles.fabSubButtonContainer,
           {
-            bottom: fabBottom + 64 - 8,
+            right: fabRight,
+            bottom: tabBarBottom + TAB_BAR_HEIGHT + 8,
             opacity: buttonOpacity,
-            transform: [
-              { translateY: button2TranslateY },
-              { translateX: button2TranslateX },
-            ],
+            transform: [{ translateY: button2TranslateY }],
           },
         ]}
       >
         <TouchableOpacity 
-          style={styles.fabSubButtonTextContainer}
+          style={styles.fabSubButtonRow}
           onPress={handleAddManually}
           activeOpacity={0.7}
         >
-          <Text style={styles.fabSubButtonText}>Добавить вручную</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.fabSubButtonIconContainer}
-          onPress={handleAddManually}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="create-outline" size={24} color="#1A1A1A" />
+          <View style={styles.fabSubButtonTextContainer}>
+            <Text style={styles.fabSubButtonText}>Добавить вручную</Text>
+          </View>
+          <View style={styles.fabSubButtonIconContainer}>
+            <Ionicons name="create-outline" size={22} color="#1A1A1A" />
+          </View>
         </TouchableOpacity>
       </Animated.View>
 
@@ -283,61 +267,52 @@ export default function TabsLayout() {
         style={[
           styles.fabSubButtonContainer,
           {
-            bottom: fabBottom + 64 - 8,
+            right: fabRight,
+            bottom: tabBarBottom + TAB_BAR_HEIGHT + 8,
             opacity: buttonOpacity,
-            transform: [
-              { translateY: button3TranslateY },
-              { translateX: button3TranslateX },
-            ],
+            transform: [{ translateY: button3TranslateY }],
           },
         ]}
       >
         <TouchableOpacity 
-          style={styles.fabSubButtonTextContainer}
+          style={styles.fabSubButtonRow}
           onPress={handleAddWater}
           activeOpacity={0.7}
         >
-          <Text style={styles.fabSubButtonText}>Вода</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.fabSubButtonIconContainer}
-          onPress={handleAddWater}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="water-outline" size={24} color="#1E90FF" />
+          <View style={styles.fabSubButtonTextContainer}>
+            <Text style={styles.fabSubButtonText}>Вода</Text>
+          </View>
+          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: '#E8F4FD' }]}>
+            <Ionicons name="water" size={22} color="#1E90FF" />
+          </View>
         </TouchableOpacity>
       </Animated.View>
 
+      {/* Main FAB Button - справа от панели табов */}
       <TouchableOpacity 
         style={[
           styles.fab, 
-          { bottom: fabBottom }
+          { 
+            right: fabRight,
+            bottom: tabBarBottom,
+          }
         ]}
         onPress={toggleFab}
-        activeOpacity={0.8}
+        activeOpacity={0.9}
       >
-        <Animated.View
-          style={{
-            transform: [{ rotate: fabRotation }],
-          }}
-        >
+        <Animated.View style={{ transform: [{ rotate: fabRotation }] }}>
           <Ionicons 
-            name={fabExpanded ? "close" : "add"} 
-            size={32} 
+            name="add" 
+            size={36} 
             color="#FFFFFF" 
           />
         </Animated.View>
       </TouchableOpacity>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  iconContainer: {
-    justifyContent: "center",
-    alignItems: "center",
-    height: 24,
-  },
   blurBackdrop: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 8,
@@ -347,40 +322,39 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    left: 20,
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
     backgroundColor: "#1A1A1A",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 12,
     zIndex: 100,
   },
   fabSubButtonContainer: {
     position: "absolute",
-    left: 20,
+    zIndex: 9,
+    alignItems: "flex-end",
+  },
+  fabSubButtonRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    zIndex: 9,
   },
   fabSubButtonTextContainer: {
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 18,
-    paddingVertical: 13,
-    borderRadius: 24,
+    paddingVertical: 14,
+    borderRadius: 28,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-    justifyContent: "center",
-    alignItems: "center",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   fabSubButtonIconContainer: {
     width: 52,
@@ -390,13 +364,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   fabSubButtonText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Inter_500Medium",
     color: "#1A1A1A",
     letterSpacing: -0.2,
