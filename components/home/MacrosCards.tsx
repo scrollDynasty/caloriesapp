@@ -1,7 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
-import { memo, useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { memo, useEffect, useMemo, useRef } from "react";
+import { Animated, StyleSheet, Text, View } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import { colors } from "../../constants/theme";
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface MacrosCardsProps {
   protein: { consumed: number; target: number };
@@ -10,130 +12,153 @@ interface MacrosCardsProps {
   water?: { consumed: number; target?: number | null };
 }
 
-const formatLiters = (ml: number) => {
-  const liters = ml / 1000;
-  return parseFloat(liters.toFixed(1)).toString();
-};
+const CIRCLE_SIZE = 44;
+const STROKE_WIDTH = 4;
+const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-export const MacrosCards = memo(function MacrosCards({ protein, carbs, fats, water }: MacrosCardsProps) {
-  const { proteinRemaining, carbsRemaining, fatsRemaining, waterRemaining, waterTarget, waterConsumed } = useMemo(() => ({
-    proteinRemaining: Math.max(0, protein.target - protein.consumed),
-    carbsRemaining: Math.max(0, carbs.target - carbs.consumed),
-    fatsRemaining: Math.max(0, fats.target - fats.consumed),
-    waterRemaining: Math.max(0, (water?.target || 0) - (water?.consumed || 0)),
-    waterTarget: water?.target ?? 0,
-    waterConsumed: water?.consumed ?? 0,
-  }), [protein.target, protein.consumed, carbs.target, carbs.consumed, fats.target, fats.consumed, water?.consumed, water?.target]);
+interface MacroCardProps {
+  value: string;
+  label: string;
+  progress: number;
+  color: string;
+  icon: string;
+}
 
-  const items = [
-    {
-      label: "Белки осталось",
-      value: `${proteinRemaining}Г`,
-      icon: "fish",
-      color: colors.primary,
-    },
-    {
-      label: "Углеводы осталось",
-      value: `${carbsRemaining}Г`,
-      icon: "pizza",
-      color: "#FFB84D",
-    },
-    {
-      label: "Жиры осталось",
-      value: `${fatsRemaining}Г`,
-      icon: "egg-outline",
-      color: "#FF8C42",
-    },
-  ];
+function MacroCard({ value, label, progress, color, icon }: MacroCardProps) {
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
-  if (water) {
-    const hasGoal = !!waterTarget;
-    const waterLabel = hasGoal
-      ? `Вода ${formatLiters(waterConsumed)}/${formatLiters(waterTarget)} л`
-      : "Вода";
-    const waterValue = hasGoal
-      ? `${formatLiters(waterRemaining)} л осталось`
-      : `${formatLiters(waterConsumed)} л`;
-    items.push({
-      label: waterLabel,
-      value: waterValue,
-      icon: "water",
-      color: "#1E90FF",
-    });
-  }
+  useEffect(() => {
+    Animated.spring(progressAnim, {
+      toValue: Math.min(1, progress),
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+  }, [progress]);
+
+  const strokeDashoffset = progressAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [CIRCUMFERENCE, 0],
+  });
 
   return (
-    <View style={styles.macrosContainer}>
-      {items.map((item, idx) => (
-        <View key={idx} style={styles.macroCard}>
-          <View style={[styles.cardHeader]}>
-            <View style={[styles.badge, { backgroundColor: `${item.color}1A` }]}>
-              <Ionicons name={item.icon as any} size={16} color={item.color} />
-            </View>
-            <Text style={[styles.macroLabel, styles.headerLabel]} numberOfLines={1}>
-              {item.label}
-            </Text>
-          </View>
-          <Text style={styles.macroValue}>{item.value}</Text>
+    <View style={styles.macroCard}>
+      <Text style={styles.macroValue}>{value}</Text>
+      <Text style={styles.macroLabel}>{label}</Text>
+      <View style={styles.circleContainer}>
+        <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
+          <Circle
+            cx={CIRCLE_SIZE / 2}
+            cy={CIRCLE_SIZE / 2}
+            r={RADIUS}
+            stroke="#F2EFE9"
+            strokeWidth={STROKE_WIDTH}
+            fill="transparent"
+          />
+          <AnimatedCircle
+            cx={CIRCLE_SIZE / 2}
+            cy={CIRCLE_SIZE / 2}
+            r={RADIUS}
+            stroke={color}
+            strokeWidth={STROKE_WIDTH}
+            fill="transparent"
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            rotation="-90"
+            origin={`${CIRCLE_SIZE / 2}, ${CIRCLE_SIZE / 2}`}
+          />
+        </Svg>
+        <View style={styles.iconContainer}>
+          <Text style={styles.iconText}>{icon}</Text>
         </View>
+      </View>
+    </View>
+  );
+}
+
+export const MacrosCards = memo(function MacrosCards({ protein, carbs, fats }: MacrosCardsProps) {
+  const data = useMemo(() => [
+    {
+      value: `${protein.consumed}g`,
+      label: "Белки",
+      progress: protein.target > 0 ? protein.consumed / protein.target : 0,
+      color: "#FF6B6B",
+      icon: "🍖",
+    },
+    {
+      value: `${carbs.consumed}g`,
+      label: "Углеводы",
+      progress: carbs.target > 0 ? carbs.consumed / carbs.target : 0,
+      color: "#FCA549",
+      icon: "🌾",
+    },
+    {
+      value: `${fats.consumed}g`,
+      label: "Жиры",
+      progress: fats.target > 0 ? fats.consumed / fats.target : 0,
+      color: "#4D96FF",
+      icon: "💧",
+    },
+  ], [protein, carbs, fats]);
+
+  return (
+    <View style={styles.container}>
+      {data.map((item, idx) => (
+        <MacroCard key={idx} {...item} />
       ))}
     </View>
   );
 });
 
 const styles = StyleSheet.create({
-  macrosContainer: {
+  container: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    paddingHorizontal: 24,
-    marginBottom: 32,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    gap: 10,
+    marginBottom: 20,
   },
   macroCard: {
-    flexBasis: "48%",
-    flexGrow: 1,
+    flex: 1,
     backgroundColor: colors.white,
     padding: 16,
-    borderRadius: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderRadius: 10,
     alignItems: "center",
-    position: "relative",
-    minWidth: 150,
-    gap: 10,
-    alignSelf: "stretch",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.02,
+    shadowRadius: 16,
+    elevation: 1,
   },
   macroValue: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.primary,
+    fontSize: 17,
     fontFamily: "Inter_700Bold",
-    textAlign: "center",
+    color: colors.primary,
+    marginBottom: 2,
   },
   macroLabel: {
-    fontSize: 12,
-    color: colors.secondary,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
-    textAlign: "center",
-    lineHeight: 16,
+    color: "#8A8A8A",
+    marginBottom: 12,
   },
-  macroIcon: {
-    position: "absolute",
-    bottom: 16,
-  },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  cardHeader: {
-    flexDirection: "row",
+  circleContainer: {
+    width: CIRCLE_SIZE,
+    height: CIRCLE_SIZE,
+    position: "relative",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "center",
   },
-  headerLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
-    textAlign: "left",
-    flexShrink: 1,
+  iconContainer: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconText: {
+    fontSize: 14,
   },
 });

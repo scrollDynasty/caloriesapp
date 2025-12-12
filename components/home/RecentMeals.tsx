@@ -34,13 +34,20 @@ export const RecentMeals = memo(function RecentMeals({
   onLoadMore,
 }: RecentMealsProps) {
   const hasMeals = useMemo(() => meals.length > 0, [meals.length]);
+  
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Недавно добавлено</Text>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>Сегодня</Text>
+        <TouchableOpacity>
+          <Text style={styles.seeAllText}>Все</Text>
+        </TouchableOpacity>
+      </View>
+      
       {loading ? (
         <View style={styles.stateBox}>
           <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.stateText}>Загружаем последние блюда...</Text>
+          <Text style={styles.stateText}>Загружаем...</Text>
         </View>
       ) : error ? (
         <TouchableOpacity style={[styles.stateBox, styles.errorBox]} onPress={onRetry}>
@@ -61,38 +68,33 @@ export const RecentMeals = memo(function RecentMeals({
                     cachePolicy="disk"
                   />
                 ) : (
-                  <Ionicons name="fast-food" size={40} color={colors.primary} />
+                  <View style={styles.placeholderImage}>
+                    <Ionicons name="fast-food" size={32} color="#BDBDBD" />
+                  </View>
                 )}
               </View>
               <View style={styles.mealInfo}>
                 <View style={styles.mealHeader}>
-                  <Text style={styles.mealName} numberOfLines={2}>
-                    {meal.name}
-                  </Text>
-                  {meal.isManual ? (
-                    <View style={styles.manualBadge}>
-                      <Ionicons name="create-outline" size={14} color={colors.primary} />
-                      <Text style={styles.manualBadgeText}>Ручное</Text>
-                    </View>
-                  ) : null}
-                  <View style={styles.mealTimeBadge}>
-                    <Ionicons name="time-outline" size={14} color={colors.primary} />
-                    <Text style={styles.mealTime}>{meal.time}</Text>
-                  </View>
+                  <Text style={styles.mealName} numberOfLines={1}>{meal.name}</Text>
+                  <Text style={styles.mealTime}>{meal.time}</Text>
                 </View>
-                <Text style={styles.mealCalories}>
-                  <Ionicons name="flame" size={16} color="#FF6B35" /> {meal.calories} ккал
-                </Text>
+                <View style={styles.mealCaloriesRow}>
+                  <Ionicons name="flame" size={14} color="#1A1A1A" />
+                  <Text style={styles.mealCalories}>{meal.calories} ккал</Text>
+                </View>
                 <View style={styles.mealMacros}>
-                  <Text style={styles.mealMacro}>
-                    <Ionicons name="fish" size={14} color="#FF6B6B" /> {meal.protein}Г
-                  </Text>
-                  <Text style={styles.mealMacro}>
-                    <Ionicons name="pizza" size={14} color="#FFB84D" /> {meal.carbs}Г
-                  </Text>
-                  <Text style={styles.mealMacro}>
-                    <Ionicons name="water" size={14} color="#4D9EFF" /> {meal.fats}Г
-                  </Text>
+                  <View style={styles.macroItem}>
+                    <Text style={styles.macroIcon}>🍖</Text>
+                    <Text style={styles.macroText}>{meal.protein}г</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <Text style={styles.macroIcon}>🌾</Text>
+                    <Text style={styles.macroText}>{meal.carbs}г</Text>
+                  </View>
+                  <View style={styles.macroItem}>
+                    <Text style={styles.macroIcon}>💧</Text>
+                    <Text style={styles.macroText}>{meal.fats}г</Text>
+                  </View>
                 </View>
               </View>
             </View>
@@ -107,7 +109,7 @@ export const RecentMeals = memo(function RecentMeals({
         <View style={styles.emptyState}>
           <Ionicons name="restaurant-outline" size={48} color={colors.secondary} />
           <Text style={styles.emptyStateText}>Пока нет добавленных приемов пищи</Text>
-          <Text style={styles.emptyStateSubtext}>Нажмите кнопку "+" чтобы добавить еду</Text>
+          <Text style={styles.emptyStateSubtext}>Нажмите "+" чтобы добавить еду</Text>
           {onAddPress ? (
             <TouchableOpacity style={styles.addButton} onPress={onAddPress} activeOpacity={0.8}>
               <Ionicons name="add" size={18} color="#fff" />
@@ -122,26 +124,33 @@ export const RecentMeals = memo(function RecentMeals({
 
 const styles = StyleSheet.create({
   section: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.primary,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
-    marginBottom: 16,
+    color: colors.primary,
+  },
+  seeAllText: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: "#8C8C8C",
   },
   stateBox: {
     backgroundColor: colors.white,
-    borderRadius: 16,
+    borderRadius: 10,
     padding: 16,
     alignItems: "center",
     gap: 8,
-    borderWidth: 1,
-    borderColor: "#F0F0F0",
   },
   errorBox: {
-    borderColor: "#F2C2C2",
     backgroundColor: "#FFF5F5",
   },
   stateText: {
@@ -160,93 +169,82 @@ const styles = StyleSheet.create({
   },
   mealCard: {
     backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 10,
+    padding: 10,
     flexDirection: "row",
-    gap: 16,
+    gap: 14,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#F0F0F0",
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    shadowOpacity: 0.02,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   mealImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 72,
+    height: 72,
+    borderRadius: 20,
     overflow: "hidden",
   },
   image: {
     width: "100%",
     height: "100%",
   },
+  placeholderImage: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#F0F0F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   mealInfo: {
     flex: 1,
+    gap: 4,
   },
   mealHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
-    gap: 8,
-    flexWrap: "wrap",
+    alignItems: "center",
   },
   mealName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.primary,
+    fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    flexShrink: 1,
+    color: colors.primary,
+    flex: 1,
+    marginRight: 8,
   },
-  mealTimeBadge: {
+  mealTime: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    color: "#8A8A8A",
+  },
+  mealCaloriesRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#F5F7FB",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  manualBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: "#F3F0FF",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-  },
-  manualBadgeText: {
-    fontSize: 12,
-    color: colors.primary,
-    fontFamily: "Inter_600SemiBold",
-  },
-  mealTime: {
-    fontSize: 13,
-    color: colors.primary,
-    fontFamily: "Inter_600SemiBold",
   },
   mealCalories: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.primary,
+    fontSize: 13,
     fontFamily: "Inter_700Bold",
-    marginBottom: 8,
+    color: "#000000",
   },
   mealMacros: {
     flexDirection: "row",
-    gap: 16,
+    gap: 10,
+    marginTop: 2,
   },
-  mealMacro: {
-    fontSize: 12,
-    color: colors.secondary,
-    fontFamily: "Inter_400Regular",
+  macroItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  macroIcon: {
+    fontSize: 10,
+  },
+  macroText: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: "#8A8A8A",
   },
   emptyState: {
     alignItems: "center",
@@ -256,16 +254,15 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    fontWeight: "600",
-    color: colors.secondary,
     fontFamily: "Inter_600SemiBold",
+    color: colors.secondary,
     marginTop: 16,
     marginBottom: 8,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: colors.secondary,
     fontFamily: "Inter_400Regular",
+    color: colors.secondary,
     textAlign: "center",
     opacity: 0.7,
   },

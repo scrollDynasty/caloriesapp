@@ -615,7 +615,6 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
             <CaloriesCard 
               consumedCalories={stats.consumedCalories}
               targetCalories={stats.targetCalories}
-              streakCount={streakCount}
             />
 
             <MacrosCards 
@@ -827,7 +826,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 120, 
+    paddingBottom: 140, 
   },
   section: {
     gap: 12,
