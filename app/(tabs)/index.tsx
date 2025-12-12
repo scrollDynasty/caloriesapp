@@ -3,14 +3,14 @@ import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CaloriesCard } from "../../components/home/CaloriesCard";
@@ -141,14 +141,17 @@ export default function HomeScreen() {
   const lastLoadedDateRef = useRef<number | null>(null);
   const hasInitializedRecentRef = useRef(false);
   const [latestMeal, setLatestMeal] = useState<MealPhoto | null>(null);
-const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: number; force?: boolean }) => {
+  const lastFocusRefreshAtRef = useRef(0);
+
+  const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: number; force?: boolean }) => {
     try {
     if (!opts?.force && recentLoading) return;
       const limit = opts?.limit ?? recentLimit;
       const skip = opts?.append ? recentSkip : 0;
       setRecentLoading(true);
       setRecentError(null);
-      const meals = await apiService.getMealPhotos(skip, limit);
+      const ttlMs = opts?.force ? 0 : 60000;
+      const meals = await apiService.getMealPhotosCached(skip, limit, ttlMs);
       if (!isMountedRef.current) return;
 
       const { startUtcMs, endUtcMs } = getTashkentDayRange(selectedDateTimestamp);
@@ -259,13 +262,10 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
 
   useEffect(() => {
     if (params?.refresh) {
-      hasLoadedRef.current = false;
-      lastLoadedDateRef.current = null;
-      loadUserData();
       loadDailyData(selectedDateTimestamp, true);
-      fetchLatestMeals({ append: false, limit: recentLimit, force: true });
+      fetchLatestMeals({ append: false, limit: recentLimit });
     }
-  }, [params?.refresh]);
+  }, [params?.refresh, fetchLatestMeals, loadDailyData, recentLimit, selectedDateTimestamp]);
 
   const handleDateSelect = useMemo(() => (date: Date) => {
     const utcMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
@@ -424,11 +424,11 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
 
   useFocusEffect(
     useCallback(() => {
+      const now = Date.now();
+      if (now - lastFocusRefreshAtRef.current < 15000) return;
+      lastFocusRefreshAtRef.current = now;
       fetchLatestMeals();
-      
-      loadDailyData(selectedDateTimestamp, true);
-      loadWeekAchievements(new Date(selectedDateTimestamp));
-    }, [fetchLatestMeals, loadDailyData, loadWeekAchievements, selectedDateTimestamp])
+    }, [fetchLatestMeals])
   );
 
   useEffect(() => {

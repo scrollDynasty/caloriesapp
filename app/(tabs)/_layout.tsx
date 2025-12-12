@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { Image } from "expo-image";
 import { Tabs, useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors } from "../../constants/theme";
+import { useAvatarUri } from "../../stores/userPreferences";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -17,26 +20,44 @@ const ProgressIcon = ({ color, size = 24 }: { color: string; size?: number }) =>
 );
 
 const FAB_SIZE = 70;
-const TAB_BAR_HEIGHT = 70;
+const TAB_BAR_HEIGHT = 56;
 const MARGIN = 16;
 const GAP_BETWEEN = 2;
 
-// Custom Tab Button с закруглённым фоном при активном состоянии
+// Custom Tab Button с закруглённым фоном и плавной анимацией
 const CustomTabButton = ({ children, onPress, accessibilityState }: any) => {
   const focused = accessibilityState?.selected;
-  
+  const animValue = useRef(new Animated.Value(focused ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(animValue, {
+      toValue: focused ? 1 : 0,
+      duration: 250,
+      useNativeDriver: false,
+    }).start();
+  }, [focused, animValue]);
+
+  const backgroundColor = animValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['transparent', colors.white],
+  });
+
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.7}
-      style={[
-        styles.tabButton,
-        focused && styles.tabButtonActive,
-      ]}
+      style={styles.tabButtonWrapper}
     >
-      <View style={styles.tabButtonContent}>
-        {children}
-      </View>
+      <Animated.View
+        style={[
+          styles.tabButton,
+          { backgroundColor },
+        ]}
+      >
+        <View style={styles.tabButtonContent}>
+          {children}
+        </View>
+      </Animated.View>
     </TouchableOpacity>
   );
 };
@@ -44,6 +65,7 @@ const CustomTabButton = ({ children, onPress, accessibilityState }: any) => {
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const avatarUri = useAvatarUri();
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
   const tabBarBottom = Math.max(insets.bottom, 12);
@@ -124,8 +146,8 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#1A1A1A",
-          tabBarInactiveTintColor: "#9CA3AF",
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.secondary,
           tabBarShowLabel: false,
           tabBarButton: (props) => <CustomTabButton {...props} />,
           tabBarStyle: {
@@ -134,9 +156,9 @@ export default function TabsLayout() {
             left: MARGIN,
             width: tabBarWidth,
             height: TAB_BAR_HEIGHT,
-            backgroundColor: "#FFFFFF",
+            backgroundColor: colors.background,
             borderTopWidth: 0,
-            borderRadius: 35,
+            borderRadius: 28,
             elevation: 8,
             shadowColor: "#000",
             shadowOpacity: 0.08,
@@ -187,13 +209,26 @@ export default function TabsLayout() {
           name="settings"
           options={{
             title: "Профиль",
-            tabBarIcon: ({ color, focused }) => (
-              <Ionicons 
-                name={focused ? "person-circle" : "person-circle-outline"} 
-                size={26} 
-                color={color} 
-              />
-            ),
+            tabBarIcon: ({ color, focused }) =>
+              avatarUri ? (
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
+                    overflow: "hidden",
+                    opacity: focused ? 1 : 0.7,
+                  }}
+                >
+                  <Image source={{ uri: avatarUri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+                </View>
+              ) : (
+                <Ionicons
+                  name={focused ? "person-circle" : "person-circle-outline"}
+                  size={26}
+                  color={color}
+                />
+              ),
           }}
         />
       </Tabs>
@@ -292,13 +327,13 @@ export default function TabsLayout() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Main FAB Button - справа, вплотную к панели табов */}
+      {/* Main FAB Button - справа, центрирован по высоте панели */}
       <TouchableOpacity 
         style={[
           styles.fab, 
           { 
             right: MARGIN,
-            bottom: tabBarBottom,
+            bottom: tabBarBottom + (TAB_BAR_HEIGHT - FAB_SIZE) / 2,
           }
         ]}
         onPress={toggleFab}
@@ -317,22 +352,23 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabButton: {
+  tabButtonWrapper: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 3,
-    marginVertical: 6,
-    borderRadius: 24,
+    paddingHorizontal: 2,
+    paddingVertical: 6,
   },
-  tabButtonContent: {
+  tabButton: {
     width: '100%',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 20,
   },
-  tabButtonActive: {
-    backgroundColor: '#F3F4F6',
+  tabButtonContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   blurBackdrop: {
     ...StyleSheet.absoluteFillObject,
@@ -346,7 +382,7 @@ const styles = StyleSheet.create({
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
-    backgroundColor: "#1A1A1A",
+    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",

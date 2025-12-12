@@ -2,9 +2,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AxiosResponse } from "axios";
 import axios, {
-  AxiosError,
-  AxiosInstance,
-  InternalAxiosRequestConfig,
+    AxiosError,
+    AxiosInstance,
+    InternalAxiosRequestConfig,
 } from "axios";
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
@@ -72,6 +72,24 @@ class ApiService {
     data: [],
     timestamp: null,
   };
+
+  private upsertMealPhotoInCache(photo: MealPhoto) {
+    const existing = this.mealPhotosCache.data;
+    const next = [photo, ...existing.filter((p) => p.id !== photo.id)];
+    this.mealPhotosCache = { data: next, timestamp: Date.now() };
+  }
+
+  private removeMealPhotoFromCache(photoId: number) {
+    if (!this.mealPhotosCache.data.length) return;
+    this.mealPhotosCache = {
+      data: this.mealPhotosCache.data.filter((p) => p.id !== photoId),
+      timestamp: this.mealPhotosCache.timestamp,
+    };
+  }
+
+  invalidateMealPhotosCache() {
+    this.mealPhotosCache = { data: [], timestamp: null };
+  }
 
   constructor() {
     this.api = axios.create({
@@ -231,6 +249,11 @@ class ApiService {
       timeout: 20000,
     });
     
+    
+    if (response.data?.photo) {
+      this.upsertMealPhotoInCache(response.data.photo);
+    }
+    
     return response.data;
   }
 
@@ -245,7 +268,9 @@ class ApiService {
         client_tz_offset_minutes: TASHKENT_OFFSET_MINUTES,
       },
     });
-    return response.data as MealPhoto;
+    const created = response.data as MealPhoto;
+    this.upsertMealPhotoInCache(created);
+    return created;
   }
 
   async addWater(payload: WaterPayload) {
@@ -342,6 +367,7 @@ class ApiService {
 
   async deleteMealPhoto(photoId: number) {
     await this.api.delete(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
+    this.removeMealPhotoFromCache(photoId);
   }
 
   getMealPhotoUrl(photoId: number, token?: string): string {
@@ -360,6 +386,7 @@ class ApiService {
       `${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`,
       data,
     );
+    this.upsertMealPhotoInCache(response.data);
     return response.data;
   }
 

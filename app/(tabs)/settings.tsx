@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
@@ -6,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../constants/theme";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
+import { setAvatarUri, useAvatarUri } from "../../stores/userPreferences";
 
 interface UserInfo {
   name?: string;
@@ -17,6 +20,9 @@ export default function SettingsScreen() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState(true);
+  const avatarUri = useAvatarUri();
+  const [galleryPermission, requestGalleryPermission] =
+    ImagePicker.useMediaLibraryPermissions();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -39,6 +45,32 @@ export default function SettingsScreen() {
     } catch (error: any) {
       console.error("Logout error", error);
       Alert.alert("Ошибка", "Не удалось выйти из аккаунта");
+    }
+  };
+
+  const handlePickAvatar = async () => {
+    if (!galleryPermission?.granted) {
+      if (galleryPermission?.canAskAgain) {
+        const result = await requestGalleryPermission();
+        if (!result.granted) {
+          Alert.alert("Разрешение галереи", "Разрешите доступ к фотографиям, чтобы выбрать аватар.");
+          return;
+        }
+      } else {
+        Alert.alert("Разрешение галереи", "Разрешите доступ к фотографиям в настройках устройства.");
+        return;
+      }
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]?.uri) {
+      await setAvatarUri(result.assets[0].uri);
     }
   };
 
@@ -70,9 +102,17 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{(user?.name || "П").slice(0, 1).toUpperCase()}</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.avatar}
+          activeOpacity={0.8}
+          onPress={handlePickAvatar}
+        >
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatarImage} contentFit="cover" />
+          ) : (
+            <Text style={styles.avatarText}>{(user?.name || "П").slice(0, 1).toUpperCase()}</Text>
+          )}
+        </TouchableOpacity>
         <Text style={styles.name}>{user?.name || "Пользователь"}</Text>
         {user?.email ? <Text style={styles.email}>{user.email}</Text> : null}
         <View style={styles.planBadge}>
@@ -82,8 +122,8 @@ export default function SettingsScreen() {
 
       <View style={styles.section}>
         <MenuItem icon="person-outline" title="Личные данные" onPress={() => {}} />
-        <MenuItem icon="bullseye-outline" title="Мои цели" onPress={() => {}} />
-        <MenuItem icon="crown-outline" title="Подписка" rightText="Перейти на Pro" onPress={() => {}} />
+        <MenuItem icon="flag-outline" title="Мои цели" onPress={() => {}} />
+        <MenuItem icon="sparkles-outline" title="Подписка" rightText="Перейти на Pro" onPress={() => {}} />
       </View>
 
       <View style={styles.section}>
@@ -143,6 +183,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#EFEFEF",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
   },
   avatarText: {
     fontSize: 28,
