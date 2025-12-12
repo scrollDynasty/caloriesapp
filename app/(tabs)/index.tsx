@@ -111,6 +111,7 @@ export default function HomeScreen() {
   const [recentSkip, setRecentSkip] = useState(0);
   const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getTashkentDayRange().startUtcMs);
   const [weekAchievements, setWeekAchievements] = useState<Record<string, boolean>>({});
+  const [dailyProgress, setDailyProgress] = useState<Record<string, number>>({});
   const [streakCount, setStreakCount] = useState(0);
   const [weekStartTs, setWeekStartTs] = useState<number>(getWeekStartTimestamp(getTashkentDayRange().startUtcMs));
   const weekLoadInProgress = useRef(false);
@@ -412,8 +413,15 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
       setStreakCount(data.streak_count ?? 0);
       
       const key = dateStr;
+      const targetCalories = onboardingData?.target_calories || 0;
+      const progress = targetCalories > 0 ? Math.min(1, data.total_calories / targetCalories) : 0;
+      
       setWeekAchievements((prev) => {
-        const next = { ...prev, [key]: data.total_calories >= (onboardingData?.target_calories || 0) };
+        const next = { ...prev, [key]: data.total_calories >= targetCalories };
+        return next;
+      });
+      setDailyProgress((prev) => {
+        const next = { ...prev, [key]: progress };
         return next;
       });
       loadWeekAchievements(new Date(dateTimestamp));
@@ -594,6 +602,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
           selectedDate={selectedDate} 
           onDateSelect={handleDateSelect} 
           achievedDates={weekAchievements}
+          dailyProgress={dailyProgress}
         />
 
         {dailyLoading ? (
@@ -606,6 +615,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
             <CaloriesCard 
               consumedCalories={stats.consumedCalories}
               targetCalories={stats.targetCalories}
+              streakCount={streakCount}
             />
 
             <MacrosCards 
