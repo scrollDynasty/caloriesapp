@@ -1,6 +1,3 @@
-"""
-API endpoints для работы с фотографиями еды
-"""
 import uuid
 import logging
 import json
@@ -28,8 +25,8 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-_BACKEND_DIR = Path(__file__).parent.parent.parent.parent  # backend/
-_PROJECT_ROOT = _BACKEND_DIR.parent  
+_BACKEND_DIR = Path(__file__).parent.parent.parent.parent
+_PROJECT_ROOT = _BACKEND_DIR.parent
 MEDIA_ROOT = _PROJECT_ROOT / "media" / "meal_photos"
 
 try:
@@ -40,11 +37,9 @@ except Exception as e:
     raise
 
 def get_user_media_dir(user_id: int) -> Path:
-    """Получить директорию для медиа файлов пользователя"""
     user_dir = MEDIA_ROOT / str(user_id)
     user_dir.mkdir(parents=True, exist_ok=True)
     return user_dir
-
 
 async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str]) -> Optional[Dict[str, Any]]:
 
@@ -126,7 +121,7 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
 
         extracted = None
         try:
-            # Найти JSON в тексте
+
             matches = re.findall(r"\{.*\}", generated_text, flags=re.DOTALL)
             for m in matches:
                 try:
@@ -164,7 +159,6 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
         logger.warning(f"AI nutrition call failed: {e}")
         return None
 
-
 @router.post("/meals/upload", response_model=MealPhotoUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_meal_photo(
     file: UploadFile = File(...),
@@ -175,12 +169,8 @@ async def upload_meal_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Загрузка фотографии еды
-    """
     logger.info(f"Upload request from user {current_user.id}, filename: {file.filename}, content_type: {file.content_type}")
-    
-    # Проверяем тип файла
+
     allowed_mime_types = {
         "image/jpeg",
         "image/png",
@@ -195,45 +185,37 @@ async def upload_meal_photo(
         )
     if file.content_type not in allowed_mime_types:
         logger.warning(f"Unexpected mime type {file.content_type}, proceeding but ensure client sends correct type")
-    
-    # Обрабатываем опциональные параметры
+
     barcode_value = barcode.strip() if barcode and barcode.strip() else None
     meal_name_value = meal_name.strip() if meal_name and meal_name.strip() else None
-    
-    # Генерируем уникальное имя файла
+
     file_ext = Path(file.filename or "photo").suffix or ".jpg"
     unique_filename = f"{uuid.uuid4()}{file_ext}"
-    
-    # Получаем директорию пользователя
+
     user_dir = get_user_media_dir(current_user.id)
     file_path = user_dir / unique_filename
-    
+
     try:
-        # Сохраняем файл
+
         contents = await file.read()
         file_size = len(contents)
-        
+
         logger.info(f"File size: {file_size} bytes, saving to: {file_path}")
-        
-        # Убеждаемся, что директория существует
+
         user_dir.mkdir(parents=True, exist_ok=True)
-        
+
         with open(file_path, "wb") as f:
             f.write(contents)
-        
-        # Сохраняем путь относительно media директории
+
         relative_path = f"meal_photos/{current_user.id}/{unique_filename}"
 
-        # Жёстко ставим время создания как текущее (UTC), чтобы нельзя было добавлять в прошлое/будущее
         created_at_now = datetime.now(timezone.utc)
 
-        # Вызываем внешнюю AI-модель для получения БЖУ
         nutrition = await get_nutrition_insights(
             file_path=file_path,
             meal_name_hint=meal_name_value,
         )
-        
-        # Создаем запись в БД
+
         meal_photo = MealPhoto(
             user_id=current_user.id,
             file_path=relative_path,
@@ -249,16 +231,15 @@ async def upload_meal_photo(
             carbs=nutrition.get("carbs") if nutrition else None,
             created_at=created_at_now,
         )
-        
+
         db.add(meal_photo)
         db.commit()
         db.refresh(meal_photo)
-        
+
         logger.info(f"Photo saved with ID: {meal_photo.id}")
-        
-        # Формируем URL для доступа к файлу
+
         photo_url = f"{settings.api_domain}/api/v1/meals/photos/{meal_photo.id}"
-        
+
         return MealPhotoUploadResponse(
             photo=MealPhotoResponse.model_validate(meal_photo),
             url=photo_url,
@@ -267,7 +248,7 @@ async def upload_meal_photo(
         raise
     except Exception as e:
         logger.error(f"Error uploading photo: {str(e)}", exc_info=True)
-        # Если произошла ошибка, удаляем файл если он был создан
+
         if file_path.exists():
             try:
                 file_path.unlink()
@@ -278,7 +259,6 @@ async def upload_meal_photo(
             detail=f"Ошибка при сохранении файла: {str(e)}"
         )
 
-
 @router.get("/meals/photos", response_model=List[MealPhotoResponse])
 def get_user_meal_photos(
     skip: int = 0,
@@ -286,18 +266,14 @@ def get_user_meal_photos(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Получить список всех фотографий еды пользователя
-    """
     photos = db.query(MealPhoto)\
         .filter(MealPhoto.user_id == current_user.id)\
         .order_by(MealPhoto.created_at.desc())\
         .offset(skip)\
         .limit(limit)\
         .all()
-    
-    return photos
 
+    return photos
 
 @router.post("/meals/manual", response_model=MealPhotoResponse, status_code=status.HTTP_201_CREATED)
 def create_manual_meal(
@@ -305,9 +281,6 @@ def create_manual_meal(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Создать блюдо вручную без фото. Сохраняем в MealPhoto, но без файла.
-    """
     from datetime import datetime, timezone, timedelta
 
     if not payload.meal_name:
@@ -337,7 +310,6 @@ def create_manual_meal(
     db.refresh(meal_photo)
     return meal_photo
 
-
 @router.get("/meals/photos/{photo_id}", response_class=FileResponse)
 def get_meal_photo(
     photo_id: int,
@@ -345,15 +317,11 @@ def get_meal_photo(
     authorization: Optional[str] = Header(default=None),
     db: Session = Depends(get_db),
 ):
-    """
-    Получить фотографию еды по ID
-    """
-    # Авторизация: сначала Authorization header, иначе пробуем token из query
+
     current_user: Optional[User] = None
     if authorization:
         try:
-            # Используем существующий dependency вручную
-            # Формат "Bearer xxx"
+
             scheme, _, cred = authorization.partition(" ")
             if scheme.lower() == "bearer" and cred:
                 from app.utils.auth import verify_token, get_user_by_id
@@ -383,7 +351,7 @@ def get_meal_photo(
         MealPhoto.id == photo_id,
         MealPhoto.user_id == current_user.id
     ).first()
-    
+
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -395,22 +363,20 @@ def get_meal_photo(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Файл отсутствует для ручной записи"
         )
-    
-    # Полный путь к файлу
+
     full_path = MEDIA_ROOT.parent / photo.file_path
-    
+
     if not full_path.exists():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Файл не найден"
         )
-    
+
     return FileResponse(
         path=str(full_path),
         media_type=photo.mime_type,
         filename=photo.file_name,
     )
-
 
 @router.put("/meals/photos/{photo_id}/confirm", response_model=MealPhotoResponse)
 def confirm_meal_photo(
@@ -423,21 +389,17 @@ def confirm_meal_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Подтвердить и сохранить данные блюда (с возможностью редактирования)
-    """
     photo = db.query(MealPhoto).filter(
         MealPhoto.id == photo_id,
         MealPhoto.user_id == current_user.id
     ).first()
-    
+
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Фотография не найдена"
         )
-    
-    # Обновляем данные если переданы
+
     if meal_name is not None:
         photo.meal_name = meal_name
     if calories is not None:
@@ -448,12 +410,11 @@ def confirm_meal_photo(
         photo.fat = fat
     if carbs is not None:
         photo.carbs = carbs
-    
+
     db.commit()
     db.refresh(photo)
-    
-    return photo
 
+    return photo
 
 @router.get("/meals/daily")
 def get_daily_meals(
@@ -462,12 +423,8 @@ def get_daily_meals(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Получить блюда за конкретный день с учётом часового пояса клиента.
-    tz_offset_minutes передаём как -new Date().getTimezoneOffset().
-    """
     from datetime import datetime, timedelta, timezone
-    
+
     try:
         target_date = datetime.strptime(date, "%Y-%m-%d").date()
     except ValueError:
@@ -481,10 +438,9 @@ def get_daily_meals(
     start_local = datetime.combine(target_date, datetime.min.time())
     end_local = start_local + timedelta(days=1)
 
-    # Переводим границы локального дня в UTC
     start_utc = (start_local - offset).replace(tzinfo=timezone.utc)
     end_utc = (end_local - offset).replace(tzinfo=timezone.utc)
-    
+
     photos = (
         db.query(MealPhoto)
         .filter(
@@ -495,14 +451,12 @@ def get_daily_meals(
         .order_by(MealPhoto.created_at.desc())
         .all()
     )
-    
-    # Суммируем КБЖУ за день
+
     total_calories = sum(p.calories or 0 for p in photos)
     total_protein = sum(p.protein or 0 for p in photos)
     total_fat = sum(p.fat or 0 for p in photos)
     total_carbs = sum(p.carbs or 0 for p in photos)
 
-    # Получаем целевые калории (последний онбординг)
     target_calories = None
     onboarding = (
         db.query(OnboardingData)
@@ -513,7 +467,6 @@ def get_daily_meals(
     if onboarding:
         target_calories = onboarding.target_calories
 
-    # Обновляем стрик, если дата не в будущем и не раньше последнего зафиксированного дня
     streak_count = current_user.streak_count or 0
     last_streak_date = current_user.last_streak_date.date() if current_user.last_streak_date else None
     try:
@@ -521,7 +474,7 @@ def get_daily_meals(
         if target_calories is not None and target_calories > 0 and target_date <= today_date:
             achieved = total_calories >= target_calories
             if last_streak_date and target_date < last_streak_date:
-                pass  # не трогаем прошлые даты до последнего зафиксированного
+                pass
             else:
                 if achieved:
                     if last_streak_date is None:
@@ -529,24 +482,24 @@ def get_daily_meals(
                     else:
                         delta = (target_date - last_streak_date).days
                         if delta == 0:
-                            # тот же день — оставляем
+
                             streak_count = current_user.streak_count or 0
                         elif delta == 1:
                             streak_count = (current_user.streak_count or 0) + 1
                         else:
                             streak_count = 1
-                    current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())  # UTC naive
+                    current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())
                     current_user.streak_count = streak_count
                 else:
-                    # пропуск — сбрасываем
+
                     streak_count = 0
-                    current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())  # UTC naive
+                    current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())
                     current_user.streak_count = streak_count
                 db.commit()
                 db.refresh(current_user)
     except Exception as e:
         logger.warning(f"Failed to update streak: {e}")
-    
+
     return {
         "date": date,
         "total_calories": total_calories,
@@ -568,7 +521,6 @@ def get_daily_meals(
         ]
     }
 
-
 @router.post("/meals/daily/batch")
 def get_daily_meals_batch(
     payload: dict = Body(..., example={"dates": ["2025-12-10", "2025-12-11"]}),
@@ -576,9 +528,6 @@ def get_daily_meals_batch(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Получить данные по нескольким датам за один запрос (для календаря).
-    """
     from datetime import datetime, timedelta, timezone
 
     dates: list = payload.get("dates") or []
@@ -635,7 +584,6 @@ def get_daily_meals_batch(
 
     return results
 
-
 @router.put("/meals/photos/{photo_id}", response_model=MealPhotoResponse)
 def update_meal_photo(
     photo_id: int,
@@ -643,9 +591,6 @@ def update_meal_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Обновить данные фотографии (название, КБЖУ)
-    """
     photo = db.query(MealPhoto).filter(
         MealPhoto.id == photo_id,
         MealPhoto.user_id == current_user.id
@@ -672,38 +617,31 @@ def update_meal_photo(
     db.refresh(photo)
     return photo
 
-
 @router.delete("/meals/photos/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_meal_photo(
     photo_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Удалить фотографию еды
-    """
     photo = db.query(MealPhoto).filter(
         MealPhoto.id == photo_id,
         MealPhoto.user_id == current_user.id
     ).first()
-    
+
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Фотография не найдена"
         )
-    
-    # Удаляем файл
+
     full_path = MEDIA_ROOT.parent / photo.file_path
     if full_path.exists():
         full_path.unlink()
-    
-    # Удаляем запись из БД
+
     db.delete(photo)
     db.commit()
-    
-    return None
 
+    return None
 
 @router.post("/water", response_model=WaterEntry, status_code=status.HTTP_201_CREATED)
 def add_water(
@@ -712,9 +650,6 @@ def add_water(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Добавить запись воды.
-    """
     from datetime import timezone, timedelta
 
     created_at = payload.created_at
@@ -734,7 +669,6 @@ def add_water(
     db.refresh(entry)
     return entry
 
-
 @router.get("/water/daily", response_model=WaterDailyResponse)
 def get_water_daily(
     date: str = Query(..., description="Дата в формате YYYY-MM-DD"),
@@ -742,9 +676,6 @@ def get_water_daily(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Получить воду за день с учётом часового пояса.
-    """
     from datetime import datetime, timedelta, timezone
 
     try:

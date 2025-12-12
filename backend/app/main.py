@@ -1,6 +1,3 @@
-"""
-FastAPI приложение - точка входа
-"""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
@@ -23,47 +20,36 @@ app.add_middleware(
     max_age=3600,
 )
 
-# Обработчик OPTIONS запросов для всех путей
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):
-    """Обработчик для OPTIONS запросов (CORS preflight)"""
     return {"message": "OK"}
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(onboarding.router, prefix="/api/v1")
 app.include_router(meals.router, prefix="/api/v1")
 
-
 @app.on_event("startup")
 async def startup_event():
-    """Инициализация при запуске"""
     init_db()
     print(f"Server starting on {settings.host}:{settings.port}")
     print(f"Environment: {settings.environment}")
     print(f"Database: {settings.db_name}@{settings.db_host}")
 
-
 @app.get("/")
 async def root():
-    """Корневой endpoint"""
     return {
         "message": "Calories App API",
         "version": "1.0.0",
         "environment": settings.environment,
     }
 
-
 @app.get("/health")
 async def health_check():
-    """Проверка здоровья сервера"""
     return {"status": "healthy"}
-
 
 @app.head("/health")
 async def health_head():
-    """Проверка здоровья (HEAD) для curl/мониторинга"""
     return {"status": "healthy"}
-
 
 if __name__ == "__main__":
     import uvicorn

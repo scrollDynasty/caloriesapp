@@ -10,9 +10,6 @@ import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
-/**
- * Экран седьмого шага онбординга - Что мешает достигать цели
- */
 export default function Step7() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -27,7 +24,7 @@ export default function Step7() {
     if (!selectedBarrier) {
       return;
     }
-    // Сохраняем данные в контекст
+    
     updateData({ barrier: selectedBarrier });
     router.push({
       pathname: "/steps/step8",
@@ -45,15 +42,15 @@ export default function Step7() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={7} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={7} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Что мешает достигать цели</Text>
             <Text style={styles.subtitle}>
@@ -61,7 +58,7 @@ export default function Step7() {
             </Text>
           </View>
 
-          {/* Варианты выбора */}
+          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Непоследовательность"
@@ -91,7 +88,7 @@ export default function Step7() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

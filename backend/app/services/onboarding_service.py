@@ -1,26 +1,19 @@
-"""
-Сервис для работы с данными онбординга
-"""
 from sqlalchemy.orm import Session
 from app.models.onboarding_data import OnboardingData
 from app.schemas.onboarding import OnboardingDataCreate
 
-
 def get_onboarding_data(db: Session, user_id: int) -> OnboardingData | None:
-    """Получить данные онбординга пользователя"""
     return db.query(OnboardingData).filter(OnboardingData.user_id == user_id).first()
-
 
 def create_or_update_onboarding_data(
     db: Session, user_id: int, data: OnboardingDataCreate
 ) -> OnboardingData:
-    """Создать данные онбординга (не обновляет существующие)"""
     existing_data = get_onboarding_data(db, user_id)
 
     if existing_data:
         return existing_data
     else:
-        # Создаем новые данные только если их еще нет
+
         onboarding_data = OnboardingData(
             user_id=user_id,
             **data.dict(exclude_unset=True),

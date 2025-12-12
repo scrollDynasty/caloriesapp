@@ -14,13 +14,9 @@ interface RadioButtonProps {
   onPress: () => void;
 }
 
-/**
- * Компонент радио-кнопки для выбора опций
- */
 export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
   const scale = useSharedValue(1);
 
-  // Анимация контейнера
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
@@ -28,7 +24,7 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
   });
 
   const handlePressIn = () => {
-    // Плавное нажатие
+    
     scale.value = withSpring(0.97, {
       damping: 15,
       stiffness: 300,
@@ -37,7 +33,7 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
   };
 
   const handlePressOut = () => {
-    // Плавное возвращение
+    
     scale.value = withSpring(1, {
       damping: 15,
       stiffness: 300,
@@ -46,7 +42,7 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
 
   const handlePress = () => {
     if (!selected) {
-      // Haptic feedback при выборе
+      
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     onPress();
@@ -89,7 +85,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 2,
     borderColor: "rgba(0, 0, 0, 0)",
-    // Тень из Figma: 0px 2px 8px 0px rgba(0, 0, 0, 0.04)
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -102,7 +98,7 @@ const styles = StyleSheet.create({
   radioContainerSelected: {
     backgroundColor: "#F4F2EF",
     borderColor: colors.primary,
-    // Тень из Figma: 0px 8px 20px -6px rgba(0, 0, 0, 0.1)
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -141,5 +137,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
 });
-
 

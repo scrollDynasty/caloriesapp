@@ -10,22 +10,19 @@ import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
-/**
- * Экран третьего шага онбординга - Рост и вес
- */
 export default function Step3() {
   const fontsLoaded = useFonts();
   const router = useRouter();
   const { updateData } = useOnboarding();
-  const [height, setHeight] = useState<number>(175); // Значение по умолчанию
-  const [weight, setWeight] = useState<number>(70); // Значение по умолчанию
+  const [height, setHeight] = useState<number>(175); 
+  const [weight, setWeight] = useState<number>(70); 
 
   if (!fontsLoaded) {
     return null;
   }
 
   const handleNextPress = () => {
-    // Сохраняем данные в контекст
+    
     updateData({ height, weight });
     router.push({
       pathname: "/steps/step4",
@@ -43,15 +40,15 @@ export default function Step3() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={3} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={3} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Рост и вес</Text>
             <Text style={styles.subtitle}>
@@ -59,7 +56,7 @@ export default function Step3() {
             </Text>
           </View>
 
-          {/* Пикеры для роста и веса */}
+          {}
           <View style={styles.pickersContainer}>
             <HeightWeightPicker
               label="Рост"
@@ -80,7 +77,7 @@ export default function Step3() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

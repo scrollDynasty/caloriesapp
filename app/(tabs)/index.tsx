@@ -26,7 +26,7 @@ import { useFonts } from "../../hooks/use-fonts";
 import { apiService, MealPhoto } from "../../services/api";
 
 const TASHKENT_TIMEZONE = "Asia/Tashkent";
-const TASHKENT_OFFSET_MINUTES = 300; // UTC+5
+const TASHKENT_OFFSET_MINUTES = 300; 
 const TASHKENT_OFFSET_MS = TASHKENT_OFFSET_MINUTES * 60 * 1000;
 
 const parseMealDate = (value?: string | null): Date | null => {
@@ -367,7 +367,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
           map[r.date] = r.total_calories >= onboardingData.target_calories;
         });
         setWeekAchievements(map);
-        // Не пересчитываем streak тут, делаем отдельной выборкой 30 дней
+        
         lastWeekLoadedRef.current = weekTs;
       } catch (e) {
         console.warn("Week achievements failed", e);
@@ -410,7 +410,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
         meals: data.meals,
       });
       setStreakCount(data.streak_count ?? 0);
-      // Обновляем достижения для выбранной даты без лишних запросов
+      
       const key = dateStr;
       setWeekAchievements((prev) => {
         const next = { ...prev, [key]: data.total_calories >= (onboardingData?.target_calories || 0) };
@@ -440,7 +440,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
   useFocusEffect(
     useCallback(() => {
       fetchLatestMeals();
-      // Принудительно обновляем дневные данные и достижения текущей недели при возврате на экран
+      
       loadDailyData(selectedDateTimestamp, true);
       loadWeekAchievements(new Date(selectedDateTimestamp));
     }, [fetchLatestMeals, loadDailyData, loadWeekAchievements, selectedDateTimestamp])
@@ -457,7 +457,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
       setWeekStartTs(weekTs);
       loadWeekAchievements(new Date(selectedDateTimestamp));
     } else {
-        // если неделя та же, а достижения ещё не были загружены — подгрузим один раз
+        
         if (lastWeekLoadedRef.current !== weekStartTs) {
           loadWeekAchievements(new Date(selectedDateTimestamp));
         }

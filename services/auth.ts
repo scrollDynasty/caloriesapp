@@ -1,18 +1,13 @@
-/**
- * Сервис авторизации через Google и Apple
- */
+
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
 import { apiService } from "./api";
 
-// Завершаем сессию веб-браузера после OAuth
 WebBrowser.maybeCompleteAuthSession();
 
 export class AuthService {
-  /**
-   * Авторизация через Google
-   */
+  
   async signInWithGoogle(): Promise<{ 
     success: boolean; 
     error?: string; 
@@ -21,22 +16,18 @@ export class AuthService {
   }> {
     try {
       const { API_BASE_URL } = await import("../constants/api");
-      
-      // Redirect URI для мобильного приложения
-      // В Expo Go будет exp://, в production build - caloriesapp://
+
       const redirectUri = AuthSession.makeRedirectUri({
         scheme: "caloriesapp",
         path: "auth/callback",
       });
 
-      // Формируем URL для Google OAuth через бэкенд
       const authUrl = `${API_BASE_URL}/api/v1/auth/google?state=${encodeURIComponent(redirectUri)}`;
 
-      // Открываем браузер для авторизации
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
       
       if (result.type === "success") {
-        // Извлекаем токен и данные пользователя из URL
+        
         const url = result.url;
         if (url.includes("error=")) {
           const errMatch = url.match(/error=([^&]+)/);
@@ -53,8 +44,7 @@ export class AuthService {
             let userStr = decodeURIComponent(userMatch[1]);
             userStr = userStr.replace(/#.*$/, '');
             const user = JSON.parse(userStr);
-            
-            // Сохраняем токен
+
             await apiService.saveToken(token);
             
             return { 
@@ -84,9 +74,6 @@ export class AuthService {
     }
   }
 
-  /**
-   * Авторизация через Apple
-   */
   async signInWithApple(): Promise<{ success: boolean; error?: string }> {
     try {
       if (Platform.OS !== "ios") {
@@ -109,16 +96,10 @@ export class AuthService {
     }
   }
 
-  /**
-   * Выход из аккаунта
-   */
   async signOut(): Promise<void> {
     await apiService.removeToken();
   }
 
-  /**
-   * Проверка авторизации
-   */
   async isAuthenticated(): Promise<boolean> {
     const token = await apiService.getToken();
     return !!token;

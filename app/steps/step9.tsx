@@ -10,9 +10,6 @@ import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
-/**
- * Экран девятого шага онбординга - Чего вы хотите достичь?
- */
 export default function Step9() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -27,9 +24,9 @@ export default function Step9() {
     if (!selectedMotivation) {
       return;
     }
-    // Сохраняем данные в контекст
+    
     updateData({ motivation: selectedMotivation });
-    // Переход на экран результатов
+    
     router.push({
       pathname: "/results",
     } as any);
@@ -46,15 +43,15 @@ export default function Step9() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={9} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={9} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Чего вы хотите достичь?</Text>
             <Text style={styles.subtitle}>
@@ -62,7 +59,7 @@ export default function Step9() {
             </Text>
           </View>
 
-          {/* Варианты выбора */}
+          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Питаться и жить здорово"
@@ -87,7 +84,7 @@ export default function Step9() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

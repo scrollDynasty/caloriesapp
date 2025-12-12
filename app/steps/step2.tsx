@@ -12,9 +12,6 @@ import { useOnboarding } from "../../context/OnboardingContext";
 
 type WorkoutFrequency = "0-2" | "3-5" | "6+";
 
-/**
- * Экран второго шага онбординга - Количество тренировок
- */
 export default function Step2() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -28,12 +25,12 @@ export default function Step2() {
 
   const handleNextPress = () => {
     if (!selectedFrequency) {
-      // TODO: Показать ошибку валидации
+      
       return;
     }
-    // Сохраняем данные в контекст
+    
     updateData({ workoutFrequency: selectedFrequency });
-    // Переход на следующий шаг
+    
     router.push({
       pathname: "/steps/step3",
     } as any);
@@ -50,15 +47,15 @@ export default function Step2() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={2} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={2} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Количество тренировок</Text>
             <Text style={styles.subtitle}>
@@ -66,7 +63,7 @@ export default function Step2() {
             </Text>
           </View>
 
-          {/* Варианты выбора */}
+          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="0–2 тренировки"
@@ -86,7 +83,7 @@ export default function Step2() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

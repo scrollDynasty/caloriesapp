@@ -7,10 +7,6 @@ interface StepHeaderProps {
   onBack?: () => void;
 }
 
-/**
- * Компонент заголовка шага с кнопкой назад
- * Текст "Шаг X" отображается по центру
- */
 export default function StepHeader({
   stepNumber,
   onBack,

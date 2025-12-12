@@ -1,6 +1,4 @@
-/**
- * API сервис для работы с бэкендом
- */
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AxiosResponse } from "axios";
 import axios, {
@@ -11,9 +9,8 @@ import axios, {
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
 
-const TASHKENT_OFFSET_MINUTES = 300; // UTC+5
+const TASHKENT_OFFSET_MINUTES = 300; 
 
-// Ключ для хранения токена
 const TOKEN_KEY = "@caloriesapp:auth_token";
 
 export interface MealPhoto {
@@ -79,13 +76,12 @@ class ApiService {
   constructor() {
     this.api = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 30000, // Увеличиваем таймаут до 30 секунд
+      timeout: 30000, 
       headers: {
         "Content-Type": "application/json",
       },
     });
 
-    // Интерцептор для добавления токена к запросам
     this.api.interceptors.request.use(
       async (config: InternalAxiosRequestConfig) => {
         const token = await this.getToken();
@@ -99,23 +95,20 @@ class ApiService {
       }
     );
 
-    // Интерцептор для обработки ошибок
     this.api.interceptors.response.use(
       (response: AxiosResponse) => response,
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
-          // Авто-логаут и очистка токена при 401
+          
           await this.removeToken();
         }
         return Promise.reject(error);
       }
     );
 
-    // Загружаем токен из AsyncStorage при инициализации
     this.loadTokenFromStorage();
   }
 
-  // Загрузка токена из AsyncStorage в кэш
   private async loadTokenFromStorage(): Promise<void> {
     try {
       const token = await AsyncStorage.getItem(TOKEN_KEY);
@@ -127,12 +120,11 @@ class ApiService {
     }
   }
 
-  // Работа с токеном
   async saveToken(token: string): Promise<void> {
     try {
-      // Сохраняем в кэш немедленно
+      
       this.cachedToken = token;
-      // Асинхронно сохраняем в AsyncStorage
+      
       await AsyncStorage.setItem(TOKEN_KEY, token);
     } catch (error) {
       console.error("Ошибка сохранения токена:", error);
@@ -140,11 +132,11 @@ class ApiService {
   }
 
   async getToken(): Promise<string | null> {
-    // Сначала проверяем кэш (быстро и надёжно)
+    
     if (this.cachedToken) {
       return this.cachedToken;
     }
-    // Если кэш пуст, пробуем загрузить из AsyncStorage
+    
     try {
       const token = await AsyncStorage.getItem(TOKEN_KEY);
       if (token) {
@@ -170,13 +162,12 @@ class ApiService {
     return this.cachedToken;
   }
 
-  // Аутентификация
   async authGoogle(idToken: string) {
     const response = await this.api.post(API_ENDPOINTS.AUTH_GOOGLE, {
       id_token: idToken,
     });
     const { access_token, user_id } = response.data;
-    // Важно: сохраняем токен и ждём завершения
+    
     await this.saveToken(access_token);
     return { token: access_token, userId: user_id };
   }
@@ -187,7 +178,7 @@ class ApiService {
       authorization_code: authorizationCode,
     });
     const { access_token, user_id } = response.data;
-    // Важно: сохраняем токен и ждём завершения
+    
     await this.saveToken(access_token);
     return { token: access_token, userId: user_id };
   }
@@ -197,7 +188,6 @@ class ApiService {
     return response.data;
   }
 
-  // Данные онбординга
   async saveOnboardingData(data: any) {
     const response = await this.api.post(API_ENDPOINTS.ONBOARDING, data);
     return response.data;
@@ -208,7 +198,6 @@ class ApiService {
     return response.data;
   }
 
-  // Фотографии еды
   async uploadMealPhoto(
     uri: string,
     fileName: string,
@@ -374,11 +363,10 @@ class ApiService {
     return response.data;
   }
 
-  // Проверка здоровья сервера
   async healthCheck() {
     try {
       const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.HEALTH}`, {
-        timeout: 5000, // Короткий таймаут для проверки
+        timeout: 5000, 
       });
       return response.data;
     } catch (error: any) {

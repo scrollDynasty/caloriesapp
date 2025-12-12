@@ -1,6 +1,4 @@
-/**
- * Контекст для хранения данных онбординга
- */
+
 import React, { createContext, ReactNode, useContext, useState } from "react";
 import { OnboardingData } from "../services/onboarding";
 

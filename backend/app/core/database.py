@@ -1,13 +1,9 @@
-"""
-Настройка подключения к базе данных
-"""
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text, inspect
 from app.core.config import settings
 
-# Создаем движок базы данных
 engine = create_engine(
     settings.database_url,
     pool_pre_ping=True,
@@ -15,28 +11,22 @@ engine = create_engine(
     echo=False,
 )
 
-# Создаем фабрику сессий
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Базовый класс для моделей
 Base = declarative_base()
 
-
 def get_db():
-    """Dependency для получения сессии базы данных"""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
-
 def init_db():
-    """Инициализация базы данных - создание таблиц"""
-    from app.models.user import User  # noqa: F401
-    from app.models.onboarding_data import OnboardingData  # noqa: F401
-    from app.models.meal_photo import MealPhoto  # noqa: F401
-    from app.models.water_log import WaterLog  # noqa: F401
+    from app.models.user import User
+    from app.models.onboarding_data import OnboardingData
+    from app.models.meal_photo import MealPhoto
+    from app.models.water_log import WaterLog
     Base.metadata.create_all(bind=engine)
 
     with engine.begin() as conn:
@@ -62,7 +52,7 @@ def init_db():
         if "streak_count" not in user_columns:
             user_alters.append("ADD COLUMN streak_count INT NULL")
         if "last_streak_date" not in user_columns:
-            # MariaDB/MySQL не поддерживают TIMESTAMP WITH TIME ZONE — используем DATETIME (UTC)
+
             user_alters.append("ADD COLUMN last_streak_date DATETIME NULL")
         if user_alters:
             sql_users = "ALTER TABLE users " + ", ".join(user_alters)

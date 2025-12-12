@@ -9,14 +9,11 @@ interface FoodImagePreviewProps {
   imageHeight: number;
 }
 
-/**
- * Компонент превью изображения еды с оверлеями и градиентом
- */
 export default function FoodImagePreview({
   imageWidth,
   imageHeight,
 }: FoodImagePreviewProps) {
-  // Вычисляем размеры оверлеев и кнопки пропорционально
+  
   const overlayTop1 = (imageHeight / 559) * 167.69;
   const overlayLeft1 = (imageWidth / 374) * 158.61;
   const overlayTop2 = (imageHeight / 559) * 331.36;
@@ -36,7 +33,7 @@ export default function FoodImagePreview({
         },
       ]}
     >
-      {/* Фоновое изображение */}
+      {}
       <Image
         source={require("../../assets/images/food-demo-6453ad.png")}
         style={styles.foodImage}
@@ -44,7 +41,7 @@ export default function FoodImagePreview({
         cachePolicy="disk"
       />
 
-      {/* Градиентный оверлей */}
+      {}
       <LinearGradient
         colors={[
           "rgba(0, 0, 0, 0.1)",
@@ -55,7 +52,7 @@ export default function FoodImagePreview({
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Оверлей "Сканирование..." */}
+      {}
       <View
         style={[
           styles.scanningOverlay,
@@ -69,7 +66,7 @@ export default function FoodImagePreview({
         <Text style={styles.overlayText}>Сканирование...</Text>
       </View>
 
-      {/* Оверлей "340 ккал" */}
+      {}
       <View
         style={[
           styles.caloriesOverlay,
@@ -82,7 +79,7 @@ export default function FoodImagePreview({
         <Text style={styles.overlayText}>340 ккал</Text>
       </View>
 
-      {/* Центральная кнопка камеры */}
+      {}
       <BlurView
         intensity={8}
         tint="light"
@@ -116,7 +113,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     overflow: "hidden",
     alignSelf: "center",
-    // Тень из Figma: 0px 24px 48px -12px rgba(0, 0, 0, 0.15)
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -139,8 +136,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 20,
-    minWidth: 159.3, // Минимальная ширина из Figma
-    // Тень из Figma: 0px 4px 12px 0px rgba(0, 0, 0, 0.1)
+    minWidth: 159.3, 
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -173,8 +170,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 20,
-    minWidth: 110.78, // Минимальная ширина из Figma
-    // Тень из Figma: 0px 4px 12px 0px rgba(0, 0, 0, 0.1)
+    minWidth: 110.78, 
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -191,7 +188,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.4)",
     alignItems: "center",
     justifyContent: "center",
-    // backdrop-filter: blur(8px) из Figma
+    
   },
   cameraIcon: {
     width: 24,

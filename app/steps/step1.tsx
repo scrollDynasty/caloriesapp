@@ -12,9 +12,6 @@ import { useFonts } from "../../hooks/use-fonts";
 
 type Gender = "male" | "female";
 
-/**
- * Экран первого шага онбординга - Выбор пола
- */
 export default function Step1() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -27,12 +24,12 @@ export default function Step1() {
 
   const handleNextPress = () => {
     if (!selectedGender) {
-      // TODO: Показать ошибку валидации
+      
       return;
     }
-    // Сохраняем данные в контекст
+    
     updateData({ gender: selectedGender });
-    // Переход на следующий шаг
+    
     router.push({
       pathname: "/steps/step2",
     } as any);
@@ -49,15 +46,15 @@ export default function Step1() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={1} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={1} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Выберите пол</Text>
             <Text style={styles.subtitle}>
@@ -65,7 +62,7 @@ export default function Step1() {
             </Text>
           </View>
 
-          {/* Варианты выбора */}
+          {}
           <View style={styles.optionsContainer}>
             <GenderRadioButton
               label="Мужской"
@@ -82,7 +79,7 @@ export default function Step1() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

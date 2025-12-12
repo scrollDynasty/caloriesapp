@@ -49,11 +49,9 @@ export default function CallbackScreen() {
         
         console.log("✅ User data parsed:", { email: user.email, user_id: user.user_id });
 
-        // Сохраняем токен
         await apiService.saveToken(token);
         console.log("✅ Token saved");
 
-        // Проверяем, есть ли уже данные онбординга на сервере
         let hasExistingData = false;
         try {
           const existingData = await apiService.getOnboardingData();
@@ -67,7 +65,6 @@ export default function CallbackScreen() {
           }
         }
 
-        // Если данных нет на сервере, сохраняем из контекста (для новых пользователей)
         if (!hasExistingData) {
           if (onboardingData && Object.keys(onboardingData).length > 0) {
             try {
@@ -86,7 +83,6 @@ export default function CallbackScreen() {
           }
         }
 
-        // Переход на главный экран
         console.log("🚀 Redirecting to main screen...");
         router.replace("/(tabs)");
       } catch (parseError: any) {

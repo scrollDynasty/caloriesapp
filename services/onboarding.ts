@@ -1,45 +1,32 @@
-/**
- * Сервис для работы с данными онбординга
- */
+
 import { calculateCalories, UserData } from "../utils/calorieCalculator";
 import { apiService } from "./api";
 
 export interface OnboardingData {
-  // Шаг 1
+  
   gender?: "male" | "female";
 
-  // Шаг 2
   workoutFrequency?: "0-2" | "3-5" | "6+";
 
-  // Шаг 3
   height?: number;
   weight?: number;
 
-  // Шаг 4
   birthDate?: Date;
 
-  // Шаг 5
   hasTrainer?: boolean;
 
-  // Шаг 6
   goal?: "lose" | "maintain" | "gain";
 
-  // Шаг 7
   barrier?: string;
 
-  // Шаг 8
   dietType?: "classic" | "pescatarian" | "vegetarian" | "vegan";
 
-  // Шаг 9
   motivation?: string;
 }
 
-/**
- * Сохранить данные онбординга с расчетом калорий
- */
 export async function saveOnboardingData(data: OnboardingData) {
   try {
-    // Проверяем, что есть минимальные данные для расчета
+    
     if (
       !data.gender ||
       !data.height ||
@@ -50,8 +37,7 @@ export async function saveOnboardingData(data: OnboardingData) {
       throw new Error("Недостаточно данных для расчета");
     }
 
-    // Рассчитываем возраст из даты рождения
-    let age = 25; // По умолчанию
+    let age = 25; 
     if (data.birthDate) {
       const today = new Date();
       const birth = new Date(data.birthDate);
@@ -62,7 +48,6 @@ export async function saveOnboardingData(data: OnboardingData) {
       }
     }
 
-    // Подготавливаем данные для расчета
     const userData: UserData = {
       gender: data.gender,
       age,
@@ -72,10 +57,8 @@ export async function saveOnboardingData(data: OnboardingData) {
       goal: data.goal,
     };
 
-    // Рассчитываем калории и макронутриенты
     const calculations = calculateCalories(userData);
 
-    // Формируем данные для отправки на сервер
     const payload = {
       gender: data.gender,
       workout_frequency: data.workoutFrequency,
@@ -87,11 +70,11 @@ export async function saveOnboardingData(data: OnboardingData) {
       barrier: data.barrier,
       diet_type: data.dietType,
       motivation: data.motivation,
-      // Рассчитанные данные
+      
       bmr: calculations.bmr,
       tdee: calculations.tdee,
       target_calories: calculations.targetCalories,
-      // Макронутриенты
+      
       protein_grams: calculations.macros.protein.grams,
       protein_calories: calculations.macros.protein.calories,
       protein_percentage: calculations.macros.protein.percentage,
@@ -103,17 +86,15 @@ export async function saveOnboardingData(data: OnboardingData) {
       fats_percentage: calculations.macros.fats.percentage,
     };
 
-    // Отправляем на сервер
     const result = await apiService.saveOnboardingData(payload);
     return { success: true, data: result };
   } catch (error: any) {
     console.error("Ошибка сохранения данных:", error);
-    
-    // Формируем понятное сообщение об ошибке
+
     let errorMessage = "Ошибка при сохранении данных";
     
     if (error.response) {
-      // Ошибка от сервера
+      
       const status = error.response.status;
       const detail = error.response.data?.detail;
       
@@ -141,9 +122,6 @@ export async function saveOnboardingData(data: OnboardingData) {
   }
 }
 
-/**
- * Получить сохраненные данные онбординга
- */
 export async function getOnboardingData() {
   try {
     const data = await apiService.getOnboardingData();

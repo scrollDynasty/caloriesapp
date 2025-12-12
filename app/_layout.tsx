@@ -21,13 +21,13 @@ export default function RootLayout() {
         <Stack.Screen
           name="(tabs)"
           options={{
-            gestureEnabled: false, // Отключаем жест назад на главном экране
+            gestureEnabled: false, 
           }}
         />
         <Stack.Screen
           name="save-progress"
           options={{
-            gestureEnabled: false, // Отключаем жест назад на экране авторизации
+            gestureEnabled: false, 
           }}
         />
         <Stack.Screen

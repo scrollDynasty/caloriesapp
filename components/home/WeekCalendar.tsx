@@ -9,31 +9,28 @@ interface WeekCalendarProps {
 }
 
 export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSelect, achievedDates }: WeekCalendarProps) {
-  // Мемоизируем сегодняшнюю дату
+  
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
 
-  // Мемоизируем timestamp выбранной даты для стабильного сравнения
   const selectedDateTimestamp = useMemo(() => {
     const normalized = new Date(selectedDate);
     normalized.setHours(0, 0, 0, 0);
     return normalized.getTime();
   }, [selectedDate]);
 
-  // Мемоизируем вычисление дней недели
   const weekDays = useMemo(() => {
-    // Получаем начало недели, содержащей выбранную дату (понедельник)
+    
     const startOfWeek = new Date(selectedDate);
     startOfWeek.setHours(0, 0, 0, 0);
     const day = startOfWeek.getDay();
-    // Преобразуем воскресенье (0) в 7, чтобы неделя начиналась с понедельника
+    
     const mondayOffset = day === 0 ? -6 : 1 - day;
     startOfWeek.setDate(startOfWeek.getDate() + mondayOffset);
 
-    // Генерируем 7 дней недели
     const days = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
@@ -44,7 +41,6 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
     return days;
   }, [selectedDateTimestamp]);
 
-  // Массив дней недели
   const daysOfWeek = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
   const isSameDay = (date1: Date, date2: Date) => {
@@ -93,8 +89,7 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
     </View>
   );
 }, (prevProps, nextProps) => {
-  // Кастомная функция сравнения для оптимизации
-  // Сравниваем только timestamp даты, не сам объект Date
+
   return prevProps.selectedDate.getTime() === nextProps.selectedDate.getTime() &&
          prevProps.onDateSelect === nextProps.onDateSelect &&
          prevProps.achievedDates === nextProps.achievedDates;
@@ -129,7 +124,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   calendarDateAchieved: {
-    backgroundColor: "rgba(255,69,0,0.28)", // светло-оранжевый (R255,G69,B0)
+    backgroundColor: "rgba(255,69,0,0.28)", 
   },
   calendarDateText: {
     fontSize: 16,

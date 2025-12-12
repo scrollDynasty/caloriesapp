@@ -6,9 +6,6 @@ interface ProgressBarProps {
   totalSteps: number;
 }
 
-/**
- * Компонент прогресс-бара для отображения прогресса прохождения шагов
- */
 export function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
   const progress = (currentStep / totalSteps) * 100;
 

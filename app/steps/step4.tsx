@@ -10,14 +10,11 @@ import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
-/**
- * Экран четвертого шага онбординга - Дата рождения
- */
 export default function Step4() {
   const fontsLoaded = useFonts();
   const router = useRouter();
   const { updateData } = useOnboarding();
-  // Устанавливаем дату по умолчанию (например, 15 февраля 2007)
+  
   const [birthDate, setBirthDate] = useState(new Date(2007, 1, 15));
 
   if (!fontsLoaded) {
@@ -25,7 +22,7 @@ export default function Step4() {
   }
 
   const handleNextPress = () => {
-    // Сохраняем данные в контекст
+    
     updateData({ birthDate });
     router.push({
       pathname: "/steps/step5",
@@ -43,15 +40,15 @@ export default function Step4() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={4} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={4} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Дата рождения</Text>
             <Text style={styles.subtitle}>
@@ -59,13 +56,13 @@ export default function Step4() {
             </Text>
           </View>
 
-          {/* Пicker для выбора даты */}
+          {}
           <View style={styles.pickerContainer}>
             <DatePicker value={birthDate} onValueChange={setBirthDate} />
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

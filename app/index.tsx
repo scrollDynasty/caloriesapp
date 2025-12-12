@@ -10,8 +10,6 @@ import { useFonts } from "../hooks/use-fonts";
 import { authService } from "../services/auth";
 import { getImageHeight, getImageWidth } from "../utils/responsive";
 
-// Предзагрузка всех шагов для устранения задержек при переходе
-// Импортируем компоненты, чтобы они были загружены в память
 import Step1 from "./steps/step1";
 import Step2 from "./steps/step2";
 import Step3 from "./steps/step3";
@@ -22,15 +20,11 @@ import Step7 from "./steps/step7";
 import Step8 from "./steps/step8";
 import Step9 from "./steps/step9";
 
-/**
- * Экран первого шага - Умный подсчет калорий
- */
 export default function Index() {
   const fontsLoaded = useFonts();
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  // Проверяем авторизацию при запуске приложения
   useEffect(() => {
     checkAuthAndRedirect();
   }, []);
@@ -39,7 +33,7 @@ export default function Index() {
     try {
       const isAuthenticated = await authService.isAuthenticated();
       if (isAuthenticated) {
-        // Пользователь уже авторизован - сразу переходим на главный экран
+        
         router.replace("/(tabs)");
         return;
       }
@@ -49,10 +43,6 @@ export default function Index() {
       setCheckingAuth(false);
     }
   };
-
-  // Полная предзагрузка всех шагов при монтировании компонента
-  // Скрытые компоненты внизу будут полностью инициализированы, но не видны пользователю
-  // Это гарантирует их полную инициализацию до первого перехода
 
   if (!fontsLoaded || checkingAuth) {
     return (
@@ -64,7 +54,6 @@ export default function Index() {
     );
   }
 
-  // Адаптивные размеры изображения
   const imageWidth = getImageWidth();
   const imageHeight = getImageHeight(imageWidth);
 
@@ -83,7 +72,7 @@ export default function Index() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Контейнер с изображением еды */}
+        {}
         <View style={styles.imageWrapper}>
           <FoodImagePreview
             imageWidth={imageWidth}
@@ -91,17 +80,17 @@ export default function Index() {
           />
         </View>
 
-        {/* Текстовый контент */}
+        {}
         <View style={styles.textContainer}>
           <TextContent
             title="Умный подсчет калорий"
             subtitle="Наведите камеру на еду, чтобы узнать ее калорийность"
           />
 
-          {/* Кнопка "Начать" */}
+          {}
           <PrimaryButton label="Начать" onPress={handleStartPress} />
 
-          {/* Кнопка "Уже есть аккаунт? Войти" */}
+          {}
           <SecondaryButton
             label="Уже есть аккаунт? Войти"
             onPress={handleLoginPress}
@@ -109,8 +98,8 @@ export default function Index() {
         </View>
       </ScrollView>
 
-      {/* Скрытые экземпляры всех шагов для полной предзагрузки */}
-      {/* Они рендерятся, но не видны пользователю, что гарантирует их полную инициализацию */}
+      {}
+      {}
       <View style={styles.preloadContainer} pointerEvents="none">
         <Step1 />
         <Step2 />
@@ -152,7 +141,7 @@ const styles = StyleSheet.create({
   textContainer: {
     paddingHorizontal: 24,
     paddingBottom: 24,
-    gap: 16, // gap: 16px из Figma
+    gap: 16, 
   },
   preloadContainer: {
     position: "absolute",

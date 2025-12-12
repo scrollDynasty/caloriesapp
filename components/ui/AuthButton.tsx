@@ -8,9 +8,6 @@ interface AuthButtonProps {
   disabled?: boolean;
 }
 
-/**
- * Кнопка авторизации через Apple или Google
- */
 export function AuthButton({ provider, onPress, disabled = false }: AuthButtonProps) {
   const isApple = provider === "apple";
 
@@ -25,7 +22,7 @@ export function AuthButton({ provider, onPress, disabled = false }: AuthButtonPr
       activeOpacity={0.8}
       disabled={disabled}
     >
-      {/* Иконка */}
+      {}
       <View style={styles.iconContainer}>
         {isApple ? (
           <Ionicons name="logo-apple" size={24} color={colors.white} />
@@ -34,7 +31,7 @@ export function AuthButton({ provider, onPress, disabled = false }: AuthButtonPr
         )}
       </View>
 
-      {/* Текст */}
+      {}
       <Text
         style={[
           styles.buttonText,
@@ -58,7 +55,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 12,
     borderWidth: 1,
-    // Тень
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

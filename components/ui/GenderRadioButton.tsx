@@ -17,9 +17,6 @@ interface GenderRadioButtonProps {
   onPress: () => void;
 }
 
-/**
- * Компонент радио-кнопки для выбора пола с иконкой
- */
 export function GenderRadioButton({
   label,
   icon,
@@ -30,7 +27,6 @@ export function GenderRadioButton({
   const opacity = useSharedValue(selected ? 1 : 0);
   const borderWidth = useSharedValue(selected ? 2 : 0);
 
-  // Анимация контейнера
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: scale.value }],
@@ -38,7 +34,6 @@ export function GenderRadioButton({
     };
   });
 
-  // Анимация галочки
   const checkmarkAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: opacity.value,
@@ -50,9 +45,8 @@ export function GenderRadioButton({
     };
   });
 
-
   const handlePressIn = () => {
-    // Плавное нажатие
+    
     scale.value = withSpring(0.96, {
       damping: 15,
       stiffness: 300,
@@ -61,7 +55,7 @@ export function GenderRadioButton({
   };
 
   const handlePressOut = () => {
-    // Плавное возвращение
+    
     scale.value = withSpring(1, {
       damping: 15,
       stiffness: 300,
@@ -70,23 +64,20 @@ export function GenderRadioButton({
 
   const handlePress = () => {
     if (!selected) {
-      // Haptic feedback при выборе
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       
-      // Анимация появления галочки
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
       opacity.value = withSpring(1, {
         damping: 12,
         stiffness: 200,
       });
-      
-      // Анимация границы
+
       borderWidth.value = withTiming(2, { duration: 200 });
     }
 
     onPress();
   };
 
-  // Синхронизация анимации с состоянием
   useEffect(() => {
     if (selected) {
       opacity.value = withSpring(1, {
@@ -114,7 +105,7 @@ export function GenderRadioButton({
           animatedStyle,
         ]}
       >
-        {/* Иконка */}
+        {}
         <View style={styles.iconContainer}>
           <Ionicons
             name={icon as any}
@@ -123,12 +114,12 @@ export function GenderRadioButton({
           />
         </View>
 
-        {/* Текст */}
+        {}
         <Text style={[styles.radioText, selected && styles.radioTextSelected]}>
           {label}
         </Text>
 
-        {/* Галочка */}
+        {}
         <Animated.View style={[styles.checkmarkContainer, checkmarkAnimatedStyle]}>
           <View style={styles.checkmark} />
         </Animated.View>
@@ -136,7 +127,6 @@ export function GenderRadioButton({
     </Pressable>
   );
 }
-
 
 const styles = StyleSheet.create({
   touchable: {
@@ -151,9 +141,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderRadius: 24,
     borderColor: colors.primary,
-    minHeight: 152, // Минимальная высота для адаптивности
+    minHeight: 152, 
     gap: 16,
-    // Тень из Figma: 0px 2px 8px 0px rgba(0, 0, 0, 0.04)
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -165,7 +155,7 @@ const styles = StyleSheet.create({
   },
   radioContainerSelected: {
     backgroundColor: "#F4F2EF",
-    // Тень из Figma: 0px 8px 20px -6px rgba(0, 0, 0, 0.1)
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

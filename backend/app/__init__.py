@@ -1,3 +1,0 @@
-"""
-Calories App Backend
-"""

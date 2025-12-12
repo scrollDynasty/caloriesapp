@@ -3,7 +3,6 @@ from sqlalchemy import Column, Integer, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from app.core.database import Base
 
-
 class WaterLog(Base):
     __tablename__ = "water_logs"
 
@@ -12,4 +11,3 @@ class WaterLog(Base):
     amount_ml = Column(Integer, nullable=False)
     goal_ml = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-

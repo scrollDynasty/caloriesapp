@@ -21,7 +21,7 @@ export default function Step5() {
   }
 
   const handleNextPress = () => {
-    // Сохраняем данные в контекст
+    
     updateData({ hasTrainer: hasTrainer ?? false });
     router.push({
       pathname: "/steps/step6",
@@ -39,15 +39,15 @@ export default function Step5() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={5} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={5} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Работа с персональным тренером</Text>
             <Text style={styles.subtitle}>
@@ -55,7 +55,7 @@ export default function Step5() {
             </Text>
           </View>
 
-          {/* Варианты выбора */}
+          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Да"
@@ -70,7 +70,7 @@ export default function Step5() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

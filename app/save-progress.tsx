@@ -9,9 +9,6 @@ import { useOnboarding } from "../context/OnboardingContext";
 import { useFonts } from "../hooks/use-fonts";
 import { authService } from "../services/auth";
 
-/**
- * Экран сохранения прогресса с авторизацией
- */
 export default function SaveProgress() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -22,15 +19,13 @@ export default function SaveProgress() {
     return null;
   }
 
-
   const handleAppleAuth = async () => {
     setLoading(true);
     try {
       const result = await authService.signInWithApple();
       
       if (result.success) {
-        // После успешной авторизации callback экран обработает переход
-        // Здесь просто ждем, callback.tsx сохранит данные и перейдет
+
         return;
       } else {
         Alert.alert("Ошибка", result.error || "Не удалось войти через Apple");
@@ -53,11 +48,10 @@ export default function SaveProgress() {
       const result = await authService.signInWithGoogle();
       
       if (result.success && result.token && result.user) {
-        // Переход на главный экран
-        // Данные онбординга будут сохранены на главном экране если нужно
+
         router.replace("/(tabs)");
       } else {
-        // Показываем детальную ошибку
+        
         const errorMessage = result.error || "Не удалось войти через Google";
         Alert.alert(
           "Ошибка авторизации",
@@ -82,7 +76,6 @@ export default function SaveProgress() {
     }
   };
 
-
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScrollView
@@ -90,9 +83,9 @@ export default function SaveProgress() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Иконка и заголовки */}
+          {}
           <View style={styles.headerSection}>
             <View style={styles.iconContainer}>
               <Ionicons name="save-outline" size={48} color={colors.primary} />
@@ -103,7 +96,7 @@ export default function SaveProgress() {
             </Text>
           </View>
 
-          {/* Кнопки авторизации */}
+          {}
           <View style={styles.authButtonsContainer}>
             <AuthButton
               provider="apple"
@@ -119,7 +112,7 @@ export default function SaveProgress() {
           </View>
         </View>
 
-        {/* Текст с условиями */}
+        {}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Продолжая, вы соглашаетесь с Условиями использования и Политикой
@@ -164,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 24,
-    // Тень
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

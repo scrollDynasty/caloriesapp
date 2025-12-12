@@ -1,47 +1,33 @@
-"""
-Схемы для данных онбординга
-"""
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date, datetime
 from app.models.onboarding_data import Gender, WorkoutFrequency, Goal, DietType
 
-
 class OnboardingDataCreate(BaseModel):
-    # Шаг 1
+
     gender: Optional[Gender] = None
 
-    # Шаг 2
     workout_frequency: Optional[WorkoutFrequency] = None
 
-    # Шаг 3
     height: Optional[float] = None
     weight: Optional[float] = None
 
-    # Шаг 4
     birth_date: Optional[date] = None
 
-    # Шаг 5
     has_trainer: Optional[bool] = None
 
-    # Шаг 6
     goal: Optional[Goal] = None
 
-    # Шаг 7
     barrier: Optional[str] = None
 
-    # Шаг 8
     diet_type: Optional[DietType] = None
 
-    # Шаг 9
     motivation: Optional[str] = None
 
-    # Рассчитанные данные
     bmr: Optional[float] = None
     tdee: Optional[float] = None
     target_calories: Optional[float] = None
 
-    # Макронутриенты
     protein_grams: Optional[float] = None
     protein_calories: Optional[float] = None
     protein_percentage: Optional[float] = None
@@ -53,7 +39,6 @@ class OnboardingDataCreate(BaseModel):
     fats_grams: Optional[float] = None
     fats_calories: Optional[float] = None
     fats_percentage: Optional[float] = None
-
 
 class OnboardingDataResponse(BaseModel):
     id: int

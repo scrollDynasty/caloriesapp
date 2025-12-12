@@ -9,9 +9,6 @@ interface PrimaryButtonProps {
   iconSize?: number;
 }
 
-/**
- * Основная кнопка приложения
- */
 export function PrimaryButton({
   label,
   onPress,
@@ -42,9 +39,6 @@ interface SecondaryButtonProps {
   onPress?: () => void;
 }
 
-/**
- * Вторичная кнопка приложения
- */
 export function SecondaryButton({ label, onPress }: SecondaryButtonProps) {
   return (
     <View style={styles.secondaryButtonContainer}>
@@ -67,10 +61,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8, // gap: 8px из Figma
+    gap: 8, 
     paddingVertical: 16,
-    paddingHorizontal: 6, // padding: 1px 6px из Figma
-    // Тень для кнопки
+    paddingHorizontal: 6, 
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -96,7 +90,7 @@ const styles = StyleSheet.create({
   secondaryButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 24, // borderRadius: 24px из Figma
+    borderRadius: 24, 
   },
   secondaryButtonText: {
     color: colors.primary,

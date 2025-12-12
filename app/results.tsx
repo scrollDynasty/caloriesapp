@@ -8,9 +8,6 @@ import { useOnboarding } from "../context/OnboardingContext";
 import { useFonts } from "../hooks/use-fonts";
 import { calculateCalories, UserData } from "../utils/calorieCalculator";
 
-/**
- * Экран результатов расчета калорий и макронутриентов
- */
 export default function Results() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -20,7 +17,6 @@ export default function Results() {
     return null;
   }
 
-  // Получаем данные из контекста и рассчитываем калории
   const userData: UserData | null = onboardingData.gender &&
     onboardingData.height &&
     onboardingData.weight &&
@@ -41,12 +37,12 @@ export default function Results() {
   const result = userData ? calculateCalories(userData) : null;
 
   if (!result) {
-    // Если данных недостаточно, возвращаемся назад
+    
     return null;
   }
 
   const handleStartPress = () => {
-    // Переход на экран сохранения прогресса
+    
     router.push({
       pathname: "/save-progress",
     } as any);
@@ -59,9 +55,9 @@ export default function Results() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Иконка и заголовки */}
+          {}
           <View style={styles.headerSection}>
             <View style={styles.iconContainer}>
               <Ionicons name="trophy" size={48} color={colors.primary} />
@@ -70,13 +66,13 @@ export default function Results() {
             <Text style={styles.subtitle}>Ваш персональный план готов</Text>
           </View>
 
-          {/* Калории */}
+          {}
           <View style={styles.caloriesSection}>
             <Text style={styles.caloriesValue}>{result?.targetCalories || 0}</Text>
             <Text style={styles.caloriesLabel}>ккал / день</Text>
           </View>
 
-          {/* Макронутриенты */}
+          {}
           <View style={styles.macrosSection}>
             <View style={styles.macroCard}>
               <Text style={styles.macroValue}>
@@ -102,7 +98,7 @@ export default function Results() {
           </View>
         </View>
 
-        {/* Кнопка "Начать путь" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Начать путь"
@@ -147,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 24,
-    // Тень
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -206,7 +202,7 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     minWidth: 100,
-    // Тень
+    
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

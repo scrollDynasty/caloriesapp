@@ -10,9 +10,6 @@ import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
-/**
- * Экран шестого шага онбординга - Цель пользователя
- */
 export default function Step6() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -27,7 +24,7 @@ export default function Step6() {
     if (!selectedGoal) {
       return;
     }
-    // Сохраняем данные в контекст
+    
     updateData({ goal: selectedGoal as "lose" | "maintain" | "gain" });
     router.push({
       pathname: "/steps/step7",
@@ -45,15 +42,15 @@ export default function Step6() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={6} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={6} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Цель пользователя</Text>
             <Text style={styles.subtitle}>
@@ -61,7 +58,7 @@ export default function Step6() {
             </Text>
           </View>
 
-          {/* Варианты выбора */}
+          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Похудеть"
@@ -81,7 +78,7 @@ export default function Step6() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

@@ -16,7 +16,6 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useFonts } from "../hooks/use-fonts";
 import { apiService } from "../services/api";
 
-// Цвет слоновая кость (ivory) - более теплый бежевый оттенок
 const IVORY_COLOR = "#F5F0E8";
 
 export default function ScanMealScreen() {
@@ -33,7 +32,6 @@ export default function ScanMealScreen() {
   const [cameraActive, setCameraActive] = useState(true);
   const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
 
-  // Включаем/выключаем камеру при фокусе, чтобы не грелась в фоне
   useFocusEffect(
     useCallback(() => {
       setCameraActive(true);
@@ -45,7 +43,6 @@ export default function ScanMealScreen() {
     }, [])
   );
 
-  // Запрос разрешения при монтировании
   useEffect(() => {
     if (permission && !permission.granted && !permission.canAskAgain) {
       Alert.alert(
@@ -57,7 +54,6 @@ export default function ScanMealScreen() {
       requestPermission();
     }
 
-    // Запрашиваем разрешение галереи
     if (galleryPermission && !galleryPermission.granted && galleryPermission.canAskAgain) {
       requestGalleryPermission();
     }
@@ -173,12 +169,10 @@ export default function ScanMealScreen() {
       setCameraActive(false);
       console.log("Starting photo upload, URI:", uri);
 
-      // Получаем имя файла и mime из URI
       const { fileName, mimeType } = getFileInfoFromUri(uri);
 
       console.log("Uploading file:", fileName, "mimeType:", mimeType, "barcode:", barcode);
 
-      // Загружаем фото на сервер
       const response = await apiService.uploadMealPhoto(
         uri,
         fileName,
@@ -278,7 +272,7 @@ export default function ScanMealScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      {/* Header */}
+      {}
       <View style={[styles.header, { paddingTop: insets.top + 12, paddingBottom: 14 }]}>
         <TouchableOpacity
           style={styles.headerButton}
@@ -303,7 +297,7 @@ export default function ScanMealScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Camera View */}
+      {}
       <View style={styles.cameraContainer}>
         <CameraView
           ref={cameraRef}
@@ -326,7 +320,7 @@ export default function ScanMealScreen() {
           }}
         />
         
-        {/* Corner Brackets Overlay - вне CameraView */}
+        {}
         <View style={styles.scanArea} pointerEvents="none">
           <View style={[styles.corner, styles.cornerTopLeft]} />
           <View style={[styles.corner, styles.cornerTopRight]} />
@@ -334,7 +328,7 @@ export default function ScanMealScreen() {
           <View style={[styles.corner, styles.cornerBottomRight]} />
         </View>
 
-        {/* Center Food Instruction - вне CameraView */}
+        {}
         <View style={styles.instructionContainer} pointerEvents="none">
           <View style={styles.instructionButton}>
             <Ionicons
@@ -360,7 +354,7 @@ export default function ScanMealScreen() {
         </View>
       )}
 
-      {/* Bottom Controls */}
+      {}
       <View style={styles.controls}>
         <TouchableOpacity
           style={styles.controlButton}

@@ -10,9 +10,6 @@ import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useFonts } from "../../hooks/use-fonts";
 
-/**
- * Экран восьмого шага онбординга - Ваш тип питания
- */
 export default function Step8() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -27,7 +24,7 @@ export default function Step8() {
     if (!selectedDiet) {
       return;
     }
-    // Сохраняем данные в контекст
+    
     updateData({
       dietType: selectedDiet as "classic" | "pescatarian" | "vegetarian" | "vegan",
     });
@@ -47,15 +44,15 @@ export default function Step8() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Заголовок с индикатором шага */}
+        {}
         <StepHeader stepNumber={8} onBack={handleBackPress} />
 
-        {/* Прогресс-бар */}
+        {}
         <ProgressBar currentStep={8} totalSteps={9} />
 
-        {/* Контент */}
+        {}
         <View style={styles.contentContainer}>
-          {/* Заголовок и подзаголовок */}
+          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Ваш тип питания</Text>
             <Text style={styles.subtitle}>
@@ -63,7 +60,7 @@ export default function Step8() {
             </Text>
           </View>
 
-          {/* Варианты выбора */}
+          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Классическая"
@@ -88,7 +85,7 @@ export default function Step8() {
           </View>
         </View>
 
-        {/* Кнопка "Продолжить" */}
+        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

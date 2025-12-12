@@ -5,9 +5,6 @@ interface TextContentProps {
   subtitle: string;
 }
 
-/**
- * Компонент текстового контента с заголовком и подзаголовком
- */
 export default function TextContent({ title, subtitle }: TextContentProps) {
   return (
     <View style={styles.textWrapper}>
@@ -20,7 +17,7 @@ export default function TextContent({ title, subtitle }: TextContentProps) {
 const styles = StyleSheet.create({
   textWrapper: {
     alignItems: "center",
-    gap: 8, // gap: 8px из Figma
+    gap: 8, 
     marginBottom: 0,
   },
   title: {
