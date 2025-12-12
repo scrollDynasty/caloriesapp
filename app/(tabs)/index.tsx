@@ -1,13 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import { BlurView } from "expo-blur";
 import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Animated,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -119,8 +116,6 @@ export default function HomeScreen() {
   const todayTs = useMemo(() => getTashkentDayRange().startUtcMs, []);
   const isTodaySelected = selectedDateTimestamp === todayTs;
   
-  const [fabExpanded, setFabExpanded] = useState(false);
-  const fabAnimation = useRef(new Animated.Value(0)).current;
   
   const [dailyData, setDailyData] = useState({
     consumedCalories: 0,
@@ -284,25 +279,11 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
     return new Date(selectedDateTimestamp + TASHKENT_OFFSET_MS);
   }, [selectedDateTimestamp]);
 
-  const toggleFab = () => {
-    const toValue = fabExpanded ? 0 : 1;
-    setFabExpanded(!fabExpanded);
-    
-    Animated.spring(fabAnimation, {
-      toValue,
-      useNativeDriver: true,
-      tension: 65,
-      friction: 11,
-    }).start();
-  };
-
   const handleScanFood = async () => {
     if (!isTodaySelected) {
       Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
-      if (fabExpanded) toggleFab();
       return;
     }
-    toggleFab();
     
     if (cameraPermission && !cameraPermission.granted) {
       if (cameraPermission.canAskAgain) {
@@ -331,20 +312,16 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
   const handleAddManually = () => {
     if (!isTodaySelected) {
       Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
-      if (fabExpanded) toggleFab();
       return;
     }
-    toggleFab();
     router.push("/add-manual" as any);
   };
 
   const handleAddWater = () => {
     if (!isTodaySelected) {
       Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
-      if (fabExpanded) toggleFab();
       return;
     }
-    toggleFab();
     router.push("/add-water" as any);
   };
 
@@ -542,49 +519,6 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
     );
   }
 
-  const fabBottom = insets.bottom + 12; 
-
-  const button1TranslateY = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -40], 
-  });
-  const button1TranslateX = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -20],
-  });
-
-  const button2TranslateY = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -104], 
-  });
-  const button2TranslateX = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -15],
-  });
-
-  const button3TranslateY = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -168], 
-  });
-  const button3TranslateX = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -10],
-  });
-
-  const blurOpacity = fabAnimation.interpolate({
-    inputRange: [0, 0.3, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  const buttonOpacity = fabAnimation.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  const fabRotation = fabAnimation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '45deg'],
-  });
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -643,132 +577,6 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
         />
       </ScrollView>
 
-      {fabExpanded && (
-        <TouchableOpacity
-          style={styles.blurBackdrop}
-          activeOpacity={1}
-          onPress={toggleFab}
-        >
-          <Animated.View
-            style={[
-              styles.blurContainer,
-              {
-                opacity: blurOpacity,
-              },
-            ]}
-          >
-            <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
-          </Animated.View>
-        </TouchableOpacity>
-      )}
-
-      <Animated.View
-        style={[
-          styles.fabSubButtonContainer,
-          {
-            bottom: fabBottom + 64 - 2, 
-            opacity: buttonOpacity,
-            transform: [
-              { translateY: button1TranslateY },
-              { translateX: button1TranslateX },
-            ],
-          },
-        ]}
-      >
-        <TouchableOpacity 
-          style={styles.fabSubButtonTextContainer}
-          onPress={handleScanFood}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.fabSubButtonText}>Сканировать еду</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.fabSubButtonIconContainer}
-          onPress={handleScanFood}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="scan-circle-outline" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.fabSubButtonContainer,
-          {
-            bottom: fabBottom + 64 - 8,
-            opacity: buttonOpacity,
-            transform: [
-              { translateY: button2TranslateY },
-              { translateX: button2TranslateX },
-            ],
-          },
-        ]}
-      >
-        <TouchableOpacity 
-          style={styles.fabSubButtonTextContainer}
-          onPress={handleAddManually}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.fabSubButtonText}>Добавить вручную</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.fabSubButtonIconContainer}
-          onPress={handleAddManually}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="create-outline" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-      </Animated.View>
-
-      <Animated.View
-        style={[
-          styles.fabSubButtonContainer,
-          {
-            bottom: fabBottom + 64 - 8,
-            opacity: buttonOpacity,
-            transform: [
-              { translateY: button3TranslateY },
-              { translateX: button3TranslateX },
-            ],
-          },
-        ]}
-      >
-        <TouchableOpacity 
-          style={styles.fabSubButtonTextContainer}
-          onPress={handleAddWater}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.fabSubButtonText}>Вода</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.fabSubButtonIconContainer}
-          onPress={handleAddWater}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="water-outline" size={24} color="#1E90FF" />
-        </TouchableOpacity>
-      </Animated.View>
-
-      <TouchableOpacity 
-        style={[
-          styles.fab, 
-          { bottom: fabBottom }
-        ]}
-        onPress={toggleFab}
-        activeOpacity={0.8}
-      >
-        <Animated.View
-          style={{
-            transform: [{ rotate: fabRotation }],
-          }}
-        >
-          <Ionicons 
-            name={fabExpanded ? "close" : "add"} 
-            size={32} 
-            color="#FFFFFF" 
-          />
-        </Animated.View>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -837,68 +645,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "Inter_700Bold",
     color: colors.primary,
-  },
-  blurBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 8,
-  },
-  blurContainer: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  fab: {
-    position: "absolute",
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#1A1A1A",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 8,
-    zIndex: 10,
-  },
-  fabSubButtonContainer: {
-    position: "absolute",
-    right: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    zIndex: 9,
-  },
-  fabSubButtonTextContainer: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 18,
-    paddingVertical: 13,
-    borderRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  fabSubButtonIconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  fabSubButtonText: {
-    fontSize: 16,
-    fontFamily: "Inter_500Medium",
-    color: "#1A1A1A",
-    letterSpacing: -0.2,
   },
 });
