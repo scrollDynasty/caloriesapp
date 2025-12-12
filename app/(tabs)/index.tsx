@@ -542,7 +542,7 @@ const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: n
     );
   }
 
-  const fabBottom = 20; 
+  const fabBottom = insets.bottom + 12; 
 
   const button1TranslateY = fabAnimation.interpolate({
     inputRange: [0, 1],
@@ -847,17 +847,17 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    right: 24,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: "#000000",
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#1A1A1A",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
     elevation: 8,
     zIndex: 10,
   },

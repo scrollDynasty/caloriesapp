@@ -8,100 +8,94 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: "#BFBFBF",
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowColor: "#000",
-          shadowOpacity: 0.06,
-          shadowRadius: 16,
-          shadowOffset: { width: 0, height: -8 },
-          height: 64 + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 8,
-          paddingHorizontal: 24,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Главная",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.tabItem}>
+    <View style={styles.container}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: "#1A1A1A",
+          tabBarInactiveTintColor: "#C4C4C4",
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            position: "absolute",
+            bottom: insets.bottom + 16,
+            left: 20,
+            right: 90,
+            height: 56,
+            backgroundColor: colors.white,
+            borderRadius: 28,
+            borderTopWidth: 0,
+            elevation: 8,
+            shadowColor: "#000",
+            shadowOpacity: 0.08,
+            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 4 },
+            paddingHorizontal: 8,
+          },
+          tabBarItemStyle: {
+            height: 56,
+          },
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Главная",
+            tabBarIcon: ({ color, focused }) => (
               <Ionicons 
                 name={focused ? "home" : "home-outline"} 
-                size={24} 
+                size={22} 
                 color={color} 
               />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="progress"
-        options={{
-          title: "Статистика",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.tabItem}>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="progress"
+          options={{
+            title: "Статистика",
+            tabBarIcon: ({ color, focused }) => (
               <Ionicons 
                 name={focused ? "stats-chart" : "stats-chart-outline"} 
-                size={24} 
+                size={22} 
                 color={color} 
               />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="recipes"
-        options={{
-          title: "Рецепты",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.tabItem}>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="recipes"
+          options={{
+            title: "Рецепты",
+            tabBarIcon: ({ color, focused }) => (
               <Ionicons 
-                name={focused ? "restaurant" : "restaurant-outline"} 
-                size={24} 
+                name={focused ? "grid" : "grid-outline"} 
+                size={22} 
                 color={color} 
               />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: "Профиль",
-          tabBarIcon: ({ color, focused }) => (
-            <View style={styles.tabItem}>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: "Профиль",
+            tabBarIcon: ({ color, focused }) => (
               <Ionicons 
                 name={focused ? "person" : "person-outline"} 
-                size={24} 
+                size={22} 
                 color={color} 
               />
-            </View>
-          ),
-        }}
-      />
-    </Tabs>
+            ),
+          }}
+        />
+      </Tabs>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tabItem: {
-    alignItems: "center",
-    justifyContent: "center",
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
   },
 });
