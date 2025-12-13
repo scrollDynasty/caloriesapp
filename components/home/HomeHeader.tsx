@@ -12,7 +12,7 @@ export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderPro
     <View style={styles.header}>
       <View style={styles.headerTitle}>
         <View style={styles.logoContainer}>
-          <Ionicons name="nutrition-outline" size={20} color={colors.primary} />
+          <Ionicons name="logo-apple" size={18} color={colors.primary} />
         </View>
         <Text style={styles.appName}>Yeb Ich</Text>
       </View>
@@ -29,9 +29,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 22,
+    paddingTop: 14,
+    paddingBottom: 10,
   },
   headerTitle: {
     flexDirection: "row",
@@ -39,17 +39,18 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logoContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: "#EFECE5",
     alignItems: "center",
     justifyContent: "center",
   },
   appName: {
-    fontSize: 24,
+    fontSize: 26,
     fontFamily: "Inter_800ExtraBold",
     color: colors.primary,
+    letterSpacing: -0.4,
   },
   streakBadge: {
     flexDirection: "row",

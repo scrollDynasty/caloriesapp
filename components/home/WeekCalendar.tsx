@@ -1,6 +1,8 @@
 import { memo, useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import { colors } from "../../constants/theme";
+import { getTodayLocal } from "../../utils/timezone";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -10,19 +12,14 @@ interface WeekCalendarProps {
   achievedDates?: Record<string, boolean>;
   dailyProgress?: Record<string, number>;
 }
-
-const CIRCLE_SIZE = 44;
-const STROKE_WIDTH = 3;
+const CIRCLE_SIZE = 36;
+const STROKE_WIDTH = 2.5;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSelect, achievedDates, dailyProgress }: WeekCalendarProps) {
   
-  const today = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, []);
+  const today = useMemo(() => getTodayLocal(), []);
 
   const selectedDateTimestamp = useMemo(() => {
     const normalized = new Date(selectedDate);
@@ -56,9 +53,10 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
       {weekDays.map((date, index) => {
         const dateTimestamp = date.getTime();
         const isSelected = dateTimestamp === selectedDateTimestamp;
+        const isToday = dateTimestamp === today.getTime();
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-        const isAchieved = achievedDates?.[key];
         const progress = dailyProgress?.[key] || 0;
+        const isAchieved = Boolean(achievedDates?.[key] || progress >= 1);
         
         return (
           <DayCircle
@@ -66,7 +64,8 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
             date={date}
             dayName={daysOfWeek[index]}
             isSelected={isSelected}
-            isAchieved={isAchieved || false}
+            isToday={isToday}
+            isAchieved={isAchieved}
             progress={progress}
             onPress={() => onDateSelect(date)}
           />
@@ -86,38 +85,50 @@ interface DayCircleProps {
   date: Date;
   dayName: string;
   isSelected: boolean;
+  isToday: boolean;
   isAchieved: boolean;
   progress: number;
   onPress: (date: Date) => void;
 }
 
-function DayCircle({ date, dayName, isSelected, isAchieved, progress, onPress }: DayCircleProps) {
+function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, onPress }: DayCircleProps) {
   const progressAnim = useRef(new Animated.Value(0)).current;
   
   useEffect(() => {
     Animated.spring(progressAnim, {
-      toValue: isSelected ? progress : 0,
+      toValue: progress,
       useNativeDriver: true,
       tension: 50,
       friction: 7,
     }).start();
-  }, [isSelected, progress]);
+  }, [progress]);
 
-  let bgStrokeColor = "#E8E4DC";
-  let progressColor = "#1A1A1A";
-  let strokeDasharray: number | string = "4 4";
+  const hasProgress = progress > 0 && progress < 1;
+  const isFullyAchieved = progress >= 1;
+  
+  let bgStrokeColor = "#DAD4CA";
+  let progressColor = "#FF6B6B";
+  let strokeDasharray: number | string = "2 4";
   
   if (isSelected) {
+    bgStrokeColor = colors.primary;
     strokeDasharray = CIRCUMFERENCE;
-    bgStrokeColor = "#E8E4DC";
     if (progress >= 1) {
       progressColor = "#4CAF50";
-    } else if (progress >= 0.8) {
-      progressColor = "#FF8C42";
+    } else if (progress > 0) {
+      progressColor = colors.primary;
     }
-  } else if (isAchieved) {
-    strokeDasharray = "4 4";
-    bgStrokeColor = "rgba(255,69,0,1)";
+  } else if (isFullyAchieved) {
+    bgStrokeColor = "#FF6B6B";
+    strokeDasharray = CIRCUMFERENCE;
+    progressColor = "#FF6B6B";
+  } else if (hasProgress) {
+    bgStrokeColor = "#DAD4CA";
+    strokeDasharray = "2 4";
+    progressColor = "#FF6B6B";
+  } else {
+    bgStrokeColor = "#DAD4CA";
+    strokeDasharray = "2 4";
   }
 
   const strokeDashoffset = progressAnim.interpolate({
@@ -127,7 +138,7 @@ function DayCircle({ date, dayName, isSelected, isAchieved, progress, onPress }:
 
   return (
     <TouchableOpacity
-      style={styles.calendarDay}
+      style={[styles.calendarDay, isSelected && styles.calendarDaySelected]}
       onPress={() => onPress(date)}
       activeOpacity={0.7}
     >
@@ -141,9 +152,9 @@ function DayCircle({ date, dayName, isSelected, isAchieved, progress, onPress }:
             stroke={bgStrokeColor}
             strokeWidth={STROKE_WIDTH}
             fill="transparent"
-            strokeDasharray={isSelected ? undefined : strokeDasharray}
+            strokeDasharray={isFullyAchieved || isSelected ? undefined : strokeDasharray}
           />
-          {isSelected && progress > 0 && (
+          {(hasProgress || isFullyAchieved || (isSelected && progress > 0)) && (
             <AnimatedCircle
               cx={CIRCLE_SIZE / 2}
               cy={CIRCLE_SIZE / 2}
@@ -178,22 +189,34 @@ const styles = StyleSheet.create({
   calendarContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginBottom: 8,
+    paddingHorizontal: 18,
+    paddingTop: 6,
+    paddingBottom: 10,
+    marginBottom: 10,
   },
   calendarDay: {
     alignItems: "center",
-    gap: 8,
-    flex: 1,
+    gap: 6,
+    width: 44,
+    paddingVertical: 8,
+    borderRadius: 18,
+  },
+  calendarDaySelected: {
+    width: 56,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   calendarDayName: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
-    color: "#8A8A8A",
+    color: colors.secondary,
   },
   calendarDayNameActive: {
-    color: "#111111",
+    color: colors.primary,
     fontFamily: "Inter_800ExtraBold",
   },
   circleContainer: {
@@ -211,11 +234,11 @@ const styles = StyleSheet.create({
   calendarDateText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    color: "#8A8A8A",
+    color: colors.secondary,
   },
   calendarDateTextActive: {
     fontSize: 15,
     fontFamily: "Inter_800ExtraBold",
-    color: "#111111",
+    color: colors.primary,
   },
 });

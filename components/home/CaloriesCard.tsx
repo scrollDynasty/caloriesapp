@@ -12,8 +12,8 @@ interface CaloriesCardProps {
   streakCount?: number;
 }
 
-const CIRCLE_SIZE = 90;
-const STROKE_WIDTH = 6;
+const CIRCLE_SIZE = 96;
+const STROKE_WIDTH = 7;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -74,7 +74,7 @@ export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targe
             cx={CIRCLE_SIZE / 2}
             cy={CIRCLE_SIZE / 2}
             r={RADIUS}
-            stroke="#F2EFE9"
+            stroke="#EDE8DF"
             strokeWidth={STROKE_WIDTH}
             fill="transparent"
           />
@@ -94,7 +94,7 @@ export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targe
         </Svg>
         <View style={styles.progressCenter}>
           <Animated.View style={{ transform: [{ scale: flameScale }] }}>
-            <Ionicons name="flame-outline" size={28} color={flameColor} />
+            <Ionicons name="flame" size={26} color={flameColor} />
           </Animated.View>
         </View>
       </View>
@@ -108,30 +108,30 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     padding: 24,
-    borderRadius: 14,
+    borderRadius: 24,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
+    shadowOpacity: 0.04,
+    shadowRadius: 28,
     elevation: 2,
   },
   leftSection: {
     gap: 6,
   },
   remainingCalories: {
-    fontSize: 42,
+    fontSize: 46,
     fontFamily: "Inter_800ExtraBold",
     color: colors.primary,
-    lineHeight: 46,
+    lineHeight: 50,
     letterSpacing: -1.5,
   },
   remainingLabel: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    color: "#8A8A8A",
+    color: colors.secondary,
     letterSpacing: -0.2,
   },
   circularProgress: {

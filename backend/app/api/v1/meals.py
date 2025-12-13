@@ -104,7 +104,6 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
                 data=json.dumps(payload),
             )
             if response.status_code in (401, 403, 410, 400):
-                logger.warning(f"Hugging Face returned {response.status_code}. Body: {response.text}")
                 return None
             response.raise_for_status()
 
@@ -169,7 +168,7 @@ async def upload_meal_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"Upload request from user {current_user.id}, filename: {file.filename}, content_type: {file.content_type}")
+    logger.info(f"Upload request from user {current_user.id}, filename: {file.filename}")
 
     allowed_mime_types = {
         "image/jpeg",
@@ -200,7 +199,6 @@ async def upload_meal_photo(
         contents = await file.read()
         file_size = len(contents)
 
-        logger.info(f"File size: {file_size} bytes, saving to: {file_path}")
 
         user_dir.mkdir(parents=True, exist_ok=True)
 
@@ -209,12 +207,28 @@ async def upload_meal_photo(
 
         relative_path = f"meal_photos/{current_user.id}/{unique_filename}"
 
-        created_at_now = datetime.now(timezone.utc)
+        if client_timestamp and client_tz_offset_minutes is not None:
+            try:
+                ts_str = client_timestamp.replace('Z', '+00:00') if client_timestamp.endswith('Z') else client_timestamp
+                if '+' not in ts_str and '-' not in ts_str[-6:]:
+                    tz_offset = timedelta(minutes=client_tz_offset_minutes)
+                    client_dt = datetime.fromisoformat(ts_str).replace(tzinfo=timezone(tz_offset))
+                else:
+                    client_dt = datetime.fromisoformat(ts_str)
+                    if client_dt.tzinfo is None:
+                        tz_offset = timedelta(minutes=client_tz_offset_minutes)
+                        client_dt = client_dt.replace(tzinfo=timezone(tz_offset))
+                created_at_now = client_dt.astimezone(timezone.utc)
+            except (ValueError, AttributeError) as e:
+                created_at_now = datetime.now(timezone.utc)
+        else:
+            created_at_now = datetime.now(timezone.utc)
 
         nutrition = await get_nutrition_insights(
             file_path=file_path,
             meal_name_hint=meal_name_value,
         )
+
 
         meal_photo = MealPhoto(
             user_id=current_user.id,
@@ -236,7 +250,6 @@ async def upload_meal_photo(
         db.commit()
         db.refresh(meal_photo)
 
-        logger.info(f"Photo saved with ID: {meal_photo.id}")
 
         photo_url = f"{settings.api_domain}/api/v1/meals/photos/{meal_photo.id}"
 
@@ -278,6 +291,8 @@ def get_user_meal_photos(
 @router.post("/meals/manual", response_model=MealPhotoResponse, status_code=status.HTTP_201_CREATED)
 def create_manual_meal(
     payload: MealPhotoCreate = Body(...),
+    client_timestamp: Optional[str] = Query(default=None),
+    client_tz_offset_minutes: Optional[int] = Query(default=None),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -288,7 +303,31 @@ def create_manual_meal(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="meal_name is required",
         )
-    created_at = datetime.now(timezone.utc)
+    
+    if client_timestamp and client_tz_offset_minutes is not None:
+        try:
+            ts_str = client_timestamp.replace('Z', '+00:00') if client_timestamp.endswith('Z') else client_timestamp
+            if '+' not in ts_str and '-' not in ts_str[-6:]:
+                tz_offset = timedelta(minutes=client_tz_offset_minutes)
+                client_dt = datetime.fromisoformat(ts_str).replace(tzinfo=timezone(tz_offset))
+            else:
+                client_dt = datetime.fromisoformat(ts_str)
+                if client_dt.tzinfo is None:
+                    tz_offset = timedelta(minutes=client_tz_offset_minutes)
+                    client_dt = client_dt.replace(tzinfo=timezone(tz_offset))
+            created_at = client_dt.astimezone(timezone.utc)
+        except (ValueError, AttributeError) as e:
+            created_at = datetime.now(timezone.utc)
+    elif payload.created_at:
+        try:
+            ts_str = payload.created_at.replace('Z', '+00:00') if payload.created_at.endswith('Z') else payload.created_at
+            created_at = datetime.fromisoformat(ts_str)
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+        except (ValueError, AttributeError) as e:
+            created_at = datetime.now(timezone.utc)
+    else:
+        created_at = datetime.now(timezone.utc)
 
     meal_photo = MealPhoto(
         user_id=current_user.id,

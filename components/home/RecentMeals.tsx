@@ -38,10 +38,7 @@ export const RecentMeals = memo(function RecentMeals({
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Сегодня</Text>
-        <TouchableOpacity>
-          <Text style={styles.seeAllText}>Все</Text>
-        </TouchableOpacity>
+        <Text style={styles.sectionTitle}>Недавно загружено</Text>
       </View>
       
       {loading ? (
@@ -106,14 +103,20 @@ export const RecentMeals = memo(function RecentMeals({
           ) : null}
         </>
       ) : (
-        <View style={styles.emptyState}>
-          <Ionicons name="restaurant-outline" size={48} color={colors.secondary} />
-          <Text style={styles.emptyStateText}>Пока нет добавленных приемов пищи</Text>
-          <Text style={styles.emptyStateSubtext}>Нажмите "+" чтобы добавить еду</Text>
+        <View style={styles.emptyUploadCard}>
+          <View style={styles.emptyUploadInner}>
+            <View style={styles.emptyThumb} />
+            <View style={styles.emptyLines}>
+              <View style={[styles.emptyLine, { width: "70%" }]} />
+              <View style={[styles.emptyLine, { width: "55%" }]} />
+            </View>
+          </View>
+          <Text style={styles.emptyUploadText}>
+            Нажми +, чтобы добавить первый приём пищи{"\n"}за день
+          </Text>
           {onAddPress ? (
-            <TouchableOpacity style={styles.addButton} onPress={onAddPress} activeOpacity={0.8}>
-              <Ionicons name="add" size={18} color="#fff" />
-              <Text style={styles.addButtonText}>Добавить</Text>
+            <TouchableOpacity style={styles.hiddenAddArea} onPress={onAddPress} activeOpacity={0.7}>
+              <Text style={styles.hiddenAddAreaText}> </Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -137,11 +140,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "Inter_700Bold",
     color: colors.primary,
-  },
-  seeAllText: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    color: "#8C8C8C",
   },
   stateBox: {
     backgroundColor: colors.white,
@@ -280,6 +278,61 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
+  },
+  emptyUploadCard: {
+    backgroundColor: colors.white,
+    borderRadius: 22,
+    padding: 18,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+    overflow: "hidden",
+  },
+  emptyUploadInner: {
+    alignSelf: "center",
+    width: "88%",
+    borderRadius: 18,
+    backgroundColor: "#F3F1ED",
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginTop: 6,
+    marginBottom: 14,
+  },
+  emptyThumb: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: "#E7E3DC",
+  },
+  emptyLines: {
+    flex: 1,
+    gap: 8,
+  },
+  emptyLine: {
+    height: 8,
+    borderRadius: 6,
+    backgroundColor: "#E0DBD2",
+  },
+  emptyUploadText: {
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
+    color: colors.secondary,
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  hiddenAddArea: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  hiddenAddAreaText: {
+    color: "transparent",
   },
   loadMore: {
     marginTop: 8,

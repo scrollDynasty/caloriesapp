@@ -33,7 +33,7 @@ class Settings(BaseSettings):
 
     ai_nutrition_base_url: str = "https://router.huggingface.co/v1"
     ai_nutrition_model: str = "Qwen/Qwen2.5-VL-7B-Instruct"
-    ai_nutrition_api_key: str = "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"
+    ai_nutrition_api_key: str = ""
     ai_nutrition_timeout: int = 20
     ai_nutrition_provider: str = "huggingface"
 

@@ -3,14 +3,14 @@ import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CaloriesCard } from "../../components/home/CaloriesCard";
@@ -22,9 +22,7 @@ import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 import { apiService, MealPhoto } from "../../services/api";
 
-const TASHKENT_TIMEZONE = "Asia/Tashkent";
-const TASHKENT_OFFSET_MINUTES = 300; 
-const TASHKENT_OFFSET_MS = TASHKENT_OFFSET_MINUTES * 60 * 1000;
+import { getLocalDayRange, getLocalTimezoneOffset, getLocalTimezoneOffsetMs } from "../../utils/timezone";
 
 const parseMealDate = (value?: string | null): Date | null => {
   if (!value) return null;
@@ -34,15 +32,6 @@ const parseMealDate = (value?: string | null): Date | null => {
   return isNaN(d.getTime()) ? null : d;
 };
 
-const getTashkentDayRange = (timestampUtcMs: number = Date.now()) => {
-  const tzMs = timestampUtcMs + TASHKENT_OFFSET_MS;
-  const tzDate = new Date(tzMs);
-  tzDate.setHours(0, 0, 0, 0);
-  const startUtcMs = tzDate.getTime() - TASHKENT_OFFSET_MS;
-  const endUtcMs = startUtcMs + 24 * 60 * 60 * 1000;
-  const dateStr = `${tzDate.getFullYear()}-${String(tzDate.getMonth() + 1).padStart(2, "0")}-${String(tzDate.getDate()).padStart(2, "0")}`;
-  return { startUtcMs, endUtcMs, dateStr };
-};
 
 const getDateStr = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -63,12 +52,13 @@ const computeWeekDays = (baseDate: Date) => {
 };
 
 const getWeekStartTimestamp = (dateUtcMs: number) => {
-  const d = new Date(dateUtcMs + TASHKENT_OFFSET_MS);
+  const localOffsetMs = getLocalTimezoneOffsetMs();
+  const d = new Date(dateUtcMs + localOffsetMs);
   const day = d.getDay();
   const mondayOffset = day === 0 ? -6 : 1 - day;
   d.setDate(d.getDate() + mondayOffset);
   d.setHours(0, 0, 0, 0);
-  return d.getTime() - TASHKENT_OFFSET_MS;
+  return d.getTime() - localOffsetMs;
 };
 
 const dateStrFromTimestamp = (ts: number) => {
@@ -106,14 +96,14 @@ export default function HomeScreen() {
   const [recentLimit, setRecentLimit] = useState(10);
   const [recentHasMore, setRecentHasMore] = useState(true);
   const [recentSkip, setRecentSkip] = useState(0);
-  const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getTashkentDayRange().startUtcMs);
+  const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getLocalDayRange().startUtcMs);
   const [weekAchievements, setWeekAchievements] = useState<Record<string, boolean>>({});
   const [dailyProgress, setDailyProgress] = useState<Record<string, number>>({});
   const [streakCount, setStreakCount] = useState(0);
-  const [weekStartTs, setWeekStartTs] = useState<number>(getWeekStartTimestamp(getTashkentDayRange().startUtcMs));
+  const [weekStartTs, setWeekStartTs] = useState<number>(getWeekStartTimestamp(getLocalDayRange().startUtcMs));
   const weekLoadInProgress = useRef(false);
   const lastWeekLoadedRef = useRef<number | null>(null);
-  const todayTs = useMemo(() => getTashkentDayRange().startUtcMs, []);
+  const todayTs = useMemo(() => getLocalDayRange().startUtcMs, []);
   const isTodaySelected = selectedDateTimestamp === todayTs;
   
   
@@ -154,7 +144,7 @@ export default function HomeScreen() {
       const meals = await apiService.getMealPhotosCached(skip, limit, ttlMs);
       if (!isMountedRef.current) return;
 
-      const { startUtcMs, endUtcMs } = getTashkentDayRange(selectedDateTimestamp);
+      const { startUtcMs, endUtcMs } = getLocalDayRange(selectedDateTimestamp);
 
       const mealsForSelectedDay = meals.filter((m) => {
         const created = parseMealDate((m as any).created_at);
@@ -168,7 +158,7 @@ export default function HomeScreen() {
       const mappedMeals = mealsForSelectedDay.map((m) => {
         const created = parseMealDate((m as any).created_at);
         const time = created
-          ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", timeZone: TASHKENT_TIMEZONE })
+          ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
           : "";
         const imageUrl =
           m.mime_type === "manual" || !m.file_path
@@ -260,6 +250,55 @@ export default function HomeScreen() {
     fetchLatestMeals({ append: false, limit: recentLimit, force: true });
   }, [fetchLatestMeals, recentLimit, selectedDateTimestamp]);
 
+  const loadDailyData = useCallback(async (dateTimestamp: number, force: boolean = false) => {
+    if (!force && lastLoadedDateRef.current === dateTimestamp) {
+      return;
+    }
+    lastLoadedDateRef.current = dateTimestamp;
+    
+    try {
+      setDailyLoading(true);
+      setDailyError(null);
+
+      const { dateStr } = getLocalDayRange(dateTimestamp);
+
+      const data = await apiService.getDailyMeals(
+        dateStr,
+        getLocalTimezoneOffset()
+      );
+      const water = await apiService.getDailyWater(
+        dateStr,
+        getLocalTimezoneOffset()
+      );
+
+      if (!isMountedRef.current) return;
+      setDailyData({
+        consumedCalories: data.total_calories,
+        consumedProtein: data.total_protein,
+        consumedCarbs: data.total_carbs,
+        consumedFats: data.total_fat,
+        waterTotal: water.total_ml,
+        waterGoal: water.goal_ml || 0,
+        meals: data.meals,
+      });
+      setDailyProgress({
+        calories: data.total_calories / (onboardingData?.target_calories || 1),
+        protein: data.total_protein / (onboardingData?.target_protein || 1),
+        carbs: data.total_carbs / (onboardingData?.target_carbs || 1),
+        fats: data.total_fat / (onboardingData?.target_fat || 1),
+      });
+      setStreakCount(data.streak_count || 0);
+    } catch (err: any) {
+      console.warn("Daily data load error", err);
+      if (!isMountedRef.current) return;
+      setDailyError(err?.response?.data?.detail || err?.message || "Ошибка загрузки данных");
+    } finally {
+      if (isMountedRef.current) {
+        setDailyLoading(false);
+      }
+    }
+  }, [onboardingData?.target_calories, onboardingData?.target_protein, onboardingData?.target_carbs, onboardingData?.target_fat]);
+
   useEffect(() => {
     if (params?.refresh) {
       loadDailyData(selectedDateTimestamp, true);
@@ -269,14 +308,14 @@ export default function HomeScreen() {
 
   const handleDateSelect = useMemo(() => (date: Date) => {
     const utcMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
-    const { startUtcMs } = getTashkentDayRange(utcMs);
+    const { startUtcMs } = getLocalDayRange(utcMs);
     if (startUtcMs !== selectedDateTimestamp) {
       setSelectedDateTimestamp(startUtcMs);
     }
   }, [selectedDateTimestamp]);
 
   const selectedDate = useMemo(() => {
-    return new Date(selectedDateTimestamp + TASHKENT_OFFSET_MS);
+    return new Date(selectedDateTimestamp + getLocalTimezoneOffsetMs());
   }, [selectedDateTimestamp]);
 
   const handleScanFood = async () => {
@@ -339,7 +378,7 @@ export default function HomeScreen() {
       try {
         const days = computeWeekDays(baseDate);
         const dates = days.map((d) => getDateStr(d));
-        const results = await apiService.getDailyMealsBatch(dates, TASHKENT_OFFSET_MINUTES);
+        const results = await apiService.getDailyMealsBatch(dates, getLocalTimezoneOffset());
         const map: Record<string, boolean> = {};
         results.forEach((r) => {
           map[r.date] = r.total_calories >= onboardingData.target_calories;
@@ -355,72 +394,6 @@ export default function HomeScreen() {
     },
     [onboardingData?.target_calories]
   );
-
-  const loadDailyData = useCallback(async (dateTimestamp: number, force: boolean = false) => {
-    if (!force && lastLoadedDateRef.current === dateTimestamp) {
-      return;
-    }
-    lastLoadedDateRef.current = dateTimestamp;
-    
-    try {
-      setDailyLoading(true);
-      setDailyError(null);
-
-      const { dateStr } = getTashkentDayRange(dateTimestamp);
-
-      const data = await apiService.getDailyMeals(
-        dateStr,
-        TASHKENT_OFFSET_MINUTES
-      );
-      const water = await apiService.getDailyWater(
-        dateStr,
-        TASHKENT_OFFSET_MINUTES
-      );
-
-      if (!isMountedRef.current) return;
-      setDailyData({
-        consumedCalories: data.total_calories,
-        consumedProtein: data.total_protein,
-        consumedCarbs: data.total_carbs,
-        consumedFats: data.total_fat,
-        waterTotal: water.total_ml,
-        waterGoal: water.goal_ml || 0,
-        meals: data.meals,
-      });
-      setStreakCount(data.streak_count ?? 0);
-      
-      const key = dateStr;
-      const targetCalories = onboardingData?.target_calories || 0;
-      const progress = targetCalories > 0 ? Math.min(1, data.total_calories / targetCalories) : 0;
-      
-      setWeekAchievements((prev) => {
-        const next = { ...prev, [key]: data.total_calories >= targetCalories };
-        return next;
-      });
-      setDailyProgress((prev) => {
-        const next = { ...prev, [key]: progress };
-        return next;
-      });
-      loadWeekAchievements(new Date(dateTimestamp));
-    } catch (error: any) {
-      if (isMountedRef.current) {
-        console.error("Error loading daily data:", error);
-        setDailyError("Не удалось загрузить данные за день");
-        setDailyData({
-          consumedCalories: 0,
-          consumedProtein: 0,
-          consumedCarbs: 0,
-          consumedFats: 0,
-          waterTotal: 0,
-          waterGoal: 0,
-          meals: [],
-        });
-      }
-    }
-    finally {
-      setDailyLoading(false);
-    }
-  }, [onboardingData?.target_calories, loadWeekAchievements]);
 
   useFocusEffect(
     useCallback(() => {
@@ -557,6 +530,11 @@ export default function HomeScreen() {
               fats={stats.fats}
               water={stats.water}
             />
+            <View style={styles.paginationDots}>
+              <View style={[styles.dot, styles.dotActive]} />
+              <View style={styles.dot} />
+              <View style={styles.dot} />
+            </View>
           </>
         )}
 
@@ -635,6 +613,22 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 140, 
+  },
+  paginationDots: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: "rgba(45, 42, 38, 0.18)",
+  },
+  dotActive: {
+    backgroundColor: colors.primary,
   },
   section: {
     gap: 12,

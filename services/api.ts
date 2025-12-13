@@ -2,14 +2,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AxiosResponse } from "axios";
 import axios, {
-    AxiosError,
-    AxiosInstance,
-    InternalAxiosRequestConfig,
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
 } from "axios";
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
-
-const TASHKENT_OFFSET_MINUTES = 300; 
+import { getLocalTimezoneOffset } from "../utils/timezone";
 
 const TOKEN_KEY = "@caloriesapp:auth_token";
 
@@ -240,7 +239,7 @@ class ApiService {
     formData.append("barcode", barcode || "");
     formData.append("meal_name", mealName || "");
     formData.append("client_timestamp", new Date().toISOString());
-    formData.append("client_tz_offset_minutes", String(TASHKENT_OFFSET_MINUTES));
+    formData.append("client_tz_offset_minutes", String(getLocalTimezoneOffset()));
 
     const response = await this.api.post<MealPhotoUploadResponse>(API_ENDPOINTS.MEALS_UPLOAD, formData, {
       headers: {
@@ -265,7 +264,7 @@ class ApiService {
     const response = await this.api.post(API_ENDPOINTS.MEALS_MANUAL, data, {
       params: {
         client_timestamp: data.created_at,
-        client_tz_offset_minutes: TASHKENT_OFFSET_MINUTES,
+        client_tz_offset_minutes: getLocalTimezoneOffset(),
       },
     });
     const created = response.data as MealPhoto;
@@ -279,14 +278,14 @@ class ApiService {
       created_at: payload.created_at || new Date().toISOString(),
     };
     const response = await this.api.post(API_ENDPOINTS.WATER, data, {
-      params: { tz_offset_minutes: TASHKENT_OFFSET_MINUTES },
+      params: { tz_offset_minutes: getLocalTimezoneOffset() },
     });
     return response.data as WaterEntry;
   }
 
   async getDailyWater(
     date: string,
-    tzOffsetMinutes: number = TASHKENT_OFFSET_MINUTES
+    tzOffsetMinutes: number = getLocalTimezoneOffset()
   ): Promise<WaterDaily> {
     const response = await this.api.get(API_ENDPOINTS.WATER_DAILY, {
       params: { date, tz_offset_minutes: tzOffsetMinutes },
@@ -325,7 +324,7 @@ class ApiService {
 
   async getDailyMeals(
     date: string,
-    tzOffsetMinutes: number = TASHKENT_OFFSET_MINUTES
+    tzOffsetMinutes: number = getLocalTimezoneOffset()
   ): Promise<{
     date: string;
     total_calories: number;
@@ -351,7 +350,7 @@ class ApiService {
 
   async getDailyMealsBatch(
     dates: string[],
-    tzOffsetMinutes: number = TASHKENT_OFFSET_MINUTES
+    tzOffsetMinutes: number = getLocalTimezoneOffset()
   ): Promise<Array<{
     date: string;
     total_calories: number;

@@ -45,7 +45,9 @@ function MacroCard({ value, label, progress, color, icon }: MacroCardProps) {
   return (
     <View style={styles.macroCard}>
       <Text style={styles.macroValue}>{value}</Text>
-      <Text style={styles.macroLabel}>{label}</Text>
+      <Text style={styles.macroLabel}>
+        {label} <Text style={styles.macroLabelLight}>left</Text>
+      </Text>
       <View style={styles.circleContainer}>
         <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
           <Circle
@@ -81,21 +83,21 @@ function MacroCard({ value, label, progress, color, icon }: MacroCardProps) {
 export const MacrosCards = memo(function MacrosCards({ protein, carbs, fats }: MacrosCardsProps) {
   const data = useMemo(() => [
     {
-      value: `${protein.consumed}g`,
+      value: `${Math.max(0, protein.target - protein.consumed)}g`,
       label: "Белки",
       progress: protein.target > 0 ? protein.consumed / protein.target : 0,
       color: "#FF6B6B",
       icon: "🍖",
     },
     {
-      value: `${carbs.consumed}g`,
+      value: `${Math.max(0, carbs.target - carbs.consumed)}g`,
       label: "Углеводы",
       progress: carbs.target > 0 ? carbs.consumed / carbs.target : 0,
       color: "#FCA549",
       icon: "🌾",
     },
     {
-      value: `${fats.consumed}g`,
+      value: `${Math.max(0, fats.target - fats.consumed)}g`,
       label: "Жиры",
       progress: fats.target > 0 ? fats.consumed / fats.target : 0,
       color: "#4D96FF",
@@ -118,7 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   macroCard: {
     flex: 1,
@@ -126,16 +128,16 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 16,
     paddingBottom: 16,
-    borderRadius: 10,
-    alignItems: "center",
+    borderRadius: 18,
+    alignItems: "flex-start",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.02,
-    shadowRadius: 16,
-    elevation: 1,
+    shadowOpacity: 0.04,
+    shadowRadius: 18,
+    elevation: 2,
   },
   macroValue: {
-    fontSize: 17,
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
     color: colors.primary,
     marginBottom: 2,
@@ -143,8 +145,12 @@ const styles = StyleSheet.create({
   macroLabel: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
-    color: "#8A8A8A",
-    marginBottom: 12,
+    color: colors.secondary,
+    marginBottom: 14,
+  },
+  macroLabelLight: {
+    color: colors.secondary,
+    opacity: 0.75,
   },
   circleContainer: {
     width: CIRCLE_SIZE,
@@ -152,6 +158,7 @@ const styles = StyleSheet.create({
     position: "relative",
     alignItems: "center",
     justifyContent: "center",
+    alignSelf: "center",
   },
   iconContainer: {
     position: "absolute",
