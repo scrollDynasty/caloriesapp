@@ -510,8 +510,17 @@ def get_daily_meals(
     last_streak_date = current_user.last_streak_date.date() if current_user.last_streak_date else None
     try:
         today_date = datetime.now(timezone.utc).date()
+        yesterday = today_date - timedelta(days=1)
+        
+        if last_streak_date and last_streak_date < yesterday:
+            streak_count = 0
+            current_user.streak_count = 0
+            db.commit()
+            db.refresh(current_user)
+        
         if target_calories is not None and target_calories > 0 and target_date <= today_date:
             achieved = total_calories >= target_calories
+            
             if last_streak_date and target_date < last_streak_date:
                 pass
             else:
@@ -521,21 +530,15 @@ def get_daily_meals(
                     else:
                         delta = (target_date - last_streak_date).days
                         if delta == 0:
-
-                            streak_count = current_user.streak_count or 0
+                            streak_count = current_user.streak_count or 1
                         elif delta == 1:
                             streak_count = (current_user.streak_count or 0) + 1
                         else:
                             streak_count = 1
                     current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())
                     current_user.streak_count = streak_count
-                else:
-
-                    streak_count = 0
-                    current_user.last_streak_date = datetime.combine(target_date, datetime.min.time())
-                    current_user.streak_count = streak_count
-                db.commit()
-                db.refresh(current_user)
+                    db.commit()
+                    db.refresh(current_user)
     except Exception as e:
         logger.warning(f"Failed to update streak: {e}")
 

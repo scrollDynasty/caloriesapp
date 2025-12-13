@@ -13,9 +13,8 @@ import {
   View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { CaloriesCard } from "../../components/home/CaloriesCard";
+import { CardsPager } from "../../components/home/CardsPager";
 import { HomeHeader } from "../../components/home/HomeHeader";
-import { MacrosCards } from "../../components/home/MacrosCards";
 import { RecentMeals } from "../../components/home/RecentMeals";
 import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { colors } from "../../constants/theme";
@@ -524,24 +523,7 @@ export default function HomeScreen() {
             <Text style={styles.loadingText}>Загружаем данные за день...</Text>
           </View>
         ) : (
-          <>
-            <CaloriesCard 
-              consumedCalories={stats.consumedCalories}
-              targetCalories={stats.targetCalories}
-            />
-
-            <MacrosCards 
-              protein={stats.protein}
-              carbs={stats.carbs}
-              fats={stats.fats}
-              water={stats.water}
-            />
-            <View style={styles.paginationDots}>
-              <View style={[styles.dot, styles.dotActive]} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-            </View>
-          </>
+          <CardsPager stats={stats} onAddWater={handleAddWater} />
         )}
 
         {dailyError ? (
@@ -619,22 +601,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 140, 
-  },
-  paginationDots: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 10,
-  },
-  dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: "rgba(45, 42, 38, 0.18)",
-  },
-  dotActive: {
-    backgroundColor: colors.primary,
   },
   section: {
     gap: 12,
