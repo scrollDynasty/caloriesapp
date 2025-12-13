@@ -2,12 +2,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  FlatList,
   Linking,
   ScrollView,
   StyleSheet,
@@ -15,13 +14,14 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ViewToken
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Circle } from "react-native-svg";
 import { colors } from "../../constants/theme";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
 import { setAvatarUri, useAvatarUri } from "../../stores/userPreferences";
+import { getLocalDayRange, getLocalTimezoneOffset } from "../../utils/timezone";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -86,44 +86,6 @@ function MenuItem({
   );
 }
 
-// Widget Card for carousel
-function WidgetCard({ type, value, label }: { type: string; value: string | number; label: string }) {
-  if (type === "calories") {
-    return (
-      <View style={styles.widgetCard}>
-        <View style={styles.widgetCaloriesCircle}>
-          <Text style={styles.widgetCaloriesValue}>{value}</Text>
-          <Text style={styles.widgetCaloriesLabel}>{label}</Text>
-        </View>
-        <View style={styles.widgetButton}>
-          <Ionicons name="add-circle" size={20} color={colors.primary} />
-          <Text style={styles.widgetButtonText}>Записывай свою еду</Text>
-        </View>
-      </View>
-    );
-  }
-  
-  if (type === "streak") {
-    return (
-      <View style={styles.widgetCard}>
-        <View style={styles.widgetStreakContainer}>
-          <Text style={styles.widgetStreakFire}>🔥</Text>
-          <Text style={styles.widgetStreakValue}>{value}</Text>
-        </View>
-        <View style={styles.widgetStreakApple}>
-          <Ionicons name="logo-apple" size={24} color="#C0C0C0" />
-        </View>
-      </View>
-    );
-  }
-  
-  return (
-    <View style={styles.widgetCard}>
-      <Text style={styles.widgetGenericValue}>{value}</Text>
-      <Text style={styles.widgetGenericLabel}>{label}</Text>
-    </View>
-  );
-}
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -132,9 +94,17 @@ export default function SettingsScreen() {
   const [holidayTheme, setHolidayTheme] = useState(false);
   const avatarUri = useAvatarUri();
   const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
-  const [widgetPage, setWidgetPage] = useState(0);
-
-  const widgetFlatListRef = useRef<FlatList>(null);
+  
+  // Daily data state
+  const [dailyData, setDailyData] = useState({
+    consumedCalories: 0,
+    consumedProtein: 0,
+    consumedCarbs: 0,
+    consumedFats: 0,
+    streakCount: 0,
+  });
+  const [onboardingData, setOnboardingData] = useState<any>(null);
+  const [dailyLoading, setDailyLoading] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -148,6 +118,34 @@ export default function SettingsScreen() {
       }
     };
     loadUser();
+  }, []);
+
+  // Load daily data and onboarding
+  useEffect(() => {
+    const loadDailyData = async () => {
+      try {
+        setDailyLoading(true);
+        const { dateStr } = getLocalDayRange();
+        const [dailyMeals, onboarding] = await Promise.all([
+          apiService.getDailyMeals(dateStr, getLocalTimezoneOffset()),
+          apiService.getOnboardingData().catch(() => null),
+        ]);
+        
+        setDailyData({
+          consumedCalories: dailyMeals.total_calories || 0,
+          consumedProtein: dailyMeals.total_protein || 0,
+          consumedCarbs: dailyMeals.total_carbs || 0,
+          consumedFats: dailyMeals.total_fat || 0,
+          streakCount: dailyMeals.streak_count || 0,
+        });
+        setOnboardingData(onboarding);
+      } catch (error) {
+        console.error("Error loading daily data:", error);
+      } finally {
+        setDailyLoading(false);
+      }
+    };
+    loadDailyData();
   }, []);
 
   const handleLogout = async () => {
@@ -165,7 +163,7 @@ export default function SettingsScreen() {
               router.replace("/auth/login" as any);
             } catch (error: any) {
               console.error("Logout error", error);
-              Alert.alert("Ошибка", "Не удалось выйти из аккаунта");
+              Alert.alert("Ошибка", "Не удалось выйти из аккаунта");  
             }
           },
         },
@@ -222,19 +220,6 @@ export default function SettingsScreen() {
     });
   };
 
-  const onWidgetViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    if (viewableItems.length > 0 && viewableItems[0].index !== null) {
-      setWidgetPage(viewableItems[0].index);
-    }
-  }, []);
-
-  const widgetViewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
-
-  const widgets = [
-    { type: "calories", value: "2414", label: "Осталось калорий" },
-    { type: "streak", value: 0, label: "Streak" },
-    { type: "remaining", value: "2414", label: "Осталось" },
-  ];
 
   const username = user?.email?.split("@")[0] || "user";
 
@@ -331,31 +316,115 @@ export default function SettingsScreen() {
         </View>
 
         {/* Widgets */}
-        <SectionHeader title="Виджеты" rightText="Как добавить?" onRightPress={() => {}} />
-        <View style={styles.widgetsContainer}>
-          <FlatList
-            ref={widgetFlatListRef}
-            data={widgets}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(_, index) => `widget-${index}`}
-            renderItem={({ item }) => (
-              <View style={styles.widgetWrapper}>
-                <WidgetCard type={item.type} value={item.value} label={item.label} />
-              </View>
-            )}
-            onViewableItemsChanged={onWidgetViewableItemsChanged}
-            viewabilityConfig={widgetViewabilityConfig}
-            snapToInterval={SCREEN_WIDTH - 40}
-            decelerationRate="fast"
-            contentContainerStyle={styles.widgetsList}
-          />
-          <View style={styles.widgetsPagination}>
-            {widgets.map((_, index) => (
-              <View key={index} style={[styles.widgetDot, widgetPage === index && styles.widgetDotActive]} />
-            ))}
+        <View style={styles.widgetsSection}>
+          <View style={styles.widgetsHeader}>
+            <Text style={styles.widgetsTitle}>Виджеты</Text>
+            <TouchableOpacity onPress={() => {}}>
+              <Text style={styles.widgetsHowToAdd}>Как добавить?</Text>
+            </TouchableOpacity>
           </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.widgetsScrollContent}
+          >
+            {/* Streak Widget */}
+            <View style={styles.widgetStreakCard}>
+              <View style={styles.widgetStreakStar}>
+                <Text style={styles.widgetStarIcon}>✨</Text>
+              </View>
+              <Text style={styles.widgetStreakFire}>🔥</Text>
+              <Text style={styles.widgetStreakValue}>{dailyData.streakCount}</Text>
+            </View>
+            
+            {/* Calories + Macros Combined */}
+            <View style={styles.widgetCombinedCard}>
+              <View style={styles.widgetCaloriesSection}>
+                {(() => {
+                  const targetCalories = onboardingData?.target_calories || 0;
+                  const remaining = Math.max(0, targetCalories - dailyData.consumedCalories);
+                  const progress = targetCalories > 0 ? Math.min(1, dailyData.consumedCalories / targetCalories) : 0;
+                  const CIRCUMFERENCE = 2 * Math.PI * 38;
+                  const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
+                  
+                  return (
+                    <View style={styles.widgetCaloriesCircleContainer}>
+                      <Svg width={85} height={85} style={styles.widgetCaloriesSvg}>
+                        <Circle
+                          cx={42.5}
+                          cy={42.5}
+                          r={38}
+                          stroke="#E8E4DC"
+                          strokeWidth={6}
+                          fill="none"
+                        />
+                        {progress > 0 && (
+                          <Circle
+                            cx={42.5}
+                            cy={42.5}
+                            r={38}
+                            stroke={colors.primary}
+                            strokeWidth={6}
+                            fill="none"
+                            strokeDasharray={CIRCUMFERENCE}
+                            strokeDashoffset={strokeDashoffset}
+                            strokeLinecap="round"
+                            transform="rotate(-90 42.5 42.5)"
+                          />
+                        )}
+                      </Svg>
+                      <View style={styles.widgetCaloriesTextContainer}>
+                        <Text style={styles.widgetCaloriesValue}>{remaining}</Text>
+                        <Text style={styles.widgetCaloriesLabel}>Осталось ка...</Text>
+                      </View>
+                    </View>
+                  );
+                })()}
+              </View>
+              <View style={styles.widgetMacrosSection}>
+                {(() => {
+                  const targetProtein = onboardingData?.protein_grams || 0;
+                  const targetCarbs = onboardingData?.carbs_grams || 0;
+                  const targetFats = onboardingData?.fats_grams || 0;
+                  const remainingProtein = Math.max(0, targetProtein - dailyData.consumedProtein);
+                  const remainingCarbs = Math.max(0, targetCarbs - dailyData.consumedCarbs);
+                  const remainingFats = Math.max(0, targetFats - dailyData.consumedFats);
+                  
+                  return (
+                    <>
+                      <View style={styles.widgetMacroRow}>
+                        <Ionicons name="flash" size={14} color="#FF6B6B" />
+                        <Text style={styles.widgetMacroValue}>{Math.round(remainingProtein)}g</Text>
+                        <Text style={styles.widgetMacroLabel}>Белки left</Text>
+                      </View>
+                      <View style={styles.widgetMacroRow}>
+                        <Text style={styles.widgetMacroIcon}>🌾</Text>
+                        <Text style={styles.widgetMacroValue}>{Math.round(remainingCarbs)}g</Text>
+                        <Text style={styles.widgetMacroLabel}>Углеводы left</Text>
+                      </View>
+                      <View style={styles.widgetMacroRow}>
+                        <Ionicons name="water" size={14} color="#4D96FF" />
+                        <Text style={styles.widgetMacroValue}>{Math.round(remainingFats)}g</Text>
+                        <Text style={styles.widgetMacroLabel}>Жиры left</Text>
+                      </View>
+                    </>
+                  );
+                })()}
+              </View>
+            </View>
+            
+            {/* Action Buttons */}
+            <View style={styles.widgetActionsColumn}>
+              <TouchableOpacity style={styles.widgetActionBtn} activeOpacity={0.7} onPress={() => {}}>
+                <Ionicons name="scan-outline" size={18} color={colors.primary} />
+                <Text style={styles.widgetActionBtnText}>Сканиров...</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.widgetActionBtn} activeOpacity={0.7} onPress={() => {}}>
+                <Ionicons name="barcode-outline" size={18} color={colors.primary} />
+                <Text style={styles.widgetActionBtnText}>Штрих-код</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
 
         {/* Support & Legal */}
@@ -619,106 +688,162 @@ const styles = StyleSheet.create({
     color: colors.secondary,
   },
   // Widgets
-  widgetsContainer: {
-    marginTop: 4,
+  widgetsSection: {
+    marginTop: 24,
   },
-  widgetsList: {
-    paddingHorizontal: 20,
-  },
-  widgetWrapper: {
-    width: SCREEN_WIDTH - 60,
-    marginRight: 12,
-  },
-  widgetCard: {
-    backgroundColor: colors.white,
-    borderRadius: 20,
-    padding: 20,
-    height: 140,
+  widgetsHeader: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  widgetsTitle: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    color: colors.secondary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  widgetsHowToAdd: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    color: colors.primary,
+  },
+  widgetsScrollContent: {
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  // Streak Card (огонёк)
+  widgetStreakCard: {
+    backgroundColor: colors.white,
+    borderRadius: 18,
+    padding: 14,
+    width: 90,
+    height: 120,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
-  widgetCaloriesCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    borderWidth: 8,
-    borderColor: "#F2EFE9",
+  // Combined Card (калории + макросы)
+  widgetCombinedCard: {
+    backgroundColor: colors.white,
+    borderRadius: 18,
+    padding: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+    height: 120,
+  },
+  widgetCaloriesSection: {
     alignItems: "center",
     justifyContent: "center",
   },
-  widgetCaloriesValue: {
-    fontSize: 24,
-    fontFamily: "Inter_700Bold",
-    color: colors.primary,
+  widgetMacrosSection: {
+    gap: 8,
   },
-  widgetCaloriesLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_400Regular",
-    color: colors.secondary,
-    textAlign: "center",
-  },
-  widgetButton: {
+  widgetMacroRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
   },
-  widgetButtonText: {
-    fontSize: 13,
+  // Action Buttons Column
+  widgetActionsColumn: {
+    gap: 8,
+    justifyContent: "center",
+  },
+  widgetActionBtn: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    width: 75,
+    height: 56,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  widgetActionBtnText: {
+    fontSize: 9,
     fontFamily: "Inter_500Medium",
     color: colors.primary,
+    textAlign: "center",
   },
-  widgetStreakContainer: {
-    alignItems: "center",
+  // Streak Widget
+  widgetStreakStar: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+  },
+  widgetStarIcon: {
+    fontSize: 16,
   },
   widgetStreakFire: {
-    fontSize: 48,
+    fontSize: 52,
   },
   widgetStreakValue: {
     fontSize: 28,
     fontFamily: "Inter_700Bold",
-    color: "#FFA500",
-    marginTop: -8,
+    color: "#FF8C42",
+    marginTop: -10,
   },
-  widgetStreakApple: {
-    opacity: 0.5,
+  // Calories Widget
+  widgetCaloriesCircleContainer: {
+    width: 85,
+    height: 85,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
-  widgetGenericValue: {
-    fontSize: 32,
+  widgetCaloriesSvg: {
+    position: "absolute",
+  },
+  widgetCaloriesTextContainer: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  widgetCaloriesValue: {
+    fontSize: 22,
     fontFamily: "Inter_700Bold",
     color: colors.primary,
   },
-  widgetGenericLabel: {
-    fontSize: 14,
+  widgetCaloriesLabel: {
+    fontSize: 9,
     fontFamily: "Inter_400Regular",
     color: colors.secondary,
+    textAlign: "center",
   },
-  widgetsPagination: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 6,
-    marginTop: 12,
+  // Macros
+  widgetMacroIcon: {
+    fontSize: 14,
   },
-  widgetDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#DAD4CA",
+  widgetMacroValue: {
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: colors.primary,
   },
-  widgetDotActive: {
-    backgroundColor: colors.primary,
+  widgetMacroLabel: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: colors.secondary,
   },
   bottomSpacer: {
     height: 20,
   },
 });
+
