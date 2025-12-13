@@ -94,43 +94,50 @@ interface DayCircleProps {
 function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, onPress }: DayCircleProps) {
   const progressAnim = useRef(new Animated.Value(0)).current;
   
+  const hasProgress = progress > 0 && progress < 1;
+  const isFullyAchieved = isAchieved || progress >= 1;
+  
   useEffect(() => {
+    const targetProgress = isFullyAchieved ? 1 : progress;
     Animated.spring(progressAnim, {
-      toValue: progress,
+      toValue: targetProgress,
       useNativeDriver: true,
       tension: 50,
       friction: 7,
     }).start();
-  }, [progress]);
-
-  const hasProgress = progress > 0 && progress < 1;
-  const isFullyAchieved = progress >= 1;
+  }, [progress, isFullyAchieved, progressAnim]);
   
   let bgStrokeColor = "#DAD4CA";
   let progressColor = "#FF6B6B";
   let strokeDasharray: number | string = "2 4";
+  let showProgressCircle = false;
   
   if (isSelected) {
     bgStrokeColor = colors.primary;
     strokeDasharray = CIRCUMFERENCE;
-    if (progress >= 1) {
+    if (isFullyAchieved) {
       progressColor = "#4CAF50";
+      showProgressCircle = true;
     } else if (progress > 0) {
       progressColor = colors.primary;
+      showProgressCircle = true;
     }
   } else if (isFullyAchieved) {
     bgStrokeColor = "#FF6B6B";
     strokeDasharray = CIRCUMFERENCE;
     progressColor = "#FF6B6B";
+    showProgressCircle = true;
   } else if (hasProgress) {
     bgStrokeColor = "#DAD4CA";
     strokeDasharray = "2 4";
     progressColor = "#FF6B6B";
+    showProgressCircle = true;
   } else {
     bgStrokeColor = "#DAD4CA";
     strokeDasharray = "2 4";
+    showProgressCircle = false;
   }
-
+  
   const strokeDashoffset = progressAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [CIRCUMFERENCE, 0],
@@ -152,9 +159,9 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
             stroke={bgStrokeColor}
             strokeWidth={STROKE_WIDTH}
             fill="transparent"
-            strokeDasharray={isFullyAchieved || isSelected ? undefined : strokeDasharray}
+            strokeDasharray={isFullyAchieved ? undefined : strokeDasharray}
           />
-          {(hasProgress || isFullyAchieved || (isSelected && progress > 0)) && (
+          {showProgressCircle && (
             <AnimatedCircle
               cx={CIRCLE_SIZE / 2}
               cy={CIRCLE_SIZE / 2}

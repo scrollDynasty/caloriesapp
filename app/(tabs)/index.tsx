@@ -281,12 +281,21 @@ export default function HomeScreen() {
         waterGoal: water.goal_ml || 0,
         meals: data.meals,
       });
-      setDailyProgress({
-        calories: data.total_calories / (onboardingData?.target_calories || 1),
-        protein: data.total_protein / (onboardingData?.target_protein || 1),
-        carbs: data.total_carbs / (onboardingData?.target_carbs || 1),
-        fats: data.total_fat / (onboardingData?.target_fat || 1),
-      });
+      const isAchieved = data.total_calories >= (onboardingData?.target_calories || 0);
+      const caloriesProgress = onboardingData?.target_calories > 0 
+        ? Math.min(1, data.total_calories / onboardingData.target_calories) 
+        : 0;
+      const finalProgress = isAchieved ? 1 : caloriesProgress;
+      
+      setDailyProgress((prev) => ({
+        ...prev,
+        [dateStr]: finalProgress,
+      }));
+      
+      setWeekAchievements((prev) => ({
+        ...prev,
+        [dateStr]: isAchieved,
+      }));
       setStreakCount(data.streak_count || 0);
     } catch (err: any) {
       console.warn("Daily data load error", err);
@@ -379,11 +388,23 @@ export default function HomeScreen() {
         const days = computeWeekDays(baseDate);
         const dates = days.map((d) => getDateStr(d));
         const results = await apiService.getDailyMealsBatch(dates, getLocalTimezoneOffset());
-        const map: Record<string, boolean> = {};
+        const achievementsMap: Record<string, boolean> = {};
+        const progressMap: Record<string, number> = {};
+        
         results.forEach((r) => {
-          map[r.date] = r.total_calories >= onboardingData.target_calories;
+          const isAchieved = r.total_calories >= onboardingData.target_calories;
+          const caloriesProgress = onboardingData.target_calories > 0 
+            ? Math.min(1, r.total_calories / onboardingData.target_calories) 
+            : 0;
+          achievementsMap[r.date] = isAchieved;
+          progressMap[r.date] = isAchieved ? 1 : caloriesProgress;
         });
-        setWeekAchievements(map);
+        
+        setWeekAchievements(achievementsMap);
+        setDailyProgress((prev) => ({
+          ...prev,
+          ...progressMap,
+        }));
         
         lastWeekLoadedRef.current = weekTs;
       } catch (e) {
