@@ -100,7 +100,6 @@ export default function HomeScreen() {
   const [weekAchievements, setWeekAchievements] = useState<Record<string, boolean>>({});
   const [dailyProgress, setDailyProgress] = useState<Record<string, number>>({});
   const [streakCount, setStreakCount] = useState(0);
-  const [weekStartTs, setWeekStartTs] = useState<number>(getWeekStartTimestamp(getLocalDayRange().startUtcMs));
   const weekLoadInProgress = useRef(false);
   const lastWeekLoadedRef = useRef<number | null>(null);
   const todayTs = useMemo(() => getLocalDayRange().startUtcMs, []);
@@ -285,11 +284,10 @@ export default function HomeScreen() {
       const caloriesProgress = onboardingData?.target_calories > 0 
         ? Math.min(1, data.total_calories / onboardingData.target_calories) 
         : 0;
-      const finalProgress = isAchieved ? 1 : caloriesProgress;
       
       setDailyProgress((prev) => ({
         ...prev,
-        [dateStr]: finalProgress,
+        [dateStr]: caloriesProgress,
       }));
       
       setWeekAchievements((prev) => ({
@@ -397,7 +395,7 @@ export default function HomeScreen() {
             ? Math.min(1, r.total_calories / onboardingData.target_calories) 
             : 0;
           achievementsMap[r.date] = isAchieved;
-          progressMap[r.date] = isAchieved ? 1 : caloriesProgress;
+          progressMap[r.date] = caloriesProgress;
         });
         
         setWeekAchievements(achievementsMap);
@@ -426,22 +424,9 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
-    if (selectedDateTimestamp === lastLoadedDateRef.current) {
-      return;
-    }
-    
     loadDailyData(selectedDateTimestamp);
-    const weekTs = getWeekStartTimestamp(selectedDateTimestamp);
-    if (weekTs !== weekStartTs) {
-      setWeekStartTs(weekTs);
-      loadWeekAchievements(new Date(selectedDateTimestamp));
-    } else {
-        
-        if (lastWeekLoadedRef.current !== weekStartTs) {
-          loadWeekAchievements(new Date(selectedDateTimestamp));
-        }
-    }
-  }, [selectedDateTimestamp, weekStartTs, loadWeekAchievements]);
+    loadWeekAchievements(new Date(selectedDateTimestamp));
+  }, [selectedDateTimestamp, loadDailyData, loadWeekAchievements]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

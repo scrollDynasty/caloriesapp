@@ -95,17 +95,16 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
   const progressAnim = useRef(new Animated.Value(0)).current;
   
   const hasProgress = progress > 0 && progress < 1;
-  const isFullyAchieved = isAchieved || progress >= 1;
+  const isFullyAchieved = !isSelected && (isAchieved || progress >= 1);
   
   useEffect(() => {
-    const targetProgress = isFullyAchieved ? 1 : progress;
     Animated.spring(progressAnim, {
-      toValue: targetProgress,
+      toValue: progress,
       useNativeDriver: true,
       tension: 50,
       friction: 7,
     }).start();
-  }, [progress, isFullyAchieved, progressAnim]);
+  }, [progress, progressAnim]);
   
   let bgStrokeColor = "#DAD4CA";
   let progressColor = "#FF6B6B";
@@ -114,11 +113,8 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
   
   if (isSelected) {
     bgStrokeColor = colors.primary;
-    strokeDasharray = CIRCUMFERENCE;
-    if (isFullyAchieved) {
-      progressColor = "#4CAF50";
-      showProgressCircle = true;
-    } else if (progress > 0) {
+    strokeDasharray = "2 4";
+    if (progress > 0) {
       progressColor = colors.primary;
       showProgressCircle = true;
     }
