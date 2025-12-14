@@ -214,13 +214,14 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   calendarDayName: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
     color: colors.secondary,
+    letterSpacing: -0.1,
   },
   calendarDayNameActive: {
     color: colors.primary,
-    fontFamily: "Inter_800ExtraBold",
+    fontFamily: "Inter_700Bold",
   },
   circleContainer: {
     width: CIRCLE_SIZE,
@@ -235,13 +236,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   calendarDateText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     color: colors.secondary,
+    letterSpacing: -0.2,
   },
   calendarDateTextActive: {
-    fontSize: 15,
-    fontFamily: "Inter_800ExtraBold",
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
     color: colors.primary,
+    letterSpacing: -0.3,
   },
 });

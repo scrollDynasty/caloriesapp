@@ -137,9 +137,10 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 19,
     fontFamily: "Inter_700Bold",
     color: colors.primary,
+    letterSpacing: -0.3,
   },
   stateBox: {
     backgroundColor: colors.white,
@@ -205,15 +206,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mealName: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: "Inter_600SemiBold",
     color: colors.primary,
     flex: 1,
     marginRight: 8,
+    letterSpacing: -0.2,
   },
   mealTime: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
     color: "#8A8A8A",
   },
   mealCaloriesRow: {
@@ -222,9 +224,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   mealCalories: {
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: "Inter_700Bold",
     color: "#000000",
+    letterSpacing: -0.2,
   },
   mealMacros: {
     flexDirection: "row",
@@ -240,8 +243,8 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   macroText: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
+    fontSize: 12,
+    fontFamily: "Inter_600SemiBold",
     color: "#8A8A8A",
   },
   emptyState: {
