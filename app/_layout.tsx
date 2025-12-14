@@ -45,6 +45,13 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="meal-detail"
+          options={{
+            presentation: "fullScreenModal",
+            animation: "slide_from_bottom",
+          }}
+        />
+        <Stack.Screen
           name="auth/login"
           options={{
             gestureEnabled: false,

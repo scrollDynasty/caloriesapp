@@ -389,6 +389,32 @@ class ApiService {
     return response.data;
   }
 
+  async getMealPhotoDetail(photoId: number): Promise<{
+    photo: MealPhoto;
+    ingredients?: Array<{
+      name: string;
+      calories: number;
+    }>;
+    extra_macros?: {
+      fiber?: number;
+      sugar?: number;
+      sodium?: number;
+    };
+    health_score?: number;
+  }> {
+    try {
+      const response = await this.api.get(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/detail`);
+      return response.data;
+    } catch (error: any) {
+      // If endpoint doesn't exist yet, return basic photo data
+      if (error.response?.status === 404) {
+        const photo = await this.api.get<MealPhoto>(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
+        return { photo: photo.data };
+      }
+      throw error;
+    }
+  }
+
   async healthCheck() {
     try {
       const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.HEALTH}`, {

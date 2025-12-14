@@ -23,6 +23,7 @@ interface RecentMealsProps {
   onRetry?: () => void;
   onAddPress?: () => void;
   onLoadMore?: () => void;
+  onMealPress?: (meal: Meal) => void;
 }
 
 export const RecentMeals = memo(function RecentMeals({
@@ -32,6 +33,7 @@ export const RecentMeals = memo(function RecentMeals({
   onRetry,
   onAddPress,
   onLoadMore,
+  onMealPress,
 }: RecentMealsProps) {
   const hasMeals = useMemo(() => meals.length > 0, [meals.length]);
   
@@ -55,7 +57,12 @@ export const RecentMeals = memo(function RecentMeals({
       ) : hasMeals ? (
         <>
           {meals.map((meal) => (
-            <View key={meal.id} style={styles.mealCard}>
+            <TouchableOpacity 
+              key={meal.id} 
+              style={styles.mealCard}
+              activeOpacity={0.7}
+              onPress={() => onMealPress?.(meal)}
+            >
               <View style={styles.mealImage}>
                 {meal.imageUrl ? (
                   <Image
@@ -89,12 +96,12 @@ export const RecentMeals = memo(function RecentMeals({
                     <Text style={styles.macroText}>{meal.carbs}г</Text>
                   </View>
                   <View style={styles.macroItem}>
-                    <Text style={styles.macroIcon}>💧</Text>
+                    <Text style={styles.macroIcon}>🫒</Text>
                     <Text style={styles.macroText}>{meal.fats}г</Text>
                   </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
           {onLoadMore ? (
             <TouchableOpacity style={styles.loadMore} onPress={onLoadMore} activeOpacity={0.8}>

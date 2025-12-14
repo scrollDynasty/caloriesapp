@@ -370,6 +370,33 @@ export default function HomeScreen() {
     router.push("/add-water" as any);
   };
 
+  const handleMealPress = (meal: {
+    id: number;
+    name: string;
+    time: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fats: number;
+    isManual?: boolean;
+    imageUrl?: string;
+  }) => {
+    router.push({
+      pathname: "/meal-detail",
+      params: {
+        id: meal.id.toString(),
+        name: meal.name,
+        time: meal.time,
+        calories: meal.calories.toString(),
+        protein: meal.protein.toString(),
+        carbs: meal.carbs.toString(),
+        fats: meal.fats.toString(),
+        isManual: meal.isManual ? "true" : "false",
+        imageUrl: meal.imageUrl || "",
+      },
+    } as any);
+  };
+
   const loadWeekAchievements = useCallback(
     async (baseDate: Date) => {
       if (!onboardingData?.target_calories) {
@@ -533,13 +560,14 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ) : null}
 
-            <RecentMeals
+        <RecentMeals
           meals={recentMeals}
           loading={recentLoading}
           error={recentError}
           onRetry={() => fetchLatestMeals({ append: false, limit: recentLimit })}
           onAddPress={isTodaySelected ? handleScanFood : undefined}
           onLoadMore={recentHasMore ? handleLoadMore : undefined}
+          onMealPress={handleMealPress}
         />
       </ScrollView>
 
