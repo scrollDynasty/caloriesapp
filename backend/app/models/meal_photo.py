@@ -26,6 +26,7 @@ class MealPhoto(Base):
     fiber = Column(Integer, nullable=True)  # Клетчатка в граммах
     sugar = Column(Integer, nullable=True)  # Сахар в граммах
     sodium = Column(Integer, nullable=True)  # Натрий в мг
+    health_score = Column(Integer, nullable=True)  # Оценка здоровости 0-10 от нейросети
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

@@ -13,6 +13,7 @@ class MealPhotoBase(BaseModel):
     fiber: Optional[int] = None  # Клетчатка в граммах
     sugar: Optional[int] = None  # Сахар в граммах
     sodium: Optional[int] = None  # Натрий в мг
+    health_score: Optional[int] = None  # Оценка здоровости 0-10
 
 class MealPhotoCreate(MealPhotoBase):
     pass

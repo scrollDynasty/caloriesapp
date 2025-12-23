@@ -78,13 +78,17 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
         user_prompt = (
             "Analyze this food photo and estimate the complete nutritional content. "
             "Respond ONLY with a JSON object in this exact format:\n"
-            '{"name": "dish name in Russian", "calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number, "sugar": number, "sodium": number}\n'
+            '{"name": "dish name in Russian", "calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number, "sugar": number, "sodium": number, "health_score": number}\n'
             "Rules:\n"
             "- Use integers only, no decimal points\n"
             "- Values should be per portion shown in the photo\n"
             "- calories in kcal\n"
             "- protein, fat, carbs, fiber, sugar in grams\n"
             "- sodium in milligrams (mg)\n"
+            "- health_score: rate the overall healthiness of this dish from 0 to 10, where:\n"
+            "  * 0-3 = unhealthy (high sugar, processed, fried, empty calories)\n"
+            "  * 4-6 = moderate (balanced but could be better)\n"
+            "  * 7-10 = healthy (whole foods, high fiber, good protein, low sugar)\n"
             "- name should be in Russian language\n"
             "- If you cannot estimate a value, use 0"
         )
@@ -164,6 +168,7 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
                 "fiber": _num(extracted.get("fiber")),
                 "sugar": _num(extracted.get("sugar")),
                 "sodium": _num(extracted.get("sodium")),
+                "health_score": _num(extracted.get("health_score")),
                 "detected_meal_name": extracted.get("name") or meal_name_hint,
             }
 
@@ -261,6 +266,7 @@ async def upload_meal_photo(
             fiber=nutrition.get("fiber") if nutrition else None,
             sugar=nutrition.get("sugar") if nutrition else None,
             sodium=nutrition.get("sodium") if nutrition else None,
+            health_score=nutrition.get("health_score") if nutrition else None,
             created_at=created_at_now,
         )
 
@@ -430,38 +436,6 @@ def get_meal_photo(
         filename=photo.file_name,
     )
 
-def calculate_meal_health_score(calories: int, protein: int, fiber: int, sugar: int, sodium: int) -> int:
-
-    if not calories or calories <= 0:
-        return 0
-    
-    score = 5.0 
-    
-    if fiber:
-        fiber_ratio = min(1.0, fiber / 10)
-        score += fiber_ratio * 2 
-    
-    if protein:
-        protein_ratio = min(1.0, protein / 20)
-        score += protein_ratio * 1.5  
-    
-    if sugar:
-        if sugar > 30:
-            score -= 2.5 
-        elif sugar > 15:
-            sugar_penalty = (sugar - 15) / 15
-            score -= sugar_penalty * 1.5  
-    
-    if sodium:
-        if sodium > 1200:
-            score -= 2  
-        elif sodium > 600:
-            sodium_penalty = (sodium - 600) / 600
-            score -= sodium_penalty * 1 
-    
-    return max(0, min(10, round(score)))
-
-
 @router.get("/meals/photos/{photo_id}/detail")
 def get_meal_photo_detail(
     photo_id: int,
@@ -483,14 +457,6 @@ def get_meal_photo_detail(
     if photo.mime_type != "manual" and photo.file_path not in (None, "", "manual"):
         photo_url = f"{settings.api_domain}/api/v1/meals/photos/{photo.id}"
 
-    health_score = calculate_meal_health_score(
-        calories=photo.calories or 0,
-        protein=photo.protein or 0,
-        fiber=photo.fiber or 0,
-        sugar=photo.sugar or 0,
-        sodium=photo.sodium or 0,
-    )
-
     return {
         "photo": {
             "id": photo.id,
@@ -509,6 +475,7 @@ def get_meal_photo_detail(
             "fiber": photo.fiber,
             "sugar": photo.sugar,
             "sodium": photo.sodium,
+            "health_score": photo.health_score,
             "created_at": photo.created_at.isoformat() if photo.created_at else None,
             "updated_at": photo.updated_at.isoformat() if photo.updated_at else None,
         },
@@ -519,7 +486,7 @@ def get_meal_photo_detail(
             "sugar": photo.sugar or 0,
             "sodium": photo.sodium or 0,
         },
-        "health_score": health_score,
+        "health_score": photo.health_score,
     }
 
 @router.put("/meals/photos/{photo_id}/confirm", response_model=MealPhotoResponse)
@@ -650,19 +617,15 @@ def get_daily_meals(
     except Exception as e:
         logger.warning(f"Failed to update streak: {e}")
 
-    # Рассчитываем оценку здоровья для каждого блюда и среднее значение
-    meal_health_scores = []
+    # Собираем данные блюд и вычисляем среднюю оценку здоровья
     meals_data = []
+    health_scores = []
     
     for p in photos:
-        meal_score = calculate_meal_health_score(
-            calories=p.calories or 0,
-            protein=p.protein or 0,
-            fiber=p.fiber or 0,
-            sugar=p.sugar or 0,
-            sodium=p.sodium or 0,
-        )
-        meal_health_scores.append(meal_score)
+        # Используем оценку от нейросети из БД
+        meal_score = p.health_score
+        if meal_score is not None:
+            health_scores.append(meal_score)
         
         meals_data.append({
             "id": p.id,
@@ -680,8 +643,8 @@ def get_daily_meals(
     
     # Среднее значение оценки здоровья всех блюд за день
     avg_health_score = None
-    if meal_health_scores:
-        avg_health_score = round(sum(meal_health_scores) / len(meal_health_scores), 1)
+    if health_scores:
+        avg_health_score = round(sum(health_scores) / len(health_scores), 1)
 
     return {
         "date": date,
@@ -741,18 +704,13 @@ def get_daily_meals_batch(
       total_sugar = sum(p.sugar or 0 for p in photos)
       total_sodium = sum(p.sodium or 0 for p in photos)
 
-      meal_health_scores = []
       meals_data = []
+      health_scores = []
       
       for p in photos:
-          meal_score = calculate_meal_health_score(
-              calories=p.calories or 0,
-              protein=p.protein or 0,
-              fiber=p.fiber or 0,
-              sugar=p.sugar or 0,
-              sodium=p.sodium or 0,
-          )
-          meal_health_scores.append(meal_score)
+          meal_score = p.health_score
+          if meal_score is not None:
+              health_scores.append(meal_score)
           
           meals_data.append({
               "id": p.id,
@@ -769,8 +727,8 @@ def get_daily_meals_batch(
           })
       
       avg_health_score = None
-      if meal_health_scores:
-          avg_health_score = round(sum(meal_health_scores) / len(meal_health_scores), 1)
+      if health_scores:
+          avg_health_score = round(sum(health_scores) / len(health_scores), 1)
 
       results.append({
           "date": date_str,
