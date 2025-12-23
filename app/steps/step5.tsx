@@ -44,21 +44,20 @@ function WorkoutOption({ dots, title, subtitle, selected, onPress }: WorkoutOpti
     }
     onPress();
   };
-
   const containerBg = selected 
-    ? (isDark ? colors.white : colors.text) 
+    ? (isDark ? "#FFFFFF" : "#000000") 
     : colors.card;
   const textColor = selected 
-    ? (isDark ? colors.black : colors.white) 
+    ? (isDark ? "#000000" : "#FFFFFF") 
     : colors.text;
   const subtitleColor = selected 
-    ? (isDark ? colors.black : colors.white) 
+    ? (isDark ? "#000000" : "#FFFFFF") 
     : colors.textSecondary;
   const borderColor = selected 
     ? "transparent" 
     : colors.border;
   const dotColor = selected 
-    ? (isDark ? colors.black : colors.white) 
+    ? (isDark ? "#000000" : "#FFFFFF") 
     : colors.text;
 
   return (

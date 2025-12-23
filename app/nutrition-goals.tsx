@@ -839,11 +839,21 @@ function WorkoutOption({
   isDark: boolean;
   colors: any;
 }) {
+  const containerBg = selected 
+    ? (isDark ? "#FFFFFF" : "#000000") 
+    : (isDark ? colors.card : "#FFFFFF");
+  const contentColor = selected 
+    ? (isDark ? "#000000" : "#FFFFFF") 
+    : colors.text;
+  const subtitleTextColor = selected 
+    ? (isDark ? "#000000" : "#FFFFFF") 
+    : colors.textSecondary;
+
   return (
     <TouchableOpacity
       style={[
         styles.workoutOption,
-        { backgroundColor: selected ? colors.text : isDark ? colors.card : "#FFFFFF" },
+        { backgroundColor: containerBg },
         !selected && { borderWidth: 1, borderColor: colors.border },
       ]}
       onPress={onPress}
@@ -855,16 +865,16 @@ function WorkoutOption({
             key={i}
             style={[
               styles.workoutDot,
-              { backgroundColor: selected ? (isDark ? colors.black : colors.white) : colors.text },
+              { backgroundColor: contentColor },
             ]}
           />
         ))}
       </View>
       <View style={styles.workoutInfo}>
-        <Text style={[styles.workoutTitle, { color: selected ? (isDark ? colors.black : colors.white) : colors.text }]}>
+        <Text style={[styles.workoutTitle, { color: contentColor }]}>
           {title}
         </Text>
-        <Text style={[styles.workoutSubtitle, { color: selected ? (isDark ? colors.black : colors.white) : colors.textSecondary }]}>
+        <Text style={[styles.workoutSubtitle, { color: subtitleTextColor }]}>
           {subtitle}
         </Text>
       </View>

@@ -46,24 +46,23 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
     onPress();
   };
 
-  // iOS-style theming
   const containerBg = selected 
-    ? (isDark ? colors.white : colors.text) 
+    ? (isDark ? "#FFFFFF" : "#000000") 
     : colors.card;
   const textColor = selected 
-    ? (isDark ? colors.black : colors.white) 
+    ? (isDark ? "#000000" : "#FFFFFF") 
     : colors.text;
   const borderColor = selected 
     ? "transparent" 
     : colors.border;
   const checkBg = selected 
-    ? (isDark ? colors.black : colors.white) 
+    ? (isDark ? "#000000" : "#FFFFFF") 
     : "transparent";
   const checkBorderColor = selected 
     ? "transparent" 
     : colors.textSecondary;
   const checkIconColor = selected 
-    ? (isDark ? colors.white : colors.text) 
+    ? (isDark ? "#FFFFFF" : "#000000") 
     : "transparent";
 
   return (
