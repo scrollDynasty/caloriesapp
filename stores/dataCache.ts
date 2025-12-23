@@ -31,6 +31,7 @@ interface DailyMealsData {
     fiber?: number;
     sugar?: number;
     sodium?: number;
+    health_score?: number;
   }>;
 }
 

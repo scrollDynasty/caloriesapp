@@ -9,11 +9,10 @@ import axios, {
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
 import { DailyMealsData, dataCache, OnboardingData, UserData } from "../stores/dataCache";
-import { getLocalTimezoneOffset } from "../utils/timezone";
+import { getLocalDateStr, getLocalISOString, getLocalTimezoneOffset } from "../utils/timezone";
 
 const TOKEN_KEY = "@caloriesapp:auth_token";
 
-// Event listeners для глобального состояния авторизации
 type AuthEventCallback = () => void;
 const authEventListeners: Set<AuthEventCallback> = new Set();
 
@@ -312,57 +311,53 @@ class ApiService {
     
     formData.append("barcode", barcode || "");
     formData.append("meal_name", mealName || "");
-    formData.append("client_timestamp", new Date().toISOString());
+    // Отправляем локальное время устройства (не UTC)
+    formData.append("client_timestamp", getLocalISOString());
     formData.append("client_tz_offset_minutes", String(getLocalTimezoneOffset()));
 
     const response = await this.api.post<MealPhotoUploadResponse>(API_ENDPOINTS.MEALS_UPLOAD, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      timeout: 60000, // Увеличен таймаут для OpenAI обработки
+      timeout: 60000,
     });
-    
     
     if (response.data?.photo) {
       this.upsertMealPhotoInCache(response.data.photo);
-      // Инвалидируем кэш дневных данных
-      const dateStr = new Date().toISOString().split("T")[0];
-      dataCache.invalidateDailyMeals(dateStr);
+      dataCache.invalidateDailyMeals(getLocalDateStr());
     }
     
     return response.data;
   }
 
   async createManualMeal(payload: ManualMealPayload) {
+    const localTimestamp = payload.created_at || getLocalISOString();
     const data = {
       ...payload,
-      created_at: payload.created_at || new Date().toISOString(),
+      created_at: localTimestamp,
     };
     const response = await this.api.post(API_ENDPOINTS.MEALS_MANUAL, data, {
       params: {
-        client_timestamp: data.created_at,
+        client_timestamp: localTimestamp,
         client_tz_offset_minutes: getLocalTimezoneOffset(),
       },
     });
     const created = response.data as MealPhoto;
     this.upsertMealPhotoInCache(created);
-    // Инвалидируем кэш дневных данных
-    const dateStr = new Date().toISOString().split("T")[0];
-    dataCache.invalidateDailyMeals(dateStr);
+    dataCache.invalidateDailyMeals(getLocalDateStr());
     return created;
   }
 
   async addWater(payload: WaterPayload) {
+    const localTimestamp = payload.created_at || getLocalISOString();
     const data = {
       ...payload,
-      created_at: payload.created_at || new Date().toISOString(),
+      created_at: localTimestamp,
     };
     const response = await this.api.post(API_ENDPOINTS.WATER, data, {
       params: { tz_offset_minutes: getLocalTimezoneOffset() },
     });
-    // Инвалидируем кэш воды
-    const dateStr = new Date().toISOString().split("T")[0];
-    dataCache.invalidateWater(dateStr);
+    dataCache.invalidateWater(getLocalDateStr());
     return response.data as WaterEntry;
   }
 
@@ -373,14 +368,11 @@ class ApiService {
     const response = await this.api.get(API_ENDPOINTS.WATER_DAILY, {
       params: { date, tz_offset_minutes: tzOffsetMinutes },
     });
-    // Сохраняем в кэш
     dataCache.setWater(date, response.data);
     return response.data as WaterDaily;
   }
 
-  /**
-   * Получить воду с кэшированием (stale-while-revalidate)
-   */
+
   async getDailyWaterCached(
     date: string,
     tzOffsetMinutes: number = getLocalTimezoneOffset()
@@ -553,6 +545,7 @@ class ApiService {
   async deleteMealPhoto(photoId: number) {
     await this.api.delete(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
     this.removeMealPhotoFromCache(photoId);
+    dataCache.invalidateDailyMeals(getLocalDateStr());
   }
 
   getMealPhotoUrl(photoId: number, token?: string): string {
@@ -572,6 +565,7 @@ class ApiService {
       data,
     );
     this.upsertMealPhotoInCache(response.data);
+    dataCache.invalidateDailyMeals(getLocalDateStr());
     return response.data;
   }
 

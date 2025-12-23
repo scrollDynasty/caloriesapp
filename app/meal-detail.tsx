@@ -313,20 +313,32 @@ export default function MealDetailScreen() {
           {loadingDetail ? (
             <ActivityIndicator size="small" color={colors.secondary} style={{ marginTop: 6 }} />
           ) : healthScore !== null ? (
-            <>
-              <View style={styles.healthScoreBar}>
-                <View style={[styles.healthScoreBarFill, { width: `${healthScore * 10}%` }]} />
-              </View>
-            </>
+            <View style={styles.healthScoreBar}>
+              <View style={[
+                styles.healthScoreBarFill, 
+                { 
+                  width: `${healthScore * 10}%`,
+                  backgroundColor: healthScore >= 7 ? "#4CAF50" 
+                                 : healthScore >= 4 ? "#FF9800" 
+                                 : "#E91E63"
+                }
+              ]} />
+            </View>
           ) : (
             <Text style={styles.healthScorePlaceholder}>Н/д</Text>
           )}
         </View>
-        {!loadingDetail && healthScore !== null && (
-          <Text style={styles.healthScoreValue}>{healthScore}/10</Text>
-        )}
-        {!loadingDetail && healthScore === null && (
-          <Text style={styles.healthScoreValue}>Н/д</Text>
+        {!loadingDetail && (
+          <Text style={[
+            styles.healthScoreValue,
+            healthScore !== null && {
+              color: healthScore >= 7 ? "#4CAF50" 
+                   : healthScore >= 4 ? "#FF9800" 
+                   : "#E91E63"
+            }
+          ]}>
+            {healthScore !== null ? `${healthScore}/10` : "Н/д"}
+          </Text>
         )}
       </View>
     </View>

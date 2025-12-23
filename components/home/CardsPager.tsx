@@ -347,7 +347,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
           })}
         </View>
 
-        {/* Health Score Card */}
         <TouchableOpacity activeOpacity={0.9} onPress={handleFlip}>
           <View style={styles.healthScoreCard}>
             <View style={styles.healthScoreHeader}>
@@ -355,22 +354,22 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
               <Text style={[
                 styles.healthScoreValue,
                 secondaryData.healthScore !== null && {
-                  color: secondaryData.healthScore >= 70 ? "#4CAF50" 
-                       : secondaryData.healthScore >= 40 ? "#FF9800" 
+                  color: secondaryData.healthScore >= 7 ? "#4CAF50" 
+                       : secondaryData.healthScore >= 4 ? "#FF9800" 
                        : "#E91E63"
                 }
               ]}>
-                {secondaryData.healthScore !== null ? `${secondaryData.healthScore}/100` : "—"}
+                {secondaryData.healthScore !== null ? `${secondaryData.healthScore}/10` : "—"}
               </Text>
             </View>
             <View style={styles.healthScoreBar}>
               <View style={[
                 styles.healthScoreBarFill, 
                 { 
-                  width: secondaryData.healthScore !== null ? `${secondaryData.healthScore}%` : "0%",
+                  width: secondaryData.healthScore !== null ? `${secondaryData.healthScore * 10}%` : "0%",
                   backgroundColor: secondaryData.healthScore !== null 
-                    ? (secondaryData.healthScore >= 70 ? "#4CAF50" 
-                       : secondaryData.healthScore >= 40 ? "#FF9800" 
+                    ? (secondaryData.healthScore >= 7 ? "#4CAF50" 
+                       : secondaryData.healthScore >= 4 ? "#FF9800" 
                        : "#E91E63")
                     : "#DAD4CA"
                 }
@@ -378,9 +377,9 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
             </View>
             <Text style={styles.healthScoreText}>
               {secondaryData.healthScore !== null 
-                ? (secondaryData.healthScore >= 70 
+                ? (secondaryData.healthScore >= 7 
                     ? "Отличный баланс питательных веществ! Продолжай в том же духе 💪"
-                    : secondaryData.healthScore >= 40 
+                    : secondaryData.healthScore >= 4 
                     ? "Неплохо! Добавь больше клетчатки и уменьши сахар для улучшения"
                     : "Попробуй добавить больше овощей и снизить потребление сахара")
                 : "Добавь блюда, чтобы получить оценку здоровья за день"}
@@ -391,8 +390,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
     </View>
   );
 }
-
-// ==================== PAGE 3: Activity & Water ====================
 
 function AppleHealthCard() {
   return (

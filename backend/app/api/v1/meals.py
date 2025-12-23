@@ -224,17 +224,17 @@ async def upload_meal_photo(
 
         if client_timestamp and client_tz_offset_minutes is not None:
             try:
-                ts_str = client_timestamp.replace('Z', '+00:00') if client_timestamp.endswith('Z') else client_timestamp
-                if '+' not in ts_str and '-' not in ts_str[-6:]:
-                    tz_offset = timedelta(minutes=client_tz_offset_minutes)
-                    client_dt = datetime.fromisoformat(ts_str).replace(tzinfo=timezone(tz_offset))
-                else:
-                    client_dt = datetime.fromisoformat(ts_str)
-                    if client_dt.tzinfo is None:
-                        tz_offset = timedelta(minutes=client_tz_offset_minutes)
-                        client_dt = client_dt.replace(tzinfo=timezone(tz_offset))
+                ts_str = client_timestamp.replace('Z', '')
+                
+                client_dt = datetime.fromisoformat(ts_str)
+                
+                client_tz = timezone(timedelta(minutes=client_tz_offset_minutes))
+                client_dt = client_dt.replace(tzinfo=client_tz)
+                
                 created_at_now = client_dt.astimezone(timezone.utc)
+                logger.info(f"Client time: {client_timestamp}, offset: {client_tz_offset_minutes}min, UTC: {created_at_now}")
             except (ValueError, AttributeError) as e:
+                logger.warning(f"Failed to parse client_timestamp: {e}, using server time")
                 created_at_now = datetime.now(timezone.utc)
         else:
             created_at_now = datetime.now(timezone.utc)
@@ -324,21 +324,16 @@ def create_manual_meal(
     
     if client_timestamp and client_tz_offset_minutes is not None:
         try:
-            ts_str = client_timestamp.replace('Z', '+00:00') if client_timestamp.endswith('Z') else client_timestamp
-            if '+' not in ts_str and '-' not in ts_str[-6:]:
-                tz_offset = timedelta(minutes=client_tz_offset_minutes)
-                client_dt = datetime.fromisoformat(ts_str).replace(tzinfo=timezone(tz_offset))
-            else:
-                client_dt = datetime.fromisoformat(ts_str)
-                if client_dt.tzinfo is None:
-                    tz_offset = timedelta(minutes=client_tz_offset_minutes)
-                    client_dt = client_dt.replace(tzinfo=timezone(tz_offset))
+            ts_str = client_timestamp.replace('Z', '')
+            client_dt = datetime.fromisoformat(ts_str)
+            client_tz = timezone(timedelta(minutes=client_tz_offset_minutes))
+            client_dt = client_dt.replace(tzinfo=client_tz)
             created_at = client_dt.astimezone(timezone.utc)
         except (ValueError, AttributeError) as e:
             created_at = datetime.now(timezone.utc)
     elif payload.created_at:
         try:
-            ts_str = payload.created_at.replace('Z', '+00:00') if payload.created_at.endswith('Z') else payload.created_at
+            ts_str = payload.created_at.replace('Z', '')
             created_at = datetime.fromisoformat(ts_str)
             if created_at.tzinfo is None:
                 created_at = created_at.replace(tzinfo=timezone.utc)
@@ -435,13 +430,44 @@ def get_meal_photo(
         filename=photo.file_name,
     )
 
+def calculate_meal_health_score(calories: int, protein: int, fiber: int, sugar: int, sodium: int) -> int:
+
+    if not calories or calories <= 0:
+        return 0
+    
+    score = 5.0 
+    
+    if fiber:
+        fiber_ratio = min(1.0, fiber / 10)
+        score += fiber_ratio * 2 
+    
+    if protein:
+        protein_ratio = min(1.0, protein / 20)
+        score += protein_ratio * 1.5  
+    
+    if sugar:
+        if sugar > 30:
+            score -= 2.5 
+        elif sugar > 15:
+            sugar_penalty = (sugar - 15) / 15
+            score -= sugar_penalty * 1.5  
+    
+    if sodium:
+        if sodium > 1200:
+            score -= 2  
+        elif sodium > 600:
+            sodium_penalty = (sodium - 600) / 600
+            score -= sodium_penalty * 1 
+    
+    return max(0, min(10, round(score)))
+
+
 @router.get("/meals/photos/{photo_id}/detail")
 def get_meal_photo_detail(
     photo_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получить детальную информацию о блюде"""
     photo = db.query(MealPhoto).filter(
         MealPhoto.id == photo_id,
         MealPhoto.user_id == current_user.id
@@ -453,10 +479,17 @@ def get_meal_photo_detail(
             detail="Фотография не найдена"
         )
 
-    # Формируем URL изображения
     photo_url = None
     if photo.mime_type != "manual" and photo.file_path not in (None, "", "manual"):
         photo_url = f"{settings.api_domain}/api/v1/meals/photos/{photo.id}"
+
+    health_score = calculate_meal_health_score(
+        calories=photo.calories or 0,
+        protein=photo.protein or 0,
+        fiber=photo.fiber or 0,
+        sugar=photo.sugar or 0,
+        sodium=photo.sodium or 0,
+    )
 
     return {
         "photo": {
@@ -473,14 +506,20 @@ def get_meal_photo_detail(
             "protein": photo.protein,
             "fat": photo.fat,
             "carbs": photo.carbs,
+            "fiber": photo.fiber,
+            "sugar": photo.sugar,
+            "sodium": photo.sodium,
             "created_at": photo.created_at.isoformat() if photo.created_at else None,
             "updated_at": photo.updated_at.isoformat() if photo.updated_at else None,
         },
         "url": photo_url,
-        # Заглушки для будущих фич
         "ingredients": None,
-        "extra_macros": None,
-        "health_score": None,
+        "extra_macros": {
+            "fiber": photo.fiber or 0,
+            "sugar": photo.sugar or 0,
+            "sodium": photo.sodium or 0,
+        },
+        "health_score": health_score,
     }
 
 @router.put("/meals/photos/{photo_id}/confirm", response_model=MealPhotoResponse)
@@ -611,20 +650,38 @@ def get_daily_meals(
     except Exception as e:
         logger.warning(f"Failed to update streak: {e}")
 
-    health_score = None
-    if len(photos) >= 1 and total_calories > 0:
-        score = 50
+    # Рассчитываем оценку здоровья для каждого блюда и среднее значение
+    meal_health_scores = []
+    meals_data = []
+    
+    for p in photos:
+        meal_score = calculate_meal_health_score(
+            calories=p.calories or 0,
+            protein=p.protein or 0,
+            fiber=p.fiber or 0,
+            sugar=p.sugar or 0,
+            sodium=p.sodium or 0,
+        )
+        meal_health_scores.append(meal_score)
         
-        fiber_bonus = min(20, (total_fiber / 38) * 20) if total_fiber else 0
-        
-        protein_bonus = min(15, (total_protein / 70) * 15) if total_protein else 0
-        
-        sugar_penalty = min(20, max(0, (total_sugar - 25) / 65 * 20)) if total_sugar else 0
-        
-        sodium_penalty = min(15, max(0, (total_sodium - 1500) / 2000 * 15)) if total_sodium else 0
-        
-        score = score + fiber_bonus + protein_bonus - sugar_penalty - sodium_penalty
-        health_score = max(0, min(100, int(score)))
+        meals_data.append({
+            "id": p.id,
+            "name": p.meal_name or p.detected_meal_name or "Блюдо",
+            "time": p.created_at.astimezone(tz).strftime("%H:%M"),
+            "calories": p.calories or 0,
+            "protein": p.protein or 0,
+            "carbs": p.carbs or 0,
+            "fats": p.fat or 0,
+            "fiber": p.fiber or 0,
+            "sugar": p.sugar or 0,
+            "sodium": p.sodium or 0,
+            "health_score": meal_score,
+        })
+    
+    # Среднее значение оценки здоровья всех блюд за день
+    avg_health_score = None
+    if meal_health_scores:
+        avg_health_score = round(sum(meal_health_scores) / len(meal_health_scores), 1)
 
     return {
         "date": date,
@@ -635,23 +692,9 @@ def get_daily_meals(
         "total_fiber": total_fiber,
         "total_sugar": total_sugar,
         "total_sodium": total_sodium,
-        "health_score": health_score,
+        "health_score": avg_health_score,
         "streak_count": current_user.streak_count or 0,
-        "meals": [
-            {
-                "id": p.id,
-                "name": p.meal_name or p.detected_meal_name or "Блюдо",
-                "time": p.created_at.astimezone(tz).strftime("%H:%M"),
-                "calories": p.calories or 0,
-                "protein": p.protein or 0,
-                "carbs": p.carbs or 0,
-                "fats": p.fat or 0,
-                "fiber": p.fiber or 0,
-                "sugar": p.sugar or 0,
-                "sodium": p.sodium or 0,
-            }
-            for p in photos
-        ]
+        "meals": meals_data,
     }
 
 @router.post("/meals/daily/batch")
@@ -698,6 +741,37 @@ def get_daily_meals_batch(
       total_sugar = sum(p.sugar or 0 for p in photos)
       total_sodium = sum(p.sodium or 0 for p in photos)
 
+      meal_health_scores = []
+      meals_data = []
+      
+      for p in photos:
+          meal_score = calculate_meal_health_score(
+              calories=p.calories or 0,
+              protein=p.protein or 0,
+              fiber=p.fiber or 0,
+              sugar=p.sugar or 0,
+              sodium=p.sodium or 0,
+          )
+          meal_health_scores.append(meal_score)
+          
+          meals_data.append({
+              "id": p.id,
+              "name": p.meal_name or p.detected_meal_name or "Блюдо",
+              "time": p.created_at.astimezone(tz).strftime("%H:%M"),
+              "calories": p.calories or 0,
+              "protein": p.protein or 0,
+              "carbs": p.carbs or 0,
+              "fats": p.fat or 0,
+              "fiber": p.fiber or 0,
+              "sugar": p.sugar or 0,
+              "sodium": p.sodium or 0,
+              "health_score": meal_score,
+          })
+      
+      avg_health_score = None
+      if meal_health_scores:
+          avg_health_score = round(sum(meal_health_scores) / len(meal_health_scores), 1)
+
       results.append({
           "date": date_str,
           "total_calories": total_calories,
@@ -707,18 +781,8 @@ def get_daily_meals_batch(
           "total_fiber": total_fiber,
           "total_sugar": total_sugar,
           "total_sodium": total_sodium,
-          "meals": [
-              {
-                  "id": p.id,
-                  "name": p.meal_name or p.detected_meal_name or "Блюдо",
-                  "time": p.created_at.astimezone(tz).strftime("%H:%M"),
-                  "calories": p.calories or 0,
-                  "protein": p.protein or 0,
-                  "carbs": p.carbs or 0,
-                  "fats": p.fat or 0,
-              }
-              for p in photos
-          ]
+          "health_score": avg_health_score,
+          "meals": meals_data,
       })
 
     return results
@@ -785,7 +849,7 @@ def delete_meal_photo(
 @router.post("/water", response_model=WaterEntry, status_code=status.HTTP_201_CREATED)
 def add_water(
     payload: WaterCreate,
-    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
+    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -795,7 +859,8 @@ def add_water(
     if created_at is None:
         created_at = datetime.now(timezone.utc)
     elif created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=timezone(timedelta(minutes=tz_offset_minutes or 0))).astimezone(timezone.utc)
+        client_tz = timezone(timedelta(minutes=tz_offset_minutes or 0))
+        created_at = created_at.replace(tzinfo=client_tz).astimezone(timezone.utc)
 
     entry = WaterLog(
         user_id=current_user.id,
