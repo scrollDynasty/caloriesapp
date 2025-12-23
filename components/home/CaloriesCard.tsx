@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { memo, useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -19,6 +19,7 @@ const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targetCalories, onPress }: CaloriesCardProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const overConsumed = consumedCalories >= targetCalories;
   const progress = targetCalories > 0 ? Math.min(1, consumedCalories / targetCalories) : 0;
   
@@ -72,8 +73,8 @@ export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targe
     }).start();
   };
 
-  const progressColor = overConsumed ? "#FF8C42" : progress >= 1 ? "#4CAF50" : "#C5C0B8";
-  const flameColor = "#1A1A1A";
+  const progressColor = overConsumed ? "#FF8C42" : progress >= 1 ? "#4CAF50" : (isDark ? themeColors.gray3 : "#C5C0B8");
+  const flameColor = isDark ? themeColors.text : "#1A1A1A";
 
   const strokeDashoffset = progressAnim.interpolate({
     inputRange: [0, 1],
@@ -87,13 +88,13 @@ export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targe
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
     >
-      <Animated.View style={[styles.caloriesCard, { transform: [{ scale: scaleAnim }] }]}>
+      <Animated.View style={[styles.caloriesCard, { backgroundColor: themeColors.card, transform: [{ scale: scaleAnim }] }]}>
         <View style={styles.leftSection}>
           <View style={styles.caloriesRow}>
-            <Text style={styles.consumedCalories}>{Math.round(consumedCalories)}</Text>
-            <Text style={styles.targetCalories}>/{targetCalories}</Text>
+            <Text style={[styles.consumedCalories, { color: themeColors.text }]}>{Math.round(consumedCalories)}</Text>
+            <Text style={[styles.targetCalories, { color: themeColors.textSecondary }]}>/{targetCalories}</Text>
           </View>
-          <Text style={styles.caloriesLabel}>Съеденные калории</Text>
+          <Text style={[styles.caloriesLabel, { color: themeColors.textSecondary }]}>Съеденные калории</Text>
         </View>
         
         <View style={styles.circularProgress}>
@@ -102,7 +103,7 @@ export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targe
               cx={CIRCLE_SIZE / 2}
               cy={CIRCLE_SIZE / 2}
               r={RADIUS}
-              stroke="#E8E4DC"
+              stroke={isDark ? themeColors.gray4 : "#E8E4DC"}
               strokeWidth={STROKE_WIDTH}
               fill="transparent"
             />
@@ -133,7 +134,6 @@ export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targe
 
 const styles = StyleSheet.create({
   caloriesCard: {
-    backgroundColor: colors.white,
     marginHorizontal: 20,
     marginBottom: 12,
     paddingVertical: 28,
@@ -158,20 +158,17 @@ const styles = StyleSheet.create({
   consumedCalories: {
     fontSize: 52,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     lineHeight: 56,
     letterSpacing: -2,
   },
   targetCalories: {
     fontSize: 22,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     letterSpacing: -0.5,
   },
   caloriesLabel: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     letterSpacing: -0.2,
   },
   circularProgress: {

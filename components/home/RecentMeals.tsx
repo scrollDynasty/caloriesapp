@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { memo, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { RecentMealsSkeleton } from "../ui/Skeleton";
 
 interface Meal {
@@ -36,28 +36,29 @@ export const RecentMeals = memo(function RecentMeals({
   onLoadMore,
   onMealPress,
 }: RecentMealsProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const hasMeals = useMemo(() => meals.length > 0, [meals.length]);
   
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Недавно загружено</Text>
+        <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Недавно загружено</Text>
       </View>
       
       {loading ? (
         <RecentMealsSkeleton count={2} />
       ) : error ? (
-        <TouchableOpacity style={[styles.stateBox, styles.errorBox]} onPress={onRetry}>
+        <TouchableOpacity style={[styles.stateBox, styles.errorBox, { backgroundColor: isDark ? themeColors.card : "#FFF5F5" }]} onPress={onRetry}>
           <Ionicons name="warning-outline" size={24} color="#C62828" />
           <Text style={[styles.stateText, styles.errorText]}>{error}</Text>
-          {onRetry ? <Text style={styles.linkText}>Повторить</Text> : null}
+          {onRetry ? <Text style={[styles.linkText, { color: themeColors.primary }]}>Повторить</Text> : null}
         </TouchableOpacity>
       ) : hasMeals ? (
         <>
           {meals.map((meal) => (
             <TouchableOpacity 
               key={meal.id} 
-              style={styles.mealCard}
+              style={[styles.mealCard, { backgroundColor: themeColors.card }]}
               activeOpacity={0.7}
               onPress={() => onMealPress?.(meal)}
             >
@@ -70,32 +71,32 @@ export const RecentMeals = memo(function RecentMeals({
                     cachePolicy="disk"
                   />
                 ) : (
-                  <View style={styles.placeholderImage}>
-                    <Ionicons name="fast-food" size={32} color="#BDBDBD" />
+                  <View style={[styles.placeholderImage, { backgroundColor: isDark ? themeColors.gray5 : "#F0F0F0" }]}>
+                    <Ionicons name="fast-food" size={32} color={isDark ? themeColors.gray2 : "#BDBDBD"} />
                   </View>
                 )}
               </View>
               <View style={styles.mealInfo}>
                 <View style={styles.mealHeader}>
-                  <Text style={styles.mealName} numberOfLines={1}>{meal.name}</Text>
-                  <Text style={styles.mealTime}>{meal.time}</Text>
+                  <Text style={[styles.mealName, { color: themeColors.text }]} numberOfLines={1}>{meal.name}</Text>
+                  <Text style={[styles.mealTime, { color: themeColors.textTertiary }]}>{meal.time}</Text>
                 </View>
                 <View style={styles.mealCaloriesRow}>
-                  <Ionicons name="flame" size={14} color="#1A1A1A" />
-                  <Text style={styles.mealCalories}>{meal.calories} ккал</Text>
+                  <Ionicons name="flame" size={14} color={themeColors.text} />
+                  <Text style={[styles.mealCalories, { color: themeColors.text }]}>{meal.calories} ккал</Text>
                 </View>
                 <View style={styles.mealMacros}>
                   <View style={styles.macroItem}>
                     <Text style={styles.macroIcon}>🍖</Text>
-                    <Text style={styles.macroText}>{meal.protein}г</Text>
+                    <Text style={[styles.macroText, { color: themeColors.textTertiary }]}>{meal.protein}г</Text>
                   </View>
                   <View style={styles.macroItem}>
                     <Text style={styles.macroIcon}>🌾</Text>
-                    <Text style={styles.macroText}>{meal.carbs}г</Text>
+                    <Text style={[styles.macroText, { color: themeColors.textTertiary }]}>{meal.carbs}г</Text>
                   </View>
                   <View style={styles.macroItem}>
                     <Text style={styles.macroIcon}>🫒</Text>
-                    <Text style={styles.macroText}>{meal.fats}г</Text>
+                    <Text style={[styles.macroText, { color: themeColors.textTertiary }]}>{meal.fats}г</Text>
                   </View>
                 </View>
               </View>
@@ -103,20 +104,20 @@ export const RecentMeals = memo(function RecentMeals({
           ))}
           {onLoadMore ? (
             <TouchableOpacity style={styles.loadMore} onPress={onLoadMore} activeOpacity={0.8}>
-              <Text style={styles.loadMoreText}>Показать ещё</Text>
+              <Text style={[styles.loadMoreText, { color: themeColors.primary }]}>Показать ещё</Text>
             </TouchableOpacity>
           ) : null}
         </>
       ) : (
-        <View style={styles.emptyUploadCard}>
-          <View style={styles.emptyUploadInner}>
-            <View style={styles.emptyThumb} />
+        <View style={[styles.emptyUploadCard, { backgroundColor: themeColors.card }]}>
+          <View style={[styles.emptyUploadInner, { backgroundColor: isDark ? themeColors.gray5 : "#F3F1ED" }]}>
+            <View style={[styles.emptyThumb, { backgroundColor: isDark ? themeColors.gray4 : "#E7E3DC" }]} />
             <View style={styles.emptyLines}>
-              <View style={[styles.emptyLine, { width: "70%" }]} />
-              <View style={[styles.emptyLine, { width: "55%" }]} />
+              <View style={[styles.emptyLine, { width: "70%", backgroundColor: isDark ? themeColors.gray4 : "#E0DBD2" }]} />
+              <View style={[styles.emptyLine, { width: "55%", backgroundColor: isDark ? themeColors.gray4 : "#E0DBD2" }]} />
             </View>
           </View>
-          <Text style={styles.emptyUploadText}>
+          <Text style={[styles.emptyUploadText, { color: themeColors.textSecondary }]}>
             Нажми +, чтобы добавить первый приём пищи{"\n"}за день
           </Text>
           {onAddPress ? (
@@ -144,22 +145,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 19,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     letterSpacing: -0.3,
   },
   stateBox: {
-    backgroundColor: colors.white,
     borderRadius: 10,
     padding: 16,
     alignItems: "center",
     gap: 8,
   },
   errorBox: {
-    backgroundColor: "#FFF5F5",
   },
   stateText: {
     fontSize: 14,
-    color: colors.secondary,
     fontFamily: "Inter_500Medium",
     textAlign: "center",
   },
@@ -168,11 +165,9 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    color: colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
   mealCard: {
-    backgroundColor: colors.white,
     borderRadius: 10,
     padding: 10,
     flexDirection: "row",
@@ -197,7 +192,6 @@ const styles = StyleSheet.create({
   placeholderImage: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#F0F0F0",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -213,7 +207,6 @@ const styles = StyleSheet.create({
   mealName: {
     fontSize: 16,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
     flex: 1,
     marginRight: 8,
     letterSpacing: -0.2,
@@ -221,7 +214,6 @@ const styles = StyleSheet.create({
   mealTime: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: "#8A8A8A",
   },
   mealCaloriesRow: {
     flexDirection: "row",
@@ -231,7 +223,6 @@ const styles = StyleSheet.create({
   mealCalories: {
     fontSize: 14,
     fontFamily: "Inter_700Bold",
-    color: "#000000",
     letterSpacing: -0.2,
   },
   mealMacros: {
@@ -250,45 +241,8 @@ const styles = StyleSheet.create({
   macroText: {
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
-    color: "#8A8A8A",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 48,
-    paddingHorizontal: 24,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-    color: colors.secondary,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    color: colors.secondary,
-    textAlign: "center",
-    opacity: 0.7,
-  },
-  addButton: {
-    marginTop: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  addButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
   },
   emptyUploadCard: {
-    backgroundColor: colors.white,
     borderRadius: 22,
     padding: 18,
     shadowColor: "#000",
@@ -302,7 +256,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "88%",
     borderRadius: 18,
-    backgroundColor: "#F3F1ED",
     padding: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -314,7 +267,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 14,
-    backgroundColor: "#E7E3DC",
   },
   emptyLines: {
     flex: 1,
@@ -323,12 +275,10 @@ const styles = StyleSheet.create({
   emptyLine: {
     height: 8,
     borderRadius: 6,
-    backgroundColor: "#E0DBD2",
   },
   emptyUploadText: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     textAlign: "center",
     lineHeight: 18,
   },
@@ -349,7 +299,6 @@ const styles = StyleSheet.create({
   },
   loadMoreText: {
     fontSize: 14,
-    color: colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
 });

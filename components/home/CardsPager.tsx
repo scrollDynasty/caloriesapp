@@ -11,7 +11,7 @@ import {
   ViewToken,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -124,6 +124,7 @@ const getSecondaryData = (stats: CardsPagerProps["stats"]) => ({
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const [isFlipped, setIsFlipped] = useState(false);
   const flipAnim = useRef(new Animated.Value(0)).current;
   const isAnimating = useRef(false);
@@ -181,7 +182,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
   });
 
   const progress = primaryData.main.progress;
-  const progressColor = progress >= 1 ? "#4CAF50" : "#C5C0B8";
+  const progressColor = progress >= 1 ? "#4CAF50" : (isDark ? themeColors.gray3 : "#C5C0B8");
 
   return (
     <View style={styles.flippableContainer}>
@@ -201,13 +202,13 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
       >
         {/* Calories Card */}
         <TouchableOpacity activeOpacity={0.9} onPress={handleFlip}>
-          <View style={styles.caloriesCard}>
+          <View style={[styles.caloriesCard, { backgroundColor: themeColors.card }]}>
             <View style={styles.caloriesLeft}>
               <View style={styles.caloriesRow}>
-                <Text style={styles.caloriesValue}>{Math.round(primaryData.main.consumed)}</Text>
-                <Text style={styles.caloriesTarget}>/{primaryData.main.target}</Text>
+                <Text style={[styles.caloriesValue, { color: themeColors.text }]}>{Math.round(primaryData.main.consumed)}</Text>
+                <Text style={[styles.caloriesTarget, { color: themeColors.textSecondary }]}>/{primaryData.main.target}</Text>
               </View>
-              <Text style={styles.caloriesLabel}>{primaryData.main.label}</Text>
+              <Text style={[styles.caloriesLabel, { color: themeColors.textSecondary }]}>{primaryData.main.label}</Text>
             </View>
             <View style={styles.caloriesCircle}>
               <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
@@ -215,7 +216,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
                   cx={CIRCLE_SIZE / 2}
                   cy={CIRCLE_SIZE / 2}
                   r={RADIUS}
-                  stroke="#E8E4DC"
+                  stroke={isDark ? themeColors.gray4 : "#E8E4DC"}
                   strokeWidth={STROKE_WIDTH}
                   fill="transparent"
                 />
@@ -234,7 +235,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
                 />
               </Svg>
               <View style={styles.caloriesIconCenter}>
-                <Ionicons name="flame" size={28} color="#1A1A1A" />
+                <Ionicons name="flame" size={28} color={themeColors.text} />
               </View>
             </View>
           </View>
@@ -244,19 +245,19 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         <View style={styles.macrosRow}>
           {primaryData.macros.map((macro, idx) => (
             <TouchableOpacity key={idx} style={styles.macroCardWrapper} activeOpacity={0.9} onPress={handleFlip}>
-              <View style={styles.macroCard}>
+              <View style={[styles.macroCard, { backgroundColor: themeColors.card }]}>
                 <View style={styles.macroValueRow}>
-                  <Text style={styles.macroValue}>{Math.round(macro.consumed)}</Text>
-                  <Text style={styles.macroTarget}>/{macro.target}g</Text>
+                  <Text style={[styles.macroValue, { color: themeColors.text }]}>{Math.round(macro.consumed)}</Text>
+                  <Text style={[styles.macroTarget, { color: themeColors.textSecondary }]}>/{macro.target}g</Text>
                 </View>
-                <Text style={styles.macroLabel}>{macro.label} съедено</Text>
+                <Text style={[styles.macroLabel, { color: themeColors.textSecondary }]}>{macro.label} съедено</Text>
                 <View style={styles.macroCircleContainer}>
                   <Svg width={SMALL_CIRCLE_SIZE} height={SMALL_CIRCLE_SIZE}>
                     <Circle
                       cx={SMALL_CIRCLE_SIZE / 2}
                       cy={SMALL_CIRCLE_SIZE / 2}
                       r={SMALL_RADIUS}
-                      stroke="#E8E4DC"
+                      stroke={isDark ? themeColors.gray4 : "#E8E4DC"}
                       strokeWidth={SMALL_STROKE_WIDTH}
                       fill="transparent"
                     />
@@ -307,19 +308,19 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
               : macro.color;
             return (
               <TouchableOpacity key={idx} style={styles.macroCardWrapper} activeOpacity={0.9} onPress={handleFlip}>
-                <View style={styles.macroCard}>
+                <View style={[styles.macroCard, { backgroundColor: themeColors.card }]}>
                   <View style={styles.macroValueRow}>
-                    <Text style={styles.macroValue}>{Math.round(macro.consumed)}</Text>
-                    <Text style={styles.macroTarget}>/{macro.target}{macro.unit}</Text>
+                    <Text style={[styles.macroValue, { color: themeColors.text }]}>{Math.round(macro.consumed)}</Text>
+                    <Text style={[styles.macroTarget, { color: themeColors.textSecondary }]}>/{macro.target}{macro.unit}</Text>
                   </View>
-                  <Text style={styles.macroLabel}>{macro.label}</Text>
+                  <Text style={[styles.macroLabel, { color: themeColors.textSecondary }]}>{macro.label}</Text>
                   <View style={styles.macroCircleContainer}>
                     <Svg width={SMALL_CIRCLE_SIZE} height={SMALL_CIRCLE_SIZE}>
                       <Circle
                         cx={SMALL_CIRCLE_SIZE / 2}
                         cy={SMALL_CIRCLE_SIZE / 2}
                         r={SMALL_RADIUS}
-                        stroke="#E8E4DC"
+                        stroke={isDark ? themeColors.gray4 : "#E8E4DC"}
                         strokeWidth={SMALL_STROKE_WIDTH}
                         fill="transparent"
                       />
@@ -348,21 +349,22 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         </View>
 
         <TouchableOpacity activeOpacity={0.9} onPress={handleFlip}>
-          <View style={styles.healthScoreCard}>
+          <View style={[styles.healthScoreCard, { backgroundColor: themeColors.card }]}>
             <View style={styles.healthScoreHeader}>
-              <Text style={styles.healthScoreTitle}>Оценка здоровья</Text>
+              <Text style={[styles.healthScoreTitle, { color: themeColors.text }]}>Оценка здоровья</Text>
               <Text style={[
                 styles.healthScoreValue,
-                secondaryData.healthScore !== null && {
-                  color: secondaryData.healthScore >= 7 ? "#4CAF50" 
-                       : secondaryData.healthScore >= 4 ? "#FF9800" 
-                       : "#E91E63"
+                { color: secondaryData.healthScore !== null 
+                  ? (secondaryData.healthScore >= 7 ? "#4CAF50" 
+                     : secondaryData.healthScore >= 4 ? "#FF9800" 
+                     : "#E91E63")
+                  : themeColors.textSecondary
                 }
               ]}>
                 {secondaryData.healthScore !== null ? `${secondaryData.healthScore}/10` : "—"}
               </Text>
             </View>
-            <View style={styles.healthScoreBar}>
+            <View style={[styles.healthScoreBar, { backgroundColor: isDark ? themeColors.gray5 : "#F2EFE9" }]}>
               <View style={[
                 styles.healthScoreBarFill, 
                 { 
@@ -371,11 +373,11 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
                     ? (secondaryData.healthScore >= 7 ? "#4CAF50" 
                        : secondaryData.healthScore >= 4 ? "#FF9800" 
                        : "#E91E63")
-                    : "#DAD4CA"
+                    : (isDark ? themeColors.gray4 : "#DAD4CA")
                 }
               ]} />
             </View>
-            <Text style={styles.healthScoreText}>
+            <Text style={[styles.healthScoreText, { color: themeColors.textSecondary }]}>
               {secondaryData.healthScore !== null 
                 ? (secondaryData.healthScore >= 7 
                     ? "Отличный баланс питательных веществ! Продолжай в том же духе 💪"
@@ -392,54 +394,57 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
 }
 
 function AppleHealthCard() {
+  const { colors: themeColors, isDark } = useTheme();
   return (
-    <View style={styles.appleHealthCard}>
+    <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
       <View style={styles.appleHealthContent}>
-        <View style={styles.appleHealthIcon}>
+        <View style={[styles.appleHealthIcon, { backgroundColor: isDark ? themeColors.gray5 : "#FFF0F0" }]}>
           <Ionicons name="heart" size={24} color="#FF6B6B" />
         </View>
-        <Text style={styles.appleHealthText}>Connect Apple Health to track your steps.</Text>
+        <Text style={[styles.appleHealthText, { color: themeColors.textSecondary }]}>Connect Apple Health to track your steps.</Text>
       </View>
     </View>
   );
 }
 
 function BurnedCaloriesCard() {
+  const { colors: themeColors } = useTheme();
   return (
-    <View style={styles.burnedCard}>
-      <Text style={styles.burnedLabel}>Сожжённые калории</Text>
+    <View style={[styles.burnedCard, { backgroundColor: themeColors.card }]}>
+      <Text style={[styles.burnedLabel, { color: themeColors.textSecondary }]}>Сожжённые калории</Text>
       <View style={styles.burnedRow}>
-        <Text style={styles.burnedValue}>0</Text>
-        <Text style={styles.burnedUnit}>cal</Text>
+        <Text style={[styles.burnedValue, { color: themeColors.text }]}>0</Text>
+        <Text style={[styles.burnedUnit, { color: themeColors.textSecondary }]}>cal</Text>
       </View>
       <View style={styles.stepsRow}>
-        <Ionicons name="walk" size={18} color={colors.secondary} />
-        <Text style={styles.stepsLabel}>Шаги</Text>
+        <Ionicons name="walk" size={18} color={themeColors.textSecondary} />
+        <Text style={[styles.stepsLabel, { color: themeColors.text }]}>Шаги</Text>
       </View>
-      <Text style={styles.stepsValue}>0 cal</Text>
+      <Text style={[styles.stepsValue, { color: themeColors.textSecondary }]}>0 cal</Text>
     </View>
   );
 }
 
 function WaterCard({ consumed, target, onAdd }: { consumed: number; target: number; onAdd?: () => void }) {
+  const { colors: themeColors, isDark } = useTheme();
   return (
-    <View style={styles.waterCard}>
-      <View style={styles.waterIcon}>
+    <View style={[styles.waterCard, { backgroundColor: themeColors.card }]}>
+      <View style={[styles.waterIcon, { backgroundColor: isDark ? themeColors.gray5 : "#E8F4FD" }]}>
         <Ionicons name="water" size={32} color="#4D96FF" />
       </View>
       <View style={styles.waterInfo}>
-        <Text style={styles.waterLabel}>Вода</Text>
+        <Text style={[styles.waterLabel, { color: themeColors.text }]}>Вода</Text>
         <View style={styles.waterValueRow}>
-          <Text style={styles.waterValue}>{consumed} мл</Text>
-          <Ionicons name="settings-outline" size={14} color={colors.secondary} />
+          <Text style={[styles.waterValue, { color: themeColors.textSecondary }]}>{consumed} мл</Text>
+          <Ionicons name="settings-outline" size={14} color={themeColors.textSecondary} />
         </View>
       </View>
       <View style={styles.waterButtons}>
-        <TouchableOpacity style={styles.waterBtn}>
-          <Ionicons name="remove-outline" size={20} color={colors.primary} />
+        <TouchableOpacity style={[styles.waterBtn, { backgroundColor: isDark ? themeColors.gray5 : "#F2EFE9" }]}>
+          <Ionicons name="remove-outline" size={20} color={themeColors.text} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.waterBtnAdd} onPress={onAdd}>
-          <Ionicons name="add" size={20} color={colors.white} />
+        <TouchableOpacity style={[styles.waterBtnAdd, { backgroundColor: themeColors.primary }]} onPress={onAdd}>
+          <Ionicons name="add" size={20} color={themeColors.buttonPrimaryText} />
         </TouchableOpacity>
       </View>
     </View>
@@ -449,6 +454,7 @@ function WaterCard({ consumed, target, onAdd }: { consumed: number; target: numb
 // ==================== MAIN PAGER ====================
 
 export const CardsPager = memo(function CardsPager({ stats, onAddWater }: CardsPagerProps) {
+  const { colors: themeColors } = useTheme();
   const [currentPage, setCurrentPage] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
@@ -502,7 +508,11 @@ export const CardsPager = memo(function CardsPager({ stats, onAddWater }: CardsP
         {pages.map((_, index) => (
           <View
             key={index}
-            style={[styles.dot, currentPage === index && styles.dotActive]}
+            style={[
+              styles.dot, 
+              { backgroundColor: currentPage === index ? themeColors.primary : themeColors.gray4 },
+              currentPage === index && styles.dotActive
+            ]}
           />
         ))}
       </View>
@@ -531,10 +541,8 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#DAD4CA",
   },
   dotActive: {
-    backgroundColor: colors.primary,
     width: 10,
     height: 10,
     borderRadius: 5,
@@ -557,7 +565,6 @@ const styles = StyleSheet.create({
 
   // Calories Card
   caloriesCard: {
-    backgroundColor: colors.white,
     marginHorizontal: 20,
     marginBottom: 12,
     paddingVertical: 28,
@@ -582,20 +589,17 @@ const styles = StyleSheet.create({
   caloriesValue: {
     fontSize: 52,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     lineHeight: 56,
     letterSpacing: -2,
   },
   caloriesTarget: {
     fontSize: 22,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     letterSpacing: -0.5,
   },
   caloriesLabel: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     letterSpacing: -0.2,
   },
   caloriesCircle: {
@@ -629,7 +633,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   macroCard: {
-    backgroundColor: colors.white,
     padding: 14,
     borderRadius: 18,
     alignItems: "flex-start",
@@ -646,18 +649,15 @@ const styles = StyleSheet.create({
   macroValue: {
     fontSize: 22,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     letterSpacing: -0.5,
   },
   macroTarget: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
   },
   macroLabel: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     marginTop: 2,
     marginBottom: 12,
   },
@@ -680,7 +680,6 @@ const styles = StyleSheet.create({
 
   // Health Score Card
   healthScoreCard: {
-    backgroundColor: colors.white,
     marginHorizontal: 20,
     padding: 20,
     borderRadius: 18,
@@ -699,29 +698,24 @@ const styles = StyleSheet.create({
   healthScoreTitle: {
     fontSize: 17,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
   },
   healthScoreValue: {
     fontSize: 17,
     fontFamily: "Inter_700Bold",
-    color: colors.secondary,
   },
   healthScoreBar: {
     height: 6,
-    backgroundColor: "#F2EFE9",
     borderRadius: 3,
     marginBottom: 14,
   },
   healthScoreBarFill: {
     width: "30%",
     height: "100%",
-    backgroundColor: "#DAD4CA",
     borderRadius: 3,
   },
   healthScoreText: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     lineHeight: 20,
   },
 
@@ -734,7 +728,6 @@ const styles = StyleSheet.create({
   },
   appleHealthCard: {
     flex: 1,
-    backgroundColor: colors.white,
     padding: 20,
     borderRadius: 18,
     justifyContent: "center",
@@ -754,19 +747,16 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#FFF0F0",
     alignItems: "center",
     justifyContent: "center",
   },
   appleHealthText: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     textAlign: "center",
   },
   burnedCard: {
     flex: 1,
-    backgroundColor: colors.white,
     padding: 16,
     borderRadius: 18,
     shadowColor: "#000",
@@ -778,7 +768,6 @@ const styles = StyleSheet.create({
   burnedLabel: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     marginBottom: 4,
   },
   burnedRow: {
@@ -790,12 +779,10 @@ const styles = StyleSheet.create({
   burnedValue: {
     fontSize: 28,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
   },
   burnedUnit: {
     fontSize: 15,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
   },
   stepsRow: {
     flexDirection: "row",
@@ -805,18 +792,15 @@ const styles = StyleSheet.create({
   stepsLabel: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
   },
   stepsValue: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     marginTop: 2,
   },
 
   // Water Card
   waterCard: {
-    backgroundColor: colors.white,
     marginHorizontal: 20,
     padding: 16,
     borderRadius: 18,
@@ -832,7 +816,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 14,
-    backgroundColor: "#E8F4FD",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 14,
@@ -843,7 +826,6 @@ const styles = StyleSheet.create({
   waterLabel: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
   },
   waterValueRow: {
     flexDirection: "row",
@@ -853,7 +835,6 @@ const styles = StyleSheet.create({
   waterValue: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
   },
   waterButtons: {
     flexDirection: "row",
@@ -863,7 +844,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F2EFE9",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -871,7 +851,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
   },

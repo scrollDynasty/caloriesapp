@@ -1,24 +1,25 @@
 import { Ionicons } from "@expo/vector-icons";
 import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 interface HomeHeaderProps {
   streak?: number;
 }
 
 export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderProps) {
+  const { colors: themeColors, isDark } = useTheme();
   return (
     <View style={styles.header}>
       <View style={styles.headerTitle}>
-        <View style={styles.logoContainer}>
-          <Ionicons name="logo-apple" size={18} color={colors.primary} />
+        <View style={[styles.logoContainer, { backgroundColor: isDark ? themeColors.gray5 : "#EFECE5" }]}>
+          <Ionicons name="logo-apple" size={18} color={themeColors.text} />
         </View>
-        <Text style={styles.appName}>Yeb Ich</Text>
+        <Text style={[styles.appName, { color: themeColors.text }]}>Yeb Ich</Text>
       </View>
-      <View style={styles.streakBadge}>
+      <View style={[styles.streakBadge, { backgroundColor: themeColors.card }]}>
         <Ionicons name="flame" size={18} color="#FF9F43" />
-        <Text style={styles.streakText}>{streak}</Text>
+        <Text style={[styles.streakText, { color: themeColors.text }]}>{streak}</Text>
       </View>
     </View>
   );
@@ -42,21 +43,18 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#EFECE5",
     alignItems: "center",
     justifyContent: "center",
   },
   appName: {
     fontSize: 24,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     letterSpacing: -0.5,
   },
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: colors.white,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 22,
@@ -69,7 +67,6 @@ const styles = StyleSheet.create({
   streakText: {
     fontSize: 15,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     letterSpacing: -0.2,
   },
 });

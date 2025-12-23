@@ -1,13 +1,14 @@
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function RecipesScreen() {
+  const { colors: themeColors } = useTheme();
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={["top"]}>
       <View style={styles.content}>
-        <Text style={styles.title}>Рецепты</Text>
-        <Text style={styles.subtitle}>Скоро здесь появятся рецепты</Text>
+        <Text style={[styles.title, { color: themeColors.text }]}>Рецепты</Text>
+        <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>Скоро здесь появятся рецепты</Text>
       </View>
     </SafeAreaView>
   );
@@ -16,7 +17,6 @@ export default function RecipesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -27,13 +27,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
   },
 });
 

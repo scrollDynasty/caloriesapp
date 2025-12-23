@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef } from "react";
 import { Animated, DimensionValue, StyleSheet, View, ViewStyle } from "react-native";
+import { useTheme } from "../../context/ThemeContext";
 
 interface SkeletonProps {
   width?: DimensionValue;
@@ -14,6 +15,7 @@ export const Skeleton = memo(function Skeleton({
   borderRadius = 8,
   style 
 }: SkeletonProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const opacity = useRef(new Animated.Value(0.3)).current;
 
   useEffect(() => {
@@ -39,7 +41,13 @@ export const Skeleton = memo(function Skeleton({
     <Animated.View
       style={[
         styles.skeleton,
-        { width, height, borderRadius, opacity },
+        { 
+          width, 
+          height, 
+          borderRadius, 
+          opacity,
+          backgroundColor: isDark ? themeColors.gray4 : "#E8E4DC",
+        },
         style,
       ]}
     />
@@ -48,8 +56,9 @@ export const Skeleton = memo(function Skeleton({
 
 // Skeleton для карточки калорий
 export const CaloriesCardSkeleton = memo(function CaloriesCardSkeleton() {
+  const { colors: themeColors } = useTheme();
   return (
-    <View style={styles.caloriesCard}>
+    <View style={[styles.caloriesCard, { backgroundColor: themeColors.card }]}>
       <View style={styles.caloriesLeft}>
         <Skeleton width={140} height={48} borderRadius={8} />
         <Skeleton width={100} height={14} borderRadius={6} style={{ marginTop: 8 }} />
@@ -61,10 +70,11 @@ export const CaloriesCardSkeleton = memo(function CaloriesCardSkeleton() {
 
 // Skeleton для карточек макросов
 export const MacrosRowSkeleton = memo(function MacrosRowSkeleton() {
+  const { colors: themeColors } = useTheme();
   return (
     <View style={styles.macrosRow}>
       {[1, 2, 3].map((i) => (
-        <View key={i} style={styles.macroCard}>
+        <View key={i} style={[styles.macroCard, { backgroundColor: themeColors.card }]}>
           <Skeleton width={60} height={22} borderRadius={6} />
           <Skeleton width={80} height={12} borderRadius={4} style={{ marginTop: 6 }} />
           <Skeleton width={52} height={52} borderRadius={26} style={{ marginTop: 12, alignSelf: "center" }} />
@@ -86,8 +96,9 @@ export const NutritionCardSkeleton = memo(function NutritionCardSkeleton() {
 
 // Skeleton для карточки еды
 export const MealCardSkeleton = memo(function MealCardSkeleton() {
+  const { colors: themeColors } = useTheme();
   return (
-    <View style={styles.mealCard}>
+    <View style={[styles.mealCard, { backgroundColor: themeColors.card }]}>
       <Skeleton width={72} height={72} borderRadius={20} />
       <View style={styles.mealInfo}>
         <View style={styles.mealHeader}>
@@ -118,13 +129,11 @@ export const RecentMealsSkeleton = memo(function RecentMealsSkeleton({ count = 2
 
 const styles = StyleSheet.create({
   skeleton: {
-    backgroundColor: "#E8E4DC",
   },
   nutritionContainer: {
     paddingHorizontal: 0,
   },
   caloriesCard: {
-    backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
     marginBottom: 12,
     paddingVertical: 28,
@@ -150,7 +159,6 @@ const styles = StyleSheet.create({
   },
   macroCard: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
     padding: 14,
     borderRadius: 18,
     shadowColor: "#000",
@@ -160,7 +168,6 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   mealCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 10,
     padding: 10,
     flexDirection: "row",

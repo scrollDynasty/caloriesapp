@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { getTodayLocal } from "../../utils/timezone";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -92,6 +92,7 @@ interface DayCircleProps {
 }
 
 function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, onPress }: DayCircleProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const progressAnim = useRef(new Animated.Value(0)).current;
   
   const hasProgress = progress > 0 && progress < 1;
@@ -106,16 +107,16 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
     }).start();
   }, [progress, progressAnim]);
   
-  let bgStrokeColor = "#DAD4CA";
+  let bgStrokeColor = isDark ? themeColors.gray4 : "#DAD4CA";
   let progressColor = "#FF6B6B";
   let strokeDasharray: number | string = "2 4";
   let showProgressCircle = false;
   
   if (isSelected) {
-    bgStrokeColor = colors.primary;
+    bgStrokeColor = themeColors.primary;
     strokeDasharray = "2 4";
     if (progress > 0) {
-      progressColor = colors.primary;
+      progressColor = themeColors.primary;
       showProgressCircle = true;
     }
   } else if (isFullyAchieved) {
@@ -124,12 +125,12 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
     progressColor = "#FF6B6B";
     showProgressCircle = true;
   } else if (hasProgress) {
-    bgStrokeColor = "#DAD4CA";
+    bgStrokeColor = isDark ? themeColors.gray4 : "#DAD4CA";
     strokeDasharray = "2 4";
     progressColor = "#FF6B6B";
     showProgressCircle = true;
   } else {
-    bgStrokeColor = "#DAD4CA";
+    bgStrokeColor = isDark ? themeColors.gray4 : "#DAD4CA";
     strokeDasharray = "2 4";
     showProgressCircle = false;
   }
@@ -141,11 +142,11 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
 
   return (
     <TouchableOpacity
-      style={[styles.calendarDay, isSelected && styles.calendarDaySelected]}
+      style={[styles.calendarDay, isSelected && [styles.calendarDaySelected, { backgroundColor: isDark ? themeColors.card : "rgba(255, 255, 255, 0.9)" }]]}
       onPress={() => onPress(date)}
       activeOpacity={0.7}
     >
-      <Text style={[styles.calendarDayName, isSelected && styles.calendarDayNameActive]}>{dayName}</Text>
+      <Text style={[styles.calendarDayName, { color: isSelected ? themeColors.text : themeColors.textSecondary }, isSelected && styles.calendarDayNameActive]}>{dayName}</Text>
       <View style={styles.circleContainer}>
         <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
           <Circle
@@ -177,6 +178,7 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
           <Text
             style={[
               styles.calendarDateText,
+              { color: isSelected ? themeColors.text : themeColors.textSecondary },
               isSelected && styles.calendarDateTextActive,
             ]}
           >
@@ -206,7 +208,6 @@ const styles = StyleSheet.create({
   },
   calendarDaySelected: {
     width: 56,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 14,
@@ -216,11 +217,9 @@ const styles = StyleSheet.create({
   calendarDayName: {
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
-    color: colors.secondary,
     letterSpacing: -0.1,
   },
   calendarDayNameActive: {
-    color: colors.primary,
     fontFamily: "Inter_700Bold",
   },
   circleContainer: {
@@ -238,13 +237,11 @@ const styles = StyleSheet.create({
   calendarDateText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.secondary,
     letterSpacing: -0.2,
   },
   calendarDateTextActive: {
     fontSize: 16,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     letterSpacing: -0.3,
   },
 });

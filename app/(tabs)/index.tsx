@@ -18,7 +18,6 @@ import { HomeHeader } from "../../components/home/HomeHeader";
 import { RecentMeals } from "../../components/home/RecentMeals";
 import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { NutritionCardSkeleton } from "../../components/ui/Skeleton";
-import { colors } from "../../constants/theme";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 import { apiService, MealPhoto } from "../../services/api";
@@ -619,7 +618,7 @@ export default function HomeScreen() {
       <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={themeColors.primary} />
-          <Text style={styles.loadingText}>Загрузка данных...</Text>
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>Загрузка данных...</Text>
         </View>
       </SafeAreaView>
     );
@@ -652,9 +651,9 @@ export default function HomeScreen() {
         )}
 
         {dailyError ? (
-          <TouchableOpacity style={styles.errorBox} onPress={() => loadDailyData(selectedDateTimestamp)}>
+          <TouchableOpacity style={[styles.errorBox, { backgroundColor: isDark ? themeColors.card : "#FFF3F3" }]} onPress={() => loadDailyData(selectedDateTimestamp)}>
             <Text style={styles.errorText}>{dailyError}</Text>
-            <Text style={styles.errorLink}>Повторить</Text>
+            <Text style={[styles.errorLink, { color: themeColors.primary }]}>Повторить</Text>
           </TouchableOpacity>
         ) : null}
 
@@ -676,7 +675,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -686,7 +684,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: colors.secondary,
     fontFamily: "Inter_400Regular",
   },
   loadingBlock: {
@@ -706,7 +703,6 @@ const styles = StyleSheet.create({
   errorBox: {
     marginTop: 8,
     padding: 14,
-    backgroundColor: "#FFF3F3",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#F2C2C2",
@@ -719,7 +715,6 @@ const styles = StyleSheet.create({
   },
   errorLink: {
     fontSize: 14,
-    color: colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
   scrollView: {
@@ -736,6 +731,5 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
   },
 });

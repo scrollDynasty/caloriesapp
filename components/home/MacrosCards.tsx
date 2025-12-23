@@ -1,7 +1,7 @@
 import { memo, useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -29,6 +29,7 @@ interface MacroCardProps {
 }
 
 function MacroCard({ consumed, target, label, progress, color, icon, onPress }: MacroCardProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const progressAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -72,19 +73,19 @@ function MacroCard({ consumed, target, label, progress, color, icon, onPress }: 
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
     >
-      <Animated.View style={[styles.macroCard, { transform: [{ scale: scaleAnim }] }]}>
+      <Animated.View style={[styles.macroCard, { backgroundColor: themeColors.card, transform: [{ scale: scaleAnim }] }]}>
         <View style={styles.valueRow}>
-          <Text style={styles.macroValue}>{Math.round(consumed)}</Text>
-          <Text style={styles.macroTarget}>/{target}g</Text>
+          <Text style={[styles.macroValue, { color: themeColors.text }]}>{Math.round(consumed)}</Text>
+          <Text style={[styles.macroTarget, { color: themeColors.textSecondary }]}>/{target}g</Text>
         </View>
-        <Text style={styles.macroLabel}>{label} съедено</Text>
+        <Text style={[styles.macroLabel, { color: themeColors.textSecondary }]}>{label} съедено</Text>
         <View style={styles.circleContainer}>
           <Svg width={CIRCLE_SIZE} height={CIRCLE_SIZE}>
             <Circle
               cx={CIRCLE_SIZE / 2}
               cy={CIRCLE_SIZE / 2}
               r={RADIUS}
-              stroke="#E8E4DC"
+              stroke={isDark ? themeColors.gray4 : "#E8E4DC"}
               strokeWidth={STROKE_WIDTH}
               fill="transparent"
             />
@@ -160,7 +161,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   macroCard: {
-    backgroundColor: colors.white,
     padding: 14,
     paddingTop: 14,
     paddingBottom: 14,
@@ -179,18 +179,15 @@ const styles = StyleSheet.create({
   macroValue: {
     fontSize: 22,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     letterSpacing: -0.5,
   },
   macroTarget: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
   },
   macroLabel: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
     marginTop: 2,
     marginBottom: 12,
   },

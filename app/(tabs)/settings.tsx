@@ -17,7 +17,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
-import { colors } from "../../constants/theme";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
@@ -38,12 +37,13 @@ interface UserInfo {
 
 // Section Header
 function SectionHeader({ title, rightText, onRightPress }: { title: string; rightText?: string; onRightPress?: () => void }) {
+  const { colors: themeColors } = useTheme();
   return (
     <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: themeColors.textTertiary }]}>{title}</Text>
       {rightText && (
         <TouchableOpacity onPress={onRightPress}>
-          <Text style={styles.sectionRight}>{rightText}</Text>
+          <Text style={[styles.sectionRight, { color: themeColors.text }]}>{rightText}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -68,25 +68,26 @@ function MenuItem({
   isLast?: boolean;
   danger?: boolean;
 }) {
+  const { colors: themeColors, isDark } = useTheme();
   return (
     <TouchableOpacity 
-      style={[styles.menuItem, isLast && styles.menuItemLast]} 
+      style={[styles.menuItem, { borderColor: isDark ? themeColors.separator : "#F2F2F2" }, isLast && styles.menuItemLast]} 
       onPress={onPress} 
       activeOpacity={0.7}
     >
       <View style={styles.menuLeft}>
-        <View style={[styles.menuIconBox, danger && styles.menuIconBoxDanger]}>
-          <Ionicons name={icon} size={18} color={danger ? "#FF4444" : colors.primary} />
+        <View style={[styles.menuIconBox, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }, danger && { backgroundColor: isDark ? themeColors.gray5 : "#FFEEEE" }]}>
+          <Ionicons name={icon} size={18} color={danger ? "#FF4444" : themeColors.text} />
         </View>
         <View>
-          <Text style={[styles.menuText, danger && styles.menuTextDanger]}>{title}</Text>
-          {subtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
+          <Text style={[styles.menuText, { color: danger ? "#FF4444" : themeColors.text }]}>{title}</Text>
+          {subtitle && <Text style={[styles.menuSubtitle, { color: themeColors.textSecondary }]}>{subtitle}</Text>}
         </View>
       </View>
       {rightText ? (
-        <Text style={styles.menuRightText}>{rightText}</Text>
+        <Text style={[styles.menuRightText, { color: themeColors.textSecondary }]}>{rightText}</Text>
       ) : (
-        <Ionicons name="chevron-forward" size={16} color="#C0C0C0" />
+        <Ionicons name="chevron-forward" size={16} color={themeColors.textTertiary} />
       )}
     </TouchableOpacity>
   );
@@ -294,45 +295,45 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <Text style={styles.headerTitle}>Профиль</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text }]}>Профиль</Text>
 
         {/* Profile Card */}
         <TouchableOpacity 
-          style={styles.profileCard} 
+          style={[styles.profileCard, { backgroundColor: themeColors.card }]} 
           activeOpacity={0.8}
           onPress={() => router.push("/edit-profile" as any)}
         >
-          <View style={styles.avatar}>
+          <View style={[styles.avatar, { backgroundColor: isDark ? themeColors.gray5 : "#EFEFEF" }]}>
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.avatarImage} contentFit="cover" />
             ) : (
-              <Text style={styles.avatarText}>{(displayName).slice(0, 1).toUpperCase()}</Text>
+              <Text style={[styles.avatarText, { color: themeColors.text }]}>{(displayName).slice(0, 1).toUpperCase()}</Text>
             )}
           </View>
           <View style={styles.profileInfo}>
             <View style={styles.premiumBadge}>
               <Text style={styles.premiumIcon}>👑</Text>
-              <Text style={styles.premiumText}>Премиум</Text>
+              <Text style={[styles.premiumText, { color: "#B8860B" }]}>Премиум</Text>
             </View>
-            <Text style={styles.name}>{displayName}</Text>
-            <Text style={styles.username}>@{displayUsername}</Text>
+            <Text style={[styles.name, { color: themeColors.text }]}>{displayName}</Text>
+            <Text style={[styles.username, { color: themeColors.textSecondary }]}>@{displayUsername}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#C0C0C0" />
+          <Ionicons name="chevron-forward" size={20} color={themeColors.textTertiary} />
         </TouchableOpacity>
 
         {/* App Theme */}
         <SectionHeader title="App Theme" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <View style={styles.themeItem}>
             <Text style={styles.themeIcon}>🎄</Text>
             <View style={styles.themeInfo}>
-              <Text style={styles.themeTitle}>Feel the Holiday Magic</Text>
-              <Text style={styles.themeSubtitle}>Let your app sparkle with snow and Christmas cheer.</Text>
+              <Text style={[styles.themeTitle, { color: themeColors.text }]}>Feel the Holiday Magic</Text>
+              <Text style={[styles.themeSubtitle, { color: themeColors.textSecondary }]}>Let your app sparkle with snow and Christmas cheer.</Text>
             </View>
             <Switch 
               value={holidayTheme} 
               onValueChange={setHolidayTheme}
-              trackColor={{ false: "#E0E0E0", true: "#4CAF50" }}
+              trackColor={{ false: isDark ? themeColors.gray4 : "#E0E0E0", true: "#4CAF50" }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -340,24 +341,24 @@ export default function SettingsScreen() {
 
         {/* Invite Friends */}
         <SectionHeader title="Пригласить друзей" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <TouchableOpacity style={styles.referralCard} activeOpacity={0.7}>
-            <View style={styles.referralIcon}>
-              <Ionicons name="person-add-outline" size={24} color={colors.primary} />
+            <View style={[styles.referralIcon, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }]}>
+              <Ionicons name="person-add-outline" size={24} color={themeColors.text} />
             </View>
             <View style={styles.referralInfo}>
-              <Text style={styles.referralTitle}>Пригласи друга и получи $10</Text>
-              <Text style={styles.referralSubtitle}>
+              <Text style={[styles.referralTitle, { color: themeColors.text }]}>Пригласи друга и получи $10</Text>
+              <Text style={[styles.referralSubtitle, { color: themeColors.textSecondary }]}>
                 Заработай $10 за каждого друга, который зарегистрируется с твоим промокодом.
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#C0C0C0" />
+            <Ionicons name="chevron-forward" size={20} color={themeColors.textTertiary} />
           </TouchableOpacity>
         </View>
 
         {/* Account */}
         <SectionHeader title="Аккаунт" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="person-outline" title="Личные данные" onPress={() => router.push("/personal-data" as any)} />
           <MenuItem icon="settings-outline" title="Настройки" onPress={() => router.push("/app-settings" as any)} />
           <MenuItem icon="language-outline" title="Язык" />
@@ -366,7 +367,7 @@ export default function SettingsScreen() {
 
         {/* Goals & Tracking */}
         <SectionHeader title="Цели и отслеживание" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="navigate-outline" title="Изменить цели питания" onPress={() => router.push("/nutrition-goals" as any)} />
           <MenuItem icon="flag-outline" title="Цели и текущий вес" />
           <MenuItem icon="time-outline" title="История веса" />
@@ -376,9 +377,9 @@ export default function SettingsScreen() {
         {/* Widgets */}
         <View style={styles.widgetsSection}>
           <View style={styles.widgetsHeader}>
-            <Text style={styles.widgetsTitle}>Виджеты</Text>
+            <Text style={[styles.widgetsTitle, { color: themeColors.textTertiary }]}>Виджеты</Text>
             <TouchableOpacity onPress={() => {}}>
-              <Text style={styles.widgetsHowToAdd}>Как добавить?</Text>
+              <Text style={[styles.widgetsHowToAdd, { color: themeColors.text }]}>Как добавить?</Text>
             </TouchableOpacity>
           </View>
           <ScrollView 
@@ -387,7 +388,7 @@ export default function SettingsScreen() {
             contentContainerStyle={styles.widgetsScrollContent}
           >
             {/* Streak Widget */}
-            <View style={styles.widgetStreakCard}>
+            <View style={[styles.widgetStreakCard, { backgroundColor: themeColors.card }]}>
               <View style={styles.widgetStreakStar}>
                 <Text style={styles.widgetStarIcon}>✨</Text>
               </View>
@@ -396,7 +397,7 @@ export default function SettingsScreen() {
             </View>
             
             {/* Calories + Macros Combined */}
-            <View style={styles.widgetCombinedCard}>
+            <View style={[styles.widgetCombinedCard, { backgroundColor: themeColors.card }]}>
               <View style={styles.widgetCaloriesSection}>
                 {(() => {
                   const targetCalories = onboardingData?.target_calories || 0;
@@ -412,7 +413,7 @@ export default function SettingsScreen() {
                           cx={42.5}
                           cy={42.5}
                           r={38}
-                          stroke="#E8E4DC"
+                          stroke={isDark ? themeColors.gray4 : "#E8E4DC"}
                           strokeWidth={6}
                           fill="none"
                         />
@@ -421,7 +422,7 @@ export default function SettingsScreen() {
                             cx={42.5}
                             cy={42.5}
                             r={38}
-                            stroke={colors.primary}
+                            stroke={themeColors.primary}
                             strokeWidth={6}
                             fill="none"
                             strokeDasharray={CIRCUMFERENCE}
@@ -432,8 +433,8 @@ export default function SettingsScreen() {
                         )}
                       </Svg>
                       <View style={styles.widgetCaloriesTextContainer}>
-                        <Text style={styles.widgetCaloriesValue}>{remaining}</Text>
-                        <Text style={styles.widgetCaloriesLabel}>Осталось ка...</Text>
+                        <Text style={[styles.widgetCaloriesValue, { color: themeColors.text }]}>{remaining}</Text>
+                        <Text style={[styles.widgetCaloriesLabel, { color: themeColors.textSecondary }]}>Осталось ка...</Text>
                       </View>
                     </View>
                   );
@@ -452,18 +453,18 @@ export default function SettingsScreen() {
                     <>
                       <View style={styles.widgetMacroRow}>
                         <Ionicons name="flash" size={14} color="#FF6B6B" />
-                        <Text style={styles.widgetMacroValue}>{Math.round(remainingProtein)}g</Text>
-                        <Text style={styles.widgetMacroLabel}>Белки left</Text>
+                        <Text style={[styles.widgetMacroValue, { color: themeColors.text }]}>{Math.round(remainingProtein)}g</Text>
+                        <Text style={[styles.widgetMacroLabel, { color: themeColors.textSecondary }]}>Белки left</Text>
                       </View>
                       <View style={styles.widgetMacroRow}>
                         <Text style={styles.widgetMacroIcon}>🌾</Text>
-                        <Text style={styles.widgetMacroValue}>{Math.round(remainingCarbs)}g</Text>
-                        <Text style={styles.widgetMacroLabel}>Углеводы left</Text>
+                        <Text style={[styles.widgetMacroValue, { color: themeColors.text }]}>{Math.round(remainingCarbs)}g</Text>
+                        <Text style={[styles.widgetMacroLabel, { color: themeColors.textSecondary }]}>Углеводы left</Text>
                       </View>
                       <View style={styles.widgetMacroRow}>
                         <Ionicons name="water" size={14} color="#4D96FF" />
-                        <Text style={styles.widgetMacroValue}>{Math.round(remainingFats)}g</Text>
-                        <Text style={styles.widgetMacroLabel}>Жиры left</Text>
+                        <Text style={[styles.widgetMacroValue, { color: themeColors.text }]}>{Math.round(remainingFats)}g</Text>
+                        <Text style={[styles.widgetMacroLabel, { color: themeColors.textSecondary }]}>Жиры left</Text>
                       </View>
                     </>
                   );
@@ -473,13 +474,13 @@ export default function SettingsScreen() {
             
             {/* Action Buttons */}
             <View style={styles.widgetActionsColumn}>
-              <TouchableOpacity style={styles.widgetActionBtn} activeOpacity={0.7} onPress={() => {}}>
-                <Ionicons name="scan-outline" size={18} color={colors.primary} />
-                <Text style={styles.widgetActionBtnText}>Сканиров...</Text>
+              <TouchableOpacity style={[styles.widgetActionBtn, { backgroundColor: themeColors.card }]} activeOpacity={0.7} onPress={() => {}}>
+                <Ionicons name="scan-outline" size={18} color={themeColors.text} />
+                <Text style={[styles.widgetActionBtnText, { color: themeColors.text }]}>Сканиров...</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.widgetActionBtn} activeOpacity={0.7} onPress={() => {}}>
-                <Ionicons name="barcode-outline" size={18} color={colors.primary} />
-                <Text style={styles.widgetActionBtnText}>Штрих-код</Text>
+              <TouchableOpacity style={[styles.widgetActionBtn, { backgroundColor: themeColors.card }]} activeOpacity={0.7} onPress={() => {}}>
+                <Ionicons name="barcode-outline" size={18} color={themeColors.text} />
+                <Text style={[styles.widgetActionBtnText, { color: themeColors.text }]}>Штрих-код</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -487,7 +488,7 @@ export default function SettingsScreen() {
 
         {/* Support & Legal */}
         <SectionHeader title="Поддержка и юридическая информация" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="bulb-outline" title="Запросить функцию" />
           <MenuItem icon="mail-outline" title="Написать в поддержку" />
           <MenuItem icon="share-outline" title="Export PDF Summary Report" />
@@ -498,7 +499,7 @@ export default function SettingsScreen() {
 
         {/* Social */}
         <SectionHeader title="Следи за нами" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="logo-instagram" title="Instagram" onPress={() => openLink("https://instagram.com")} />
           <MenuItem icon="logo-tiktok" title="TikTok" onPress={() => openLink("https://tiktok.com")} />
           <MenuItem icon="logo-twitter" title="X" onPress={() => openLink("https://x.com")} isLast />
@@ -506,7 +507,7 @@ export default function SettingsScreen() {
 
         {/* Account Actions */}
         <SectionHeader title="Действия с аккаунтом" />
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="log-out-outline" title="Выйти" onPress={handleLogout} />
           <MenuItem icon="trash-outline" title="Удалить аккаунт" onPress={handleDeleteAccount} danger isLast />
         </View>
@@ -520,7 +521,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -532,18 +532,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
   },
   headerTitle: {
     fontSize: 32,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 20,
@@ -551,7 +548,6 @@ const styles = StyleSheet.create({
   // Profile Card
   profileCard: {
     marginHorizontal: 20,
-    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 16,
     flexDirection: "row",
@@ -566,7 +562,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#EFEFEF",
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -578,7 +573,6 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 22,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
   },
   profileInfo: {
     flex: 1,
@@ -596,17 +590,14 @@ const styles = StyleSheet.create({
   premiumText: {
     fontSize: 11,
     fontFamily: "Inter_600SemiBold",
-    color: "#B8860B",
   },
   name: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
   },
   username: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     marginTop: 1,
   },
   // Section Header
@@ -621,19 +612,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: colors.secondary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   sectionRight: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: colors.primary,
   },
   // Section
   section: {
     marginHorizontal: 20,
-    backgroundColor: colors.white,
     borderRadius: 16,
     overflow: "hidden",
     shadowColor: "#000",
@@ -658,12 +646,10 @@ const styles = StyleSheet.create({
   themeTitle: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
   },
   themeSubtitle: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     marginTop: 2,
   },
   // Referral Card
@@ -677,7 +663,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#F5F5F5",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -687,12 +672,10 @@ const styles = StyleSheet.create({
   referralTitle: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
   },
   referralSubtitle: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     marginTop: 4,
     lineHeight: 18,
   },
@@ -704,7 +687,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: "#F2F2F2",
   },
   menuItemLast: {
     borderBottomWidth: 0,
@@ -719,31 +701,25 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: "#F5F5F5",
     alignItems: "center",
     justifyContent: "center",
   },
   menuIconBoxDanger: {
-    backgroundColor: "#FFEEEE",
   },
   menuText: {
     fontSize: 15,
     fontFamily: "Inter_500Medium",
-    color: colors.primary,
   },
   menuTextDanger: {
-    color: "#FF4444",
   },
   menuSubtitle: {
     fontSize: 12,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     marginTop: 2,
   },
   menuRightText: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
   },
   // Widgets
   widgetsSection: {
@@ -759,14 +735,12 @@ const styles = StyleSheet.create({
   widgetsTitle: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: colors.secondary,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   widgetsHowToAdd: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: colors.primary,
   },
   widgetsScrollContent: {
     paddingHorizontal: 20,
@@ -774,7 +748,6 @@ const styles = StyleSheet.create({
   },
   // Streak Card (огонёк)
   widgetStreakCard: {
-    backgroundColor: colors.white,
     borderRadius: 18,
     padding: 14,
     width: 90,
@@ -790,7 +763,6 @@ const styles = StyleSheet.create({
   },
   // Combined Card (калории + макросы)
   widgetCombinedCard: {
-    backgroundColor: colors.white,
     borderRadius: 18,
     padding: 14,
     flexDirection: "row",
@@ -821,7 +793,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   widgetActionBtn: {
-    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 10,
     alignItems: "center",
@@ -838,7 +809,6 @@ const styles = StyleSheet.create({
   widgetActionBtnText: {
     fontSize: 9,
     fontFamily: "Inter_500Medium",
-    color: colors.primary,
     textAlign: "center",
   },
   // Streak Widget
@@ -878,12 +848,10 @@ const styles = StyleSheet.create({
   widgetCaloriesValue: {
     fontSize: 22,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
   },
   widgetCaloriesLabel: {
     fontSize: 9,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     textAlign: "center",
   },
   // Macros
@@ -893,12 +861,10 @@ const styles = StyleSheet.create({
   widgetMacroValue: {
     fontSize: 15,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
   },
   widgetMacroLabel: {
     fontSize: 11,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
   },
   bottomSpacer: {
     height: 20,
