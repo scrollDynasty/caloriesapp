@@ -5,7 +5,7 @@ import { Tabs, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors } from "../../constants/theme";
+import { defaultColors, useTheme } from "../../context/ThemeContext";
 import { useAvatarUri } from "../../stores/userPreferences";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -25,7 +25,7 @@ const MARGIN = 16;
 const GAP_BETWEEN = 2;
 
 // Custom Tab Button с закруглённым фоном и плавной анимацией
-const CustomTabButton = ({ children, onPress, accessibilityState }: any) => {
+const CustomTabButton = ({ children, onPress, accessibilityState, themeColors }: any) => {
   const focused = accessibilityState?.selected;
   const animValue = useRef(new Animated.Value(focused ? 1 : 0)).current;
 
@@ -37,9 +37,10 @@ const CustomTabButton = ({ children, onPress, accessibilityState }: any) => {
     }).start();
   }, [focused, animValue]);
 
+  const bgColor = themeColors?.card || "#FFFFFF";
   const backgroundColor = animValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['transparent', colors.white],
+    outputRange: ['transparent', bgColor],
   });
 
   return (
@@ -66,6 +67,7 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const avatarUri = useAvatarUri();
+  const { colors, isDark } = useTheme();
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
   const tabBarBottom = Math.max(insets.bottom, 12);
@@ -142,31 +144,34 @@ export default function TabsLayout() {
   });
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: colors.primary,
           tabBarInactiveTintColor: colors.secondary,
           tabBarShowLabel: false,
-          tabBarButton: (props) => <CustomTabButton {...props} />,
+          tabBarButton: (props) => <CustomTabButton {...props} themeColors={colors} />,
           tabBarStyle: {
             position: "absolute",
             bottom: tabBarBottom,
             left: MARGIN,
             width: tabBarWidth,
             height: TAB_BAR_HEIGHT,
-            backgroundColor: colors.background,
+            backgroundColor: isDark ? colors.card : colors.background,
             borderTopWidth: 0,
             borderRadius: 28,
             elevation: 8,
             shadowColor: "#000",
-            shadowOpacity: 0.08,
+            shadowOpacity: isDark ? 0.3 : 0.08,
             shadowRadius: 24,
             shadowOffset: { width: 0, height: 4 },
             paddingHorizontal: 6,
             paddingTop: 0,
             paddingBottom: 0,
+          },
+          sceneStyle: {
+            backgroundColor: colors.background,
           },
         }}
       >
@@ -246,7 +251,7 @@ export default function TabsLayout() {
               { opacity: blurOpacity },
             ]}
           >
-            <BlurView intensity={20} tint="light" style={StyleSheet.absoluteFill} />
+            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
           </Animated.View>
         </TouchableOpacity>
       )}
@@ -268,11 +273,11 @@ export default function TabsLayout() {
           onPress={handleScanFood}
           activeOpacity={0.7}
         >
-          <View style={styles.fabSubButtonTextContainer}>
-            <Text style={styles.fabSubButtonText}>Сканировать еду</Text>
+          <View style={[styles.fabSubButtonTextContainer, { backgroundColor: colors.card }]}>
+            <Text style={[styles.fabSubButtonText, { color: colors.primary }]}>Сканировать еду</Text>
           </View>
-          <View style={styles.fabSubButtonIconContainer}>
-            <Ionicons name="scan-outline" size={22} color="#1A1A1A" />
+          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: colors.card }]}>
+            <Ionicons name="scan-outline" size={22} color={colors.primary} />
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -293,11 +298,11 @@ export default function TabsLayout() {
           onPress={handleAddManually}
           activeOpacity={0.7}
         >
-          <View style={styles.fabSubButtonTextContainer}>
-            <Text style={styles.fabSubButtonText}>Добавить вручную</Text>
+          <View style={[styles.fabSubButtonTextContainer, { backgroundColor: colors.card }]}>
+            <Text style={[styles.fabSubButtonText, { color: colors.primary }]}>Добавить вручную</Text>
           </View>
-          <View style={styles.fabSubButtonIconContainer}>
-            <Ionicons name="create-outline" size={22} color="#1A1A1A" />
+          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: colors.card }]}>
+            <Ionicons name="create-outline" size={22} color={colors.primary} />
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -318,10 +323,10 @@ export default function TabsLayout() {
           onPress={handleAddWater}
           activeOpacity={0.7}
         >
-          <View style={styles.fabSubButtonTextContainer}>
-            <Text style={styles.fabSubButtonText}>Вода</Text>
+          <View style={[styles.fabSubButtonTextContainer, { backgroundColor: colors.card }]}>
+            <Text style={[styles.fabSubButtonText, { color: colors.primary }]}>Вода</Text>
           </View>
-          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: '#E8F4FD' }]}>
+          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: isDark ? '#1E3A5F' : '#E8F4FD' }]}>
             <Ionicons name="water" size={22} color="#1E90FF" />
           </View>
         </TouchableOpacity>
@@ -382,7 +387,7 @@ const styles = StyleSheet.create({
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
-    backgroundColor: colors.primary,
+    backgroundColor: defaultColors.primary,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",

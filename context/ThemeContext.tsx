@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { ColorSchemeName, useColorScheme } from "react-native";
+import { StatusBar } from "react-native";
 
-export type ThemeMode = "system" | "light" | "dark";
+export type ThemeMode = "light" | "dark";
 
 export interface ThemeColors {
   background: string;
@@ -15,21 +15,41 @@ export interface ThemeColors {
   border: string;
   white: string;
   accent: string;
+  // iOS specific
+  groupedBackground: string;
+  separator: string;
+  fill: string;
+  secondaryFill: string;
+  tertiaryFill: string;
+  label: string;
+  secondaryLabel: string;
+  tertiaryLabel: string;
 }
 
+// iOS Human Interface Guidelines - Light Mode
 const lightColors: ThemeColors = {
-  background: "#F9F7F5",
+  background: "#F2F2F7",
   card: "#FFFFFF",
-  cardSecondary: "#F5F5F5",
-  primary: "#2D2A26",
-  secondary: "#8C867D",
-  text: "#2D2A26",
-  textSecondary: "#8C867D",
-  border: "#E5E5E5",
+  cardSecondary: "#F2F2F7",
+  primary: "#000000",
+  secondary: "#8E8E93",
+  text: "#000000",
+  textSecondary: "#8E8E93",
+  border: "#C6C6C8",
   white: "#FFFFFF",
   accent: "#FF6B6B",
+  // iOS specific
+  groupedBackground: "#F2F2F7",
+  separator: "#C6C6C8",
+  fill: "#787880",
+  secondaryFill: "#787880",
+  tertiaryFill: "#767680",
+  label: "#000000",
+  secondaryLabel: "#3C3C43",
+  tertiaryLabel: "#3C3C43",
 };
 
+// iOS Human Interface Guidelines - Dark Mode
 const darkColors: ThemeColors = {
   background: "#000000",
   card: "#1C1C1E",
@@ -41,6 +61,15 @@ const darkColors: ThemeColors = {
   border: "#38383A",
   white: "#1C1C1E",
   accent: "#FF6B6B",
+  // iOS specific
+  groupedBackground: "#000000",
+  separator: "#38383A",
+  fill: "#787880",
+  secondaryFill: "#636366",
+  tertiaryFill: "#48484A",
+  label: "#FFFFFF",
+  secondaryLabel: "#EBEBF5",
+  tertiaryLabel: "#EBEBF5",
 };
 
 interface ThemeContextType {
@@ -55,7 +84,6 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const THEME_KEY = "@caloriesapp:theme_mode";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const systemColorScheme = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>("light");
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -64,11 +92,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     loadTheme();
   }, []);
 
+  // Update StatusBar when theme changes
+  useEffect(() => {
+    if (isLoaded) {
+      StatusBar.setBarStyle(themeMode === "dark" ? "light-content" : "dark-content", true);
+    }
+  }, [themeMode, isLoaded]);
+
   const loadTheme = async () => {
     try {
       const saved = await AsyncStorage.getItem(THEME_KEY);
-      if (saved && (saved === "system" || saved === "light" || saved === "dark")) {
-        setThemeModeState(saved as ThemeMode);
+      if (saved === "light" || saved === "dark") {
+        setThemeModeState(saved);
       }
     } catch (error) {
       console.error("Error loading theme:", error);
@@ -86,20 +121,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Determine actual color scheme
-  const getEffectiveColorScheme = (): ColorSchemeName => {
-    if (themeMode === "system") {
-      return systemColorScheme || "light";
-    }
-    return themeMode;
-  };
-
-  const effectiveScheme = getEffectiveColorScheme();
-  const isDark = effectiveScheme === "dark";
+  const isDark = themeMode === "dark";
   const colors = isDark ? darkColors : lightColors;
 
   if (!isLoaded) {
-    return null; // Or a loading screen
+    return null;
   }
 
   return (
@@ -117,6 +143,5 @@ export function useTheme() {
   return context;
 }
 
-// Export default colors for non-context usage
-export const colors = lightColors;
-
+// Export default colors for non-context usage (legacy support)
+export const defaultColors = lightColors;

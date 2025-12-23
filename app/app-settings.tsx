@@ -23,7 +23,7 @@ interface ToggleSettings {
 
 const TOGGLE_SETTINGS_KEY = "@caloriesapp:toggle_settings";
 
-// Theme Preview Card - matching the screenshot exactly
+// Theme Preview Card - iOS style
 function ThemePreviewCard({
   mode,
   selected,
@@ -41,28 +41,18 @@ function ThemePreviewCard({
   const previewBg = isDark ? "#1C1C1E" : "#F5F5F5";
   const cardBg = isDark ? "#2C2C2E" : "#FFFFFF";
   const dotColors = ["#FF6B6B", "#4ECDC4", "#45B7D1"];
-  const textColor = isDarkTheme ? "#FFFFFF" : "#2D2A26";
-  const secondaryColor = isDarkTheme ? "#8E8E93" : "#8C867D";
-  const borderColor = isDarkTheme ? "#FFFFFF" : "#2D2A26";
+  const textColor = isDarkTheme ? "#FFFFFF" : "#000000";
+  const secondaryColor = isDarkTheme ? "#8E8E93" : "#8E8E93";
+  const borderColor = "#007AFF"; // iOS blue for selected state
   
   const getLabel = () => {
-    switch (mode) {
-      case "system": return "Система";
-      case "light": return "Легкий";
-      case "dark": return "Темный";
-    }
+    return mode === "light" ? "Светлая" : "Тёмная";
   };
 
-  // Icons matching the screenshot
   const getIconElement = () => {
-    switch (mode) {
-      case "system":
-        return <Ionicons name="contrast" size={14} color={selected ? textColor : secondaryColor} />;
-      case "light":
-        return <Text style={styles.themeIconEmoji}>☀️</Text>;
-      case "dark":
-        return <Ionicons name="moon" size={14} color={selected ? textColor : secondaryColor} />;
-    }
+    return mode === "light" 
+      ? <Ionicons name="sunny" size={16} color={selected ? "#007AFF" : secondaryColor} />
+      : <Ionicons name="moon" size={16} color={selected ? "#007AFF" : secondaryColor} />;
   };
 
   return (
@@ -72,7 +62,7 @@ function ThemePreviewCard({
       style={[
         styles.themeCard, 
         selected && [styles.themeCardSelected, { borderColor }],
-        { backgroundColor: isDarkTheme ? "#2C2C2E" : "#F5F5F5" }
+        { backgroundColor: isDarkTheme ? "#2C2C2E" : "#FFFFFF" }
       ]}
     >
       <View style={[styles.themePreview, { backgroundColor: previewBg }]}>
@@ -99,7 +89,7 @@ function ThemePreviewCard({
         <Text style={[
           styles.themeLabel, 
           selected && styles.themeLabelSelected,
-          { color: selected ? textColor : secondaryColor }
+          { color: selected ? "#007AFF" : secondaryColor }
         ]}>
           {getLabel()}
         </Text>
@@ -209,17 +199,11 @@ export default function AppSettingsScreen() {
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.primary }]}>Внешний вид</Text>
             <Text style={[styles.sectionSubtitle, { color: colors.secondary }]}>
-              Выбери светлый, тёмный или системный режим
+              Выбери светлую или тёмную тему
             </Text>
           </View>
           
           <View style={styles.themeSelector}>
-            <ThemePreviewCard
-              mode="system"
-              selected={themeMode === "system"}
-              onPress={() => setThemeMode("system")}
-              isDarkTheme={isDark}
-            />
             <ThemePreviewCard
               mode="light"
               selected={themeMode === "light"}
@@ -387,9 +371,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
     paddingVertical: 10,
-  },
-  themeIconEmoji: {
-    fontSize: 12,
   },
   themeLabel: {
     fontSize: 12,

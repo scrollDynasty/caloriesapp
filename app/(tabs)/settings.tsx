@@ -18,8 +18,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
+import { dataCache } from "../../stores/dataCache";
 import { setAvatarUri, useAvatarUri } from "../../stores/userPreferences";
 import { getLocalDayRange, getLocalTimezoneOffset } from "../../utils/timezone";
 
@@ -93,6 +95,7 @@ function MenuItem({
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { colors: themeColors, isDark } = useTheme();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [holidayTheme, setHolidayTheme] = useState(false);
@@ -149,12 +152,31 @@ export default function SettingsScreen() {
     }, [loading, loadUser])
   );
 
-  // Load daily data and onboarding
+  // Load daily data and onboarding - используем кэш для избежания дублирующих запросов
   useEffect(() => {
     const loadDailyData = async () => {
+      const { dateStr } = getLocalDayRange();
+      
+      // Сначала проверяем кэш
+      const cachedDaily = dataCache.getDailyMeals(dateStr);
+      const cachedOnboarding = dataCache.getOnboarding();
+      
+      if (cachedDaily && cachedOnboarding) {
+        setDailyData({
+          consumedCalories: cachedDaily.total_calories || 0,
+          consumedProtein: cachedDaily.total_protein || 0,
+          consumedCarbs: cachedDaily.total_carbs || 0,
+          consumedFats: cachedDaily.total_fat || 0,
+          streakCount: cachedDaily.streak_count || 0,
+        });
+        setOnboardingData(cachedOnboarding);
+        setDailyLoading(false);
+        return;
+      }
+      
+      // Если нет кэша - загружаем
       try {
         setDailyLoading(true);
-        const { dateStr } = getLocalDayRange();
         const [dailyMeals, onboarding] = await Promise.all([
           apiService.getDailyMeals(dateStr, getLocalTimezoneOffset()),
           apiService.getOnboardingData().catch(() => null),
@@ -257,15 +279,15 @@ export default function SettingsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Загрузка...</Text>
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: themeColors.background }]}>
+        <ActivityIndicator size="large" color={themeColors.primary} />
+        <Text style={[styles.loadingText, { color: themeColors.secondary }]}>Загрузка...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={["top"]}>
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
