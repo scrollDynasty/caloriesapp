@@ -25,6 +25,7 @@ interface SettingsState {
 }
 
 const SETTINGS_KEY = "@caloriesapp:app_settings";
+const THEME_KEY = "@caloriesapp:theme_mode";
 
 // Theme Preview Card - matching the screenshot exactly
 function ThemePreviewCard({
@@ -37,10 +38,13 @@ function ThemePreviewCard({
   onPress: () => void;
 }) {
   const isDark = mode === "dark";
+  const isSystem = mode === "system";
+  const isLight = mode === "light";
   
-  const bgColor = isDark ? "#1C1C1E" : "#F5F5F5";
+  // Colors based on mode preview
+  const previewBg = isDark ? "#1C1C1E" : "#F5F5F5";
   const cardBg = isDark ? "#2C2C2E" : "#FFFFFF";
-  const dotColor = "#FF6B6B";
+  const dotColors = ["#FF6B6B", "#4ECDC4", "#45B7D1"];
   
   const getLabel = () => {
     switch (mode) {
@@ -50,11 +54,15 @@ function ThemePreviewCard({
     }
   };
 
-  const getIcon = () => {
+  // Icons matching the screenshot
+  const getIconElement = () => {
     switch (mode) {
-      case "system": return "◐";
-      case "light": return "☀️";
-      case "dark": return "🌙";
+      case "system":
+        return <Ionicons name="contrast" size={14} color={selected ? colors.primary : colors.secondary} />;
+      case "light":
+        return <Text style={styles.themeIconEmoji}>☀️</Text>;
+      case "dark":
+        return <Ionicons name="moon" size={14} color={selected ? colors.primary : colors.secondary} />;
     }
   };
 
@@ -64,30 +72,34 @@ function ThemePreviewCard({
       onPress={onPress}
       style={[styles.themeCard, selected && styles.themeCardSelected]}
     >
-      <View style={[styles.themePreview, { backgroundColor: bgColor }]}>
-        {/* Moon icon for dark mode */}
+      <View style={[styles.themePreview, { backgroundColor: previewBg }]}>
+        {/* Moon badge for dark mode */}
         {isDark && (
-          <View style={styles.themeMoonBadge}>
-            <Text style={styles.themeMoonIcon}>🌙</Text>
+          <View style={styles.themeBadge}>
+            <Ionicons name="moon" size={14} color="#FFFFFF" />
           </View>
         )}
         
-        {/* Mini cards preview */}
-        <View style={styles.themePreviewRows}>
-          <View style={[styles.themePreviewRow, { backgroundColor: cardBg }]}>
-            <View style={[styles.themePreviewDot, { backgroundColor: dotColor }]} />
+        {/* Light mode has sun badge when selected */}
+        {isLight && selected && (
+          <View style={[styles.themeBadge, { backgroundColor: "transparent" }]}>
+            <Ionicons name="ellipse" size={16} color={colors.primary} />
           </View>
-          <View style={[styles.themePreviewRow, { backgroundColor: cardBg }]}>
-            <View style={[styles.themePreviewDot, { backgroundColor: dotColor }]} />
-          </View>
-          <View style={[styles.themePreviewRow, { backgroundColor: cardBg }]}>
-            <View style={[styles.themePreviewDot, { backgroundColor: dotColor }]} />
-          </View>
+        )}
+        
+        {/* Preview cards with colored dots */}
+        <View style={styles.themePreviewContent}>
+          {[0, 1, 2].map((index) => (
+            <View key={index} style={[styles.themePreviewRow, { backgroundColor: cardBg }]}>
+              <View style={[styles.themePreviewDot, { backgroundColor: dotColors[index] }]} />
+              <View style={styles.themePreviewLine} />
+            </View>
+          ))}
         </View>
       </View>
       
-      <View style={styles.themeLabelContainer}>
-        <Text style={styles.themeModeIcon}>{getIcon()}</Text>
+      <View style={styles.themeLabelRow}>
+        {getIconElement()}
         <Text style={[styles.themeLabel, selected && styles.themeLabelSelected]}>
           {getLabel()}
         </Text>
@@ -96,7 +108,7 @@ function ThemePreviewCard({
   );
 }
 
-// Setting Toggle Row - cleaner design
+// Setting Toggle Row
 function SettingToggle({
   title,
   subtitle,
@@ -147,10 +159,19 @@ export default function AppSettingsScreen() {
 
   const loadSettings = async () => {
     try {
-      const stored = await AsyncStorage.getItem(SETTINGS_KEY);
-      if (stored) {
-        setSettings(JSON.parse(stored));
+      const [storedSettings, storedTheme] = await Promise.all([
+        AsyncStorage.getItem(SETTINGS_KEY),
+        AsyncStorage.getItem(THEME_KEY),
+      ]);
+      
+      let parsed = settings;
+      if (storedSettings) {
+        parsed = JSON.parse(storedSettings);
       }
+      if (storedTheme) {
+        parsed.theme = storedTheme as ThemeMode;
+      }
+      setSettings(parsed);
     } catch (error) {
       console.error("Error loading settings:", error);
     }
@@ -158,7 +179,10 @@ export default function AppSettingsScreen() {
 
   const saveSettings = async (newSettings: SettingsState) => {
     try {
-      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      await Promise.all([
+        AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings)),
+        AsyncStorage.setItem(THEME_KEY, newSettings.theme),
+      ]);
       setSettings(newSettings);
     } catch (error) {
       console.error("Error saving settings:", error);
@@ -320,52 +344,55 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "transparent",
-    backgroundColor: colors.white,
+    backgroundColor: "#F5F5F5",
   },
   themeCardSelected: {
-    borderColor: "#007AFF",
+    borderColor: colors.primary,
   },
   themePreview: {
-    height: 72,
+    height: 80,
     padding: 8,
     position: "relative",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
   },
-  themeMoonBadge: {
+  themeBadge: {
     position: "absolute",
     top: 6,
     right: 6,
+    zIndex: 1,
   },
-  themeMoonIcon: {
-    fontSize: 14,
-  },
-  themePreviewRows: {
+  themePreviewContent: {
     flex: 1,
     justifyContent: "flex-end",
     gap: 4,
   },
   themePreviewRow: {
-    height: 12,
-    borderRadius: 3,
+    height: 14,
+    borderRadius: 4,
     flexDirection: "row",
     alignItems: "center",
-    paddingLeft: 5,
+    paddingHorizontal: 6,
+    gap: 4,
   },
   themePreviewDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  themeLabelContainer: {
+  themePreviewLine: {
+    flex: 1,
+    height: 4,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    borderRadius: 2,
+  },
+  themeLabelRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-    paddingVertical: 8,
-    backgroundColor: "#F8F8F8",
+    paddingVertical: 10,
+    backgroundColor: colors.white,
   },
-  themeModeIcon: {
+  themeIconEmoji: {
     fontSize: 12,
   },
   themeLabel: {

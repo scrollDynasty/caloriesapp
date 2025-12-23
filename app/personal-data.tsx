@@ -197,14 +197,13 @@ export default function PersonalDataScreen() {
         }
       }
 
-      // Save to API
-      await apiService.saveOnboardingData(payload);
+      console.log("Saving personal data:", JSON.stringify(payload, null, 2));
+      const result = await apiService.saveOnboardingData(payload);
+      console.log("Save result:", JSON.stringify(result, null, 2));
       
-      // Invalidate all related caches
       dataCache.invalidateOnboarding();
       dataCache.invalidateAll();
       
-      // Update local state
       setData(updatedData);
       setEditField(null);
       
