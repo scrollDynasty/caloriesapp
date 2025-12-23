@@ -10,6 +10,9 @@ class MealPhotoBase(BaseModel):
     protein: Optional[int] = None
     fat: Optional[int] = None
     carbs: Optional[int] = None
+    fiber: Optional[int] = None  # Клетчатка в граммах
+    sugar: Optional[int] = None  # Сахар в граммах
+    sodium: Optional[int] = None  # Натрий в мг
 
 class MealPhotoCreate(MealPhotoBase):
     pass

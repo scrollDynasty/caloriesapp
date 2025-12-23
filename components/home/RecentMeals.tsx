@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { memo, useMemo } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "../../constants/theme";
+import { RecentMealsSkeleton } from "../ui/Skeleton";
 
 interface Meal {
   id: number;
@@ -44,10 +45,7 @@ export const RecentMeals = memo(function RecentMeals({
       </View>
       
       {loading ? (
-        <View style={styles.stateBox}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.stateText}>Загружаем...</Text>
-        </View>
+        <RecentMealsSkeleton count={2} />
       ) : error ? (
         <TouchableOpacity style={[styles.stateBox, styles.errorBox]} onPress={onRetry}>
           <Ionicons name="warning-outline" size={24} color="#C62828" />

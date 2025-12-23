@@ -21,6 +21,11 @@ class MealPhoto(Base):
     protein = Column(Integer, nullable=True)
     fat = Column(Integer, nullable=True)
     carbs = Column(Integer, nullable=True)
+    
+    # Дополнительные нутриенты
+    fiber = Column(Integer, nullable=True)  # Клетчатка в граммах
+    sugar = Column(Integer, nullable=True)  # Сахар в граммах
+    sodium = Column(Integer, nullable=True)  # Натрий в мг
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

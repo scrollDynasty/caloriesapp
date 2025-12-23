@@ -1,8 +1,27 @@
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect } from "react";
 import { OnboardingProvider } from "../context/OnboardingContext";
 import "../global.css";
+import { onAuthExpired } from "../services/api";
 
 export default function RootLayout() {
+  const router = useRouter();
+  const segments = useSegments();
+
+  useEffect(() => {
+    // Подписываемся на событие истечения авторизации
+    const unsubscribe = onAuthExpired(() => {
+      console.log("Auth expired, redirecting to login...");
+      // Проверяем, что мы не уже на странице логина
+      const isOnLogin = segments[0] === "auth";
+      if (!isOnLogin) {
+        router.replace("/auth/login");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router, segments]);
+
   return (
     <OnboardingProvider>
       <Stack

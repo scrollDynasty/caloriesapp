@@ -23,6 +23,10 @@ interface CardsPagerProps {
     protein: { consumed: number; target: number };
     carbs: { consumed: number; target: number };
     fats: { consumed: number; target: number };
+    fiber: { consumed: number; target: number };
+    sugar: { consumed: number; target: number };
+    sodium: { consumed: number; target: number };
+    healthScore: number | null;
     water: { consumed: number; target: number };
   };
   onAddWater?: () => void;
@@ -80,13 +84,41 @@ const getPrimaryData = (stats: CardsPagerProps["stats"]) => ({
   ],
 });
 
-// Secondary data (fiber, sugar, sodium)
-const getSecondaryData = () => ({
+// Secondary data (fiber, sugar, sodium) - теперь использует реальные данные
+const getSecondaryData = (stats: CardsPagerProps["stats"]) => ({
   macros: [
-    { consumed: 0, target: 38, unit: "g", label: "Клетчатка", icon: "🍆", color: "#9B59B6" },
-    { consumed: 0, target: 90, unit: "g", label: "Сахар", icon: "🍬", color: "#E91E63" },
-    { consumed: 0, target: 2300, unit: "mg", label: "Натрий", icon: "🧂", color: "#FF9800" },
+    { 
+      consumed: stats.fiber.consumed, 
+      target: stats.fiber.target, 
+      unit: "g", 
+      label: "Клетчатка", 
+      icon: "🥦", 
+      color: "#4CAF50",
+      progress: stats.fiber.target > 0 ? Math.min(1, stats.fiber.consumed / stats.fiber.target) : 0,
+    },
+    { 
+      consumed: stats.sugar.consumed, 
+      target: stats.sugar.target, 
+      unit: "g", 
+      label: "Сахар", 
+      icon: "🍬", 
+      color: "#E91E63",
+      // Для сахара: меньше - лучше, инвертируем прогресс
+      progress: stats.sugar.target > 0 ? Math.min(1, stats.sugar.consumed / stats.sugar.target) : 0,
+      isInverted: true, // Флаг что превышение - плохо
+    },
+    { 
+      consumed: stats.sodium.consumed, 
+      target: stats.sodium.target, 
+      unit: "мг", 
+      label: "Натрий", 
+      icon: "🧂", 
+      color: "#FF9800",
+      progress: stats.sodium.target > 0 ? Math.min(1, stats.sodium.consumed / stats.sodium.target) : 0,
+      isInverted: true,
+    },
   ],
+  healthScore: stats.healthScore,
 });
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -97,7 +129,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
   const isAnimating = useRef(false);
 
   const primaryData = getPrimaryData(stats);
-  const secondaryData = getSecondaryData();
+  const secondaryData = getSecondaryData(stats);
 
   const handleFlip = useCallback(() => {
     if (isAnimating.current) return;
@@ -269,32 +301,50 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
       >
         {/* Extra Macros Row */}
         <View style={styles.extraMacrosRow}>
-          {secondaryData.macros.map((macro, idx) => (
-            <TouchableOpacity key={idx} style={styles.macroCardWrapper} activeOpacity={0.9} onPress={handleFlip}>
-              <View style={styles.macroCard}>
-                <View style={styles.macroValueRow}>
-                  <Text style={styles.macroValue}>{macro.consumed}</Text>
-                  <Text style={styles.macroTarget}>/{macro.target}{macro.unit}</Text>
-                </View>
-                <Text style={styles.macroLabel}>{macro.label} съедено</Text>
-                <View style={styles.macroCircleContainer}>
-                  <Svg width={SMALL_CIRCLE_SIZE} height={SMALL_CIRCLE_SIZE}>
-                    <Circle
-                      cx={SMALL_CIRCLE_SIZE / 2}
-                      cy={SMALL_CIRCLE_SIZE / 2}
-                      r={SMALL_RADIUS}
-                      stroke="#E8E4DC"
-                      strokeWidth={SMALL_STROKE_WIDTH}
-                      fill="transparent"
-                    />
-                  </Svg>
-                  <View style={styles.macroIconCenter}>
-                    <Text style={styles.macroIcon}>{macro.icon}</Text>
+          {secondaryData.macros.map((macro, idx) => {
+            const progressColor = macro.isInverted 
+              ? (macro.progress > 0.8 ? "#E91E63" : macro.progress > 0.5 ? "#FF9800" : "#4CAF50")
+              : macro.color;
+            return (
+              <TouchableOpacity key={idx} style={styles.macroCardWrapper} activeOpacity={0.9} onPress={handleFlip}>
+                <View style={styles.macroCard}>
+                  <View style={styles.macroValueRow}>
+                    <Text style={styles.macroValue}>{Math.round(macro.consumed)}</Text>
+                    <Text style={styles.macroTarget}>/{macro.target}{macro.unit}</Text>
+                  </View>
+                  <Text style={styles.macroLabel}>{macro.label}</Text>
+                  <View style={styles.macroCircleContainer}>
+                    <Svg width={SMALL_CIRCLE_SIZE} height={SMALL_CIRCLE_SIZE}>
+                      <Circle
+                        cx={SMALL_CIRCLE_SIZE / 2}
+                        cy={SMALL_CIRCLE_SIZE / 2}
+                        r={SMALL_RADIUS}
+                        stroke="#E8E4DC"
+                        strokeWidth={SMALL_STROKE_WIDTH}
+                        fill="transparent"
+                      />
+                      <Circle
+                        cx={SMALL_CIRCLE_SIZE / 2}
+                        cy={SMALL_CIRCLE_SIZE / 2}
+                        r={SMALL_RADIUS}
+                        stroke={progressColor}
+                        strokeWidth={SMALL_STROKE_WIDTH}
+                        fill="transparent"
+                        strokeDasharray={SMALL_CIRCUMFERENCE}
+                        strokeDashoffset={SMALL_CIRCUMFERENCE * (1 - Math.min(1, macro.progress))}
+                        strokeLinecap="round"
+                        rotation="-90"
+                        origin={`${SMALL_CIRCLE_SIZE / 2}, ${SMALL_CIRCLE_SIZE / 2}`}
+                      />
+                    </Svg>
+                    <View style={styles.macroIconCenter}>
+                      <Text style={styles.macroIcon}>{macro.icon}</Text>
+                    </View>
                   </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Health Score Card */}
@@ -302,13 +352,38 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
           <View style={styles.healthScoreCard}>
             <View style={styles.healthScoreHeader}>
               <Text style={styles.healthScoreTitle}>Оценка здоровья</Text>
-              <Text style={styles.healthScoreValue}>Н/д</Text>
+              <Text style={[
+                styles.healthScoreValue,
+                secondaryData.healthScore !== null && {
+                  color: secondaryData.healthScore >= 70 ? "#4CAF50" 
+                       : secondaryData.healthScore >= 40 ? "#FF9800" 
+                       : "#E91E63"
+                }
+              ]}>
+                {secondaryData.healthScore !== null ? `${secondaryData.healthScore}/100` : "—"}
+              </Text>
             </View>
             <View style={styles.healthScoreBar}>
-              <View style={styles.healthScoreBarFill} />
+              <View style={[
+                styles.healthScoreBarFill, 
+                { 
+                  width: secondaryData.healthScore !== null ? `${secondaryData.healthScore}%` : "0%",
+                  backgroundColor: secondaryData.healthScore !== null 
+                    ? (secondaryData.healthScore >= 70 ? "#4CAF50" 
+                       : secondaryData.healthScore >= 40 ? "#FF9800" 
+                       : "#E91E63")
+                    : "#DAD4CA"
+                }
+              ]} />
             </View>
             <Text style={styles.healthScoreText}>
-              Отмечай несколько продуктов, чтобы получить твой балл здоровья на сегодня. Твой балл отражает содержание питательных веществ и ст...
+              {secondaryData.healthScore !== null 
+                ? (secondaryData.healthScore >= 70 
+                    ? "Отличный баланс питательных веществ! Продолжай в том же духе 💪"
+                    : secondaryData.healthScore >= 40 
+                    ? "Неплохо! Добавь больше клетчатки и уменьши сахар для улучшения"
+                    : "Попробуй добавить больше овощей и снизить потребление сахара")
+                : "Добавь блюда, чтобы получить оценку здоровья за день"}
             </Text>
           </View>
         </TouchableOpacity>

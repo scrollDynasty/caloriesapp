@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 43200
+    jwt_access_token_expire_minutes: int = 43200 
 
     google_client_id: str = ""
     google_client_secret: str = ""
@@ -31,11 +31,9 @@ class Settings(BaseSettings):
     apple_key_id: str = ""
     apple_private_key_path: str = ""
 
-    ai_nutrition_base_url: str = "https://router.huggingface.co/v1"
-    ai_nutrition_model: str = "Qwen/Qwen2.5-VL-7B-Instruct"
-    ai_nutrition_api_key: str = ""
-    ai_nutrition_timeout: int = 20
-    ai_nutrition_provider: str = "huggingface"
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
+    openai_timeout: int = 30
 
     @property
     def database_url(self) -> str:

@@ -42,16 +42,20 @@ def get_user_media_dir(user_id: int) -> Path:
     return user_dir
 
 async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str]) -> Optional[Dict[str, Any]]:
+    """
+    Анализирует фото еды с помощью OpenAI GPT-4o Vision и возвращает информацию о питательности.
+    """
+    from openai import AsyncOpenAI
 
-    api_key = settings.ai_nutrition_api_key
+    api_key = settings.openai_api_key
     if not api_key:
+        logger.warning("OpenAI API key not configured")
         return None
 
-    base_url = getattr(settings, "ai_nutrition_base_url", "https://router.huggingface.co/v1").rstrip("/")
-    api_url = f"{base_url}/chat/completions"
-    model_name = getattr(settings, "ai_nutrition_model", "Qwen/Qwen2.5-VL-7B-Instruct")
+    model_name = getattr(settings, "openai_model", "gpt-4o")
 
     try:
+        # Определяем MIME тип изображения
         mime_guess = "image/jpeg"
         suffix = file_path.suffix.lower()
         if suffix in {".png"}:
@@ -61,66 +65,76 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
         elif suffix in {".heic", ".heif"}:
             mime_guess = "image/heic"
 
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
-
+        # Читаем и кодируем изображение в base64
         with open(file_path, "rb") as f:
             b64_image = base64.b64encode(f.read()).decode("utf-8")
 
-        prompt = (
-            "You are a nutrition assistant. Given a food photo, respond ONLY with JSON "
-            'like {\"name\":\"...\",\"calories\":number,\"protein\":number,\"fat\":number,\"carbs\":number}. '
-            "Use integers, no units."
+        # Формируем промпт для GPT-4o
+        system_prompt = (
+            "You are an expert nutrition assistant. Analyze food photos and estimate nutritional values accurately. "
+            "Always respond with valid JSON only, no additional text or markdown."
+        )
+        
+        user_prompt = (
+            "Analyze this food photo and estimate the complete nutritional content. "
+            "Respond ONLY with a JSON object in this exact format:\n"
+            '{"name": "dish name in Russian", "calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number, "sugar": number, "sodium": number}\n'
+            "Rules:\n"
+            "- Use integers only, no decimal points\n"
+            "- Values should be per portion shown in the photo\n"
+            "- calories in kcal\n"
+            "- protein, fat, carbs, fiber, sugar in grams\n"
+            "- sodium in milligrams (mg)\n"
+            "- name should be in Russian language\n"
+            "- If you cannot estimate a value, use 0"
         )
         if meal_name_hint:
-            prompt = f"{prompt} Hint: {meal_name_hint}."
+            user_prompt = f"{user_prompt}\n\nHint: the dish might be '{meal_name_hint}'"
 
-        payload = {
-            "model": model_name,
-            "messages": [
+        # Инициализируем клиент OpenAI
+        client = AsyncOpenAI(
+            api_key=api_key,
+            timeout=settings.openai_timeout
+        )
+
+        # Отправляем запрос к OpenAI
+        response = await client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": system_prompt},
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": prompt},
+                        {"type": "text", "text": user_prompt},
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:{mime_guess};base64,{b64_image}"
+                                "url": f"data:{mime_guess};base64,{b64_image}",
+                                "detail": "high"
                             },
                         }
                     ],
                 }
             ],
-            "max_tokens": 256,
-            "temperature": 0.1,
-        }
+            max_tokens=256,
+            temperature=0.1,
+        )
 
-        async with httpx.AsyncClient(timeout=settings.ai_nutrition_timeout) as client:
-            response = await client.post(
-                api_url,
-                headers=headers,
-                data=json.dumps(payload),
-            )
-            if response.status_code in (401, 403, 410, 400):
-                return None
-            response.raise_for_status()
-
-        resp_json = response.json()
+        # Извлекаем ответ
         generated_text = None
-        if isinstance(resp_json, dict):
-            choices = resp_json.get("choices") or []
-            if choices:
-                msg = choices[0].get("message") or {}
-                generated_text = msg.get("content")
+        if response.choices and len(response.choices) > 0:
+            generated_text = response.choices[0].message.content
 
         if not generated_text:
+            logger.warning("OpenAI returned empty response")
             return None
 
+        logger.info(f"OpenAI response: {generated_text}")
+
+        # Парсим JSON из ответа
         extracted = None
         try:
-
+            # Пытаемся найти JSON в ответе
             matches = re.findall(r"\{.*\}", generated_text, flags=re.DOTALL)
             for m in matches:
                 try:
@@ -150,12 +164,15 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
                 "protein": _num(extracted.get("protein")),
                 "fat": _num(extracted.get("fat")),
                 "carbs": _num(extracted.get("carbs")),
+                "fiber": _num(extracted.get("fiber")),
+                "sugar": _num(extracted.get("sugar")),
+                "sodium": _num(extracted.get("sodium")),
                 "detected_meal_name": extracted.get("name") or meal_name_hint,
             }
 
         return None
     except Exception as e:
-        logger.warning(f"AI nutrition call failed: {e}")
+        logger.warning(f"OpenAI nutrition call failed: {e}")
         return None
 
 @router.post("/meals/upload", response_model=MealPhotoUploadResponse, status_code=status.HTTP_201_CREATED)
@@ -243,6 +260,9 @@ async def upload_meal_photo(
             protein=nutrition.get("protein") if nutrition else None,
             fat=nutrition.get("fat") if nutrition else None,
             carbs=nutrition.get("carbs") if nutrition else None,
+            fiber=nutrition.get("fiber") if nutrition else None,
+            sugar=nutrition.get("sugar") if nutrition else None,
+            sodium=nutrition.get("sodium") if nutrition else None,
             created_at=created_at_now,
         )
 
@@ -417,6 +437,54 @@ def get_meal_photo(
         filename=photo.file_name,
     )
 
+@router.get("/meals/photos/{photo_id}/detail")
+def get_meal_photo_detail(
+    photo_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Получить детальную информацию о блюде"""
+    photo = db.query(MealPhoto).filter(
+        MealPhoto.id == photo_id,
+        MealPhoto.user_id == current_user.id
+    ).first()
+
+    if not photo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Фотография не найдена"
+        )
+
+    # Формируем URL изображения
+    photo_url = None
+    if photo.mime_type != "manual" and photo.file_path not in (None, "", "manual"):
+        photo_url = f"{settings.api_domain}/api/v1/meals/photos/{photo.id}"
+
+    return {
+        "photo": {
+            "id": photo.id,
+            "user_id": photo.user_id,
+            "file_path": photo.file_path,
+            "file_name": photo.file_name,
+            "file_size": photo.file_size,
+            "mime_type": photo.mime_type,
+            "barcode": photo.barcode,
+            "meal_name": photo.meal_name,
+            "detected_meal_name": photo.detected_meal_name,
+            "calories": photo.calories,
+            "protein": photo.protein,
+            "fat": photo.fat,
+            "carbs": photo.carbs,
+            "created_at": photo.created_at.isoformat() if photo.created_at else None,
+            "updated_at": photo.updated_at.isoformat() if photo.updated_at else None,
+        },
+        "url": photo_url,
+        # Заглушки для будущих фич
+        "ingredients": None,
+        "extra_macros": None,
+        "health_score": None,
+    }
+
 @router.put("/meals/photos/{photo_id}/confirm", response_model=MealPhotoResponse)
 def confirm_meal_photo(
     photo_id: int,
@@ -495,6 +563,9 @@ def get_daily_meals(
     total_protein = sum(p.protein or 0 for p in photos)
     total_fat = sum(p.fat or 0 for p in photos)
     total_carbs = sum(p.carbs or 0 for p in photos)
+    total_fiber = sum(p.fiber or 0 for p in photos)
+    total_sugar = sum(p.sugar or 0 for p in photos)
+    total_sodium = sum(p.sodium or 0 for p in photos)
 
     target_calories = None
     onboarding = (
@@ -542,12 +613,31 @@ def get_daily_meals(
     except Exception as e:
         logger.warning(f"Failed to update streak: {e}")
 
+    health_score = None
+    if len(photos) >= 1 and total_calories > 0:
+        score = 50
+        
+        fiber_bonus = min(20, (total_fiber / 38) * 20) if total_fiber else 0
+        
+        protein_bonus = min(15, (total_protein / 70) * 15) if total_protein else 0
+        
+        sugar_penalty = min(20, max(0, (total_sugar - 25) / 65 * 20)) if total_sugar else 0
+        
+        sodium_penalty = min(15, max(0, (total_sodium - 1500) / 2000 * 15)) if total_sodium else 0
+        
+        score = score + fiber_bonus + protein_bonus - sugar_penalty - sodium_penalty
+        health_score = max(0, min(100, int(score)))
+
     return {
         "date": date,
         "total_calories": total_calories,
         "total_protein": total_protein,
         "total_fat": total_fat,
         "total_carbs": total_carbs,
+        "total_fiber": total_fiber,
+        "total_sugar": total_sugar,
+        "total_sodium": total_sodium,
+        "health_score": health_score,
         "streak_count": current_user.streak_count or 0,
         "meals": [
             {
@@ -558,6 +648,9 @@ def get_daily_meals(
                 "protein": p.protein or 0,
                 "carbs": p.carbs or 0,
                 "fats": p.fat or 0,
+                "fiber": p.fiber or 0,
+                "sugar": p.sugar or 0,
+                "sodium": p.sodium or 0,
             }
             for p in photos
         ]
@@ -603,6 +696,9 @@ def get_daily_meals_batch(
       total_protein = sum(p.protein or 0 for p in photos)
       total_fat = sum(p.fat or 0 for p in photos)
       total_carbs = sum(p.carbs or 0 for p in photos)
+      total_fiber = sum(p.fiber or 0 for p in photos)
+      total_sugar = sum(p.sugar or 0 for p in photos)
+      total_sodium = sum(p.sodium or 0 for p in photos)
 
       results.append({
           "date": date_str,
@@ -610,6 +706,9 @@ def get_daily_meals_batch(
           "total_protein": total_protein,
           "total_fat": total_fat,
           "total_carbs": total_carbs,
+          "total_fiber": total_fiber,
+          "total_sugar": total_sugar,
+          "total_sodium": total_sodium,
           "meals": [
               {
                   "id": p.id,

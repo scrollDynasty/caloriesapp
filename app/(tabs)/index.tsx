@@ -17,9 +17,11 @@ import { CardsPager } from "../../components/home/CardsPager";
 import { HomeHeader } from "../../components/home/HomeHeader";
 import { RecentMeals } from "../../components/home/RecentMeals";
 import { WeekCalendar } from "../../components/home/WeekCalendar";
+import { NutritionCardSkeleton } from "../../components/ui/Skeleton";
 import { colors } from "../../constants/theme";
 import { useFonts } from "../../hooks/use-fonts";
 import { apiService, MealPhoto } from "../../services/api";
+import { dataCache } from "../../stores/dataCache";
 
 import { getLocalDayRange, getLocalTimezoneOffset, getLocalTimezoneOffsetMs } from "../../utils/timezone";
 
@@ -110,6 +112,10 @@ export default function HomeScreen() {
     consumedProtein: 0,
     consumedCarbs: 0,
     consumedFats: 0,
+    consumedFiber: 0,
+    consumedSugar: 0,
+    consumedSodium: 0,
+    healthScore: null as number | null,
     waterTotal: 0,
     waterGoal: 0,
     meals: [] as Array<{
@@ -194,6 +200,22 @@ export default function HomeScreen() {
   }, [recentLimit, selectedDateTimestamp]);
 
   const loadUserData = useCallback(async () => {
+    // Проверяем кэш - показываем мгновенно если есть
+    const cachedUser = dataCache.getUser();
+    const cachedOnboarding = dataCache.getOnboarding();
+    
+    if (cachedUser && cachedOnboarding) {
+      // Мгновенно показываем кэшированные данные — без фоновых обновлений
+      setUserData(cachedUser);
+      setOnboardingData(cachedOnboarding);
+      setLoading(false);
+      hasLoadedRef.current = true;
+      
+      // Загружаем последние блюда из кэша
+      fetchLatestMeals().catch(() => null);
+      return;
+    }
+    
     if (isLoadingRef.current || hasLoadedRef.current) {
       return;
     }
@@ -249,25 +271,54 @@ export default function HomeScreen() {
   }, [fetchLatestMeals, recentLimit, selectedDateTimestamp]);
 
   const loadDailyData = useCallback(async (dateTimestamp: number, force: boolean = false) => {
+    const { dateStr } = getLocalDayRange(dateTimestamp);
+    
+    const cachedDaily = dataCache.getDailyMeals(dateStr);
+    const cachedWater = dataCache.getWater(dateStr);
+    
+    if (cachedDaily && cachedWater && !force) {
+      setDailyData({
+        consumedCalories: cachedDaily.total_calories,
+        consumedProtein: cachedDaily.total_protein,
+        consumedCarbs: cachedDaily.total_carbs,
+        consumedFats: cachedDaily.total_fat,
+        consumedFiber: cachedDaily.total_fiber || 0,
+        consumedSugar: cachedDaily.total_sugar || 0,
+        consumedSodium: cachedDaily.total_sodium || 0,
+        healthScore: cachedDaily.health_score || null,
+        waterTotal: cachedWater.total_ml,
+        waterGoal: cachedWater.goal_ml || 0,
+        meals: cachedDaily.meals,
+      });
+      
+      const isAchieved = cachedDaily.total_calories >= (onboardingData?.target_calories || 0);
+      const caloriesProgress = onboardingData?.target_calories > 0 
+        ? Math.min(1, cachedDaily.total_calories / onboardingData.target_calories) 
+        : 0;
+      
+      setDailyProgress((prev) => ({ ...prev, [dateStr]: caloriesProgress }));
+      setWeekAchievements((prev) => ({ ...prev, [dateStr]: isAchieved }));
+      setStreakCount(cachedDaily.streak_count || 0);
+      setDailyLoading(false);
+      lastLoadedDateRef.current = dateTimestamp;
+      return;
+    }
+    
     if (!force && lastLoadedDateRef.current === dateTimestamp) {
       return;
     }
     lastLoadedDateRef.current = dateTimestamp;
     
     try {
-      setDailyLoading(true);
+      if (!cachedDaily) {
+        setDailyLoading(true);
+      }
       setDailyError(null);
 
-      const { dateStr } = getLocalDayRange(dateTimestamp);
-
-      const data = await apiService.getDailyMeals(
-        dateStr,
-        getLocalTimezoneOffset()
-      );
-      const water = await apiService.getDailyWater(
-        dateStr,
-        getLocalTimezoneOffset()
-      );
+      const [data, water] = await Promise.all([
+        apiService.getDailyMeals(dateStr, getLocalTimezoneOffset()),
+        apiService.getDailyWater(dateStr, getLocalTimezoneOffset()),
+      ]);
 
       if (!isMountedRef.current) return;
       setDailyData({
@@ -275,6 +326,10 @@ export default function HomeScreen() {
         consumedProtein: data.total_protein,
         consumedCarbs: data.total_carbs,
         consumedFats: data.total_fat,
+        consumedFiber: data.total_fiber || 0,
+        consumedSugar: data.total_sugar || 0,
+        consumedSodium: data.total_sodium || 0,
+        healthScore: data.health_score || null,
         waterTotal: water.total_ml,
         waterGoal: water.goal_ml || 0,
         meals: data.meals,
@@ -297,7 +352,10 @@ export default function HomeScreen() {
     } catch (err: any) {
       console.warn("Daily data load error", err);
       if (!isMountedRef.current) return;
-      setDailyError(err?.response?.data?.detail || err?.message || "Ошибка загрузки данных");
+      // Показываем ошибку только если нет кэша
+      if (!cachedDaily) {
+        setDailyError(err?.response?.data?.detail || err?.message || "Ошибка загрузки данных");
+      }
     } finally {
       if (isMountedRef.current) {
         setDailyLoading(false);
@@ -405,9 +463,21 @@ export default function HomeScreen() {
         return;
       }
       const weekTs = getWeekStartTimestamp(baseDate.getTime());
+      const weekKey = `week-${weekTs}`;
+      
+      // Проверяем кэш недельных данных
+      const cachedWeek = dataCache.getWeekData(weekKey);
+      if (cachedWeek && !dataCache.isWeekStale(weekKey)) {
+        setWeekAchievements(cachedWeek.achievements);
+        setDailyProgress((prev) => ({ ...prev, ...cachedWeek.progress }));
+        lastWeekLoadedRef.current = weekTs;
+        return;
+      }
+      
       if (weekLoadInProgress.current) return;
-      if (lastWeekLoadedRef.current === weekTs) return;
+      if (lastWeekLoadedRef.current === weekTs && cachedWeek) return;
       weekLoadInProgress.current = true;
+      
       try {
         const days = computeWeekDays(baseDate);
         const dates = days.map((d) => getDateStr(d));
@@ -422,6 +492,13 @@ export default function HomeScreen() {
             : 0;
           achievementsMap[r.date] = isAchieved;
           progressMap[r.date] = caloriesProgress;
+        });
+        
+        // Сохраняем в кэш
+        dataCache.setWeekData(weekKey, {
+          weekKey,
+          achievements: achievementsMap,
+          progress: progressMap,
         });
         
         setWeekAchievements(achievementsMap);
@@ -458,10 +535,15 @@ export default function HomeScreen() {
     setRefreshing(true);
     hasLoadedRef.current = false;
     lastLoadedDateRef.current = null;
+    
+    const { dateStr } = getLocalDayRange(selectedDateTimestamp);
+    dataCache.invalidateDailyMeals(dateStr);
+    dataCache.invalidateWater(dateStr);
+    
     try {
       await loadUserData();
-      await loadDailyData(selectedDateTimestamp);
-      await fetchLatestMeals({ append: false, limit: recentLimit });
+      await loadDailyData(selectedDateTimestamp, true); 
+      await fetchLatestMeals({ append: false, limit: recentLimit, force: true });
     } catch (err) {
       console.warn("Refresh error", err);
     } finally {
@@ -495,6 +577,19 @@ export default function HomeScreen() {
         consumed: dailyData.consumedFats,
         target: onboardingData?.fats_grams || 0,
       },
+      fiber: {
+        consumed: dailyData.consumedFiber,
+        target: 38, // Рекомендуемая норма клетчатки
+      },
+      sugar: {
+        consumed: dailyData.consumedSugar,
+        target: 50, // Рекомендуемый максимум сахара
+      },
+      sodium: {
+        consumed: dailyData.consumedSodium,
+        target: 2300, // Рекомендуемый максимум натрия в мг
+      },
+      healthScore: dailyData.healthScore,
       water: {
         consumed: dailyData.waterTotal,
         target: dailyData.waterGoal || 0,
@@ -509,6 +604,10 @@ export default function HomeScreen() {
     dailyData.consumedProtein,
     dailyData.consumedCarbs,
     dailyData.consumedFats,
+    dailyData.consumedFiber,
+    dailyData.consumedSugar,
+    dailyData.consumedSodium,
+    dailyData.healthScore,
     dailyData.waterTotal,
     dailyData.waterGoal,
   ]);
@@ -544,11 +643,8 @@ export default function HomeScreen() {
           dailyProgress={dailyProgress}
         />
 
-        {dailyLoading ? (
-          <View style={styles.loadingBlock}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={styles.loadingText}>Загружаем данные за день...</Text>
-          </View>
+        {dailyLoading && !dataCache.hasDailyMeals(getLocalDayRange(selectedDateTimestamp).dateStr) ? (
+          <NutritionCardSkeleton />
         ) : (
           <CardsPager stats={stats} onAddWater={handleAddWater} />
         )}
@@ -562,7 +658,7 @@ export default function HomeScreen() {
 
         <RecentMeals
           meals={recentMeals}
-          loading={recentLoading}
+          loading={recentLoading && recentMeals.length === 0}
           error={recentError}
           onRetry={() => fetchLatestMeals({ append: false, limit: recentLimit })}
           onAddPress={isTodaySelected ? handleScanFood : undefined}

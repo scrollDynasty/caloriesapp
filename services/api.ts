@@ -8,9 +8,23 @@ import axios, {
 } from "axios";
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
+import { DailyMealsData, dataCache, OnboardingData, UserData } from "../stores/dataCache";
 import { getLocalTimezoneOffset } from "../utils/timezone";
 
 const TOKEN_KEY = "@caloriesapp:auth_token";
+
+// Event listeners для глобального состояния авторизации
+type AuthEventCallback = () => void;
+const authEventListeners: Set<AuthEventCallback> = new Set();
+
+export const onAuthExpired = (callback: AuthEventCallback): (() => void) => {
+  authEventListeners.add(callback);
+  return () => authEventListeners.delete(callback);
+};
+
+const notifyAuthExpired = () => {
+  authEventListeners.forEach(callback => callback());
+};
 
 export interface MealPhoto {
   id: number;
@@ -116,8 +130,12 @@ class ApiService {
       (response: AxiosResponse) => response,
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
-          
+          // Токен истёк или недействителен - очищаем и уведомляем
           await this.removeToken();
+          // Очищаем кэш данных
+          dataCache.invalidateAll();
+          // Уведомляем слушателей (для редиректа на логин)
+          notifyAuthExpired();
         }
         return Promise.reject(error);
       }
@@ -202,17 +220,73 @@ class ApiService {
 
   async getCurrentUser() {
     const response = await this.api.get(API_ENDPOINTS.AUTH_ME);
+    // Сохраняем в кэш
+    dataCache.setUser(response.data);
     return response.data;
+  }
+
+  /**
+   * Получить пользователя с кэшированием
+   */
+  async getCurrentUserCached(): Promise<{ data: UserData | null; isFromCache: boolean }> {
+    const cached = dataCache.getUser();
+    const isStale = dataCache.isUserStale();
+
+    if (cached) {
+      if (isStale && !dataCache.isPendingUpdate("user")) {
+        dataCache.setPendingUpdate("user");
+        this.getCurrentUser()
+          .catch((e) => console.warn("Background user update failed:", e))
+          .finally(() => dataCache.clearPendingUpdate("user"));
+      }
+      return { data: cached, isFromCache: true };
+    }
+
+    try {
+      const data = await this.getCurrentUser();
+      return { data, isFromCache: false };
+    } catch (error) {
+      return { data: null, isFromCache: false };
+    }
   }
 
   async saveOnboardingData(data: any) {
     const response = await this.api.post(API_ENDPOINTS.ONBOARDING, data);
+    // Инвалидируем кэш после сохранения
+    dataCache.setOnboarding(response.data);
     return response.data;
   }
 
   async getOnboardingData() {
     const response = await this.api.get(API_ENDPOINTS.ONBOARDING);
+    // Сохраняем в кэш
+    dataCache.setOnboarding(response.data);
     return response.data;
+  }
+
+  /**
+   * Получить onboarding данные с кэшированием
+   */
+  async getOnboardingDataCached(): Promise<{ data: OnboardingData | null; isFromCache: boolean }> {
+    const cached = dataCache.getOnboarding();
+    const isStale = dataCache.isOnboardingStale();
+
+    if (cached) {
+      if (isStale && !dataCache.isPendingUpdate("onboarding")) {
+        dataCache.setPendingUpdate("onboarding");
+        this.getOnboardingData()
+          .catch((e) => console.warn("Background onboarding update failed:", e))
+          .finally(() => dataCache.clearPendingUpdate("onboarding"));
+      }
+      return { data: cached, isFromCache: true };
+    }
+
+    try {
+      const data = await this.getOnboardingData();
+      return { data, isFromCache: false };
+    } catch (error) {
+      return { data: null, isFromCache: false };
+    }
   }
 
   async uploadMealPhoto(
@@ -245,12 +319,15 @@ class ApiService {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      timeout: 20000,
+      timeout: 60000, // Увеличен таймаут для OpenAI обработки
     });
     
     
     if (response.data?.photo) {
       this.upsertMealPhotoInCache(response.data.photo);
+      // Инвалидируем кэш дневных данных
+      const dateStr = new Date().toISOString().split("T")[0];
+      dataCache.invalidateDailyMeals(dateStr);
     }
     
     return response.data;
@@ -269,6 +346,9 @@ class ApiService {
     });
     const created = response.data as MealPhoto;
     this.upsertMealPhotoInCache(created);
+    // Инвалидируем кэш дневных данных
+    const dateStr = new Date().toISOString().split("T")[0];
+    dataCache.invalidateDailyMeals(dateStr);
     return created;
   }
 
@@ -280,6 +360,9 @@ class ApiService {
     const response = await this.api.post(API_ENDPOINTS.WATER, data, {
       params: { tz_offset_minutes: getLocalTimezoneOffset() },
     });
+    // Инвалидируем кэш воды
+    const dateStr = new Date().toISOString().split("T")[0];
+    dataCache.invalidateWater(dateStr);
     return response.data as WaterEntry;
   }
 
@@ -290,7 +373,37 @@ class ApiService {
     const response = await this.api.get(API_ENDPOINTS.WATER_DAILY, {
       params: { date, tz_offset_minutes: tzOffsetMinutes },
     });
+    // Сохраняем в кэш
+    dataCache.setWater(date, response.data);
     return response.data as WaterDaily;
+  }
+
+  /**
+   * Получить воду с кэшированием (stale-while-revalidate)
+   */
+  async getDailyWaterCached(
+    date: string,
+    tzOffsetMinutes: number = getLocalTimezoneOffset()
+  ): Promise<{ data: WaterDaily | null; isFromCache: boolean; isStale: boolean }> {
+    const cached = dataCache.getWater(date);
+    const isStale = dataCache.isWaterStale(date);
+
+    if (cached) {
+      if (isStale && !dataCache.isPendingUpdate(`water-${date}`)) {
+        dataCache.setPendingUpdate(`water-${date}`);
+        this.getDailyWater(date, tzOffsetMinutes)
+          .catch((e) => console.warn("Background water update failed:", e))
+          .finally(() => dataCache.clearPendingUpdate(`water-${date}`));
+      }
+      return { data: cached as WaterDaily, isFromCache: true, isStale };
+    }
+
+    try {
+      const data = await this.getDailyWater(date, tzOffsetMinutes);
+      return { data, isFromCache: false, isStale: false };
+    } catch (error) {
+      return { data: null, isFromCache: false, isStale: true };
+    }
   }
 
   async getMealPhotos(skip: number = 0, limit: number = 100): Promise<MealPhoto[]> {
@@ -325,27 +438,45 @@ class ApiService {
   async getDailyMeals(
     date: string,
     tzOffsetMinutes: number = getLocalTimezoneOffset()
-  ): Promise<{
-    date: string;
-    total_calories: number;
-    total_protein: number;
-    total_fat: number;
-    total_carbs: number;
-    streak_count?: number;
-    meals: Array<{
-      id: number;
-      name: string;
-      time: string;
-      calories: number;
-      protein: number;
-      carbs: number;
-      fats: number;
-    }>;
-  }> {
+  ): Promise<DailyMealsData> {
     const response = await this.api.get(API_ENDPOINTS.MEALS_DAILY, {
       params: { date, tz_offset_minutes: tzOffsetMinutes },
     });
+    // Сохраняем в кэш
+    dataCache.setDailyMeals(date, response.data);
     return response.data;
+  }
+
+  /**
+   * Получить дневные данные с кэшированием (stale-while-revalidate)
+   * Возвращает кэшированные данные немедленно, обновляет в фоне если устарели
+   */
+  async getDailyMealsCached(
+    date: string,
+    tzOffsetMinutes: number = getLocalTimezoneOffset()
+  ): Promise<{ data: DailyMealsData | null; isFromCache: boolean; isStale: boolean }> {
+    const cached = dataCache.getDailyMeals(date);
+    const isStale = dataCache.isDailyMealsStale(date);
+
+    // Если есть кэш - возвращаем его
+    if (cached) {
+      // Если устарел и нет активного обновления - запускаем фоновое обновление
+      if (isStale && !dataCache.isPendingUpdate(`daily-${date}`)) {
+        dataCache.setPendingUpdate(`daily-${date}`);
+        this.getDailyMeals(date, tzOffsetMinutes)
+          .catch((e) => console.warn("Background daily update failed:", e))
+          .finally(() => dataCache.clearPendingUpdate(`daily-${date}`));
+      }
+      return { data: cached, isFromCache: true, isStale };
+    }
+
+    // Нет кэша - загружаем синхронно
+    try {
+      const data = await this.getDailyMeals(date, tzOffsetMinutes);
+      return { data, isFromCache: false, isStale: false };
+    } catch (error) {
+      return { data: null, isFromCache: false, isStale: true };
+    }
   }
 
   async getDailyMealsBatch(
@@ -361,7 +492,62 @@ class ApiService {
     const response = await this.api.post(API_ENDPOINTS.MEALS_DAILY_BATCH, { dates }, {
       params: { tz_offset_minutes: tzOffsetMinutes },
     });
+    // Сохраняем каждый день в кэш
+    for (const item of response.data) {
+      const cached = dataCache.getDailyMeals(item.date);
+      if (cached) {
+        // Обновляем только totals если уже есть данные
+        cached.total_calories = item.total_calories;
+        cached.total_protein = item.total_protein;
+        cached.total_fat = item.total_fat;
+        cached.total_carbs = item.total_carbs;
+      }
+    }
     return response.data;
+  }
+
+  /**
+   * Получить batch данные с кэшированием
+   */
+  async getDailyMealsBatchCached(
+    dates: string[],
+    weekKey: string,
+    tzOffsetMinutes: number = getLocalTimezoneOffset()
+  ): Promise<{ data: Array<{ date: string; total_calories: number; total_protein: number; total_fat: number; total_carbs: number }> | null; isFromCache: boolean }> {
+    const weekData = dataCache.getWeekData(weekKey);
+    const isStale = dataCache.isWeekStale(weekKey);
+
+    // Если есть кэш недели - собираем данные из него
+    if (weekData && !isStale) {
+      // Возвращаем из кэша прогресс
+      const cachedResults = dates.map(date => {
+        const daily = dataCache.getDailyMeals(date);
+        return {
+          date,
+          total_calories: daily?.total_calories || 0,
+          total_protein: daily?.total_protein || 0,
+          total_fat: daily?.total_fat || 0,
+          total_carbs: daily?.total_carbs || 0,
+        };
+      });
+      
+      // Фоновое обновление если устарело
+      if (isStale && !dataCache.isPendingUpdate(`week-${weekKey}`)) {
+        dataCache.setPendingUpdate(`week-${weekKey}`);
+        this.getDailyMealsBatch(dates, tzOffsetMinutes)
+          .catch((e) => console.warn("Background week update failed:", e))
+          .finally(() => dataCache.clearPendingUpdate(`week-${weekKey}`));
+      }
+      
+      return { data: cachedResults, isFromCache: true };
+    }
+
+    try {
+      const data = await this.getDailyMealsBatch(dates, tzOffsetMinutes);
+      return { data, isFromCache: false };
+    } catch (error) {
+      return { data: null, isFromCache: false };
+    }
   }
 
   async deleteMealPhoto(photoId: number) {
@@ -406,10 +592,8 @@ class ApiService {
       const response = await this.api.get(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/detail`);
       return response.data;
     } catch (error: any) {
-      // If endpoint doesn't exist yet, return basic photo data
-      if (error.response?.status === 404) {
-        const photo = await this.api.get<MealPhoto>(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
-        return { photo: photo.data };
+      if (error.response?.status === 404 || error.response?.status === 405) {
+        return { photo: null as any };
       }
       throw error;
     }
