@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 interface ProgressBarProps {
   currentStep: number;
@@ -7,12 +7,13 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
+  const { colors, isDark } = useTheme();
   const progress = (currentStep / totalSteps) * 100;
 
   return (
     <View style={styles.progressBarContainer}>
-      <View style={styles.progressBarBackground}>
-        <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+      <View style={[styles.progressBarBackground, { backgroundColor: isDark ? colors.fillTertiary : "#E6E1D8" }]}>
+        <View style={[styles.progressBarFill, { width: `${progress}%`, backgroundColor: colors.text }]} />
       </View>
     </View>
   );
@@ -28,14 +29,11 @@ const styles = StyleSheet.create({
   progressBarBackground: {
     width: "100%",
     height: 4,
-    backgroundColor: "#E6E1D8",
     borderRadius: 2,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: colors.primary,
     borderRadius: 2,
   },
 });
-

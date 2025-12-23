@@ -367,7 +367,7 @@ export default function SettingsScreen() {
         {/* Goals & Tracking */}
         <SectionHeader title="Цели и отслеживание" />
         <View style={styles.section}>
-          <MenuItem icon="navigate-outline" title="Изменить цели питания" />
+          <MenuItem icon="navigate-outline" title="Изменить цели питания" onPress={() => router.push("/nutrition-goals" as any)} />
           <MenuItem icon="flag-outline" title="Цели и текущий вес" />
           <MenuItem icon="time-outline" title="История веса" />
           <MenuItem icon="ellipse-outline" title="Ring Colors Explained" isLast />

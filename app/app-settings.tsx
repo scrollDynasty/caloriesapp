@@ -3,12 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeMode, useTheme } from "../context/ThemeContext";
@@ -23,36 +23,29 @@ interface ToggleSettings {
 
 const TOGGLE_SETTINGS_KEY = "@caloriesapp:toggle_settings";
 
-// Theme Preview Card - iOS style
+// Theme Preview Card - iOS 17 style
 function ThemePreviewCard({
   mode,
   selected,
   onPress,
   isDarkTheme,
+  colors,
 }: {
   mode: ThemeMode;
   selected: boolean;
   onPress: () => void;
   isDarkTheme: boolean;
+  colors: any;
 }) {
   const isDark = mode === "dark";
   
-  // Colors based on mode preview
-  const previewBg = isDark ? "#1C1C1E" : "#F5F5F5";
+  // Preview colors based on the mode being previewed
+  const previewBg = isDark ? "#1C1C1E" : "#F2F2F7";
   const cardBg = isDark ? "#2C2C2E" : "#FFFFFF";
-  const dotColors = ["#FF6B6B", "#4ECDC4", "#45B7D1"];
-  const textColor = isDarkTheme ? "#FFFFFF" : "#000000";
-  const secondaryColor = isDarkTheme ? "#8E8E93" : "#8E8E93";
-  const borderColor = "#007AFF"; // iOS blue for selected state
+  const dotColors = ["#FF6B6B", "#34C759", "#007AFF"];
   
   const getLabel = () => {
     return mode === "light" ? "Светлая" : "Тёмная";
-  };
-
-  const getIconElement = () => {
-    return mode === "light" 
-      ? <Ionicons name="sunny" size={16} color={selected ? "#007AFF" : secondaryColor} />
-      : <Ionicons name="moon" size={16} color={selected ? "#007AFF" : secondaryColor} />;
   };
 
   return (
@@ -60,36 +53,58 @@ function ThemePreviewCard({
       activeOpacity={0.7} 
       onPress={onPress}
       style={[
-        styles.themeCard, 
-        selected && [styles.themeCardSelected, { borderColor }],
-        { backgroundColor: isDarkTheme ? "#2C2C2E" : "#FFFFFF" }
+        styles.themeCard,
+        { 
+          backgroundColor: isDarkTheme ? colors.cardSecondary : colors.card,
+          borderColor: selected ? colors.info : "transparent",
+        },
+        selected && styles.themeCardSelected,
       ]}
     >
       <View style={[styles.themePreview, { backgroundColor: previewBg }]}>
-        {/* Moon badge for dark mode */}
+        {/* Moon icon for dark mode preview */}
         {isDark && (
           <View style={styles.themeBadge}>
-            <Ionicons name="moon" size={14} color="#FFFFFF" />
+            <Ionicons name="moon" size={12} color="#FFFFFF" />
           </View>
         )}
         
-        {/* Preview cards with colored dots */}
+        {/* Sun icon for light mode preview */}
+        {!isDark && (
+          <View style={[styles.themeBadge, { backgroundColor: "#FF9500" }]}>
+            <Ionicons name="sunny" size={12} color="#FFFFFF" />
+          </View>
+        )}
+        
+        {/* Preview cards with colored indicators */}
         <View style={styles.themePreviewContent}>
           {[0, 1, 2].map((index) => (
             <View key={index} style={[styles.themePreviewRow, { backgroundColor: cardBg }]}>
               <View style={[styles.themePreviewDot, { backgroundColor: dotColors[index] }]} />
-              <View style={[styles.themePreviewLine, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }]} />
+              <View 
+                style={[
+                  styles.themePreviewLine, 
+                  { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)" }
+                ]} 
+              />
             </View>
           ))}
         </View>
       </View>
       
-      <View style={[styles.themeLabelRow, { backgroundColor: isDarkTheme ? "#1C1C1E" : "#FFFFFF" }]}>
-        {getIconElement()}
+      <View style={[styles.themeLabelRow, { backgroundColor: isDarkTheme ? colors.card : "#FAFAFA" }]}>
+        <View style={[
+          styles.themeRadio,
+          { 
+            borderColor: selected ? colors.info : colors.border,
+            backgroundColor: selected ? colors.info : "transparent",
+          }
+        ]}>
+          {selected && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+        </View>
         <Text style={[
           styles.themeLabel, 
-          selected && styles.themeLabelSelected,
-          { color: selected ? "#007AFF" : secondaryColor }
+          { color: selected ? colors.info : colors.text }
         ]}>
           {getLabel()}
         </Text>
@@ -98,43 +113,38 @@ function ThemePreviewCard({
   );
 }
 
-// Setting Toggle Row
+// Setting Toggle Row - iOS style
 function SettingToggle({
   title,
   subtitle,
   value,
   onValueChange,
   isLast = false,
-  isDark,
+  colors,
 }: {
   title: string;
   subtitle: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
   isLast?: boolean;
-  isDark: boolean;
+  colors: any;
 }) {
-  const textColor = isDark ? "#FFFFFF" : "#2D2A26";
-  const secondaryColor = isDark ? "#8E8E93" : "#8C867D";
-  const borderColor = isDark ? "#38383A" : "#E5E5E5";
-  const trackColor = isDark ? "#2D2A26" : "#2D2A26";
-
   return (
     <>
       <View style={styles.toggleRow}>
         <View style={styles.toggleInfo}>
-          <Text style={[styles.toggleTitle, { color: textColor }]}>{title}</Text>
-          <Text style={[styles.toggleSubtitle, { color: secondaryColor }]}>{subtitle}</Text>
+          <Text style={[styles.toggleTitle, { color: colors.text }]}>{title}</Text>
+          <Text style={[styles.toggleSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>
         </View>
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: isDark ? "#38383A" : "#E5E5EA", true: trackColor }}
+          trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
           thumbColor="#FFFFFF"
-          ios_backgroundColor={isDark ? "#38383A" : "#E5E5EA"}
+          ios_backgroundColor={colors.switchTrackOff}
         />
       </View>
-      {!isLast && <View style={[styles.toggleDivider, { backgroundColor: borderColor }]} />}
+      {!isLast && <View style={[styles.toggleDivider, { backgroundColor: colors.separator }]} />}
     </>
   );
 }
@@ -187,80 +197,88 @@ export default function AppSettingsScreen() {
           style={[styles.backButton, { backgroundColor: colors.card }]} 
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.primary }]}>Настройки</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Настройки</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Appearance Section */}
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.primary }]}>Внешний вид</Text>
-            <Text style={[styles.sectionSubtitle, { color: colors.secondary }]}>
-              Выбери светлую или тёмную тему
-            </Text>
-          </View>
-          
-          <View style={styles.themeSelector}>
-            <ThemePreviewCard
-              mode="light"
-              selected={themeMode === "light"}
-              onPress={() => setThemeMode("light")}
-              isDarkTheme={isDark}
-            />
-            <ThemePreviewCard
-              mode="dark"
-              selected={themeMode === "dark"}
-              onPress={() => setThemeMode("dark")}
-              isDarkTheme={isDark}
-            />
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ВНЕШНИЙ ВИД</Text>
+          <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={styles.sectionContent}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Тема оформления</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+                Выбери светлую или тёмную тему для приложения
+              </Text>
+            </View>
+            
+            <View style={styles.themeSelector}>
+              <ThemePreviewCard
+                mode="light"
+                selected={themeMode === "light"}
+                onPress={() => setThemeMode("light")}
+                isDarkTheme={isDark}
+                colors={colors}
+              />
+              <ThemePreviewCard
+                mode="dark"
+                selected={themeMode === "dark"}
+                onPress={() => setThemeMode("dark")}
+                isDarkTheme={isDark}
+                colors={colors}
+              />
+            </View>
           </View>
         </View>
 
-        {/* Toggles Section */}
-        <View style={[styles.togglesSection, { backgroundColor: colors.card }]}>
-          <SettingToggle
-            title="Празднования значков"
-            subtitle="Показывать полноэкранную анимацию при получении нового значка"
-            value={toggleSettings.badgeCelebrations}
-            onValueChange={(value) => saveToggleSetting("badgeCelebrations", value)}
-            isDark={isDark}
-          />
+        {/* Features Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ФУНКЦИИ</Text>
+          <View style={[styles.togglesSection, { backgroundColor: colors.card }]}>
+            <SettingToggle
+              title="Празднования значков"
+              subtitle="Показывать полноэкранную анимацию при получении нового значка"
+              value={toggleSettings.badgeCelebrations}
+              onValueChange={(value) => saveToggleSetting("badgeCelebrations", value)}
+              colors={colors}
+            />
 
-          <SettingToggle
-            title="Живая активность"
-            subtitle="Показывать твои ежедневные калории и макроэлементы на экране блокировки и динамическом острове"
-            value={toggleSettings.liveActivity}
-            onValueChange={(value) => saveToggleSetting("liveActivity", value)}
-            isDark={isDark}
-          />
+            <SettingToggle
+              title="Живая активность"
+              subtitle="Показывать калории и макроэлементы на экране блокировки"
+              value={toggleSettings.liveActivity}
+              onValueChange={(value) => saveToggleSetting("liveActivity", value)}
+              colors={colors}
+            />
 
-          <SettingToggle
-            title="Добавить сожжённые калории"
-            subtitle="Добавить сожжённые калории к суточной норме"
-            value={toggleSettings.burnedCalories}
-            onValueChange={(value) => saveToggleSetting("burnedCalories", value)}
-            isDark={isDark}
-          />
+            <SettingToggle
+              title="Добавить сожжённые калории"
+              subtitle="Добавить сожжённые калории к суточной норме"
+              value={toggleSettings.burnedCalories}
+              onValueChange={(value) => saveToggleSetting("burnedCalories", value)}
+              colors={colors}
+            />
 
-          <SettingToggle
-            title="Перенос калорий"
-            subtitle="Добавить до 200 оставшихся калорий с вчерашнего дня к сегодняшней суточной норме"
-            value={toggleSettings.calorieRollover}
-            onValueChange={(value) => saveToggleSetting("calorieRollover", value)}
-            isDark={isDark}
-          />
+            <SettingToggle
+              title="Перенос калорий"
+              subtitle="Перенести до 200 калорий с вчерашнего дня"
+              value={toggleSettings.calorieRollover}
+              onValueChange={(value) => saveToggleSetting("calorieRollover", value)}
+              colors={colors}
+            />
 
-          <SettingToggle
-            title="Автоматическая корректировка макроэлементов"
-            subtitle="При редактировании калорий или макронутриентов автоматически пропорционально корректировать остальные значения"
-            value={toggleSettings.autoMacroAdjust}
-            onValueChange={(value) => saveToggleSetting("autoMacroAdjust", value)}
-            isLast
-            isDark={isDark}
-          />
+            <SettingToggle
+              title="Авто-корректировка макроэлементов"
+              subtitle="Автоматически корректировать макронутриенты при изменении калорий"
+              value={toggleSettings.autoMacroAdjust}
+              onValueChange={(value) => saveToggleSetting("autoMacroAdjust", value)}
+              isLast
+              colors={colors}
+            />
+          </View>
         </View>
 
         <View style={styles.bottomSpacer} />
@@ -286,6 +304,11 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   headerTitle: {
     fontSize: 17,
@@ -298,13 +321,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // Section
-  section: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    borderRadius: 14,
-    padding: 16,
+  sectionContainer: {
+    marginTop: 24,
   },
   sectionHeader: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    marginHorizontal: 32,
+  },
+  section: {
+    marginHorizontal: 16,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  sectionContent: {
     marginBottom: 16,
   },
   sectionTitle: {
@@ -315,15 +352,16 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
+    lineHeight: 20,
   },
   // Theme Selector
   themeSelector: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
   },
   themeCard: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "transparent",
@@ -332,58 +370,73 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   themePreview: {
-    height: 80,
-    padding: 8,
+    height: 88,
+    padding: 10,
     position: "relative",
   },
   themeBadge: {
     position: "absolute",
-    top: 6,
-    right: 6,
+    top: 8,
+    right: 8,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#8E8E93",
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1,
   },
   themePreviewContent: {
     flex: 1,
     justifyContent: "flex-end",
-    gap: 4,
+    gap: 5,
   },
   themePreviewRow: {
-    height: 14,
-    borderRadius: 4,
+    height: 16,
+    borderRadius: 5,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 6,
-    gap: 4,
+    paddingHorizontal: 8,
+    gap: 6,
   },
   themePreviewDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   themePreviewLine: {
     flex: 1,
-    height: 4,
-    borderRadius: 2,
+    height: 5,
+    borderRadius: 2.5,
   },
   themeLabelRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
-    paddingVertical: 10,
+    gap: 8,
+    paddingVertical: 12,
+  },
+  themeRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
   themeLabel: {
-    fontSize: 12,
-    fontFamily: "Inter_500Medium",
-  },
-  themeLabelSelected: {
+    fontSize: 14,
     fontFamily: "Inter_600SemiBold",
   },
   // Toggles Section
   togglesSection: {
     marginHorizontal: 16,
-    marginTop: 20,
-    borderRadius: 14,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   toggleRow: {
     flexDirection: "row",
@@ -398,7 +451,7 @@ const styles = StyleSheet.create({
   toggleTitle: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    marginBottom: 3,
+    marginBottom: 4,
   },
   toggleSubtitle: {
     fontSize: 13,

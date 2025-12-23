@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 interface PrimaryButtonProps {
   label: string;
@@ -15,18 +15,20 @@ export function PrimaryButton({
   icon = "arrow-forward",
   iconSize = 20,
 }: PrimaryButtonProps) {
+  const { colors, isDark } = useTheme();
+  
   return (
     <TouchableOpacity
-      style={styles.primaryButton}
+      style={[styles.primaryButton, { backgroundColor: colors.buttonPrimary }]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Text style={styles.primaryButtonText}>{label}</Text>
+      <Text style={[styles.primaryButtonText, { color: colors.buttonPrimaryText }]}>{label}</Text>
       {icon && (
         <Ionicons
           name={icon}
           size={iconSize}
-          color={colors.background}
+          color={colors.buttonPrimaryText}
           style={styles.primaryButtonIcon}
         />
       )}
@@ -40,14 +42,16 @@ interface SecondaryButtonProps {
 }
 
 export function SecondaryButton({ label, onPress }: SecondaryButtonProps) {
+  const { colors } = useTheme();
+  
   return (
     <View style={styles.secondaryButtonContainer}>
       <TouchableOpacity
-        style={styles.secondaryButton}
+        style={[styles.secondaryButton, { backgroundColor: colors.buttonSecondary }]}
         onPress={onPress}
         activeOpacity={0.7}
       >
-        <Text style={styles.secondaryButtonText}>{label}</Text>
+        <Text style={[styles.secondaryButtonText, { color: colors.buttonSecondaryText }]}>{label}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -56,49 +60,43 @@ export function SecondaryButton({ label, onPress }: SecondaryButtonProps) {
 const styles = StyleSheet.create({
   primaryButton: {
     width: "100%",
-    backgroundColor: colors.primary,
-    borderRadius: 32,
+    borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8, 
-    paddingVertical: 16,
-    paddingHorizontal: 6, 
-    
+    gap: 8,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+    // Shadow
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
     elevation: 4,
   },
   primaryButtonText: {
-    color: colors.background,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
-    lineHeight: 21.78,
     fontFamily: "Inter_600SemiBold",
   },
   primaryButtonIcon: {
-    marginLeft: 0,
+    marginLeft: 4,
   },
   secondaryButtonContainer: {
     alignItems: "center",
   },
   secondaryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 24, 
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
   },
   secondaryButtonText: {
-    color: colors.primary,
     fontSize: 15,
     fontWeight: "500",
-    lineHeight: 18.15,
     textAlign: "center",
     fontFamily: "Inter_500Medium",
   },
 });
-

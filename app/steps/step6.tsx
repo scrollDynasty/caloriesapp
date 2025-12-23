@@ -6,13 +6,14 @@ import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { RadioButton } from "../../components/ui/RadioButton";
-import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 export default function Step6() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const { updateData } = useOnboarding();
   const [selectedGoal, setSelectedGoal] = useState<string | null>("maintain");
 
@@ -36,7 +37,7 @@ export default function Step6() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={["top"]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -52,9 +53,9 @@ export default function Step6() {
         <View style={styles.contentContainer}>
           {}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Цель пользователя</Text>
-            <Text style={styles.subtitle}>
-              Выберите, к чему вы стремитесь
+            <Text style={[styles.title, { color: colors.text }]}>Какова твоя цель?</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Это помогает нам составить план по твоему потреблению калорий.
             </Text>
           </View>
 
@@ -66,7 +67,7 @@ export default function Step6() {
               onPress={() => setSelectedGoal("lose")}
             />
             <RadioButton
-              label="Поддерживать вес"
+              label="Поддерживать"
               selected={selectedGoal === "maintain"}
               onPress={() => setSelectedGoal("maintain")}
             />
@@ -81,7 +82,7 @@ export default function Step6() {
         {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
-            label="Продолжить"
+            label="Автогенерация целей"
             onPress={handleNextPress}
             icon={null}
           />
@@ -94,7 +95,6 @@ export default function Step6() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -114,15 +114,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    color: colors.primary,
     fontSize: 28,
     fontWeight: "700",
-    lineHeight: 33.88,
+    lineHeight: 34,
     textAlign: "left",
     fontFamily: "Inter_700Bold",
   },
   subtitle: {
-    color: colors.secondary,
     fontSize: 16,
     fontWeight: "400",
     lineHeight: 24,

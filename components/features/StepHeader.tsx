@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { colors } from "../../constants/theme";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { useTheme } from "../../context/ThemeContext";
 
 interface StepHeaderProps {
   stepNumber: number;
@@ -11,20 +11,21 @@ export default function StepHeader({
   stepNumber,
   onBack,
 }: StepHeaderProps) {
+  const { colors, isDark } = useTheme();
+  
   return (
     <View style={styles.headerContainer}>
       {onBack ? (
         <TouchableOpacity
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: isDark ? colors.card : colors.backgroundSecondary }]}
           onPress={onBack}
           activeOpacity={0.7}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.primary} />
+          <Ionicons name="arrow-back" size={22} color={colors.text} />
         </TouchableOpacity>
       ) : (
         <View style={styles.backButtonPlaceholder} />
       )}
-      <Text style={styles.stepIndicator}>Шаг {stepNumber}</Text>
       <View style={styles.backButtonPlaceholder} />
     </View>
   );
@@ -36,29 +37,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 12,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   backButton: {
-    width: 32,
-    height: 40,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
-    alignItems: "flex-start",
-    padding: 8,
-    marginLeft: -8,
+    alignItems: "center",
   },
   backButtonPlaceholder: {
-    width: 32,
-    height: 40,
-  },
-  stepIndicator: {
-    color: colors.secondary,
-    fontSize: 14,
-    fontWeight: "600",
-    lineHeight: 16.94,
-    fontFamily: "Inter_600SemiBold",
-    textAlign: "center",
-    flex: 1,
+    width: 44,
+    height: 44,
   },
 });
-

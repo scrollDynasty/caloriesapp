@@ -6,7 +6,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 interface RadioButtonProps {
   label: string;
@@ -15,6 +15,7 @@ interface RadioButtonProps {
 }
 
 export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
+  const { colors, isDark } = useTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -24,7 +25,6 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
   });
 
   const handlePressIn = () => {
-    
     scale.value = withSpring(0.97, {
       damping: 15,
       stiffness: 300,
@@ -33,7 +33,6 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
   };
 
   const handlePressOut = () => {
-    
     scale.value = withSpring(1, {
       damping: 15,
       stiffness: 300,
@@ -42,11 +41,30 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
 
   const handlePress = () => {
     if (!selected) {
-      
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     onPress();
   };
+
+  // iOS-style theming
+  const containerBg = selected 
+    ? (isDark ? colors.white : colors.text) 
+    : colors.card;
+  const textColor = selected 
+    ? (isDark ? colors.black : colors.white) 
+    : colors.text;
+  const borderColor = selected 
+    ? "transparent" 
+    : colors.border;
+  const checkBg = selected 
+    ? (isDark ? colors.black : colors.white) 
+    : "transparent";
+  const checkBorderColor = selected 
+    ? "transparent" 
+    : colors.textSecondary;
+  const checkIconColor = selected 
+    ? (isDark ? colors.white : colors.text) 
+    : "transparent";
 
   return (
     <Pressable
@@ -57,15 +75,26 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
       <Animated.View
         style={[
           styles.radioContainer,
-          selected && styles.radioContainerSelected,
+          {
+            backgroundColor: containerBg,
+            borderColor: borderColor,
+          },
           animatedStyle,
         ]}
       >
-        <Text style={styles.radioText}>{label}</Text>
+        <Text style={[styles.radioText, { color: textColor }]}>{label}</Text>
         <View style={styles.radioCircleContainer}>
-          <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
+          <View 
+            style={[
+              styles.radioCircle, 
+              { 
+                backgroundColor: checkBg,
+                borderColor: checkBorderColor,
+              }
+            ]}
+          >
             {selected && (
-              <Ionicons name="checkmark" size={16} color={colors.white} />
+              <Ionicons name="checkmark" size={16} color={checkIconColor} />
             )}
           </View>
         </View>
@@ -80,39 +109,23 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     alignSelf: "stretch",
-    padding: 24,
-    backgroundColor: colors.white,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: "rgba(0, 0, 0, 0)",
-    
+    padding: 20,
+    borderRadius: 20,
+    borderWidth: 1,
+    // Shadow
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 1,
+      height: 2,
     },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  radioContainerSelected: {
-    backgroundColor: "#F4F2EF",
-    borderColor: colors.primary,
-    
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   radioText: {
-    color: colors.primary,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
-    lineHeight: 21.78,
+    lineHeight: 22,
     fontFamily: "Inter_600SemiBold",
     flex: 1,
   },
@@ -127,14 +140,7 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: colors.secondary,
-    backgroundColor: "transparent",
     justifyContent: "center",
     alignItems: "center",
   },
-  radioCircleSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary,
-  },
 });
-
