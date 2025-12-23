@@ -248,7 +248,15 @@ class DataCache {
     this.pendingUpdates.delete(key);
   }
 
-  // ===== Global =====
+
+  invalidateOnboarding(): void {
+    this.onboardingCache = null;
+  }
+
+  invalidateUser(): void {
+    this.userCache = null;
+  }
+
 
   invalidateAll(): void {
     this.dailyMealsCache.clear();

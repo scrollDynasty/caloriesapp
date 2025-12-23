@@ -300,8 +300,8 @@ export default function SettingsScreen() {
         {/* Account */}
         <SectionHeader title="Аккаунт" />
         <View style={styles.section}>
-          <MenuItem icon="person-outline" title="Личные данные" />
-          <MenuItem icon="settings-outline" title="Настройки" />
+          <MenuItem icon="person-outline" title="Личные данные" onPress={() => router.push("/personal-data" as any)} />
+          <MenuItem icon="settings-outline" title="Настройки" onPress={() => router.push("/app-settings" as any)} />
           <MenuItem icon="language-outline" title="Язык" />
           <MenuItem icon="people-outline" title="Обновиться до семейного плана" isLast />
         </View>
