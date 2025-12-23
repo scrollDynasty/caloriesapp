@@ -10,10 +10,8 @@ export default function RootLayout() {
   const segments = useSegments();
 
   useEffect(() => {
-    // Подписываемся на событие истечения авторизации
     const unsubscribe = onAuthExpired(() => {
       console.log("Auth expired, redirecting to login...");
-      // Проверяем, что мы не уже на странице логина
       const isOnLogin = segments[0] === "auth";
       if (!isOnLogin) {
         router.replace("/auth/login");
@@ -54,6 +52,12 @@ export default function RootLayout() {
           />
           <Stack.Screen
             name="app-settings"
+            options={{
+              animation: "slide_from_right",
+            }}
+          />
+          <Stack.Screen
+            name="edit-profile"
             options={{
               animation: "slide_from_right",
             }}

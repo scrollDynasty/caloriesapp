@@ -35,8 +35,11 @@ class OnboardingData(Base):
 
     height = Column(Float, nullable=True)
     weight = Column(Float, nullable=True)
+    target_weight = Column(Float, nullable=True)
 
     birth_date = Column(Date, nullable=True)
+    
+    step_goal = Column(Integer, nullable=True)
 
     has_trainer = Column(String(10), nullable=True)
 

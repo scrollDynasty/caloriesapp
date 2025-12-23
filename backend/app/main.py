@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.database import init_db
+from app.core.database import init_db, engine
 from app.api.v1 import auth, onboarding, meals
 
 app = FastAPI(
@@ -34,6 +34,13 @@ async def startup_event():
     print(f"Server starting on {settings.host}:{settings.port}")
     print(f"Environment: {settings.environment}")
     print(f"Database: {settings.db_name}@{settings.db_host}")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Корректно закрываем connection pool при остановке сервера"""
+    engine.dispose()
+    print("Database connection pool disposed")
 
 @app.get("/")
 async def root():

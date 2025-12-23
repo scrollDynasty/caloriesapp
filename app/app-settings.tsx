@@ -11,12 +11,9 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../constants/theme";
+import { ThemeMode, useTheme } from "../context/ThemeContext";
 
-type ThemeMode = "system" | "light" | "dark";
-
-interface SettingsState {
-  theme: ThemeMode;
+interface ToggleSettings {
   badgeCelebrations: boolean;
   liveActivity: boolean;
   burnedCalories: boolean;
@@ -24,27 +21,29 @@ interface SettingsState {
   autoMacroAdjust: boolean;
 }
 
-const SETTINGS_KEY = "@caloriesapp:app_settings";
-const THEME_KEY = "@caloriesapp:theme_mode";
+const TOGGLE_SETTINGS_KEY = "@caloriesapp:toggle_settings";
 
 // Theme Preview Card - matching the screenshot exactly
 function ThemePreviewCard({
   mode,
   selected,
   onPress,
+  isDarkTheme,
 }: {
   mode: ThemeMode;
   selected: boolean;
   onPress: () => void;
+  isDarkTheme: boolean;
 }) {
   const isDark = mode === "dark";
-  const isSystem = mode === "system";
-  const isLight = mode === "light";
   
   // Colors based on mode preview
   const previewBg = isDark ? "#1C1C1E" : "#F5F5F5";
   const cardBg = isDark ? "#2C2C2E" : "#FFFFFF";
   const dotColors = ["#FF6B6B", "#4ECDC4", "#45B7D1"];
+  const textColor = isDarkTheme ? "#FFFFFF" : "#2D2A26";
+  const secondaryColor = isDarkTheme ? "#8E8E93" : "#8C867D";
+  const borderColor = isDarkTheme ? "#FFFFFF" : "#2D2A26";
   
   const getLabel = () => {
     switch (mode) {
@@ -58,11 +57,11 @@ function ThemePreviewCard({
   const getIconElement = () => {
     switch (mode) {
       case "system":
-        return <Ionicons name="contrast" size={14} color={selected ? colors.primary : colors.secondary} />;
+        return <Ionicons name="contrast" size={14} color={selected ? textColor : secondaryColor} />;
       case "light":
         return <Text style={styles.themeIconEmoji}>☀️</Text>;
       case "dark":
-        return <Ionicons name="moon" size={14} color={selected ? colors.primary : colors.secondary} />;
+        return <Ionicons name="moon" size={14} color={selected ? textColor : secondaryColor} />;
     }
   };
 
@@ -70,7 +69,11 @@ function ThemePreviewCard({
     <TouchableOpacity 
       activeOpacity={0.7} 
       onPress={onPress}
-      style={[styles.themeCard, selected && styles.themeCardSelected]}
+      style={[
+        styles.themeCard, 
+        selected && [styles.themeCardSelected, { borderColor }],
+        { backgroundColor: isDarkTheme ? "#2C2C2E" : "#F5F5F5" }
+      ]}
     >
       <View style={[styles.themePreview, { backgroundColor: previewBg }]}>
         {/* Moon badge for dark mode */}
@@ -80,27 +83,24 @@ function ThemePreviewCard({
           </View>
         )}
         
-        {/* Light mode has sun badge when selected */}
-        {isLight && selected && (
-          <View style={[styles.themeBadge, { backgroundColor: "transparent" }]}>
-            <Ionicons name="ellipse" size={16} color={colors.primary} />
-          </View>
-        )}
-        
         {/* Preview cards with colored dots */}
         <View style={styles.themePreviewContent}>
           {[0, 1, 2].map((index) => (
             <View key={index} style={[styles.themePreviewRow, { backgroundColor: cardBg }]}>
               <View style={[styles.themePreviewDot, { backgroundColor: dotColors[index] }]} />
-              <View style={styles.themePreviewLine} />
+              <View style={[styles.themePreviewLine, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }]} />
             </View>
           ))}
         </View>
       </View>
       
-      <View style={styles.themeLabelRow}>
+      <View style={[styles.themeLabelRow, { backgroundColor: isDarkTheme ? "#1C1C1E" : "#FFFFFF" }]}>
         {getIconElement()}
-        <Text style={[styles.themeLabel, selected && styles.themeLabelSelected]}>
+        <Text style={[
+          styles.themeLabel, 
+          selected && styles.themeLabelSelected,
+          { color: selected ? textColor : secondaryColor }
+        ]}>
           {getLabel()}
         </Text>
       </View>
@@ -115,37 +115,45 @@ function SettingToggle({
   value,
   onValueChange,
   isLast = false,
+  isDark,
 }: {
   title: string;
   subtitle: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
   isLast?: boolean;
+  isDark: boolean;
 }) {
+  const textColor = isDark ? "#FFFFFF" : "#2D2A26";
+  const secondaryColor = isDark ? "#8E8E93" : "#8C867D";
+  const borderColor = isDark ? "#38383A" : "#E5E5E5";
+  const trackColor = isDark ? "#2D2A26" : "#2D2A26";
+
   return (
     <>
       <View style={styles.toggleRow}>
         <View style={styles.toggleInfo}>
-          <Text style={styles.toggleTitle}>{title}</Text>
-          <Text style={styles.toggleSubtitle}>{subtitle}</Text>
+          <Text style={[styles.toggleTitle, { color: textColor }]}>{title}</Text>
+          <Text style={[styles.toggleSubtitle, { color: secondaryColor }]}>{subtitle}</Text>
         </View>
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: "#E5E5EA", true: colors.primary }}
+          trackColor={{ false: isDark ? "#38383A" : "#E5E5EA", true: trackColor }}
           thumbColor="#FFFFFF"
-          ios_backgroundColor="#E5E5EA"
+          ios_backgroundColor={isDark ? "#38383A" : "#E5E5EA"}
         />
       </View>
-      {!isLast && <View style={styles.toggleDivider} />}
+      {!isLast && <View style={[styles.toggleDivider, { backgroundColor: borderColor }]} />}
     </>
   );
 }
 
 export default function AppSettingsScreen() {
   const router = useRouter();
-  const [settings, setSettings] = useState<SettingsState>({
-    theme: "light",
+  const { themeMode, setThemeMode, colors, isDark } = useTheme();
+  
+  const [toggleSettings, setToggleSettings] = useState<ToggleSettings>({
     badgeCelebrations: true,
     liveActivity: false,
     burnedCalories: false,
@@ -154,123 +162,120 @@ export default function AppSettingsScreen() {
   });
 
   useEffect(() => {
-    loadSettings();
+    loadToggleSettings();
   }, []);
 
-  const loadSettings = async () => {
+  const loadToggleSettings = async () => {
     try {
-      const [storedSettings, storedTheme] = await Promise.all([
-        AsyncStorage.getItem(SETTINGS_KEY),
-        AsyncStorage.getItem(THEME_KEY),
-      ]);
-      
-      let parsed = settings;
-      if (storedSettings) {
-        parsed = JSON.parse(storedSettings);
+      const stored = await AsyncStorage.getItem(TOGGLE_SETTINGS_KEY);
+      if (stored) {
+        setToggleSettings(JSON.parse(stored));
       }
-      if (storedTheme) {
-        parsed.theme = storedTheme as ThemeMode;
-      }
-      setSettings(parsed);
     } catch (error) {
-      console.error("Error loading settings:", error);
+      console.error("Error loading toggle settings:", error);
     }
   };
 
-  const saveSettings = async (newSettings: SettingsState) => {
-    try {
-      await Promise.all([
-        AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings)),
-        AsyncStorage.setItem(THEME_KEY, newSettings.theme),
-      ]);
-      setSettings(newSettings);
-    } catch (error) {
-      console.error("Error saving settings:", error);
-    }
-  };
-
-  const updateSetting = <K extends keyof SettingsState>(
+  const saveToggleSetting = async <K extends keyof ToggleSettings>(
     key: K,
-    value: SettingsState[K]
+    value: ToggleSettings[K]
   ) => {
-    const newSettings = { ...settings, [key]: value };
-    saveSettings(newSettings);
+    const newSettings = { ...toggleSettings, [key]: value };
+    setToggleSettings(newSettings);
+    try {
+      await AsyncStorage.setItem(TOGGLE_SETTINGS_KEY, JSON.stringify(newSettings));
+    } catch (error) {
+      console.error("Error saving toggle settings:", error);
+    }
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity 
+          style={[styles.backButton, { backgroundColor: colors.card }]} 
+          onPress={() => router.back()}
+        >
           <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Настройки</Text>
+        <Text style={[styles.headerTitle, { color: colors.primary }]}>Настройки</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Appearance Section */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Внешний вид</Text>
-            <Text style={styles.sectionSubtitle}>Выбери светлый, тёмный или системный режим</Text>
+            <Text style={[styles.sectionTitle, { color: colors.primary }]}>Внешний вид</Text>
+            <Text style={[styles.sectionSubtitle, { color: colors.secondary }]}>
+              Выбери светлый, тёмный или системный режим
+            </Text>
           </View>
           
           <View style={styles.themeSelector}>
             <ThemePreviewCard
               mode="system"
-              selected={settings.theme === "system"}
-              onPress={() => updateSetting("theme", "system")}
+              selected={themeMode === "system"}
+              onPress={() => setThemeMode("system")}
+              isDarkTheme={isDark}
             />
             <ThemePreviewCard
               mode="light"
-              selected={settings.theme === "light"}
-              onPress={() => updateSetting("theme", "light")}
+              selected={themeMode === "light"}
+              onPress={() => setThemeMode("light")}
+              isDarkTheme={isDark}
             />
             <ThemePreviewCard
               mode="dark"
-              selected={settings.theme === "dark"}
-              onPress={() => updateSetting("theme", "dark")}
+              selected={themeMode === "dark"}
+              onPress={() => setThemeMode("dark")}
+              isDarkTheme={isDark}
             />
           </View>
         </View>
 
         {/* Toggles Section */}
-        <View style={styles.togglesSection}>
+        <View style={[styles.togglesSection, { backgroundColor: colors.card }]}>
           <SettingToggle
             title="Празднования значков"
             subtitle="Показывать полноэкранную анимацию при получении нового значка"
-            value={settings.badgeCelebrations}
-            onValueChange={(value) => updateSetting("badgeCelebrations", value)}
+            value={toggleSettings.badgeCelebrations}
+            onValueChange={(value) => saveToggleSetting("badgeCelebrations", value)}
+            isDark={isDark}
           />
 
           <SettingToggle
             title="Живая активность"
             subtitle="Показывать твои ежедневные калории и макроэлементы на экране блокировки и динамическом острове"
-            value={settings.liveActivity}
-            onValueChange={(value) => updateSetting("liveActivity", value)}
+            value={toggleSettings.liveActivity}
+            onValueChange={(value) => saveToggleSetting("liveActivity", value)}
+            isDark={isDark}
           />
 
           <SettingToggle
             title="Добавить сожжённые калории"
             subtitle="Добавить сожжённые калории к суточной норме"
-            value={settings.burnedCalories}
-            onValueChange={(value) => updateSetting("burnedCalories", value)}
+            value={toggleSettings.burnedCalories}
+            onValueChange={(value) => saveToggleSetting("burnedCalories", value)}
+            isDark={isDark}
           />
 
           <SettingToggle
             title="Перенос калорий"
             subtitle="Добавить до 200 оставшихся калорий с вчерашнего дня к сегодняшней суточной норме"
-            value={settings.calorieRollover}
-            onValueChange={(value) => updateSetting("calorieRollover", value)}
+            value={toggleSettings.calorieRollover}
+            onValueChange={(value) => saveToggleSetting("calorieRollover", value)}
+            isDark={isDark}
           />
 
           <SettingToggle
             title="Автоматическая корректировка макроэлементов"
             subtitle="При редактировании калорий или макронутриентов автоматически пропорционально корректировать остальные значения"
-            value={settings.autoMacroAdjust}
-            onValueChange={(value) => updateSetting("autoMacroAdjust", value)}
+            value={toggleSettings.autoMacroAdjust}
+            onValueChange={(value) => saveToggleSetting("autoMacroAdjust", value)}
             isLast
+            isDark={isDark}
           />
         </View>
 
@@ -283,7 +288,6 @@ export default function AppSettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   header: {
     flexDirection: "row",
@@ -296,14 +300,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.white,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     fontSize: 17,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
   },
   headerPlaceholder: {
     width: 44,
@@ -315,7 +317,6 @@ const styles = StyleSheet.create({
   section: {
     marginHorizontal: 16,
     marginTop: 16,
-    backgroundColor: colors.white,
     borderRadius: 14,
     padding: 16,
   },
@@ -325,13 +326,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
     marginBottom: 4,
   },
   sectionSubtitle: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
   },
   // Theme Selector
   themeSelector: {
@@ -344,10 +343,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "transparent",
-    backgroundColor: "#F5F5F5",
   },
   themeCardSelected: {
-    borderColor: colors.primary,
+    borderWidth: 2,
   },
   themePreview: {
     height: 80,
@@ -381,7 +379,6 @@ const styles = StyleSheet.create({
   themePreviewLine: {
     flex: 1,
     height: 4,
-    backgroundColor: "rgba(0,0,0,0.05)",
     borderRadius: 2,
   },
   themeLabelRow: {
@@ -390,7 +387,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 4,
     paddingVertical: 10,
-    backgroundColor: colors.white,
   },
   themeIconEmoji: {
     fontSize: 12,
@@ -398,17 +394,14 @@ const styles = StyleSheet.create({
   themeLabel: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
   },
   themeLabelSelected: {
-    color: colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
   // Toggles Section
   togglesSection: {
     marginHorizontal: 16,
     marginTop: 20,
-    backgroundColor: colors.white,
     borderRadius: 14,
   },
   toggleRow: {
@@ -424,18 +417,15 @@ const styles = StyleSheet.create({
   toggleTitle: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
     marginBottom: 3,
   },
   toggleSubtitle: {
     fontSize: 13,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
     lineHeight: 18,
   },
   toggleDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: "#E5E5E5",
     marginLeft: 16,
   },
   bottomSpacer: {

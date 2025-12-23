@@ -8,6 +8,7 @@ export const API_BASE_URL =
 
 export const API_ENDPOINTS = {
   
+  AUTH: "/api/v1/auth",
   AUTH_GOOGLE: "/api/v1/auth/google",
   AUTH_APPLE: "/api/v1/auth/apple",
   AUTH_ME: "/api/v1/auth/me",

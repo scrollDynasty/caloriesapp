@@ -91,34 +91,31 @@ async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str])
         if meal_name_hint:
             user_prompt = f"{user_prompt}\n\nHint: the dish might be '{meal_name_hint}'"
 
-        # Инициализируем клиент OpenAI
-        client = AsyncOpenAI(
+        async with AsyncOpenAI(
             api_key=api_key,
             timeout=settings.openai_timeout
-        )
-
-        # Отправляем запрос к OpenAI
-        response = await client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": user_prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:{mime_guess};base64,{b64_image}",
-                                "detail": "high"
-                            },
-                        }
-                    ],
-                }
-            ],
-            max_tokens=256,
-            temperature=0.1,
-        )
+        ) as client:
+            response = await client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": user_prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:{mime_guess};base64,{b64_image}",
+                                    "detail": "high"
+                                },
+                            }
+                        ],
+                    }
+                ],
+                max_tokens=256,
+                temperature=0.1,
+            )
 
         # Извлекаем ответ
         generated_text = None
@@ -212,10 +209,11 @@ async def upload_meal_photo(
     file_path = user_dir / unique_filename
 
     try:
-
         contents = await file.read()
         file_size = len(contents)
-
+        
+        # Явно закрываем UploadFile для освобождения ресурсов
+        await file.close()
 
         user_dir.mkdir(parents=True, exist_ok=True)
 

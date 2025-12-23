@@ -74,6 +74,11 @@ class DataCache {
   private static readonly USER_TTL = 7 * 24 * 60 * 60 * 1000;
   private static readonly ONBOARDING_TTL = 7 * 24 * 60 * 60 * 1000;
 
+  // Лимиты размера кэшей для предотвращения утечек памяти
+  private static readonly MAX_DAILY_ENTRIES = 60; // ~2 месяца
+  private static readonly MAX_WATER_ENTRIES = 60;
+  private static readonly MAX_WEEK_ENTRIES = 12; // ~3 месяца
+
   // Кэши
   private dailyMealsCache: Map<string, CacheEntry<DailyMealsData>> = new Map();
   private waterCache: Map<string, CacheEntry<WaterData>> = new Map();
@@ -83,6 +88,22 @@ class DataCache {
 
   // Флаги для отслеживания фоновых обновлений
   private pendingUpdates: Set<string> = new Set();
+
+  /**
+   * Удаляет старые записи из Map, если превышен лимит (LRU-подобное поведение)
+   */
+  private evictOldEntries<T>(cache: Map<string, CacheEntry<T>>, maxSize: number): void {
+    if (cache.size <= maxSize) return;
+    
+    // Сортируем по timestamp и удаляем самые старые
+    const entries = Array.from(cache.entries())
+      .sort((a, b) => a[1].timestamp - b[1].timestamp);
+    
+    const toRemove = entries.slice(0, cache.size - maxSize);
+    for (const [key] of toRemove) {
+      cache.delete(key);
+    }
+  }
 
   // ===== Daily Meals =====
 
@@ -108,6 +129,8 @@ class DataCache {
       timestamp: Date.now(),
       isStale: false,
     });
+    // Очищаем старые записи при превышении лимита
+    this.evictOldEntries(this.dailyMealsCache, DataCache.MAX_DAILY_ENTRIES);
   }
 
   invalidateDailyMeals(dateKey?: string): void {
@@ -142,6 +165,7 @@ class DataCache {
       timestamp: Date.now(),
       isStale: false,
     });
+    this.evictOldEntries(this.waterCache, DataCache.MAX_WATER_ENTRIES);
   }
 
   invalidateWater(dateKey?: string): void {
@@ -176,6 +200,7 @@ class DataCache {
       timestamp: Date.now(),
       isStale: false,
     });
+    this.evictOldEntries(this.weekCache, DataCache.MAX_WEEK_ENTRIES);
   }
 
   updateWeekProgress(weekKey: string, dateKey: string, progress: number, achieved: boolean): void {

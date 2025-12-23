@@ -616,6 +616,47 @@ class ApiService {
       );
     }
   }
+
+  // Profile methods
+  async getProfile(): Promise<{
+    id: number;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    avatar_url?: string;
+    streak_count?: number;
+    created_at?: string;
+  }> {
+    const response = await this.api.get(`${API_ENDPOINTS.AUTH}/profile`);
+    return response.data;
+  }
+
+  async updateProfile(data: {
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    avatar_url?: string | null;
+  }): Promise<{
+    id: number;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    username?: string;
+    avatar_url?: string;
+  }> {
+    const response = await this.api.put(`${API_ENDPOINTS.AUTH}/profile`, data);
+    return response.data;
+  }
+
+  async checkUsername(username: string): Promise<{
+    username: string;
+    available: boolean;
+    message: string;
+  }> {
+    const response = await this.api.post(`${API_ENDPOINTS.AUTH}/check-username`, { username });
+    return response.data;
+  }
 }
 
 export const apiService = new ApiService();

@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -28,6 +28,10 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 interface UserInfo {
   name?: string;
   email?: string;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  avatar_url?: string;
 }
 
 // Section Header
@@ -106,19 +110,44 @@ export default function SettingsScreen() {
   const [onboardingData, setOnboardingData] = useState<any>(null);
   const [dailyLoading, setDailyLoading] = useState(false);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const data = await apiService.getCurrentUser();
-        setUser({ name: data?.name || "Пользователь", email: data?.email || "" });
-      } catch (err) {
-        console.warn("Не удалось загрузить пользователя", err);
-      } finally {
-        setLoading(false);
+  const loadUser = useCallback(async () => {
+    try {
+      const data = await apiService.getProfile();
+      const fullName = data?.first_name && data?.last_name
+        ? `${data.first_name} ${data.last_name}`
+        : data?.first_name || "Пользователь";
+      setUser({
+        name: fullName,
+        email: data?.email || "",
+        first_name: data?.first_name,
+        last_name: data?.last_name,
+        username: data?.username,
+        avatar_url: data?.avatar_url,
+      });
+      // Sync avatar if server has one
+      if (data?.avatar_url) {
+        setAvatarUri(data.avatar_url);
       }
-    };
-    loadUser();
+    } catch (err) {
+      console.warn("Не удалось загрузить пользователя", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Load user on mount
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
+
+  // Reload user when screen comes into focus (e.g., after editing profile)
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) {
+        loadUser();
+      }
+    }, [loading, loadUser])
+  );
 
   // Load daily data and onboarding
   useEffect(() => {
@@ -221,7 +250,10 @@ export default function SettingsScreen() {
   };
 
 
-  const username = user?.email?.split("@")[0] || "user";
+  const displayUsername = user?.username || user?.email?.split("@")[0] || "user";
+  const displayName = user?.first_name && user?.last_name 
+    ? `${user.first_name} ${user.last_name}` 
+    : user?.name || "Пользователь";
 
   if (loading) {
     return (
@@ -243,24 +275,28 @@ export default function SettingsScreen() {
         <Text style={styles.headerTitle}>Профиль</Text>
 
         {/* Profile Card */}
-        <View style={styles.profileCard}>
-          <TouchableOpacity style={styles.avatar} activeOpacity={0.8} onPress={handlePickAvatar}>
+        <TouchableOpacity 
+          style={styles.profileCard} 
+          activeOpacity={0.8}
+          onPress={() => router.push("/edit-profile" as any)}
+        >
+          <View style={styles.avatar}>
             {avatarUri ? (
               <Image source={{ uri: avatarUri }} style={styles.avatarImage} contentFit="cover" />
             ) : (
-              <Text style={styles.avatarText}>{(user?.name || "П").slice(0, 1).toUpperCase()}</Text>
+              <Text style={styles.avatarText}>{(displayName).slice(0, 1).toUpperCase()}</Text>
             )}
-          </TouchableOpacity>
+          </View>
           <View style={styles.profileInfo}>
             <View style={styles.premiumBadge}>
               <Text style={styles.premiumIcon}>👑</Text>
               <Text style={styles.premiumText}>Премиум</Text>
             </View>
-            <Text style={styles.name}>{user?.name || "Пользователь"}</Text>
-            <Text style={styles.username}>@{username}</Text>
+            <Text style={styles.name}>{displayName}</Text>
+            <Text style={styles.username}>@{displayUsername}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#C0C0C0" />
-        </View>
+        </TouchableOpacity>
 
         {/* App Theme */}
         <SectionHeader title="App Theme" />

@@ -11,8 +11,10 @@ class OnboardingDataCreate(BaseModel):
 
     height: Optional[float] = None
     weight: Optional[float] = None
+    target_weight: Optional[float] = None
 
     birth_date: Optional[date] = None
+    step_goal: Optional[int] = None
 
     has_trainer: Optional[bool] = None
 
@@ -47,7 +49,9 @@ class OnboardingDataResponse(BaseModel):
     workout_frequency: Optional[WorkoutFrequency] = None
     height: Optional[float] = None
     weight: Optional[float] = None
+    target_weight: Optional[float] = None
     birth_date: Optional[date] = None
+    step_goal: Optional[int] = None
     has_trainer: Optional[bool] = None
     goal: Optional[Goal] = None
     barrier: Optional[str] = None

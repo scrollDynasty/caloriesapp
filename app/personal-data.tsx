@@ -84,8 +84,8 @@ export default function PersonalDataScreen() {
         gender: onboarding.gender || null,
         goal: onboarding.goal || null,
         workoutFrequency: onboarding.workout_frequency || null,
-        targetWeight: onboarding.weight || null,
-        stepGoal: 10000,
+        targetWeight: onboarding.target_weight || onboarding.weight || null,
+        stepGoal: onboarding.step_goal || 10000,
       });
     } catch (error) {
       console.error("Error loading personal data:", error);
@@ -118,18 +118,13 @@ export default function PersonalDataScreen() {
           updatedData.gender = value;
           break;
         case "stepGoal":
-          setData(prev => ({ ...prev, stepGoal: parseInt(value) }));
-          setEditField(null);
-          setSaving(false);
-          return;
+          updatedData.stepGoal = parseInt(value);
+          break;
         case "targetWeight":
-          setData(prev => ({ ...prev, targetWeight: parseFloat(value) }));
-          setEditField(null);
-          setSaving(false);
-          return;
+          updatedData.targetWeight = parseFloat(value);
+          break;
       }
 
-      // Check if we have all required data for recalculation
       const canRecalculate = 
         updatedData.gender && 
         updatedData.height && 
@@ -179,6 +174,9 @@ export default function PersonalDataScreen() {
           fats_calories: calculations.macros.fats.calories,
           fats_percentage: calculations.macros.fats.percentage,
         };
+        // Also add target_weight and step_goal
+        payload.target_weight = updatedData.targetWeight;
+        payload.step_goal = updatedData.stepGoal;
       } else {
         // Partial update - only changed field
         switch (field) {
@@ -193,6 +191,12 @@ export default function PersonalDataScreen() {
             break;
           case "gender":
             payload.gender = updatedData.gender;
+            break;
+          case "stepGoal":
+            payload.step_goal = updatedData.stepGoal;
+            break;
+          case "targetWeight":
+            payload.target_weight = updatedData.targetWeight;
             break;
         }
       }
@@ -243,10 +247,10 @@ export default function PersonalDataScreen() {
 
   const formatDate = (date: Date | null) => {
     if (!date) return "Не указано";
-    const month = date.getMonth() + 1;
     const day = date.getDate();
+    const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
+    return `${day}/${month}/${year}`;
   };
 
   const formatGender = (gender: string | null) => {

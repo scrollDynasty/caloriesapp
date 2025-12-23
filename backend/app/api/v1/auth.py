@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.config import settings
 from app.schemas.auth import Token, GoogleAuthRequest, AppleAuthRequest
 from app.schemas.user import UserResponse
+from app.schemas.user import UserProfileUpdate, UserProfileResponse, UsernameCheckRequest, UsernameCheckResponse
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.utils.auth import create_access_token
@@ -221,3 +222,100 @@ async def auth_apple(request: AppleAuthRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.get("/profile", response_model=UserProfileResponse)
+async def get_profile(current_user: User = Depends(get_current_user)):
+    """Get current user's profile"""
+    return current_user
+
+
+@router.put("/profile", response_model=UserProfileResponse)
+async def update_profile(
+    profile_data: UserProfileUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Update current user's profile"""
+    import re
+    
+    # Validate username if provided
+    if profile_data.username:
+        username = profile_data.username.lower().strip()
+        
+        if not re.match(r'^[a-z0-9_]+$', username):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Username может содержать только латинские буквы, цифры и подчёркивания",
+            )
+        
+        existing_user = db.query(User).filter(
+            User.username == username,
+            User.id != current_user.id
+        ).first()
+        
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Это имя пользователя уже занято",
+            )
+        
+        current_user.username = username
+    
+    if profile_data.first_name is not None:
+        current_user.first_name = profile_data.first_name.strip()
+    
+    if profile_data.last_name is not None:
+        current_user.last_name = profile_data.last_name.strip()
+    
+    if profile_data.avatar_url is not None:
+        current_user.avatar_url = profile_data.avatar_url
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return current_user
+
+
+@router.post("/check-username", response_model=UsernameCheckResponse)
+async def check_username_availability(
+    request: UsernameCheckRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Check if a username is available"""
+    import re
+    
+    username = request.username.lower().strip()
+    
+    if not re.match(r'^[a-z0-9_]+$', username):
+        return UsernameCheckResponse(
+            username=username,
+            available=False,
+            message="Username может содержать только латинские буквы, цифры и подчёркивания",
+        )
+    
+    if len(username) < 3:
+        return UsernameCheckResponse(
+            username=username,
+            available=False,
+            message="Username должен быть минимум 3 символа",
+        )
+    
+    existing_user = db.query(User).filter(
+        User.username == username,
+        User.id != current_user.id
+    ).first()
+    
+    if existing_user:
+        return UsernameCheckResponse(
+            username=username,
+            available=False,
+            message="Это имя пользователя уже занято",
+        )
+    
+    return UsernameCheckResponse(
+        username=username,
+        available=True,
+        message="Имя пользователя доступно",
+    )
