@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import init_db, engine
-from app.api.v1 import auth, onboarding, meals
+from app.api.v1 import auth, onboarding, meals, progress
 
 app = FastAPI(
     title="Calories App API",
@@ -27,6 +27,7 @@ async def options_handler(full_path: str):
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(onboarding.router, prefix="/api/v1")
 app.include_router(meals.router, prefix="/api/v1")
+app.include_router(progress.router, prefix="/api/v1/progress", tags=["progress"])
 
 @app.on_event("startup")
 async def startup_event():

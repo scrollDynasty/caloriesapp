@@ -651,6 +651,137 @@ class ApiService {
     const response = await this.api.post(`${API_ENDPOINTS.AUTH}/check-username`, { username });
     return response.data;
   }
+
+  async addWeightLog(weight: number, created_at?: string): Promise<{
+    id: number;
+    user_id: number;
+    weight: number;
+    created_at: string;
+  }> {
+    const response = await this.api.post('/api/v1/progress/weight', {
+      weight,
+      created_at: created_at || new Date().toISOString(),
+    });
+    dataCache.invalidateOnboarding();
+    return response.data;
+  }
+
+  async getWeightHistory(limit: number = 100): Promise<Array<{
+    id: number;
+    user_id: number;
+    weight: number;
+    created_at: string;
+  }>> {
+    const response = await this.api.get('/api/v1/progress/weight/history', {
+      params: { limit },
+    });
+    return response.data;
+  }
+
+  async getWeightStats(): Promise<{
+    current_weight: number | null;
+    target_weight: number | null;
+    start_weight: number | null;
+    total_change: number | null;
+    changes: Array<{
+      period: string;
+      change_kg: number | null;
+      status: string;
+    }>;
+    history: Array<{
+      id: number;
+      weight: number;
+      created_at: string;
+    }>;
+  }> {
+    const response = await this.api.get('/api/v1/progress/weight/stats');
+    return response.data;
+  }
+
+  async uploadProgressPhoto(uri: string, fileName: string, mimeType: string): Promise<{
+    id: number;
+    file_name: string;
+    url: string;
+    created_at: string;
+  }> {
+    const formData = new FormData();
+    const normalizedUri = Platform.OS === "ios" ? uri.replace("file://", "") : uri;
+    const ensuredFileName = fileName && fileName.includes(".")
+      ? fileName
+      : `${fileName || `photo_${Date.now()}`}.jpg`;
+    const ensuredMime = mimeType || "image/jpeg";
+    
+    formData.append("file", {
+      uri: normalizedUri,
+      name: ensuredFileName,
+      type: ensuredMime,
+    } as any);
+
+    const response = await this.api.post('/api/v1/progress/photos', formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      timeout: 60000,
+    });
+    
+    return response.data;
+  }
+
+  async getProgressPhotos(): Promise<Array<{
+    id: number;
+    user_id: number;
+    file_path: string;
+    file_name: string;
+    created_at: string;
+  }>> {
+    const response = await this.api.get('/api/v1/progress/photos');
+    return response.data;
+  }
+
+  getProgressPhotoUrl(photoId: number): string {
+    return `${API_BASE_URL}/api/v1/progress/photos/${photoId}`;
+  }
+
+  async deleteProgressPhoto(photoId: number): Promise<void> {
+    await this.api.delete(`/api/v1/progress/photos/${photoId}`);
+  }
+
+  async getProgressData(): Promise<{
+    streak_count: number;
+    badges_count: number;
+    weight_stats: {
+      current_weight: number | null;
+      target_weight: number | null;
+      start_weight: number | null;
+      total_change: number | null;
+      changes: Array<{
+        period: string;
+        change_kg: number | null;
+        status: string;
+      }>;
+      history: Array<{
+        id: number;
+        weight: number;
+        created_at: string;
+      }>;
+    };
+    calorie_stats: Array<{
+      period: string;
+      average_calories: number | null;
+      average_consumed: number | null;
+      status: string;
+    }>;
+    energy_changes: Array<{
+      period: string;
+      change_calories: number | null;
+      status: string;
+    }>;
+    bmi: number | null;
+    bmi_category: string | null;
+  }> {
+    const response = await this.api.get('/api/v1/progress/data');
+    return response.data;
+  }
 }
 
 export const apiService = new ApiService();
