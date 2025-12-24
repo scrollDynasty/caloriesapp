@@ -66,7 +66,6 @@ export interface ThemeColors {
   switchTrackOff: string;
   switchTrackOn: string;
   
-  // iOS specific
   groupedBackground: string;
   label: string;
   secondaryLabel: string;
@@ -74,84 +73,71 @@ export interface ThemeColors {
   quaternaryLabel: string;
   placeholderText: string;
   
-  // Legacy compatibility
   secondary: string;
 }
 
-// iOS 17 Human Interface Guidelines - Light Mode
-// Reference: https://developer.apple.com/design/human-interface-guidelines/color
 const lightColors: ThemeColors = {
-  // Core backgrounds - Clean whites and light grays
-  background: "#FFFFFF",
-  backgroundSecondary: "#F2F2F7",
+  background: "#F9F7F5",
+  backgroundSecondary: "#F5F3F0",
   backgroundTertiary: "#FFFFFF",
   
-  // Cards & Surfaces
   card: "#FFFFFF",
-  cardSecondary: "#F2F2F7",
+  cardSecondary: "#F9F7F5",
   cardElevated: "#FFFFFF",
   
-  // Text colors - Strong contrast for readability
-  text: "#000000",
-  textSecondary: "#3C3C43",
-  textTertiary: "#3C3C43",
-  textQuaternary: "#3C3C43",
+  text: "#2D2A26",
+  textSecondary: "#8C867D",
+  textTertiary: "#8C867D",
+  textQuaternary: "#8C867D",
   
-  // Primary & Accent - App brand colors
-  primary: "#1C1C1E",
+  primary: "#2D2A26",
   accent: "#FF6B6B",
   accentSecondary: "#FF8585",
   
-  // System colors
   white: "#FFFFFF",
   black: "#000000",
   
-  // Borders & Separators
-  border: "#C6C6C8",
-  separator: "rgba(60, 60, 67, 0.29)",
-  separatorOpaque: "#C6C6C8",
+  border: "#E8E4DC",
+  separator: "rgba(44, 42, 38, 0.2)",
+  separatorOpaque: "#E8E4DC",
   
-  // Fill colors
-  fill: "rgba(120, 120, 128, 0.2)",
-  fillSecondary: "rgba(120, 120, 128, 0.16)",
-  fillTertiary: "rgba(118, 118, 128, 0.12)",
-  fillQuaternary: "rgba(116, 116, 128, 0.08)",
+  fill: "rgba(44, 42, 38, 0.1)",
+  fillSecondary: "rgba(44, 42, 38, 0.08)",
+  fillTertiary: "rgba(44, 42, 38, 0.06)",
+  fillQuaternary: "rgba(44, 42, 38, 0.04)",
   
-  // System grays (iOS)
-  gray: "#8E8E93",
-  gray2: "#AEAEB2",
-  gray3: "#C7C7CC",
-  gray4: "#D1D1D6",
-  gray5: "#E5E5EA",
-  gray6: "#F2F2F7",
+  gray: "#8C867D",
+  gray2: "#A8A29A",
+  gray3: "#C5C0B8",
+  gray4: "#DAD4CA",
+  gray5: "#E8E4DC",
+  gray6: "#F5F3F0",
   
-  // Semantic colors
   success: "#34C759",
   warning: "#FF9500",
   error: "#FF3B30",
   info: "#007AFF",
   
-  // Component specific
-  inputBackground: "#F2F2F7",
-  buttonPrimary: "#1C1C1E",
+  inputBackground: "#F9F7F5",
+  buttonPrimary: "#2D2A26",
   buttonPrimaryText: "#FFFFFF",
-  buttonSecondary: "#F2F2F7",
-  buttonSecondaryText: "#1C1C1E",
+  buttonSecondary: "#F5F3F0",
+  buttonSecondaryText: "#2D2A26",
   
   // Toggle/Switch
-  switchTrackOff: "#E5E5EA",
-  switchTrackOn: "#1C1C1E",
+  switchTrackOff: "#E8E4DC",
+  switchTrackOn: "#2D2A26",
   
   // iOS specific
-  groupedBackground: "#F2F2F7",
-  label: "#000000",
-  secondaryLabel: "rgba(60, 60, 67, 0.6)",
-  tertiaryLabel: "rgba(60, 60, 67, 0.33)",
-  quaternaryLabel: "rgba(60, 60, 67, 0.18)",
-  placeholderText: "rgba(60, 60, 67, 0.3)",
+  groupedBackground: "#F9F7F5",
+  label: "#2D2A26",
+  secondaryLabel: "rgba(44, 42, 38, 0.6)",
+  tertiaryLabel: "rgba(44, 42, 38, 0.4)",
+  quaternaryLabel: "rgba(44, 42, 38, 0.2)",
+  placeholderText: "rgba(44, 42, 38, 0.3)",
   
   // Legacy
-  secondary: "#8E8E93",
+  secondary: "#8C867D",
 };
 
 // iOS 17 Human Interface Guidelines - Dark Mode
