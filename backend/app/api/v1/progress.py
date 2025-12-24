@@ -105,6 +105,7 @@ def get_weight_stats(
     
     current_weight = onboarding.weight if onboarding else None
     target_weight = onboarding.target_weight if onboarding else None
+    target_calories = onboarding.target_calories if onboarding else None
     start_weight = all_weights[0].weight if all_weights else current_weight
     
     total_change = None
@@ -124,7 +125,11 @@ def get_weight_stats(
     changes = []
     for period_name, days in periods:
         start_date = now - timedelta(days=days)
-        period_weights = [w for w in all_weights if w.created_at >= start_date]
+        # Преобразуем created_at в UTC если необходимо для корректного сравнения
+        period_weights = [
+            w for w in all_weights 
+            if (w.created_at.replace(tzinfo=timezone.utc) if w.created_at.tzinfo is None else w.created_at) >= start_date
+        ]
         
         if len(period_weights) >= 2:
             first_weight = period_weights[0].weight
@@ -177,11 +182,15 @@ def get_weight_stats(
     
     # Получаем последние 90 дней для графика
     ninety_days_ago = now - timedelta(days=90)
-    recent_weights = [w for w in all_weights if w.created_at >= ninety_days_ago]
+    recent_weights = [
+        w for w in all_weights 
+        if (w.created_at.replace(tzinfo=timezone.utc) if w.created_at.tzinfo is None else w.created_at) >= ninety_days_ago
+    ]
     
     return WeightStats(
         current_weight=current_weight,
         target_weight=target_weight,
+        target_calories=target_calories,
         start_weight=start_weight,
         total_change=total_change,
         changes=changes,

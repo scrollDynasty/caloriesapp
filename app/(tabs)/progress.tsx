@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -29,6 +30,7 @@ const CALORIE_PERIOD_LABELS: Record<CaloriePeriod, string> = {
 };
 
 export default function ProgressScreen() {
+  const router = useRouter();
   const { colors: themeColors } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -176,7 +178,7 @@ export default function ProgressScreen() {
         {/* Cards Row */}
         <View style={styles.cardsRow}>
           <ProgressCard
-            icon="flame"
+            icon="flame-outline"
             value={streakCount}
             label="Дней подряд"
             subtitle="Серия активности"
@@ -184,7 +186,7 @@ export default function ProgressScreen() {
             gradientColors={["#FF6B6B15", "#FF6B6B05"]}
           />
           <ProgressCard
-            icon="fitness"
+            icon="body-outline"
             value={weightStats?.current_weight ? `${weightStats.current_weight} кг` : "--"}
             label="Текущий вес"
             subtitle={weightStats?.total_change ? `${weightStats.total_change > 0 ? '+' : ''}${weightStats.total_change.toFixed(1)} кг` : "Без изменений"}
@@ -199,12 +201,29 @@ export default function ProgressScreen() {
             <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
               Динамика веса
             </Text>
-            {weightStats?.current_weight && weightStats?.target_weight && (
-              <Text style={[styles.goalText, { color: themeColors.textSecondary }]}>
-                📍 {Math.round(((weightStats.current_weight - weightStats.target_weight) / (weightStats.start_weight - weightStats.target_weight)) * 100)}% от цели
-              </Text>
-            )}
+            <TouchableOpacity
+              style={[styles.addButton, { backgroundColor: themeColors.primary }]}
+              onPress={() => router.push("/add-weight" as any)}
+            >
+              <Ionicons name="add" size={20} color="#fff" />
+            </TouchableOpacity>
           </View>
+
+          {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
+            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 16 }]}>
+              {(() => {
+                const diff = weightStats.start_weight - weightStats.target_weight;
+                if (Math.abs(diff) < 0.1) {
+                  return "🎯 Цель достигнута";
+                }
+                const progress = ((weightStats.current_weight - weightStats.target_weight) / diff) * 100;
+                if (!isFinite(progress)) {
+                  return "📍 Установите целевой вес";
+                }
+                return `📍 ${Math.round(progress)}% от цели`;
+              })()}
+            </Text>
+          )}
 
           {/* Time Period Selector */}
           <View style={styles.periodSelector}>
@@ -378,15 +397,95 @@ export default function ProgressScreen() {
             Энергия за неделю
           </Text>
 
-          <View style={styles.emptyState}>
-            <Ionicons name="bar-chart-outline" size={48} color={themeColors.textSecondary} />
-            <Text style={[styles.emptyStateText, { color: themeColors.text }]}>
-              Нет данных для отображения
-            </Text>
-            <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
-              Это обновится по мере того, как ты будешь добавлять больше еды.
-            </Text>
+          {/* Period Selector for Calories */}
+          <View style={styles.periodSelector}>
+            {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
+              <TouchableOpacity
+                key={period}
+                style={[
+                  styles.periodButton,
+                  selectedCaloriePeriod === period && { backgroundColor: themeColors.primary + '20' },
+                ]}
+                onPress={() => setSelectedCaloriePeriod(period)}
+              >
+                <Text
+                  style={[
+                    styles.periodButtonText,
+                    { color: selectedCaloriePeriod === period ? themeColors.primary : themeColors.textSecondary },
+                  ]}
+                >
+                  {CALORIE_PERIOD_LABELS[period]}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
+
+          {(() => {
+            const currentStats = calorieStats.find((s: any) => s.period === selectedCaloriePeriod);
+            if (!currentStats || currentStats.status === "insufficient_data") {
+              return (
+                <View style={styles.emptyState}>
+                  <Ionicons name="bar-chart-outline" size={48} color={themeColors.textSecondary} />
+                  <Text style={[styles.emptyStateText, { color: themeColors.text }]}>
+                    Нет данных для отображения
+                  </Text>
+                  <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
+                    Добавляйте приемы пищи для отслеживания энергии
+                  </Text>
+                </View>
+              );
+            }
+
+            const avgCalories = currentStats.average_calories || 0;
+            const targetCalories = weightStats?.target_calories || 2000;
+            const percentage = Math.round((avgCalories / targetCalories) * 100);
+            const isOverTarget = avgCalories > targetCalories;
+
+            return (
+              <View style={styles.calorieStatsContainer}>
+                <View style={styles.calorieMainStat}>
+                  <Text style={[styles.calorieValue, { color: themeColors.text }]}>
+                    {Math.round(avgCalories)}
+                  </Text>
+                  <Text style={[styles.calorieUnit, { color: themeColors.textSecondary }]}>
+                    ккал/день
+                  </Text>
+                </View>
+
+                <View style={styles.calorieProgressContainer}>
+                  <View style={styles.calorieProgressLabels}>
+                    <Text style={[styles.calorieProgressLabel, { color: themeColors.textSecondary }]}>
+                      Среднее потребление
+                    </Text>
+                    <Text style={[styles.calorieProgressValue, { color: isOverTarget ? themeColors.error : themeColors.success }]}>
+                      {percentage}% от цели
+                    </Text>
+                  </View>
+                  <View style={[styles.calorieProgressBar, { backgroundColor: themeColors.border }]}>
+                    <View 
+                      style={[
+                        styles.calorieProgressFill, 
+                        { 
+                          backgroundColor: isOverTarget ? themeColors.error : themeColors.success,
+                          width: `${Math.min(percentage, 100)}%` 
+                        }
+                      ]} 
+                    />
+                  </View>
+                  <View style={styles.calorieTargetRow}>
+                    <Text style={[styles.calorieTargetLabel, { color: themeColors.textSecondary }]}>
+                      Цель: {targetCalories} ккал
+                    </Text>
+                    {isOverTarget && (
+                      <Text style={[styles.calorieOverTarget, { color: themeColors.error }]}>
+                        +{Math.round(avgCalories - targetCalories)} ккал
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              </View>
+            );
+          })()}
         </View>
 
         {/* Energy Changes */}
@@ -394,29 +493,58 @@ export default function ProgressScreen() {
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения расхода
           </Text>
-          {energyChanges.map((change: any, index: number) => (
-            <View key={change.period}>
-              <View style={styles.energyChangeItem}>
-                <Text style={[styles.periodLabel, { color: themeColors.textSecondary }]}>
-                  {change.period === "3_days" ? "3 день" :
-                   change.period === "7_days" ? "7 день" :
-                   change.period === "14_days" ? "14 день" :
-                   change.period === "30_days" ? "30 день" : "90 день"}
-                </Text>
-                <View style={styles.energyChangeValue}>
-                  <Text style={[styles.energyChangeText, { color: themeColors.text }]}>
-                    Недостаточно данных
-                  </Text>
-                  <Text style={[styles.energyStatus, { color: themeColors.textSecondary }]}>
-                    Ожидает
-                  </Text>
-                </View>
-              </View>
-              {index < energyChanges.length - 1 && (
-                <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-              )}
+          {energyChanges.length === 0 ? (
+            <View style={styles.emptyStateSmall}>
+              <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
+                Недостаточно данных
+              </Text>
             </View>
-          ))}
+          ) : (
+            energyChanges.map((change: any, index: number) => {
+              const periodLabels: Record<string, string> = {
+                "3_days": "3 дня",
+                "7_days": "7 дней", 
+                "14_days": "14 дней",
+                "30_days": "30 дней",
+                "90_days": "90 дней"
+              };
+
+              const hasData = change.status === "ok" && change.change_calories !== null;
+              const isPositive = hasData && change.change_calories > 0;
+              const changeText = hasData 
+                ? `${isPositive ? '+' : ''}${Math.round(change.change_calories)} ккал`
+                : change.status === "waiting" ? "Ожидание..." : "Нет данных";
+              
+              const statusColor = !hasData 
+                ? themeColors.textSecondary 
+                : isPositive ? themeColors.error : themeColors.success;
+
+              return (
+                <View key={change.period}>
+                  <View style={styles.energyChangeItem}>
+                    <Text style={[styles.periodLabel, { color: themeColors.textSecondary }]}>
+                      {periodLabels[change.period] || change.period}
+                    </Text>
+                    <View style={styles.energyChangeValue}>
+                      <Text style={[styles.energyChangeText, { color: statusColor }]}>
+                        {changeText}
+                      </Text>
+                      {hasData && (
+                        <Ionicons 
+                          name={isPositive ? "trending-up" : "trending-down"} 
+                          size={16} 
+                          color={statusColor} 
+                        />
+                      )}
+                    </View>
+                  </View>
+                  {index < energyChanges.length - 1 && (
+                    <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                  )}
+                </View>
+              );
+            })
+          )}
         </View>
 
         {/* BMI Card */}
@@ -474,6 +602,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 20,
+  },
+  addButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 22,
@@ -595,6 +735,11 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
     paddingHorizontal: 20,
   },
+  emptyStateSmall: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 24,
+  },
   emptyStateText: {
     fontSize: 17,
     fontWeight: "600",
@@ -610,19 +755,66 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   calorieStatsContainer: {
+    paddingTop: 16,
+  },
+  calorieMainStat: {
     alignItems: "center",
-    paddingVertical: 32,
+    marginBottom: 24,
   },
   calorieValue: {
     fontSize: 52,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    marginBottom: 8,
     letterSpacing: -1,
+  },
+  calorieUnit: {
+    fontSize: 15,
+    fontFamily: "Inter_500Medium",
+    marginTop: 4,
   },
   calorieLabel: {
     fontSize: 15,
     fontFamily: "Inter_500Medium",
+  },
+  calorieProgressContainer: {
+    width: "100%",
+  },
+  calorieProgressLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  calorieProgressLabel: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+  },
+  calorieProgressValue: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  calorieProgressBar: {
+    height: 8,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  calorieProgressFill: {
+    height: "100%",
+    borderRadius: 4,
+  },
+  calorieTargetRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  calorieTargetLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+  },
+  calorieOverTarget: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
   },
   energyChangeItem: {
     flexDirection: "row",
@@ -635,12 +827,13 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
   },
   energyChangeValue: {
-    alignItems: "flex-end",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   energyChangeText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    marginBottom: 4,
   },
   energyStatus: {
     fontSize: 13,

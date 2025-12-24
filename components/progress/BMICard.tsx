@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -18,13 +19,31 @@ const BMI_CATEGORIES: Record<string, { label: string; color: string; range: stri
 
 export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICardProps) {
   const { colors } = useTheme();
+  const router = useRouter();
+
+  const handleInfoPress = () => {
+    router.push({
+      pathname: "/bmi-info" as any,
+      params: { 
+        bmi: bmi?.toString() || "", 
+        category: bmiCategory || "normal" 
+      },
+    });
+  };
+
+  const handleWeightPress = () => {
+    router.push({
+      pathname: "/change-weight" as any,
+      params: { currentWeight: currentWeight?.toString() || "70" },
+    });
+  };
 
   if (!bmi || !bmiCategory) {
     return (
       <View style={[styles.container, { backgroundColor: colors.card }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Твой ИМТ</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleInfoPress}>
             <Ionicons name="help-circle-outline" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
@@ -36,26 +55,26 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
   }
 
   const categoryInfo = BMI_CATEGORIES[bmiCategory];
-  const progress = currentWeight && targetWeight 
-    ? Math.min(1, Math.max(0, (currentWeight - targetWeight) / (currentWeight - targetWeight + 10)))
-    : 0.5;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Твой ИМТ</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleInfoPress}>
           <Ionicons name="help-circle-outline" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.bmiValueContainer}>
+      <TouchableOpacity style={styles.bmiValueContainer} onPress={handleWeightPress} activeOpacity={0.7}>
         <Text style={[styles.bmiValue, { color: colors.text }]}>{bmi.toFixed(1)}</Text>
-        <Text style={[styles.weightLabel, { color: colors.textSecondary }]}>Твой вес</Text>
+        <View style={styles.weightRow}>
+          <Text style={[styles.weightLabel, { color: colors.textSecondary }]}>Твой вес</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+        </View>
         <Text style={[styles.categoryLabel, { color: categoryInfo.color }]}>
           {categoryInfo.label}
         </Text>
-      </View>
+      </TouchableOpacity>
 
       {/* BMI Scale */}
       <View style={styles.scaleContainer}>
@@ -129,10 +148,15 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
+  weightRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+  },
   weightLabel: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    marginTop: 4,
   },
   categoryLabel: {
     fontSize: 16,

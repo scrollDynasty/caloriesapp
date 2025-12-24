@@ -15,6 +15,7 @@ interface ProgressCardProps {
 export function ProgressCard({ icon, value, label, subtitle, iconColor, gradientColors }: ProgressCardProps) {
   const { colors } = useTheme();
   const defaultGradient: [string, string] = [colors.primary + '15', colors.primary + '05'];
+  const iconBgColor = iconColor ? iconColor + '20' : colors.primary + '20';
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, shadowColor: colors.text }]}>
@@ -24,7 +25,7 @@ export function ProgressCard({ icon, value, label, subtitle, iconColor, gradient
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <View style={[styles.iconContainer, { backgroundColor: iconColor || colors.primary + '20' }]}>
+        <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
           <Ionicons name={icon} size={28} color={iconColor || colors.primary} />
         </View>
         <View style={styles.contentContainer}>

@@ -32,6 +32,7 @@ class WeightStats(BaseModel):
     target_weight: Optional[float] = None
     start_weight: Optional[float] = None
     total_change: Optional[float] = None
+    target_calories: Optional[int] = None
     changes: List[WeightChange]
     history: List[WeightLogResponse]
 
