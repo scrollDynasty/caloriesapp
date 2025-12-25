@@ -95,11 +95,17 @@ export default function AddWeightScreen() {
           {error ? <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text> : null}
 
           <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: colors.primary }, saving && { opacity: 0.6 }]}
+            style={[
+              styles.saveButton,
+              { backgroundColor: "#000000", borderColor: colors.border, borderWidth: 1 },
+              saving && { opacity: 0.6 },
+            ]}
             onPress={handleSave}
             disabled={saving}
           >
-            <Text style={[styles.saveButtonText, { color: colors.white }]}>{saving ? "Сохраняем..." : "Сохранить"}</Text>
+            <Text style={[styles.saveButtonText, { color: "#FFFFFF" }]}>
+              {saving ? "Сохраняем..." : "Сохранить"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

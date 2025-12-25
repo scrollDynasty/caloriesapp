@@ -11,8 +11,8 @@ import { useSnow } from "../../context/SnowContext";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const SNOWFLAKE_COUNT = 80;
-const MIN_SIZE = 6;
-const MAX_SIZE = 16;
+const MIN_SIZE = 4;
+const MAX_SIZE = 12;
 const MIN_DURATION = 6000;
 const MAX_DURATION = 12000;
 const MIN_OPACITY = 0.6;

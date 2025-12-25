@@ -63,16 +63,18 @@ function formatDateShort(dateString: string): string {
 function WeightEntryItem({ 
   item, 
   previousWeight, 
-  colors 
+  colors,
+  isDark,
 }: { 
   item: WeightEntry; 
   previousWeight: number | null; 
   colors: any;
+  isDark: boolean;
 }) {
   const change = previousWeight ? item.weight - previousWeight : null;
   
   return (
-    <View style={[styles.entryItem, { backgroundColor: colors.card }]}>
+    <View style={[styles.entryItem, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
       <View style={styles.entryLeft}>
         <Text style={[styles.entryDate, { color: colors.textSecondary }]}>
           {formatDate(item.created_at)}
@@ -106,6 +108,7 @@ function WeightEntryItem({
 export default function WeightHistoryScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const addWeightIconColor = "#FFFFFF";
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<WeightStats | null>(null);
@@ -145,19 +148,19 @@ export default function WeightHistoryScreen() {
     <>
       {/* Stats Cards */}
       <View style={styles.statsContainer}>
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+        <View style={[styles.statCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Текущий</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>
             {stats?.current_weight?.toFixed(1) || "--"} кг
           </Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+        <View style={[styles.statCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Цель</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>
             {stats?.target_weight?.toFixed(1) || "--"} кг
           </Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card }]}>
+        <View style={[styles.statCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Изменение</Text>
           <Text style={[
             styles.statValue, 
@@ -177,7 +180,7 @@ export default function WeightHistoryScreen() {
       </View>
 
       {/* Chart */}
-      <View style={[styles.chartCard, { backgroundColor: colors.card }]}>
+      <View style={[styles.chartCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>График веса</Text>
         <WeightChart 
           data={stats?.history || []} 
@@ -187,7 +190,7 @@ export default function WeightHistoryScreen() {
 
       {/* Changes by Period */}
       {stats?.changes && stats.changes.length > 0 && (
-        <View style={[styles.changesCard, { backgroundColor: colors.card }]}>
+        <View style={[styles.changesCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Изменения</Text>
           <View style={styles.changesGrid}>
             {stats.changes.map((change, index) => (
@@ -225,7 +228,7 @@ export default function WeightHistoryScreen() {
   );
 
   const renderEmptyHistory = () => (
-    <View style={[styles.emptyContainer, { backgroundColor: colors.card }]}>
+    <View style={[styles.emptyContainer, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
       <Ionicons name="scale-outline" size={48} color={colors.textTertiary} />
       <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
         Нет записей о весе
@@ -245,9 +248,9 @@ export default function WeightHistoryScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.background }]}>
           <TouchableOpacity 
-            style={[styles.backButton, { backgroundColor: colors.card }]} 
+            style={[styles.backButton, { backgroundColor: colors.card }, isDark && styles.noShadow]} 
             onPress={() => router.back()}
           >
             <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -265,19 +268,23 @@ export default function WeightHistoryScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.background }]}>
         <TouchableOpacity 
-          style={[styles.backButton, { backgroundColor: colors.card }]} 
+          style={[styles.backButton, { backgroundColor: colors.card }, isDark && styles.noShadow]} 
           onPress={() => router.back()}
         >
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>История веса</Text>
         <TouchableOpacity 
-          style={[styles.addWeightButton, { backgroundColor: colors.primary }]}
+          style={[
+            styles.addWeightButton,
+            { backgroundColor: "#000000", borderColor: colors.border, borderWidth: 1 },
+            isDark && styles.noShadow,
+          ]}
           onPress={() => router.push("/add-weight" as any)}
         >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
+          <Ionicons name="add" size={24} color={addWeightIconColor} />
         </TouchableOpacity>
       </View>
 
@@ -296,6 +303,7 @@ export default function WeightHistoryScreen() {
               item={item} 
               previousWeight={previousWeight}
               colors={colors}
+              isDark={isDark}
             />
           );
         }}
@@ -504,5 +512,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     color: "#FFFFFF",
+  },
+  noShadow: {
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
 });

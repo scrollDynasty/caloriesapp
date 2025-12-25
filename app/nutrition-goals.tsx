@@ -312,10 +312,10 @@ function EditGoalModal({
             <Text style={[styles.modalButtonText, { color: colors.text }]}>Отмена</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.modalButton, styles.modalButtonPrimary, { backgroundColor: colors.buttonPrimary }]}
+            style={[styles.modalButton, { backgroundColor: colors.fillSecondary }]}
             onPress={handleSave}
           >
-            <Text style={[styles.modalButtonText, { color: colors.buttonPrimaryText }]}>Сохранить</Text>
+            <Text style={[styles.modalButtonText, { color: colors.text }]}>Сохранить</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>

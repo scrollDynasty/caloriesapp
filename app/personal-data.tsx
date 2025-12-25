@@ -1,24 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
 import { calculateCalories, UserData } from "../utils/calorieCalculator";
@@ -49,6 +49,8 @@ function calculateAge(birthDate: Date): number {
 
 export default function PersonalDataScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingFullData>({
@@ -299,10 +301,10 @@ export default function PersonalDataScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Личные данные</Text>
+          <Text style={styles.headerTitle}>Личные данные</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
@@ -329,7 +331,7 @@ export default function PersonalDataScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{data.weight || "--"} кг</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -342,7 +344,7 @@ export default function PersonalDataScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{data.height || "--"} cm</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -355,7 +357,7 @@ export default function PersonalDataScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{formatDate(data.birthDate)}</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -368,7 +370,7 @@ export default function PersonalDataScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{formatGender(data.gender)}</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -381,7 +383,7 @@ export default function PersonalDataScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{data.stepGoal.toLocaleString()} шагов</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -414,7 +416,7 @@ export default function PersonalDataScreen() {
                     keyboardType="numeric"
                     autoFocus
                     selectTextOnFocus
-                    placeholderTextColor={colors.secondary}
+                    placeholderTextColor={colors.textSecondary}
                   />
                   <Text style={styles.inputUnit}>{getFieldUnit(editField)}</Text>
                 </View>
@@ -432,7 +434,7 @@ export default function PersonalDataScreen() {
                     disabled={saving}
                   >
                     {saving ? (
-                      <ActivityIndicator size="small" color="#FFF" />
+                      <ActivityIndicator size="small" color={colors.text} />
                     ) : (
                       <Text style={styles.modalButtonSaveText}>Сохранить</Text>
                     )}
@@ -472,7 +474,7 @@ export default function PersonalDataScreen() {
                     Мужской
                   </Text>
                   {data.gender === "male" && (
-                    <Ionicons name="checkmark-circle" size={22} color="#4CAF50" />
+                    <Ionicons name="checkmark-circle" size={22} color={colors.success || "#4CAF50"} />
                   )}
                 </TouchableOpacity>
 
@@ -491,7 +493,7 @@ export default function PersonalDataScreen() {
                     Женский
                   </Text>
                   {data.gender === "female" && (
-                    <Ionicons name="checkmark-circle" size={22} color="#4CAF50" />
+                    <Ionicons name="checkmark-circle" size={22} color={colors.success || "#4CAF50"} />
                   )}
                 </TouchableOpacity>
 
@@ -551,7 +553,7 @@ export default function PersonalDataScreen() {
                       disabled={saving}
                     >
                       {saving ? (
-                        <ActivityIndicator size="small" color="#FFF" />
+                        <ActivityIndicator size="small" color={colors.text} />
                       ) : (
                         <Text style={styles.modalButtonSaveText}>Сохранить</Text>
                       )}
@@ -567,7 +569,7 @@ export default function PersonalDataScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -589,14 +591,14 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
     fontSize: 17,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.text,
   },
   headerPlaceholder: {
     width: 44,
@@ -604,12 +606,13 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+
   // Target Card
   targetCard: {
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 14,
     paddingVertical: 20,
     paddingHorizontal: 20,
@@ -620,16 +623,18 @@ const styles = StyleSheet.create({
   targetLabel: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    color: colors.secondary,
+    color: colors.textSecondary,
     marginBottom: 2,
   },
   targetValue: {
     fontSize: 26,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
+    color: colors.text,
   },
   changeGoalButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: "#000000",
+    borderColor: colors.border,
+    borderWidth: 1,
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 24,
@@ -637,12 +642,12 @@ const styles = StyleSheet.create({
   changeGoalText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    color: colors.white,
+    color: "#FFFFFF",
   },
   // Section
   section: {
     marginHorizontal: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 14,
   },
   row: {
@@ -656,7 +661,7 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontSize: 15,
     fontFamily: "Inter_400Regular",
-    color: colors.primary,
+    color: colors.text,
     flex: 1,
   },
   rowRight: {
@@ -667,19 +672,19 @@ const styles = StyleSheet.create({
   rowValue: {
     fontSize: 15,
     fontFamily: "Inter_400Regular",
-    color: colors.primary,
+    color: colors.text,
   },
   editIcon: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: "#E5E5E5",
+    backgroundColor: colors.border,
     marginLeft: 16,
   },
   bottomSpacer: {
@@ -694,7 +699,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalContent: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 24,
     width: "100%",
@@ -703,14 +708,14 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.text,
     textAlign: "center",
     marginBottom: 20,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     marginBottom: 20,
@@ -719,14 +724,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 22,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.text,
     paddingVertical: 14,
     textAlign: "center",
   },
   inputUnit: {
     fontSize: 16,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
     marginLeft: 8,
   },
   modalButtons: {
@@ -737,32 +742,32 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonCancelText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.secondary,
+    color: colors.textSecondary,
   },
   modalButtonCancelFull: {
     marginTop: 8,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonSave: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonSaveText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.white,
+    color: colors.text,
   },
   // Gender Options
   genderOption: {
@@ -770,14 +775,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 14,
     borderRadius: 12,
-    backgroundColor: "#F8F8F8",
+    backgroundColor: colors.backgroundSecondary,
     marginBottom: 10,
     gap: 12,
   },
   genderOptionSelected: {
-    backgroundColor: "#E8F5E9",
+    backgroundColor: colors.successSurface || "#E8F5E9",
     borderWidth: 1.5,
-    borderColor: "#4CAF50",
+    borderColor: colors.success || "#4CAF50",
   },
   genderEmoji: {
     fontSize: 24,
@@ -786,14 +791,15 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     fontFamily: "Inter_500Medium",
-    color: colors.primary,
+    color: colors.text,
   },
   genderOptionTextSelected: {
     fontFamily: "Inter_600SemiBold",
+    color: colors.text,
   },
   // Date Picker
   datePickerContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 24,
     width: "100%",
