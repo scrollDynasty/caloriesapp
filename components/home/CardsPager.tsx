@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { memo, useCallback, useRef, useState } from "react";
 import {
-  Animated,
-  Dimensions,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewToken,
+    Animated,
+    Dimensions,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ViewToken,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
@@ -428,9 +428,19 @@ function BurnedCaloriesCard() {
 function WaterCard({ consumed, target, onAdd }: { consumed: number; target: number; onAdd?: () => void }) {
   const { colors: themeColors, isDark } = useTheme();
   return (
-    <View style={[styles.waterCard, { backgroundColor: themeColors.card }]}>
-      <View style={[styles.waterIcon, { backgroundColor: isDark ? themeColors.gray5 : "#E8F4FD" }]}>
-        <Ionicons name="water" size={32} color="#4D96FF" />
+    <View
+      style={[
+        styles.waterCard,
+        {
+          backgroundColor: themeColors.card,
+          borderColor: themeColors.border,
+          shadowOpacity: isDark ? 0 : 0.03,
+          elevation: isDark ? 0 : 1,
+        },
+      ]}
+    > 
+      <View style={[styles.waterIcon, { backgroundColor: isDark ? themeColors.backgroundSecondary : "#E8F4FD" }]}> 
+        <Ionicons name="water" size={32} color={themeColors.primary} />
       </View>
       <View style={styles.waterInfo}>
         <Text style={[styles.waterLabel, { color: themeColors.text }]}>Вода</Text>
@@ -440,10 +450,15 @@ function WaterCard({ consumed, target, onAdd }: { consumed: number; target: numb
         </View>
       </View>
       <View style={styles.waterButtons}>
-        <TouchableOpacity style={[styles.waterBtn, { backgroundColor: isDark ? themeColors.gray5 : "#F2EFE9" }]}>
+        <TouchableOpacity
+          style={[styles.waterBtn, { backgroundColor: themeColors.backgroundSecondary, borderColor: themeColors.border }]}
+        > 
           <Ionicons name="remove-outline" size={20} color={themeColors.text} />
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.waterBtnAdd, { backgroundColor: themeColors.primary }]} onPress={onAdd}>
+        <TouchableOpacity
+          style={[styles.waterBtnAdd, { backgroundColor: themeColors.primary, borderColor: themeColors.primary }]}
+          onPress={onAdd}
+        > 
           <Ionicons name="add" size={20} color={themeColors.buttonPrimaryText} />
         </TouchableOpacity>
       </View>
@@ -806,11 +821,12 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     flexDirection: "row",
     alignItems: "center",
+    borderWidth: StyleSheet.hairlineWidth,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1,
   },
   waterIcon: {
     width: 52,
@@ -846,6 +862,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: StyleSheet.hairlineWidth,
   },
   waterBtnAdd: {
     width: 40,
@@ -853,5 +870,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: StyleSheet.hairlineWidth,
   },
 });

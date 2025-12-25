@@ -41,6 +41,34 @@ def get_user_media_dir(user_id: int) -> Path:
     user_dir.mkdir(parents=True, exist_ok=True)
     return user_dir
 
+
+async def fetch_openfoodfacts_product(barcode: str) -> Optional[Dict[str, Any]]:
+    """Query OpenFoodFacts for a product by barcode, trying multiple mirrors."""
+    hosts = [
+        "https://world.openfoodfacts.org",
+        "https://ru.openfoodfacts.org",
+    ]
+
+    for host in hosts:
+        url = f"{host}/api/v2/product/{barcode}.json"
+        try:
+            async with httpx.AsyncClient(timeout=12) as client:
+                resp = await client.get(url)
+                if resp.status_code == 404:
+                    continue
+                resp.raise_for_status()
+                data = resp.json()
+                if data.get("status") == 1 and data.get("product"):
+                    return data.get("product")
+        except httpx.HTTPStatusError as e:
+            logger.warning(f"OpenFoodFacts status error for {barcode}: {e}")
+            continue
+        except Exception as e:
+            logger.warning(f"OpenFoodFacts request failed for {barcode}: {e}")
+            continue
+
+    return None
+
 async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str]) -> Optional[Dict[str, Any]]:
     """
     Анализирует фото еды с помощью OpenAI GPT-4o Vision и возвращает информацию о питательности.
@@ -487,6 +515,53 @@ def get_meal_photo_detail(
             "sodium": photo.sodium or 0,
         },
         "health_score": photo.health_score,
+    }
+
+
+@router.get("/meals/barcode/{barcode}")
+async def lookup_barcode(
+    barcode: str,
+    current_user: User = Depends(get_current_user),
+):
+    code = re.sub(r"\D", "", barcode or "")
+    if not code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Некорректный штрихкод",
+        )
+
+    product = await fetch_openfoodfacts_product(code)
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Продукт не найден",
+        )
+
+    nutriments = product.get("nutriments", {}) if isinstance(product, dict) else {}
+
+    def _num(val: Any) -> Optional[int]:
+        try:
+            if val is None:
+                return None
+            return int(float(val))
+        except Exception:
+            return None
+
+    return {
+        "barcode": code,
+        "name": product.get("product_name") or product.get("generic_name") or "Продукт",
+        "brand": product.get("brands"),
+        "calories": _num(
+            nutriments.get("energy-kcal_100g")
+            or nutriments.get("energy_kcal_value")
+            or nutriments.get("energy_kcal")
+        ),
+        "protein": _num(nutriments.get("proteins_100g") or nutriments.get("proteins_serving")),
+        "fat": _num(nutriments.get("fat_100g") or nutriments.get("fat_serving")),
+        "carbs": _num(
+            nutriments.get("carbohydrates_100g")
+            or nutriments.get("carbohydrates_serving")
+        ),
     }
 
 @router.put("/meals/photos/{photo_id}/confirm", response_model=MealPhotoResponse)

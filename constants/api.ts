@@ -18,6 +18,7 @@ export const API_ENDPOINTS = {
   MEALS_UPLOAD: "/api/v1/meals/upload",
   MEALS_PHOTOS: "/api/v1/meals/photos",
   MEALS_PHOTO: "/api/v1/meals/photos",
+  MEALS_BARCODE: "/api/v1/meals/barcode",
   MEALS_DAILY: "/api/v1/meals/daily",
   MEALS_DAILY_BATCH: "/api/v1/meals/daily/batch",
   MEALS_MANUAL: "/api/v1/meals/manual",

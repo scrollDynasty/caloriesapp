@@ -371,6 +371,63 @@ class ApiService {
     return created;
   }
 
+  async lookupBarcode(barcode: string) {
+    const code = (barcode || "").trim();
+    if (!code) {
+      throw new Error("Пустой штрихкод");
+    }
+
+    const toNum = (value: any) => {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : null;
+    };
+
+    try {
+      const resp = await this.api.get(`${API_ENDPOINTS.MEALS_BARCODE}/${encodeURIComponent(code)}`);
+      return resp.data;
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (status === 404) {
+        throw new Error("Продукт не найден");
+      }
+
+      // Fallback to public OpenFoodFacts if backend unavailable
+      try {
+        const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json`;
+        const response = await axios.get(url, { timeout: 12000 });
+
+        if (response.data?.status !== 1 || !response.data?.product) {
+          throw new Error("Продукт не найден");
+        }
+
+        const product = response.data.product;
+        const nutriments = product?.nutriments || {};
+
+        return {
+          barcode: code,
+          name: product.product_name || product.generic_name || "Продукт",
+          brand: product.brands || null,
+          calories: toNum(
+            nutriments["energy-kcal_100g"] ??
+            nutriments.energy_kcal_value ??
+            nutriments.energy_kcal
+          ),
+          protein: toNum(nutriments.proteins_100g ?? nutriments.proteins_serving),
+          fat: toNum(nutriments.fat_100g ?? nutriments.fat_serving),
+          carbs: toNum(
+            nutriments.carbohydrates_100g ??
+            nutriments.carbohydrates_serving
+          ),
+        } as const;
+      } catch (fallbackError: any) {
+        if (__DEV__ && fallbackError?.response?.status !== 404) {
+          console.warn("Barcode lookup failed", fallbackError?.message || fallbackError);
+        }
+        throw new Error(fallbackError?.message || "Не удалось найти продукт");
+      }
+    }
+  }
+
   async addWater(payload: WaterPayload) {
     const localTimestamp = payload.created_at || getLocalISOString();
     const data = {

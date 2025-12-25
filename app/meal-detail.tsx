@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -16,7 +16,8 @@ import {
     ViewToken
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { colors } from "../constants/theme";
+import SnowOverlay from "../components/ui/SnowOverlay";
+import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { apiService } from "../services/api";
 
@@ -33,6 +34,8 @@ export default function MealDetailScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const fontsLoaded = useFonts();
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const mealId = Number(params.id || 0);
   const imageUrl = params.imageUrl as string | undefined;
@@ -202,7 +205,7 @@ export default function MealDetailScreen() {
       {/* Calories Card */}
       <View style={styles.caloriesCard}>
         <View style={styles.caloriesIconContainer}>
-          <Ionicons name="flame" size={24} color="#1A1A1A" />
+          <Ionicons name="flame" size={24} color={colors.primary} />
         </View>
         <View style={styles.caloriesInfo}>
           <Text style={styles.caloriesLabel}>Калории</Text>
@@ -278,7 +281,7 @@ export default function MealDetailScreen() {
           <Text style={styles.extraMacroIcon}>🍆</Text>
           <Text style={styles.extraMacroLabel}>Клетчатка</Text>
           {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.secondary} style={{ marginTop: 4 }} />
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
           ) : (
             <Text style={styles.extraMacroValue}>{extraMacros.fiber}g</Text>
           )}
@@ -287,7 +290,7 @@ export default function MealDetailScreen() {
           <Text style={styles.extraMacroIcon}>🍬</Text>
           <Text style={styles.extraMacroLabel}>Сахар</Text>
           {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.secondary} style={{ marginTop: 4 }} />
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
           ) : (
             <Text style={styles.extraMacroValue}>{extraMacros.sugar}g</Text>
           )}
@@ -296,7 +299,7 @@ export default function MealDetailScreen() {
           <Text style={styles.extraMacroIcon}>🧂</Text>
           <Text style={styles.extraMacroLabel}>Натрий</Text>
           {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.secondary} style={{ marginTop: 4 }} />
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
           ) : (
             <Text style={styles.extraMacroValue}>{extraMacros.sodium}mg</Text>
           )}
@@ -311,7 +314,7 @@ export default function MealDetailScreen() {
         <View style={styles.healthScoreInfo}>
           <Text style={styles.healthScoreLabel}>Оценка здоровья</Text>
           {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.secondary} style={{ marginTop: 6 }} />
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 6 }} />
           ) : healthScore !== null ? (
             <View style={styles.healthScoreBar}>
               <View style={[
@@ -351,6 +354,7 @@ export default function MealDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <SnowOverlay />
       {/* Image Section */}
       {imageUrl ? (
         <View style={styles.imageContainer}>
@@ -557,7 +561,7 @@ export default function MealDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -609,14 +613,14 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitleDark: {
     fontSize: 17,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.text,
   },
   contentCard: {
     flex: 1,
@@ -642,7 +646,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -654,7 +658,7 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
   },
   titleRow: {
     flexDirection: "row",
@@ -668,7 +672,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 22,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
+    color: colors.text,
     lineHeight: 28,
     letterSpacing: -0.3,
   },
@@ -676,13 +680,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 22,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
-    backgroundColor: colors.white,
+    color: colors.text,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: colors.border,
   },
   portionButton: {
     flexDirection: "row",
@@ -690,15 +694,15 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#E8E4DC",
+    borderColor: colors.border,
   },
   portionText: {
     fontSize: 16,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.text,
   },
 
   // Carousel
@@ -720,7 +724,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     shadowColor: "#000",
     shadowOpacity: 0.04,
@@ -732,7 +736,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#F5F3EF",
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -742,20 +746,20 @@ const styles = StyleSheet.create({
   caloriesLabel: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
     marginBottom: 2,
   },
   caloriesValue: {
     fontSize: 32,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
+    color: colors.text,
     letterSpacing: -1,
   },
   caloriesValueInput: {
     fontSize: 32,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
-    backgroundColor: "#F5F3EF",
+    color: colors.text,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -764,7 +768,7 @@ const styles = StyleSheet.create({
   // Page 1: Macros Row
   macrosRow: {
     flexDirection: "row",
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     paddingVertical: 16,
     shadowColor: "#000",
@@ -781,7 +785,7 @@ const styles = StyleSheet.create({
   macroDivider: {
     width: 1,
     height: "80%",
-    backgroundColor: "#E8E4DC",
+    backgroundColor: colors.border,
     alignSelf: "center",
   },
   macroIcon: {
@@ -790,18 +794,18 @@ const styles = StyleSheet.create({
   macroLabel: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
   },
   macroValue: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
+    color: colors.text,
   },
   macroValueInput: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
-    backgroundColor: "#F5F3EF",
+    color: colors.text,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -813,20 +817,18 @@ const styles = StyleSheet.create({
   extraMacrosRow: {
     flexDirection: "row",
     gap: 10,
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 12,
   },
   extraMacroCard: {
     flex: 1,
-    backgroundColor: colors.white,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+    backgroundColor: colors.card,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderRadius: 14,
     alignItems: "center",
     gap: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
   },
   extraMacroIcon: {
     fontSize: 20,
@@ -834,12 +836,12 @@ const styles = StyleSheet.create({
   extraMacroLabel: {
     fontSize: 12,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
   },
   extraMacroValue: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
+    color: colors.text,
   },
 
   // Page 2: Health Score Card
@@ -849,7 +851,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 16,
     paddingHorizontal: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 16,
     shadowColor: "#000",
     shadowOpacity: 0.04,
@@ -861,7 +863,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#FFF0F5",
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -872,11 +874,11 @@ const styles = StyleSheet.create({
   healthScoreLabel: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.textSecondary,
   },
   healthScoreBar: {
     height: 6,
-    backgroundColor: "#F2EFE9",
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 3,
     overflow: "hidden",
   },
@@ -888,7 +890,7 @@ const styles = StyleSheet.create({
   healthScoreValue: {
     fontSize: 16,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
+    color: colors.text,
   },
 
   // Pagination
@@ -902,7 +904,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#DAD4CA",
+    backgroundColor: colors.border,
   },
   dotActive: {
     backgroundColor: colors.primary,
@@ -923,18 +925,18 @@ const styles = StyleSheet.create({
   ingredientsTitle: {
     fontSize: 18,
     fontFamily: "Inter_700Bold",
-    color: colors.primary,
+    color: colors.text,
     letterSpacing: -0.3,
   },
   addIngredient: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    color: colors.secondary,
+    color: colors.textSecondary,
   },
   ingredientItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderRadius: 14,
@@ -948,12 +950,12 @@ const styles = StyleSheet.create({
   ingredientName: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.text,
   },
   ingredientCalories: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
     marginLeft: 8,
   },
   loadingIngredients: {
@@ -964,26 +966,26 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
   },
   emptyIngredients: {
     paddingVertical: 24,
     paddingHorizontal: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     borderRadius: 14,
     alignItems: "center",
   },
   emptyIngredientsText: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
   },
   healthScorePlaceholder: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.secondary,
+    color: colors.textSecondary,
     marginTop: 6,
   },
 
@@ -992,7 +994,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: colors.white,
+    backgroundColor: colors.card,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
@@ -1012,12 +1014,12 @@ const styles = StyleSheet.create({
   },
   feedbackIcon: {
     fontSize: 20,
-    color: colors.secondary,
+    color: colors.textSecondary,
   },
   feedbackText: {
     fontSize: 14,
     fontFamily: "Inter_500Medium",
-    color: colors.primary,
+    color: colors.text,
     lineHeight: 20,
   },
   feedbackButtons: {
@@ -1028,7 +1030,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#F5F3EF",
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1045,7 +1047,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     backgroundColor: colors.background,
     borderTopWidth: 1,
-    borderTopColor: "#E8E4DC",
+    borderTopColor: colors.border,
   },
   reportButton: {
     flex: 1,
@@ -1054,10 +1056,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: "#E8E4DC",
+    borderColor: colors.primary,
   },
   reportButtonText: {
     fontSize: 15,
@@ -1069,15 +1071,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 16,
-    backgroundColor: colors.white,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: "#E8E4DC",
+    borderColor: colors.border,
   },
   cancelButtonText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: colors.text,
   },
   doneButton: {
     flex: 1,
@@ -1097,7 +1099,7 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255,255,255,0.8)",
+    backgroundColor: isDark ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.8)",
     alignItems: "center",
     justifyContent: "center",
   },
