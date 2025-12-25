@@ -39,6 +39,10 @@ export interface MealPhoto {
   protein?: number | null;
   fat?: number | null;
   carbs?: number | null;
+  fiber?: number | null;
+  sugar?: number | null;
+  sodium?: number | null;
+  health_score?: number | null;
   created_at: string;
   updated_at?: string | null;
 }

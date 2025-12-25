@@ -3,17 +3,17 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    FlatList,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    ViewToken
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ViewToken
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SnowOverlay from "../components/ui/SnowOverlay";
@@ -541,8 +541,8 @@ export default function MealDetailScreen() {
         ) : (
           <>
             <TouchableOpacity style={styles.reportButton} onPress={handleReportProblem}>
-              <Ionicons name="sparkles" size={18} color={colors.primary} />
-              <Text style={styles.reportButtonText}>Исправить проблему</Text>
+              <Ionicons name="sparkles" size={18} color={isDark ? "#FFFFFF" : colors.primary} />
+              <Text style={styles.reportButtonText}>Исправить</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
               <Text style={styles.doneButtonText}>Готово</Text>
@@ -1056,15 +1056,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingVertical: 16,
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: isDark ? "#2D2D2D" : colors.backgroundSecondary,
     borderRadius: 28,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: isDark ? "#2D2D2D" : colors.primary,
   },
   reportButtonText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
+    color: isDark ? "#FFFFFF" : colors.primary,
   },
   cancelButton: {
     flex: 1,
@@ -1086,7 +1086,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 16,
-    backgroundColor: colors.primary,
+    backgroundColor: isDark ? "#2D2D2D" : colors.primary,
     borderRadius: 28,
   },
   doneButtonDisabled: {

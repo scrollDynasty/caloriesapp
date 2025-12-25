@@ -275,6 +275,10 @@ export default function ScanMealScreen() {
           protein: (response.photo.protein || 0).toString(),
           fat: (response.photo.fat || 0).toString(),
           carbs: (response.photo.carbs || 0).toString(),
+              fiber: (response.photo.fiber || 0).toString(),
+              sugar: (response.photo.sugar || 0).toString(),
+              sodium: (response.photo.sodium || 0).toString(),
+              healthScore: response.photo.health_score != null ? response.photo.health_score.toString() : "",
           imageUrl: imageUrl,
         },
       } as any);
