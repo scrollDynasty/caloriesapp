@@ -31,7 +31,7 @@ export default function SaveProgress() {
         Alert.alert("Ошибка", result.error || "Не удалось войти через Apple");
       }
     } catch (error: any) {
-      console.error("Ошибка авторизации:", error);
+      if (__DEV__) console.error("Ошибка авторизации:", error);
       Alert.alert("Ошибка", error.message || "Произошла ошибка");
     } finally {
       setLoading(false);
@@ -66,7 +66,7 @@ export default function SaveProgress() {
         );
       }
     } catch (error: any) {
-      console.error("Auth error:", error);
+      if (__DEV__) console.error("Auth error:", error);
       Alert.alert(
         "Ошибка",
         error.message || "Произошла ошибка при авторизации"

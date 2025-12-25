@@ -47,7 +47,7 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
-export default function PersonalDataScreen() {
+export default function GoalsWeightScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -202,7 +202,7 @@ export default function PersonalDataScreen() {
       }
 
       if (__DEV__) {
-        console.log("Saving personal data:", JSON.stringify(payload, null, 2));
+        console.log("Saving goals weight data:", JSON.stringify(payload, null, 2));
       }
       const result = await apiService.saveOnboardingData(payload);
       if (__DEV__) {
@@ -302,7 +302,7 @@ export default function PersonalDataScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={colors.primary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Личные данные</Text>
+        <Text style={styles.headerTitle}>Цели и текущий вес</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
@@ -340,7 +340,7 @@ export default function PersonalDataScreen() {
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("height")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Рост</Text>
             <View style={styles.rowRight}>
-              <Text style={styles.rowValue}>{data.height || "--"} cm</Text>
+              <Text style={styles.rowValue}>{data.height || "--"} см</Text>
               <View style={styles.editIcon}>
                 <Ionicons name="create-outline" size={16} color={colors.secondary} />
               </View>

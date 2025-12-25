@@ -38,7 +38,7 @@ export default function Index() {
         return;
       }
     } catch (error) {
-      console.error("Error checking auth:", error);
+      if (__DEV__) console.error("Error checking auth:", error);
     } finally {
       setCheckingAuth(false);
     }

@@ -66,7 +66,7 @@ export class AuthService {
 
       return { success: false, error: "Не удалось получить токен" };
     } catch (error: any) {
-      console.error("Auth error:", error);
+      if (__DEV__) console.error("Auth error:", error);
       return {
         success: false,
         error: error.response?.data?.detail || error.message || "Ошибка авторизации",
@@ -88,7 +88,7 @@ export class AuthService {
         error: "Apple Sign In пока не реализован. Используйте Google.",
       };
     } catch (error: any) {
-      console.error("Ошибка авторизации:", error);
+      if (__DEV__) console.error("Ошибка авторизации:", error);
       return {
         success: false,
         error: error.message || "Ошибка авторизации",

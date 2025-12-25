@@ -89,7 +89,7 @@ export async function saveOnboardingData(data: OnboardingData) {
     const result = await apiService.saveOnboardingData(payload);
     return { success: true, data: result };
   } catch (error: any) {
-    console.error("Ошибка сохранения данных:", error);
+    if (__DEV__) console.error("Ошибка сохранения данных:", error);
 
     let errorMessage = "Ошибка при сохранении данных";
     
@@ -127,7 +127,7 @@ export async function getOnboardingData() {
     const data = await apiService.getOnboardingData();
     return { success: true, data };
   } catch (error: any) {
-    console.error("Error getting onboarding data:", error);
+    if (__DEV__) console.error("Error getting onboarding data:", error);
     return {
       success: false,
       error: error.message || "Ошибка при получении данных",

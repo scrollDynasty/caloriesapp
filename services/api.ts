@@ -84,6 +84,8 @@ class ApiService {
     data: [],
     timestamp: null,
   };
+  // Prevent duplicate in-flight network calls for the same resource
+  private inflightRequests: Map<string, Promise<any>> = new Map();
 
   private upsertMealPhotoInCache(photo: MealPhoto) {
     const existing = this.mealPhotosCache.data;
@@ -101,6 +103,23 @@ class ApiService {
 
   invalidateMealPhotosCache() {
     this.mealPhotosCache = { data: [], timestamp: null };
+  }
+
+  private dedupRequest<T>(key: string, factory: () => Promise<T>): Promise<T> {
+    const existing = this.inflightRequests.get(key);
+    if (existing) return existing as Promise<T>;
+
+    const promise = factory()
+      .catch((error) => {
+        // Ensure failed requests don't poison the map
+        throw error;
+      })
+      .finally(() => {
+        this.inflightRequests.delete(key);
+      });
+
+    this.inflightRequests.set(key, promise as Promise<any>);
+    return promise as Promise<T>;
   }
 
   constructor() {
@@ -150,7 +169,7 @@ class ApiService {
         this.cachedToken = token;
       }
     } catch (error) {
-      console.error("Ошибка загрузки токена:", error);
+      if (__DEV__) console.error("Ошибка загрузки токена:", error);
     }
   }
 
@@ -161,7 +180,7 @@ class ApiService {
       
       await AsyncStorage.setItem(TOKEN_KEY, token);
     } catch (error) {
-      console.error("Ошибка сохранения токена:", error);
+      if (__DEV__) console.error("Ошибка сохранения токена:", error);
     }
   }
 
@@ -178,7 +197,7 @@ class ApiService {
       }
       return token;
     } catch (error) {
-      console.error("Ошибка получения токена:", error);
+      if (__DEV__) console.error("Ошибка получения токена:", error);
       return null;
     }
   }
@@ -188,7 +207,7 @@ class ApiService {
       this.cachedToken = null;
       await AsyncStorage.removeItem(TOKEN_KEY);
     } catch (error) {
-      console.error("Ошибка удаления токена:", error);
+      if (__DEV__) console.error("Ошибка удаления токена:", error);
     }
   }
 
@@ -218,10 +237,12 @@ class ApiService {
   }
 
   async getCurrentUser() {
-    const response = await this.api.get(API_ENDPOINTS.AUTH_ME);
-    // Сохраняем в кэш
-    dataCache.setUser(response.data);
-    return response.data;
+    return this.dedupRequest("auth_me", async () => {
+      const response = await this.api.get(API_ENDPOINTS.AUTH_ME);
+      // Сохраняем в кэш
+      dataCache.setUser(response.data);
+      return response.data;
+    });
   }
 
   /**
@@ -235,7 +256,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate("user")) {
         dataCache.setPendingUpdate("user");
         this.getCurrentUser()
-          .catch((e) => console.warn("Background user update failed:", e))
+          .catch((e) => { if (__DEV__) console.warn("Background user update failed:", e); })
           .finally(() => dataCache.clearPendingUpdate("user"));
       }
       return { data: cached, isFromCache: true };
@@ -257,10 +278,12 @@ class ApiService {
   }
 
   async getOnboardingData() {
-    const response = await this.api.get(API_ENDPOINTS.ONBOARDING);
-    // Сохраняем в кэш
-    dataCache.setOnboarding(response.data);
-    return response.data;
+    return this.dedupRequest("onboarding", async () => {
+      const response = await this.api.get(API_ENDPOINTS.ONBOARDING);
+      // Сохраняем в кэш
+      dataCache.setOnboarding(response.data);
+      return response.data;
+    });
   }
 
   /**
@@ -274,7 +297,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate("onboarding")) {
         dataCache.setPendingUpdate("onboarding");
         this.getOnboardingData()
-          .catch((e) => console.warn("Background onboarding update failed:", e))
+          .catch((e) => { if (__DEV__) console.warn("Background onboarding update failed:", e); })
           .finally(() => dataCache.clearPendingUpdate("onboarding"));
       }
       return { data: cached, isFromCache: true };
@@ -365,11 +388,14 @@ class ApiService {
     date: string,
     tzOffsetMinutes: number = getLocalTimezoneOffset()
   ): Promise<WaterDaily> {
-    const response = await this.api.get(API_ENDPOINTS.WATER_DAILY, {
-      params: { date, tz_offset_minutes: tzOffsetMinutes },
+    const key = `water-${date}-${tzOffsetMinutes}`;
+    return this.dedupRequest(key, async () => {
+      const response = await this.api.get(API_ENDPOINTS.WATER_DAILY, {
+        params: { date, tz_offset_minutes: tzOffsetMinutes },
+      });
+      dataCache.setWater(date, response.data);
+      return response.data as WaterDaily;
     });
-    dataCache.setWater(date, response.data);
-    return response.data as WaterDaily;
   }
 
 
@@ -384,7 +410,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate(`water-${date}`)) {
         dataCache.setPendingUpdate(`water-${date}`);
         this.getDailyWater(date, tzOffsetMinutes)
-          .catch((e) => console.warn("Background water update failed:", e))
+          .catch((e) => { if (__DEV__) console.warn("Background water update failed:", e); })
           .finally(() => dataCache.clearPendingUpdate(`water-${date}`));
       }
       return { data: cached as WaterDaily, isFromCache: true, isStale };
@@ -399,10 +425,13 @@ class ApiService {
   }
 
   async getMealPhotos(skip: number = 0, limit: number = 100): Promise<MealPhoto[]> {
-    const response = await this.api.get<MealPhoto[]>(API_ENDPOINTS.MEALS_PHOTOS, {
-      params: { skip, limit },
+    const key = `meal-photos-${skip}-${limit}`;
+    return this.dedupRequest(key, async () => {
+      const response = await this.api.get<MealPhoto[]>(API_ENDPOINTS.MEALS_PHOTOS, {
+        params: { skip, limit },
+      });
+      return response.data;
     });
-    return response.data;
   }
 
   async getMealPhotosCached(
@@ -431,12 +460,15 @@ class ApiService {
     date: string,
     tzOffsetMinutes: number = getLocalTimezoneOffset()
   ): Promise<DailyMealsData> {
-    const response = await this.api.get(API_ENDPOINTS.MEALS_DAILY, {
-      params: { date, tz_offset_minutes: tzOffsetMinutes },
+    const key = `daily-${date}-${tzOffsetMinutes}`;
+    return this.dedupRequest(key, async () => {
+      const response = await this.api.get(API_ENDPOINTS.MEALS_DAILY, {
+        params: { date, tz_offset_minutes: tzOffsetMinutes },
+      });
+      // Сохраняем в кэш
+      dataCache.setDailyMeals(date, response.data);
+      return response.data;
     });
-    // Сохраняем в кэш
-    dataCache.setDailyMeals(date, response.data);
-    return response.data;
   }
 
   /**
@@ -456,7 +488,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate(`daily-${date}`)) {
         dataCache.setPendingUpdate(`daily-${date}`);
         this.getDailyMeals(date, tzOffsetMinutes)
-          .catch((e) => console.warn("Background daily update failed:", e))
+          .catch((e) => { if (__DEV__) console.warn("Background daily update failed:", e); })
           .finally(() => dataCache.clearPendingUpdate(`daily-${date}`));
       }
       return { data: cached, isFromCache: true, isStale };
@@ -481,21 +513,24 @@ class ApiService {
     total_fat: number;
     total_carbs: number;
   }>> {
-    const response = await this.api.post(API_ENDPOINTS.MEALS_DAILY_BATCH, { dates }, {
-      params: { tz_offset_minutes: tzOffsetMinutes },
-    });
-    // Сохраняем каждый день в кэш
-    for (const item of response.data) {
-      const cached = dataCache.getDailyMeals(item.date);
-      if (cached) {
-        // Обновляем только totals если уже есть данные
-        cached.total_calories = item.total_calories;
-        cached.total_protein = item.total_protein;
-        cached.total_fat = item.total_fat;
-        cached.total_carbs = item.total_carbs;
+    const key = `daily-batch-${dates.sort().join("|")}-${tzOffsetMinutes}`;
+    return this.dedupRequest(key, async () => {
+      const response = await this.api.post(API_ENDPOINTS.MEALS_DAILY_BATCH, { dates }, {
+        params: { tz_offset_minutes: tzOffsetMinutes },
+      });
+      // Сохраняем каждый день в кэш
+      for (const item of response.data) {
+        const cached = dataCache.getDailyMeals(item.date);
+        if (cached) {
+          // Обновляем только totals если уже есть данные
+          cached.total_calories = item.total_calories;
+          cached.total_protein = item.total_protein;
+          cached.total_fat = item.total_fat;
+          cached.total_carbs = item.total_carbs;
+        }
       }
-    }
-    return response.data;
+      return response.data;
+    });
   }
 
   /**
@@ -527,7 +562,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate(`week-${weekKey}`)) {
         dataCache.setPendingUpdate(`week-${weekKey}`);
         this.getDailyMealsBatch(dates, tzOffsetMinutes)
-          .catch((e) => console.warn("Background week update failed:", e))
+          .catch((e) => { if (__DEV__) console.warn("Background week update failed:", e); })
           .finally(() => dataCache.clearPendingUpdate(`week-${weekKey}`));
       }
       
@@ -582,15 +617,18 @@ class ApiService {
     };
     health_score?: number;
   }> {
-    try {
-      const response = await this.api.get(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/detail`);
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 404 || error.response?.status === 405) {
-        return { photo: null as any };
+    const key = `meal-detail-${photoId}`;
+    return this.dedupRequest(key, async () => {
+      try {
+        const response = await this.api.get(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/detail`);
+        return response.data;
+      } catch (error: any) {
+        if (error.response?.status === 404 || error.response?.status === 405) {
+          return { photo: null as any };
+        }
+        throw error;
       }
-      throw error;
-    }
+    });
   }
 
   async healthCheck() {
@@ -600,7 +638,7 @@ class ApiService {
       });
       return response.data;
     } catch (error: any) {
-      console.error("Health check failed:", error);
+      if (__DEV__) console.error("Health check failed:", error);
       throw new Error(
         error.code === "ECONNABORTED" || error.message?.includes("timeout")
           ? "Сервер не отвечает. Проверьте, что бэкенд запущен."
@@ -622,8 +660,10 @@ class ApiService {
     streak_count?: number;
     created_at?: string;
   }> {
-    const response = await this.api.get(`${API_ENDPOINTS.AUTH}/profile`);
-    return response.data;
+    return this.dedupRequest("profile", async () => {
+      const response = await this.api.get(`${API_ENDPOINTS.AUTH}/profile`);
+      return response.data;
+    });
   }
 
   async updateProfile(data: {
@@ -734,8 +774,10 @@ class ApiService {
     file_name: string;
     created_at: string;
   }>> {
-    const response = await this.api.get('/api/v1/progress/photos');
-    return response.data;
+    return this.dedupRequest("progress-photos", async () => {
+      const response = await this.api.get('/api/v1/progress/photos');
+      return response.data;
+    });
   }
 
   getProgressPhotoUrl(photoId: number): string {
@@ -779,8 +821,10 @@ class ApiService {
     bmi: number | null;
     bmi_category: string | null;
   }> {
-    const response = await this.api.get('/api/v1/progress/data');
-    return response.data;
+    return this.dedupRequest("progress-data", async () => {
+      const response = await this.api.get('/api/v1/progress/data');
+      return response.data;
+    });
   }
 }
 

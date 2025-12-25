@@ -3,14 +3,14 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFonts } from "../hooks/use-fonts";
@@ -46,7 +46,7 @@ export default function MealResultScreen() {
         await apiService.deleteMealPhoto(photoId);
       }
     } catch (error: any) {
-      console.warn("Error deleting photo:", error);
+      if (__DEV__) console.warn("Error deleting photo:", error);
     } finally {
       router.replace("/scan-meal" as any);
     }
@@ -67,7 +67,7 @@ export default function MealResultScreen() {
         params: { refresh: Date.now().toString() },
       } as any);
     } catch (error: any) {
-      console.error("Error saving meal:", error);
+      if (__DEV__) console.error("Error saving meal:", error);
       Alert.alert("Ошибка", error?.response?.data?.detail || "Не удалось сохранить блюдо");
     } finally {
       setSaving(false);

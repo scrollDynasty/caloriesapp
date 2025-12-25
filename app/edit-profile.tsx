@@ -72,7 +72,7 @@ export default function EditProfileScreen() {
         setLocalAvatarUri(profile.avatar_url);
       }
     } catch (error) {
-      console.error("Error loading profile:", error);
+      if (__DEV__) console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
     }
@@ -93,7 +93,7 @@ export default function EditProfileScreen() {
         setUsernameAvailable(result.available);
         setUsernameError(result.available ? null : result.message);
       } catch (error) {
-        console.error("Error checking username:", error);
+        if (__DEV__) console.error("Error checking username:", error);
       } finally {
         setCheckingUsername(false);
       }
@@ -156,7 +156,7 @@ export default function EditProfileScreen() {
 
       router.back();
     } catch (error: any) {
-      console.error("Error saving profile:", error);
+      if (__DEV__) console.error("Error saving profile:", error);
       Alert.alert("Ошибка", error.response?.data?.detail || "Не удалось сохранить профиль");
     } finally {
       setSaving(false);

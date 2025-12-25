@@ -975,7 +975,7 @@ export default function NutritionGoalsScreen() {
         sodium: data.sodium_mg || 2300,
       });
     } catch (error) {
-      console.error("Error loading onboarding data:", error);
+      if (__DEV__) console.error("Error loading onboarding data:", error);
     } finally {
       setLoading(false);
     }
@@ -1019,7 +1019,7 @@ export default function NutritionGoalsScreen() {
       dataCache.invalidateOnboarding();
       router.back();
     } catch (error) {
-      console.error("Error saving goals:", error);
+      if (__DEV__) console.error("Error saving goals:", error);
       Alert.alert("Ошибка", "Не удалось сохранить цели");
     } finally {
       setSaving(false);

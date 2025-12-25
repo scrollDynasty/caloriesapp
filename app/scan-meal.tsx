@@ -78,7 +78,9 @@ export default function ScanMealScreen() {
 
   const handleTakePicture = async () => {
     if (!cameraRef.current || uploading || isProcessingPhoto) {
-      console.log("Cannot take picture:", { hasCameraRef: !!cameraRef.current, uploading, isProcessingPhoto });
+      if (__DEV__) {
+        console.log("Cannot take picture:", { hasCameraRef: !!cameraRef.current, uploading, isProcessingPhoto });
+      }
       return;
     }
 
@@ -86,14 +88,14 @@ export default function ScanMealScreen() {
       setIsProcessingPhoto(true);
       setUploading(true);
       setCameraActive(false);
-      console.log("Taking picture...");
+      if (__DEV__) console.log("Taking picture...");
       
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.8,
         base64: false,
       });
 
-      console.log("Photo taken:", photo?.uri ? "Success" : "Failed");
+      if (__DEV__) console.log("Photo taken:", photo?.uri ? "Success" : "Failed");
 
       if (photo?.uri) {
         await uploadPhoto(photo.uri, scannedBarcode || undefined);
@@ -103,7 +105,7 @@ export default function ScanMealScreen() {
         Alert.alert("Ошибка", "Не удалось сделать фотографию");
       }
     } catch (error: any) {
-      console.error("Error taking picture:", error);
+      if (__DEV__) console.error("Error taking picture:", error);
       setUploading(false);
       setIsProcessingPhoto(false);
       Alert.alert("Ошибка", error.message || "Не удалось сделать фотографию");
@@ -142,7 +144,7 @@ export default function ScanMealScreen() {
         await uploadPhoto(result.assets[0].uri, scannedBarcode || undefined);
       }
     } catch (error) {
-      console.error("Error picking image:", error);
+      if (__DEV__) console.error("Error picking image:", error);
       Alert.alert("Ошибка", "Не удалось выбрать фотографию");
     }
   };
@@ -167,11 +169,11 @@ export default function ScanMealScreen() {
     try {
       setUploading(true);
       setCameraActive(false);
-      console.log("Starting photo upload, URI:", uri);
+      if (__DEV__) console.log("Starting photo upload, URI:", uri);
 
       const { fileName, mimeType } = getFileInfoFromUri(uri);
 
-      console.log("Uploading file:", fileName, "mimeType:", mimeType, "barcode:", barcode);
+      if (__DEV__) console.log("Uploading file:", fileName, "mimeType:", mimeType, "barcode:", barcode);
 
       const response = await apiService.uploadMealPhoto(
         uri,
@@ -180,7 +182,7 @@ export default function ScanMealScreen() {
         barcode
       );
 
-      console.log("Photo uploaded successfully:", response);
+      if (__DEV__) console.log("Photo uploaded successfully:", response);
       
       const imageUrl = apiService.getMealPhotoUrl(
         response.photo.id,
@@ -201,9 +203,11 @@ export default function ScanMealScreen() {
       } as any);
     } catch (error: any) {
       setIsProcessingPhoto(false);
-      console.error("Error uploading photo:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
+      if (__DEV__) {
+        console.error("Error uploading photo:", error);
+        console.error("Error response:", error.response?.data);
+        console.error("Error status:", error.response?.status);
+      }
       
       const errorMessage = 
         error.response?.data?.detail || 

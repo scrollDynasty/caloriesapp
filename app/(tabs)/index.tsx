@@ -3,14 +3,14 @@ import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CardsPager } from "../../components/home/CardsPager";
@@ -192,7 +192,7 @@ export default function HomeScreen() {
       setRecentHasMore(mealsForSelectedDay.length >= limit);
       setRecentSkip(skip + limit);
     } catch (err) {
-      console.warn("Failed to load latest meal", err);
+      if (__DEV__) console.warn("Failed to load latest meal", err);
       setRecentError("Не удалось загрузить последние блюда");
     }
     finally {
@@ -241,7 +241,7 @@ export default function HomeScreen() {
       }
     } catch (error: any) {
       if (isMountedRef.current) {
-        console.error("Error loading data:", error);
+        if (__DEV__) console.error("Error loading data:", error);
       }
       hasLoadedRef.current = false;
     } finally {
@@ -351,7 +351,7 @@ export default function HomeScreen() {
       }));
       setStreakCount(data.streak_count || 0);
     } catch (err: any) {
-      console.warn("Daily data load error", err);
+      if (__DEV__) console.warn("Daily data load error", err);
       if (!isMountedRef.current) return;
       // Показываем ошибку только если нет кэша
       if (!cachedDaily) {
@@ -510,7 +510,7 @@ export default function HomeScreen() {
         
         lastWeekLoadedRef.current = weekTs;
       } catch (e) {
-        console.warn("Week achievements failed", e);
+        if (__DEV__) console.warn("Week achievements failed", e);
       } finally {
         weekLoadInProgress.current = false;
       }
@@ -546,7 +546,7 @@ export default function HomeScreen() {
       await loadDailyData(selectedDateTimestamp, true); 
       await fetchLatestMeals({ append: false, limit: recentLimit, force: true });
     } catch (err) {
-      console.warn("Refresh error", err);
+      if (__DEV__) console.warn("Refresh error", err);
     } finally {
       setRefreshing(false);
     }

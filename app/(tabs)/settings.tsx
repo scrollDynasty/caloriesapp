@@ -4,19 +4,20 @@ import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Linking,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
+import { useSnow } from "../../context/SnowContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
@@ -97,9 +98,9 @@ function MenuItem({
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors: themeColors, isDark } = useTheme();
+  const { isSnowEnabled, setSnowEnabled } = useSnow();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const [holidayTheme, setHolidayTheme] = useState(false);
   const avatarUri = useAvatarUri();
   const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
   
@@ -133,7 +134,7 @@ export default function SettingsScreen() {
         setAvatarUri(data.avatar_url);
       }
     } catch (err) {
-      console.warn("Не удалось загрузить пользователя", err);
+      if (__DEV__) console.warn("Не удалось загрузить пользователя", err);
     } finally {
       setLoading(false);
     }
@@ -192,7 +193,7 @@ export default function SettingsScreen() {
         });
         setOnboardingData(onboarding);
       } catch (error) {
-        console.error("Error loading daily data:", error);
+        if (__DEV__) console.error("Error loading daily data:", error);
       } finally {
         setDailyLoading(false);
       }
@@ -214,7 +215,7 @@ export default function SettingsScreen() {
               await authService.signOut();
               router.replace("/auth/login" as any);
             } catch (error: any) {
-              console.error("Logout error", error);
+              if (__DEV__) console.error("Logout error", error);
               Alert.alert("Ошибка", "Не удалось выйти из аккаунта");  
             }
           },
@@ -331,8 +332,8 @@ export default function SettingsScreen() {
               <Text style={[styles.themeSubtitle, { color: themeColors.textSecondary }]}>Let your app sparkle with snow and Christmas cheer.</Text>
             </View>
             <Switch 
-              value={holidayTheme} 
-              onValueChange={setHolidayTheme}
+              value={isSnowEnabled} 
+              onValueChange={setSnowEnabled}
               trackColor={{ false: isDark ? themeColors.gray4 : "#E0E0E0", true: "#4CAF50" }}
               thumbColor="#FFFFFF"
             />
@@ -369,9 +370,9 @@ export default function SettingsScreen() {
         <SectionHeader title="Цели и отслеживание" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="navigate-outline" title="Изменить цели питания" onPress={() => router.push("/nutrition-goals" as any)} />
-          <MenuItem icon="flag-outline" title="Цели и текущий вес" />
-          <MenuItem icon="time-outline" title="История веса" />
-          <MenuItem icon="ellipse-outline" title="Ring Colors Explained" isLast />
+          <MenuItem icon="flag-outline" title="Цели и текущий вес" onPress={() => router.push("/goals-weight" as any)} />
+          <MenuItem icon="notifications-outline" title="Напоминания об отслеживании" onPress={() => router.push("/tracking-reminders" as any)} />
+          <MenuItem icon="time-outline" title="История веса" onPress={() => router.push("/weight-history" as any)} isLast />
         </View>
 
         {/* Widgets */}
@@ -489,10 +490,7 @@ export default function SettingsScreen() {
         {/* Support & Legal */}
         <SectionHeader title="Поддержка и юридическая информация" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <MenuItem icon="bulb-outline" title="Запросить функцию" />
           <MenuItem icon="mail-outline" title="Написать в поддержку" />
-          <MenuItem icon="share-outline" title="Export PDF Summary Report" />
-          <MenuItem icon="sync-outline" title="Синхронизировать данные" subtitle="Последняя синхронизация: 1:09 AM" />
           <MenuItem icon="document-text-outline" title="Условия использования" />
           <MenuItem icon="shield-checkmark-outline" title="Политика конфиденциальности" isLast />
         </View>

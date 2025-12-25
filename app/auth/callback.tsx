@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../constants/theme";
@@ -12,33 +12,61 @@ export default function CallbackScreen() {
   const params = useLocalSearchParams();
   const { data: onboardingData } = useOnboarding();
   const [error, setError] = useState<string | null>(null);
+  const isMounted = useRef(true);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    isMounted.current = true;
     handleCallback();
+    
+    return () => {
+      isMounted.current = false;
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
   }, []);
+
+  const safeRedirect = (path: string, delay: number = 3000) => {
+    redirectTimeoutRef.current = setTimeout(() => {
+      if (isMounted.current) {
+        router.replace(path as any);
+      }
+    }, delay);
+  };
 
   const handleCallback = async () => {
     try {
-      console.log("🔍 Callback received with params:", JSON.stringify(params, null, 2));
+      if (__DEV__) {
+        console.log("🔍 Callback received with params:", JSON.stringify(params, null, 2));
+      }
       
       if (params.error) {
-        console.error("❌ OAuth error:", params.error);
-        setError(`Ошибка авторизации: ${params.error}`);
-        setTimeout(() => router.replace("/save-progress"), 3000);
+        if (__DEV__) console.error("❌ OAuth error:", params.error);
+        if (isMounted.current) {
+          setError(`Ошибка авторизации: ${params.error}`);
+        }
+        safeRedirect("/save-progress");
         return;
       }
 
       const token = params.token as string;
       let userStr = params.user as string;
 
-      console.log("📦 Token present:", !!token);
-      console.log("📦 User string present:", !!userStr);
+      if (__DEV__) {
+        console.log("📦 Token present:", !!token);
+        console.log("📦 User string present:", !!userStr);
+      }
 
       if (!token || !userStr) {
-        console.error("❌ Missing data - token:", !!token, "user:", !!userStr);
-        console.error("❌ All params:", Object.keys(params));
-        setError("Ошибка: отсутствуют данные авторизации");
-        setTimeout(() => router.replace("/save-progress"), 3000);
+        if (__DEV__) {
+          console.error("❌ Missing data - token:", !!token, "user:", !!userStr);
+          console.error("❌ All params:", Object.keys(params));
+        }
+        if (isMounted.current) {
+          setError("Ошибка: отсутствуют данные авторизации");
+        }
+        safeRedirect("/save-progress");
         return;
       }
 
@@ -47,20 +75,22 @@ export default function CallbackScreen() {
         userStr = userStr.replace(/#.*$/, "");
         const user = JSON.parse(userStr);
         
-        console.log("✅ User data parsed:", { email: user.email, user_id: user.user_id });
+        if (__DEV__) {
+          console.log("✅ User data parsed:", { email: user.email, user_id: user.user_id });
+        }
 
         await apiService.saveToken(token);
-        console.log("✅ Token saved");
+        if (__DEV__) console.log("✅ Token saved");
 
         let hasExistingData = false;
         try {
           const existingData = await apiService.getOnboardingData();
           if (existingData && Object.keys(existingData).length > 0) {
             hasExistingData = true;
-            console.log("ℹ️ Onboarding data already exists on server, skipping save");
+            if (__DEV__) console.log("ℹ️ Onboarding data already exists on server, skipping save");
           }
         } catch (error: any) {
-          if (error?.response?.status !== 404) {
+          if (error?.response?.status !== 404 && __DEV__) {
             console.warn("⚠️ Error checking existing data:", error);
           }
         }
@@ -68,34 +98,42 @@ export default function CallbackScreen() {
         if (!hasExistingData) {
           if (onboardingData && Object.keys(onboardingData).length > 0) {
             try {
-              console.log("💾 Saving onboarding data (first time)...");
+              if (__DEV__) console.log("💾 Saving onboarding data (first time)...");
               const saveResult = await saveOnboardingData(onboardingData);
               if (saveResult.success) {
-                console.log("✅ Onboarding data saved");
-              } else {
+                if (__DEV__) console.log("✅ Onboarding data saved");
+              } else if (__DEV__) {
                 console.warn("⚠️ Onboarding save failed:", saveResult.error);
               }
             } catch (saveError: any) {
-              console.error("❌ Ошибка сохранения данных онбординга:", saveError);
+              if (__DEV__) console.error("❌ Ошибка сохранения данных онбординга:", saveError);
             }
-          } else {
+          } else if (__DEV__) {
             console.log("ℹ️ No onboarding data in context to save");
           }
         }
 
-        console.log("🚀 Redirecting to main screen...");
-        router.replace("/(tabs)");
+        if (__DEV__) console.log("🚀 Redirecting to main screen...");
+        if (isMounted.current) {
+          router.replace("/(tabs)");
+        }
       } catch (parseError: any) {
-        console.error("❌ Error parsing user data:", parseError);
-        console.error("❌ User string:", userStr);
-        setError("Ошибка при обработке данных");
-        setTimeout(() => router.replace("/save-progress"), 3000);
+        if (__DEV__) {
+          console.error("❌ Error parsing user data:", parseError);
+        }
+        if (isMounted.current) {
+          setError("Ошибка при обработке данных");
+        }
+        safeRedirect("/save-progress");
       }
     } catch (err: any) {
-      console.error("❌ Callback error:", err);
-      console.error("❌ Error stack:", err.stack);
-      setError(`Ошибка: ${err.message || "Неизвестная ошибка"}`);
-      setTimeout(() => router.replace("/save-progress"), 3000);
+      if (__DEV__) {
+        console.error("❌ Callback error:", err);
+      }
+      if (isMounted.current) {
+        setError(`Ошибка: ${err.message || "Неизвестная ошибка"}`);
+      }
+      safeRedirect("/save-progress");
     }
   };
 

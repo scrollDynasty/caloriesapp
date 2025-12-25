@@ -3,17 +3,17 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  FlatList,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ViewToken
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    FlatList,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    ViewToken
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { colors } from "../constants/theme";
@@ -91,7 +91,7 @@ export default function MealDetailScreen() {
           setHealthScore(detail.health_score);
         }
       } catch (error: any) {
-        console.warn("Failed to load meal detail:", error);
+        if (__DEV__) console.warn("Failed to load meal detail:", error);
         // If API doesn't support detail endpoint yet, data will remain empty
         // This is expected until backend implements neural network analysis
       } finally {
