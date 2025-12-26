@@ -58,7 +58,25 @@ export interface ManualMealPayload {
   protein?: number | null;
   fat?: number | null;
   carbs?: number | null;
+  fiber?: number | null;
+  sugar?: number | null;
+  sodium?: number | null;
+  health_score?: number | null;
   created_at?: string;
+}
+
+export interface BarcodeLookup {
+  barcode: string;
+  name: string;
+  brand?: string | null;
+  calories?: number | null;
+  protein?: number | null;
+  fat?: number | null;
+  carbs?: number | null;
+  fiber?: number | null;
+  sugar?: number | null;
+  sodium?: number | null;
+  health_score?: number | null;
 }
 
 export interface WaterPayload {
@@ -375,7 +393,7 @@ class ApiService {
     return created;
   }
 
-  async lookupBarcode(barcode: string) {
+  async lookupBarcode(barcode: string): Promise<BarcodeLookup> {
     const code = (barcode || "").trim();
     if (!code) {
       throw new Error("Пустой штрихкод");
@@ -422,7 +440,11 @@ class ApiService {
             nutriments.carbohydrates_100g ??
             nutriments.carbohydrates_serving
           ),
-        } as const;
+          fiber: null,
+          sugar: null,
+          sodium: null,
+          health_score: null,
+        };
       } catch (fallbackError: any) {
         if (__DEV__ && fallbackError?.response?.status !== 404) {
           console.warn("Barcode lookup failed", fallbackError?.message || fallbackError);
@@ -886,6 +908,39 @@ class ApiService {
       const response = await this.api.get('/api/v1/progress/data');
       return response.data;
     });
+  }
+
+  async addMealIngredient(
+    photoId: number,
+    ingredient: { name: string; calories: number }
+  ): Promise<{ success: boolean; ingredients: Array<{ name: string; calories: number }> }> {
+    const response = await this.api.post(
+      `${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/ingredients`,
+      ingredient
+    );
+    dataCache.invalidateDailyMeals(getLocalDateStr());
+    return response.data;
+  }
+
+  async correctMealWithAI(
+    photoId: number,
+    correction: string
+  ): Promise<{
+    meal_name: string;
+    calories: number;
+    protein: number;
+    fats: number;
+    carbs: number;
+    ingredients?: Array<{ name: string; calories: number }>;
+    extra_macros?: { fiber: number; sugar: number; sodium: number };
+    health_score?: number;
+  }> {
+    const response = await this.api.post(
+      `${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/correct`,
+      { correction }
+    );
+    dataCache.invalidateDailyMeals(getLocalDateStr());
+    return response.data;
   }
 }
 

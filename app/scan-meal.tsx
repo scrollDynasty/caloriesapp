@@ -15,17 +15,8 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
+import type { BarcodeLookup } from "../services/api";
 import { apiService } from "../services/api";
-
-type BarcodeLookup = {
-  barcode: string;
-  name: string;
-  brand?: string | null;
-  calories: number | null;
-  protein: number | null;
-  fat: number | null;
-  carbs: number | null;
-};
 
 export default function ScanMealScreen() {
   const fontsLoaded = useFonts();
@@ -212,6 +203,10 @@ export default function ScanMealScreen() {
         protein: barcodeResult.protein ?? 0,
         fat: barcodeResult.fat ?? 0,
         carbs: barcodeResult.carbs ?? 0,
+        fiber: barcodeResult.fiber ?? 0,
+        sugar: barcodeResult.sugar ?? 0,
+        sodium: barcodeResult.sodium ?? 0,
+        health_score: barcodeResult.health_score ?? null,
       });
       Alert.alert("Сохранено", "Блюдо добавлено из штрихкода.");
       router.replace({ pathname: "/(tabs)", params: { refresh: Date.now().toString() } } as any);

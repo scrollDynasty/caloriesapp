@@ -232,14 +232,13 @@ export default function ProgressScreen() {
                 key={period}
                 style={[
                   styles.periodButton,
-                  selectedPeriod === period && { backgroundColor: themeColors.primary + '20' },
+                  selectedPeriod === period && { backgroundColor: themeColors.primary },
                 ]}
                 onPress={() => setSelectedPeriod(period)}
               >
                 <Text
                   style={[
                     styles.periodButtonText,
-                    { color: selectedPeriod === period ? themeColors.primary : themeColors.textSecondary },
                   ]}
                 >
                   {TIME_PERIOD_LABELS[period]}
@@ -353,14 +352,13 @@ export default function ProgressScreen() {
                 key={period}
                 style={[
                   styles.periodButton,
-                  selectedCaloriePeriod === period && { backgroundColor: themeColors.primary + '20' },
+                  selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
                 ]}
                 onPress={() => setSelectedCaloriePeriod(period)}
               >
                 <Text
                   style={[
                     styles.periodButtonText,
-                    { color: selectedCaloriePeriod === period ? themeColors.primary : themeColors.textSecondary },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -404,14 +402,13 @@ export default function ProgressScreen() {
                 key={period}
                 style={[
                   styles.periodButton,
-                  selectedCaloriePeriod === period && { backgroundColor: themeColors.primary + '20' },
+                  selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
                 ]}
                 onPress={() => setSelectedCaloriePeriod(period)}
               >
                 <Text
                   style={[
                     styles.periodButtonText,
-                    { color: selectedCaloriePeriod === period ? themeColors.primary : themeColors.textSecondary },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -642,11 +639,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 24,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#2D2D2D",
   },
   periodButtonText: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
+    color: "#FFFFFF",
   },
   weightProgress: {
     marginTop: 24,

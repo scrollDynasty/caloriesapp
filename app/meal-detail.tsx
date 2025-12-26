@@ -195,8 +195,88 @@ export default function MealDetailScreen() {
     router.back();
   };
 
-  const handleReportProblem = () => {
-    Alert.alert("Исправить проблему", "Функция обратной связи в разработке");
+  const handleAddIngredient = () => {
+    Alert.prompt(
+      "Добавить ингредиент",
+      "Введите название ингредиента и калории (например: Помидор, 20)",
+      [
+        { text: "Отмена", style: "cancel" },
+        {
+          text: "Добавить",
+          onPress: async (text?: string) => {
+            if (!text || !text.trim()) return;
+            
+            const parts = text.split(",").map((p: string) => p.trim());
+            if (parts.length < 2) {
+              Alert.alert("Ошибка", "Укажите название и калории через запятую");
+              return;
+            }
+            
+            const name = parts[0];
+            const calories = Number(parts[1]);
+            
+            if (!name || isNaN(calories)) {
+              Alert.alert("Ошибка", "Неверный формат. Пример: Помидор, 20");
+              return;
+            }
+            
+            try {
+              await apiService.addMealIngredient(mealId, { name, calories });
+              // Обновляем локальный список
+              setIngredients([...ingredients, { name, calories }]);
+              Alert.alert("Успешно", "Ингредиент добавлен");
+            } catch (error: any) {
+              Alert.alert("Ошибка", "Не удалось добавить ингредиент");
+            }
+          },
+        },
+      ],
+      "plain-text"
+    );
+  };
+
+  const handleCorrectMeal = () => {
+    Alert.prompt(
+      "Исправить блюдо",
+      "Опишите, что нужно исправить (состав, ингредиенты, описание)",
+      [
+        { text: "Отмена", style: "cancel" },
+        {
+          text: "Исправить",
+          onPress: async (correctionText?: string) => {
+            if (!correctionText || !correctionText.trim()) return;
+            
+            try {
+              setSaving(true);
+              const corrected = await apiService.correctMealWithAI(mealId, correctionText);
+              
+              // Обновляем данные на основе ответа AI
+              if (corrected.meal_name) setEditName(corrected.meal_name);
+              if (corrected.calories) setEditCalories(corrected.calories.toString());
+              if (corrected.protein) setEditProtein(corrected.protein.toString());
+              if (corrected.carbs) setEditCarbs(corrected.carbs.toString());
+              if (corrected.fats) setEditFats(corrected.fats.toString());
+              if (corrected.ingredients) setIngredients(corrected.ingredients);
+              if (corrected.extra_macros) {
+                setExtraMacros({
+                  fiber: corrected.extra_macros.fiber || 0,
+                  sugar: corrected.extra_macros.sugar || 0,
+                  sodium: corrected.extra_macros.sodium || 0,
+                });
+              }
+              if (corrected.health_score !== undefined) setHealthScore(corrected.health_score);
+              
+              Alert.alert("Успешно", "Блюдо обновлено на основе анализа AI");
+            } catch (error: any) {
+              Alert.alert("Ошибка", error.message || "Не удалось исправить блюдо");
+            } finally {
+              setSaving(false);
+            }
+          },
+        },
+      ],
+      "plain-text"
+    );
   };
 
   // Page 1: Calories + Macros (Protein, Carbs, Fats)
@@ -469,7 +549,7 @@ export default function MealDetailScreen() {
           <View style={styles.ingredientsSection}>
             <View style={styles.ingredientsHeader}>
               <Text style={styles.ingredientsTitle}>Ингредиенты</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleAddIngredient}>
                 <Text style={styles.addIngredient}>+ Добавить ещё</Text>
               </TouchableOpacity>
             </View>
@@ -499,7 +579,7 @@ export default function MealDetailScreen() {
           <View style={styles.feedbackSection}>
             <View style={styles.feedbackContent}>
               <Text style={styles.feedbackIcon}>-:-</Text>
-              <Text style={styles.feedbackText}>Как, по-твоему, справился{"\n"}Cal AI?</Text>
+              <Text style={styles.feedbackText}>Как, по-твоему, справился{"\n"}Yeb-Ich?</Text>
             </View>
             <View style={styles.feedbackButtons}>
               <TouchableOpacity style={styles.feedbackButton}>
@@ -540,7 +620,7 @@ export default function MealDetailScreen() {
           </>
         ) : (
           <>
-            <TouchableOpacity style={styles.reportButton} onPress={handleReportProblem}>
+            <TouchableOpacity style={styles.reportButton} onPress={handleCorrectMeal}>
               <Ionicons name="sparkles" size={18} color={isDark ? "#FFFFFF" : colors.primary} />
               <Text style={styles.reportButtonText}>Исправить</Text>
             </TouchableOpacity>
@@ -1035,7 +1115,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Bottom Buttons
   bottomButtons: {
     position: "absolute",
     bottom: 0,
