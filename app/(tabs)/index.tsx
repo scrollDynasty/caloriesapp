@@ -1,4 +1,3 @@
-import { useFocusEffect } from "@react-navigation/native";
 import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -263,14 +262,6 @@ export default function HomeScreen() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!hasInitializedRecentRef.current) {
-      hasInitializedRecentRef.current = true;
-      return;
-    }
-    fetchLatestMeals({ append: false, limit: recentLimit, force: true });
-  }, [fetchLatestMeals, recentLimit, selectedDateTimestamp]);
-
   const loadDailyData = useCallback(async (dateTimestamp: number, force: boolean = false) => {
     const { dateStr } = getLocalDayRange(dateTimestamp);
     
@@ -518,19 +509,18 @@ export default function HomeScreen() {
     [onboardingData?.target_calories]
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      const now = Date.now();
-      if (now - lastFocusRefreshAtRef.current < 15000) return;
-      lastFocusRefreshAtRef.current = now;
-      fetchLatestMeals();
-    }, [fetchLatestMeals])
-  );
+  // useFocusEffect удален - данные загружаются через другие эффекты
 
   useEffect(() => {
-    loadDailyData(selectedDateTimestamp);
-    loadWeekAchievements(new Date(selectedDateTimestamp));
-  }, [selectedDateTimestamp, loadDailyData, loadWeekAchievements]);
+    const loadData = async () => {
+      await Promise.all([
+        loadDailyData(selectedDateTimestamp),
+        loadWeekAchievements(new Date(selectedDateTimestamp)),
+        fetchLatestMeals({ append: false, limit: recentLimit })
+      ]);
+    };
+    loadData();
+  }, [selectedDateTimestamp, loadDailyData, loadWeekAchievements, fetchLatestMeals, recentLimit]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

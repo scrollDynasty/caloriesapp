@@ -205,7 +205,7 @@ export default function ProgressScreen() {
               style={[styles.addButton, { backgroundColor: themeColors.primary }]}
               onPress={() => router.push("/add-weight" as any)}
             >
-              <Ionicons name="add" size={20} color="#fff" />
+              <Ionicons name="add" size={20} color="#000" />
             </TouchableOpacity>
           </View>
 
@@ -239,6 +239,7 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
+                    selectedPeriod === period && { color: "#000000" },
                   ]}
                 >
                   {TIME_PERIOD_LABELS[period]}
@@ -331,9 +332,18 @@ export default function ProgressScreen() {
             </View>
           ) : null}
           
-          <TouchableOpacity style={styles.uploadButton} onPress={handleUploadPhoto}>
-            <Ionicons name="add" size={20} color={themeColors.primary} />
-            <Text style={[styles.uploadButtonText, { color: themeColors.primary }]}>
+          <TouchableOpacity 
+            style={[
+              styles.uploadButton, 
+              { 
+                backgroundColor: themeColors.card,
+                borderColor: themeColors.border 
+              }
+            ]} 
+            onPress={handleUploadPhoto}
+          >
+            <Ionicons name="add" size={20} color={themeColors.text} />
+            <Text style={[styles.uploadButtonText, { color: themeColors.text }]}>
               Загрузить фото
             </Text>
           </TouchableOpacity>
@@ -359,6 +369,7 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
+                    selectedCaloriePeriod === period && { color: "#000000" },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -409,6 +420,7 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
+                    selectedCaloriePeriod === period && { color: "#000000" },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -708,9 +720,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: "#E0E0E0",
     borderStyle: "dashed",
-    backgroundColor: "#FAFAFA",
   },
   uploadButtonText: {
     fontSize: 15,
