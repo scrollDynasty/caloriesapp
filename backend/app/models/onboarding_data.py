@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Enum
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Enum, ForeignKey
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 import enum
 
@@ -27,9 +28,11 @@ class OnboardingData(Base):
     __tablename__ = "onboarding_data"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, index=True, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
 
     gender = Column(Enum(Gender), nullable=True)
+    
+    user = relationship("User", backref="onboarding_data")
 
     workout_frequency = Column(Enum(WorkoutFrequency), nullable=True)
 

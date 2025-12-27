@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_timeout: int = 30
 
+    # Admin panel settings
+    admin_username: str = "admin"
+    admin_password: str = "admin123"  # ОБЯЗАТЕЛЬНО смените в .env!
+
     @property
     def database_url(self) -> str:
         return f"mysql+pymysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"

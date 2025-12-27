@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.database import init_db, engine
+from app.core.database import init_db, engine, Base
 from app.api.v1 import auth, onboarding, meals, progress
+from app.admin import site
 
 app = FastAPI(
     title="Calories App API",
     description="API для приложения подсчета калорий",
     version="1.0.0",
 )
+
+site.mount_app(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,11 +38,11 @@ async def startup_event():
     print(f"Server starting on {settings.host}:{settings.port}")
     print(f"Environment: {settings.environment}")
     print(f"Database: {settings.db_name}@{settings.db_host}")
+    print(f"Admin panel: http://{settings.host}:{settings.port}/admin/")
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    """Корректно закрываем connection pool при остановке сервера"""
     engine.dispose()
     print("Database connection pool disposed")
 
