@@ -34,6 +34,7 @@ class UserAdmin(admin.ModelAdmin):
     list_display = [
         User.id,
         User.email,
+        User.username,
         User.first_name, 
         User.last_name,  
         User.google_id,
@@ -41,7 +42,7 @@ class UserAdmin(admin.ModelAdmin):
         User.created_at,
     ]
     
-    search_fields = [User.email, User.first_name, User.last_name, User.google_id]
+    search_fields = [User.email, User.username, User.first_name, User.last_name, User.google_id]
     
     form_excluded = [User.id, User.created_at, User.updated_at, User.apple_id, User.google_id]
 
@@ -64,6 +65,8 @@ class OnboardingDataAdmin(admin.ModelAdmin):
     ]
     
     search_fields = [OnboardingData.user_id]
+    list_filter = [OnboardingData.user_id, OnboardingData.gender, OnboardingData.goal]
+    link_model_fields = [OnboardingData.user_id]
     
     form_excluded = [OnboardingData.id, OnboardingData.created_at, OnboardingData.updated_at]
 
@@ -86,6 +89,14 @@ class MealPhotoAdmin(admin.ModelAdmin):
     ]
     
     search_fields = [MealPhoto.user_id, MealPhoto.meal_name, MealPhoto.detected_meal_name, MealPhoto.barcode]
+    list_filter = [MealPhoto.user_id]
+    link_model_fields = [MealPhoto.user_id]
+    list_per_page = 50
+    pk_admin_field = MealPhoto.id
+    
+    async def get_list_query(self, request):
+        query = await super().get_list_query(request)
+        return query.order_by(MealPhoto.created_at.desc())
     
     form_excluded = [MealPhoto.id, MealPhoto.created_at, MealPhoto.updated_at, MealPhoto.file_size, MealPhoto.mime_type]
 
@@ -104,6 +115,13 @@ class WaterLogAdmin(admin.ModelAdmin):
     ]
     
     search_fields = [WaterLog.user_id]
+    list_filter = [WaterLog.user_id]
+    link_model_fields = [WaterLog.user_id]
+    list_per_page = 50
+    
+    async def get_list_query(self, request):
+        query = await super().get_list_query(request)
+        return query.order_by(WaterLog.created_at.desc())
     
     form_excluded = [WaterLog.id, WaterLog.created_at]
 
@@ -121,6 +139,13 @@ class WeightLogAdmin(admin.ModelAdmin):
     ]
     
     search_fields = [WeightLog.user_id]
+    list_filter = [WeightLog.user_id]
+    link_model_fields = [WeightLog.user_id]
+    list_per_page = 50
+    
+    async def get_list_query(self, request):
+        query = await super().get_list_query(request)
+        return query.order_by(WeightLog.created_at.desc())
     
     form_excluded = [WeightLog.id, WeightLog.created_at]
 
@@ -139,6 +164,13 @@ class ProgressPhotoAdmin(admin.ModelAdmin):
     ]
     
     search_fields = [ProgressPhoto.user_id, ProgressPhoto.file_name]
+    list_filter = [ProgressPhoto.user_id]
+    link_model_fields = [ProgressPhoto.user_id]
+    list_per_page = 50
+    
+    async def get_list_query(self, request):
+        query = await super().get_list_query(request)
+        return query.order_by(ProgressPhoto.created_at.desc())
     
     form_excluded = [ProgressPhoto.id, ProgressPhoto.created_at, ProgressPhoto.file_size, ProgressPhoto.mime_type]
 
