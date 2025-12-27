@@ -12,6 +12,9 @@ async def verify_google_token(token: str) -> Optional[dict]:
             "sub": idinfo.get("sub"),
             "email": idinfo.get("email"),
             "name": idinfo.get("name"),
+            "picture": idinfo.get("picture"),
+            "given_name": idinfo.get("given_name"),
+            "family_name": idinfo.get("family_name"),
         }
     except Exception:
         return None

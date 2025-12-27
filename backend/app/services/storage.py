@@ -1,6 +1,3 @@
-"""
-Сервис для работы с Yandex Object Storage (S3-compatible)
-"""
 import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
@@ -31,7 +28,6 @@ class StorageService:
         self._ensure_bucket_exists()
     
     def _ensure_bucket_exists(self):
-        """Проверить существование бакета и создать если его нет"""
         try:
             self.s3_client.head_bucket(Bucket=self.bucket_name)
             logger.info(f"Bucket '{self.bucket_name}' exists")
@@ -65,17 +61,6 @@ class StorageService:
         object_name: str,
         content_type: Optional[str] = None
     ) -> str:
-        """
-        Загрузить файл в Object Storage
-        
-        Args:
-            file_content: Содержимое файла в байтах
-            object_name: Имя объекта в бакете (путь к файлу)
-            content_type: MIME-тип файла
-            
-        Returns:
-            URL загруженного файла
-        """
         try:
             extra_args = {}
             if content_type:

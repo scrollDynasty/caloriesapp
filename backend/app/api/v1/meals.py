@@ -128,7 +128,6 @@ async def analyze_barcode_product_with_ai(product_data: Dict[str, Any]) -> Optio
         return None
 
 async def fetch_openfoodfacts_product(barcode: str) -> Optional[Dict[str, Any]]:
-    """Query OpenFoodFacts for a product by barcode, trying multiple mirrors."""
     hosts = [
         "https://world.openfoodfacts.org",
         "https://ru.openfoodfacts.org",
@@ -155,9 +154,7 @@ async def fetch_openfoodfacts_product(barcode: str) -> Optional[Dict[str, Any]]:
     return None
 
 async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str]) -> Optional[Dict[str, Any]]:
-    """
-    Анализирует фото еды с помощью OpenAI GPT-4o Vision и возвращает информацию о питательности.
-    """
+
     from openai import AsyncOpenAI
 
     api_key = settings.openai_api_key
@@ -1005,10 +1002,7 @@ async def add_meal_ingredient(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Добавляет ингредиент к блюду.
-    Сохраняется в поле ingredients_json как JSON.
-    """
+
     photo = db.query(MealPhoto).filter(
         MealPhoto.id == photo_id,
         MealPhoto.user_id == current_user.id
@@ -1053,9 +1047,7 @@ async def correct_meal_with_ai(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Исправляет блюдо с помощью AI на основе запроса пользователя.
-    """
+
     from openai import AsyncOpenAI
 
     photo = db.query(MealPhoto).filter(

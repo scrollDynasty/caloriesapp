@@ -1,6 +1,3 @@
-"""
-Модель для учёта изменений веса
-"""
 from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship

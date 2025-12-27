@@ -1,6 +1,3 @@
-"""
-API для прогресса
-"""
 import uuid
 import logging
 from pathlib import Path
@@ -40,7 +37,6 @@ def add_weight(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Добавить запись о весе"""
     created_at = payload.created_at
     if created_at is None:
         created_at = datetime.now(timezone.utc)
@@ -70,7 +66,6 @@ def get_weight_history(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получить историю веса"""
     entries = (
         db.query(WeightLog)
         .filter(WeightLog.user_id == current_user.id)
@@ -86,11 +81,8 @@ def get_weight_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получить статистику веса"""
-    # Получаем onboarding данные
     onboarding = db.query(OnboardingData).filter(OnboardingData.user_id == current_user.id).first()
     
-    # Получаем всю историю веса
     all_weights = (
         db.query(WeightLog)
         .filter(WeightLog.user_id == current_user.id)
@@ -107,7 +99,6 @@ def get_weight_stats(
     if start_weight and current_weight:
         total_change = current_weight - start_weight
     
-    # Вычисляем изменения за разные периоды
     now = datetime.now(timezone.utc)
     periods = [
         ("3_days", 3),
@@ -199,7 +190,6 @@ async def upload_progress_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Загрузить фото прогресса"""
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -241,7 +231,6 @@ def get_progress_photos(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получить все фото прогресса"""
     photos = (
         db.query(ProgressPhoto)
         .filter(ProgressPhoto.user_id == current_user.id)
@@ -257,7 +246,6 @@ def get_progress_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получить фото прогресса по ID"""
     photo = db.query(ProgressPhoto).filter(
         ProgressPhoto.id == photo_id,
         ProgressPhoto.user_id == current_user.id
@@ -280,7 +268,6 @@ def delete_progress_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Удалить фото прогресса"""
     photo = db.query(ProgressPhoto).filter(
         ProgressPhoto.id == photo_id,
         ProgressPhoto.user_id == current_user.id
@@ -306,7 +293,6 @@ def get_progress_data(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получить все данные прогресса"""
     streak_count = current_user.streak_count or 0
     
     badges_count = 0

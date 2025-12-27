@@ -145,6 +145,9 @@ async def auth_google_callback(
             google_id=user_info["sub"],
             email=user_info.get("email"),
             name=user_info.get("name"),
+            avatar_url=user_info.get("picture"),
+            first_name=user_info.get("given_name"),
+            last_name=user_info.get("family_name"),
         )
 
         access_token = create_access_token(data={"sub": str(user.id)})
@@ -229,7 +232,6 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 
 @router.get("/profile", response_model=UserProfileResponse)
 async def get_profile(current_user: User = Depends(get_current_user)):
-    """Get current user's profile"""
     return current_user
 
 
@@ -239,10 +241,8 @@ async def update_profile(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Update current user's profile"""
     import re
     
-    # Validate username if provided
     if profile_data.username:
         username = profile_data.username.lower().strip()
         
@@ -286,7 +286,6 @@ async def check_username_availability(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Check if a username is available"""
     import re
     
     username = request.username.lower().strip()
@@ -330,7 +329,6 @@ async def upload_avatar(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Upload user avatar to Yandex Object Storage"""
     
     allowed_mime_types = {
         "image/jpeg",

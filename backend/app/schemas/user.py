@@ -5,7 +5,6 @@ import re
 
 
 class UserResponse(BaseModel):
-    """Basic user response for /me endpoint"""
     id: int
     email: Optional[str] = None
     name: Optional[str] = None
@@ -14,7 +13,7 @@ class UserResponse(BaseModel):
     username: Optional[str] = None
     avatar_url: Optional[str] = None
     streak_count: Optional[int] = None
-    created_at: Optional[datetime] = None
+    created_at: datetime  
 
     class Config:
         from_attributes = True
@@ -28,7 +27,6 @@ class UserProfileUpdate(BaseModel):
 
     @classmethod
     def validate_username(cls, username: str) -> bool:
-        """Username must be alphanumeric with underscores, lowercase"""
         if not username:
             return False
         pattern = r'^[a-z0-9_]+$'
