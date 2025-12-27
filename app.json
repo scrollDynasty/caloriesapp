@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "yeb-ich",
+    "name": "Yeb-Ich",
     "slug": "yeb-ich",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/main.png",
+    "icon": "./assets/images/dark_logo.png",
     "scheme": "yeb-ich",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
@@ -19,8 +19,8 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#000000",
-        "foregroundImage": "./assets/images/main.png",
-        "monochromeImage": "./assets/images/main.png"
+        "foregroundImage": "./assets/images/dark_logo.png",
+        "monochromeImage": "./assets/images/dark_logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -36,21 +36,17 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/main.png"
+      "favicon": "./assets/images/dark_logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/main.png",
+          "image": "./assets/images/dark_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000000",
-          "dark": {
-            "image": "./assets/images/main.png",
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#000000"
         }
       ],
       [
