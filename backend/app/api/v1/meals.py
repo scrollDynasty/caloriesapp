@@ -21,31 +21,15 @@ from app.models.water_log import WaterLog
 from app.models.onboarding_data import OnboardingData
 from app.core.database import get_db
 from app.core.config import settings
+from app.services.storage import storage_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-_BACKEND_DIR = Path(__file__).parent.parent.parent.parent
-_PROJECT_ROOT = _BACKEND_DIR.parent
-MEDIA_ROOT = _PROJECT_ROOT / "media" / "meal_photos"
-
-try:
-    MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
-    logger.info(f"Media directory initialized at: {MEDIA_ROOT}")
-except Exception as e:
-    logger.error(f"Failed to create media directory at {MEDIA_ROOT}: {e}")
-    raise
-
-def get_user_media_dir(user_id: int) -> Path:
-    user_dir = MEDIA_ROOT / str(user_id)
-    user_dir.mkdir(parents=True, exist_ok=True)
-    return user_dir
+import tempfile
+import os
 
 
 async def analyze_barcode_product_with_ai(product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """
-    Использует OpenAI для анализа продукта и расчета клетчатки, сахара, натрия и health_score
-    """
     from openai import AsyncOpenAI
 
     api_key = settings.openai_api_key
@@ -105,7 +89,6 @@ async def analyze_barcode_product_with_ai(product_data: Dict[str, Any]) -> Optio
 
         logger.info(f"OpenAI barcode analysis response: {generated_text}")
 
-        # Парсим JSON из ответа
         extracted = None
         try:
             matches = re.findall(r"\{.*\}", generated_text, flags=re.DOTALL)
@@ -339,9 +322,9 @@ async def upload_meal_photo(
 
     file_ext = Path(file.filename or "photo").suffix or ".jpg"
     unique_filename = f"{uuid.uuid4()}{file_ext}"
-
-    user_dir = get_user_media_dir(current_user.id)
-    file_path = user_dir / unique_filename
+    
+    # Путь в S3 бакете
+    s3_object_path = f"meal_photos/{current_user.id}/{unique_filename}"
 
     try:
         contents = await file.read()
@@ -350,12 +333,14 @@ async def upload_meal_photo(
         # Явно закрываем UploadFile для освобождения ресурсов
         await file.close()
 
-        user_dir.mkdir(parents=True, exist_ok=True)
-
-        with open(file_path, "wb") as f:
-            f.write(contents)
-
-        relative_path = f"meal_photos/{current_user.id}/{unique_filename}"
+        # Загружаем файл в Yandex Object Storage
+        file_url = storage_service.upload_file(
+            file_content=contents,
+            object_name=s3_object_path,
+            content_type=file.content_type
+        )
+        
+        logger.info(f"File uploaded to S3: {file_url}")
 
         if client_timestamp and client_tz_offset_minutes is not None:
             try:
@@ -374,15 +359,27 @@ async def upload_meal_photo(
         else:
             created_at_now = datetime.now(timezone.utc)
 
-        nutrition = await get_nutrition_insights(
-            file_path=file_path,
-            meal_name_hint=meal_name_value,
-        )
+        temp_file_path = None
+        try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as temp_file:
+                temp_file.write(contents)
+                temp_file_path = Path(temp_file.name)
+            
+            nutrition = await get_nutrition_insights(
+                file_path=temp_file_path,
+                meal_name_hint=meal_name_value,
+            )
+        finally:
+            if temp_file_path and temp_file_path.exists():
+                try:
+                    os.unlink(temp_file_path)
+                except Exception as e:
+                    logger.warning(f"Failed to delete temp file: {e}")
 
 
         meal_photo = MealPhoto(
             user_id=current_user.id,
-            file_path=relative_path,
+            file_path=s3_object_path,  # Путь в S3
             file_name=file.filename or unique_filename,
             file_size=file_size,
             mime_type=file.content_type,
@@ -415,8 +412,14 @@ async def upload_meal_photo(
         raise
     except Exception as e:
         logger.error(f"Error uploading photo: {str(e)}", exc_info=True)
-
-        if file_path.exists():
+        # При ошибке можно попытаться удалить файл из S3
+        try:
+            storage_service.delete_file(s3_object_path)
+        except:
+            pass
+        
+        # Старый код удаления локального файла больше не нужен
+        if False:  # Отключено
             try:
                 file_path.unlink()
             except:
@@ -552,19 +555,10 @@ def get_meal_photo(
             detail="Файл отсутствует для ручной записи"
         )
 
-    full_path = MEDIA_ROOT.parent / photo.file_path
-
-    if not full_path.exists():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Файл не найден"
-        )
-
-    return FileResponse(
-        path=str(full_path),
-        media_type=photo.mime_type,
-        filename=photo.file_name,
-    )
+    from fastapi.responses import RedirectResponse
+    file_url = storage_service.get_file_url(photo.file_path)
+    
+    return RedirectResponse(url=file_url)
 
 @router.get("/meals/photos/{photo_id}/detail")
 def get_meal_photo_detail(

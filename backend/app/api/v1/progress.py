@@ -29,15 +29,10 @@ from app.schemas.progress import (
     CalorieStats,
     EnergyChange,
 )
+from app.services.storage import storage_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-_BACKEND_DIR = Path(__file__).parent.parent.parent.parent
-_PROJECT_ROOT = _BACKEND_DIR.parent
-PROGRESS_PHOTOS_DIR = _PROJECT_ROOT / "progress_photos"
-PROGRESS_PHOTOS_DIR.mkdir(exist_ok=True)
-
 
 @router.post("/weight", response_model=WeightLogResponse, status_code=status.HTTP_201_CREATED)
 def add_weight(
@@ -211,19 +206,20 @@ async def upload_progress_photo(
             detail="Файл должен быть изображением"
         )
     
-    # Генерируем уникальное имя файла
     ext = Path(file.filename).suffix if file.filename else ".jpg"
     unique_name = f"{current_user.id}_{uuid.uuid4().hex}{ext}"
-    file_path = PROGRESS_PHOTOS_DIR / unique_name
+    s3_object_path = f"progress_photos/{unique_name}"
     
-    # Сохраняем файл
     content = await file.read()
-    file_path.write_bytes(content)
+    file_url = storage_service.upload_file(
+        file_content=content,
+        object_name=s3_object_path,
+        content_type=file.content_type
+    )
     
-    # Создаем запись в БД
     photo = ProgressPhoto(
         user_id=current_user.id,
-        file_path=str(file_path),
+        file_path=s3_object_path, 
         file_name=unique_name,
         file_size=len(content),
         mime_type=file.content_type,
@@ -273,14 +269,9 @@ def get_progress_photo(
             detail="Фото не найдено"
         )
     
-    file_path = Path(photo.file_path)
-    if not file_path.exists():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Файл не найден"
-        )
-    
-    return FileResponse(file_path, media_type=photo.mime_type)
+    from fastapi.responses import RedirectResponse
+    file_url = storage_service.get_file_url(photo.file_path)
+    return RedirectResponse(url=file_url)
 
 
 @router.delete("/photos/{photo_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -301,12 +292,11 @@ def delete_progress_photo(
             detail="Фото не найдено"
         )
     
-    # Удаляем файл
-    file_path = Path(photo.file_path)
-    if file_path.exists():
-        file_path.unlink()
+    try:
+        storage_service.delete_file(photo.file_path)
+    except Exception as e:
+        logger.warning(f"Failed to delete file from S3: {e}")
     
-    # Удаляем запись из БД
     db.delete(photo)
     db.commit()
 
@@ -317,24 +307,19 @@ def get_progress_data(
     db: Session = Depends(get_db),
 ):
     """Получить все данные прогресса"""
-    # Получаем streak
     streak_count = current_user.streak_count or 0
     
-    # Получаем количество значков (пока 0, можно добавить логику)
     badges_count = 0
     
-    # Получаем статистику веса
     weight_stats = get_weight_stats(current_user, db)
     
-    # Получаем статистику калорий за недели
     now = datetime.now(timezone.utc)
     calorie_stats_list = []
     
-    for week_offset in range(4):  # 4 недели
+    for week_offset in range(4): 
         week_start = now - timedelta(days=now.weekday() + 7 * week_offset + 7)
         week_end = week_start + timedelta(days=7)
         
-        # Получаем все приемы пищи за неделю
         meals = db.query(MealPhoto).filter(
             MealPhoto.user_id == current_user.id,
             MealPhoto.created_at >= week_start,

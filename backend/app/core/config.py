@@ -35,9 +35,14 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_timeout: int = 30
 
-    # Admin panel settings
+    yandex_storage_access_key: str = ""
+    yandex_storage_secret_key: str = ""
+    yandex_storage_bucket_name: str = "caloriesapp"
+    yandex_storage_endpoint: str = "https://storage.yandexcloud.net"
+    yandex_storage_region: str = "ru-central1"
+
     admin_username: str = "admin"
-    admin_password: str = "admin123"  # ОБЯЗАТЕЛЬНО смените в .env!
+    admin_password: str = "admin123"
 
     @property
     def database_url(self) -> str:
