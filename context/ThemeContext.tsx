@@ -225,7 +225,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_KEY = "@caloriesapp:theme_mode";
+const THEME_KEY = "@yebich:theme_mode";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>("light");

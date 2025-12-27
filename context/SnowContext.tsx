@@ -8,7 +8,7 @@ import React, {
     useState,
 } from "react";
 
-const SNOW_ENABLED_KEY = "@caloriesapp:snow_enabled";
+const SNOW_ENABLED_KEY = "@yebich:snow_enabled";
 
 interface SnowContextType {
   isSnowEnabled: boolean;

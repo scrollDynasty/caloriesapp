@@ -18,7 +18,7 @@ export class AuthService {
       const { API_BASE_URL } = await import("../constants/api");
 
       const redirectUri = AuthSession.makeRedirectUri({
-        scheme: "caloriesapp",
+        scheme: "yeb-ich",
         path: "auth/callback",
       });
 

@@ -1,0 +1,196 @@
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, Easing, StyleSheet, useColorScheme, View } from "react-native";
+
+const { width, height } = Dimensions.get("window");
+
+SplashScreen.preventAutoHideAsync();
+
+interface AnimatedSplashProps {
+  onFinish: () => void;
+}
+
+export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  
+  // Анимации
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.5)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    SplashScreen.hideAsync();
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    const breathingInterval = setInterval(() => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }, 1600); 
+
+    // Последовательность анимаций
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 900,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 40,
+        friction: 6,
+        useNativeDriver: true,
+      }),
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 1200,
+        easing: Easing.out(Easing.back(1.8)),
+        useNativeDriver: true,
+      }),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowAnim, {
+            toValue: 0,
+            duration: 800,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ),
+    ]).start();
+
+    // Завершение через 2.5 секунды
+    setTimeout(() => {
+      clearInterval(breathingInterval);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1.3,
+          duration: 600,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setIsVisible(false);
+        onFinish();
+      });
+    }, 2500);
+
+    // Cleanup
+    return () => {
+      clearInterval(breathingInterval);
+    };
+  }, []);
+
+  if (!isVisible) return null;
+
+  const backgroundColor = isDark ? "#000000" : "#000000";
+  const logoSource = require("../../assets/images/bright_logo.png");
+
+  const rotation = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 1],
+  });
+
+  const glowScale = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.15],
+  });
+
+  return (
+    <View style={[styles.container, { backgroundColor }]}>
+      {/* Эффект свечения */}
+      <Animated.View
+        style={[
+          styles.glowContainer,
+          {
+            opacity: glowOpacity,
+            transform: [
+              { scale: Animated.multiply(scaleAnim, glowScale) },
+              { rotate: rotation },
+            ],
+          },
+        ]}
+      >
+        <View style={styles.glow} />
+      </Animated.View>
+
+      {/* SVG логотип */}
+      <Animated.View
+        style={[
+          styles.logoContainer,
+          {
+            opacity: fadeAnim,
+            transform: [
+              { scale: scaleAnim },
+              { rotate: rotation },
+            ],
+          },
+        ]}
+      >
+        <Image source={logoSource} style={styles.logo} contentFit="contain" />
+      </Animated.View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width,
+    height,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+  },
+  glowContainer: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  glow: {
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    shadowColor: "#FFFFFF",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 40,
+  },
+  logoContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logo: {
+    width: 200,
+    height: 200,
+  },
+});

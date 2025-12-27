@@ -1,6 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
+import { AnimatedSplash } from "../components/ui/AnimatedSplash";
 import { SnowOverlay } from "../components/ui/SnowOverlay";
 import { OnboardingProvider } from "../context/OnboardingContext";
 import { SnowProvider } from "../context/SnowContext";
@@ -103,6 +104,8 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
     <ThemeProvider>
       <SnowProvider>
@@ -110,6 +113,7 @@ export default function RootLayout() {
           <View style={{ flex: 1 }}>
             <RootNavigator />
             <SnowOverlay />
+            {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
           </View>
         </OnboardingProvider>
       </SnowProvider>

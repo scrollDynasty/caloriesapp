@@ -2,16 +2,16 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AxiosResponse } from "axios";
 import axios, {
-  AxiosError,
-  AxiosInstance,
-  InternalAxiosRequestConfig,
+    AxiosError,
+    AxiosInstance,
+    InternalAxiosRequestConfig,
 } from "axios";
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
 import { DailyMealsData, dataCache, OnboardingData, UserData } from "../stores/dataCache";
 import { getLocalDateStr, getLocalISOString, getLocalTimezoneOffset } from "../utils/timezone";
 
-const TOKEN_KEY = "@caloriesapp:auth_token";
+const TOKEN_KEY = "@yebich:auth_token";
 
 type AuthEventCallback = () => void;
 const authEventListeners: Set<AuthEventCallback> = new Set();

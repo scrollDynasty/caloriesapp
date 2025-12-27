@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
@@ -12,8 +13,12 @@ export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderPro
   return (
     <View style={styles.header}>
       <View style={styles.headerTitle}>
-        <View style={[styles.logoContainer, { backgroundColor: isDark ? themeColors.gray5 : "#EFECE5" }]}>
-          <Ionicons name="logo-apple" size={18} color={themeColors.text} />
+        <View style={styles.logoContainer}>
+          <Image
+            source={isDark ? require("../../assets/images/bright_logo.png") : require("../../assets/images/dark_logo.png")}
+            style={styles.logo}
+            contentFit="contain"
+          />
         </View>
         <Text style={[styles.appName, { color: themeColors.text }]}>Yeb Ich</Text>
       </View>
@@ -40,11 +45,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logoContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 50,
+    height: 50,
     alignItems: "center",
     justifyContent: "center",
+  },
+  logo: {
+    width: 100,
+    height: 100,
   },
   appName: {
     fontSize: 24,

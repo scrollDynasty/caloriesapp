@@ -1,15 +1,18 @@
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthButton } from "../../components/ui/AuthButton";
 import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 import { authService } from "../../services/auth";
 
 export default function LoginScreen() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { isDark } = useTheme();
   const [loading, setLoading] = useState(false);
 
   if (!fontsLoaded) return null;
@@ -51,6 +54,14 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={isDark ? require("../../assets/images/bright_logo.png") : require("../../assets/images/dark_logo.png")}
+            style={styles.logo}
+            contentFit="contain"
+          />
+        </View>
+        
         <View style={styles.header}>
           <Text style={styles.title}>Вход</Text>
           <Text style={styles.subtitle}>Выберите способ авторизации</Text>
@@ -76,6 +87,14 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
     justifyContent: "center",
+  },
+  logoContainer: {
+    alignItems: "center",
+    marginBottom: 48,
+  },
+  logo: {
+    width: 120,
+    height: 120,
   },
   header: {
     alignItems: "center",
