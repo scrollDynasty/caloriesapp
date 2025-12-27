@@ -4,23 +4,22 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
-import { setAvatarUri, useAvatarUri } from "../stores/userPreferences";
 
 interface ProfileData {
   firstName: string;
@@ -31,7 +30,7 @@ interface ProfileData {
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const currentAvatarUri = useAvatarUri();
+  const { colors } = useTheme();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -51,10 +50,6 @@ export default function EditProfileScreen() {
   useEffect(() => {
     loadProfile();
   }, []);
-
-  useEffect(() => {
-    setLocalAvatarUri(currentAvatarUri);
-  }, [currentAvatarUri]);
 
   const loadProfile = async () => {
     try {
@@ -143,16 +138,37 @@ export default function EditProfileScreen() {
     try {
       setSaving(true);
 
+      let avatarUrl = data.avatarUrl;
+
+      // Upload avatar to Yandex Storage if it's a new local file
+      if (localAvatarUri && localAvatarUri !== data.avatarUrl && localAvatarUri.startsWith("file://")) {
+        try {
+          const fileName = localAvatarUri.split("/").pop() || "avatar.jpg";
+          const uploadResult = await apiService.uploadAvatar(
+            localAvatarUri,
+            fileName,
+            "image/jpeg"
+          );
+          avatarUrl = uploadResult.avatar_url;
+          if (__DEV__) console.log("Avatar uploaded:", avatarUrl);
+        } catch (uploadError) {
+          if (__DEV__) console.error("Error uploading avatar:", uploadError);
+          Alert.alert("Ошибка", "Не удалось загрузить фотографию");
+          setSaving(false);
+          return;
+        }
+      } else if (localAvatarUri && localAvatarUri !== data.avatarUrl) {
+        // If it's already a URL (not local file), use it as is
+        avatarUrl = localAvatarUri;
+      }
+
       // Update profile on server
       await apiService.updateProfile({
         first_name: data.firstName,
         last_name: data.lastName,
         username: data.username.toLowerCase(),
-        avatar_url: localAvatarUri,
+        avatar_url: avatarUrl,
       });
-
-      // Save avatar locally for tab bar
-      await setAvatarUri(localAvatarUri);
 
       router.back();
     } catch (error: any) {
@@ -171,13 +187,157 @@ export default function EditProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <SafeAreaView style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </SafeAreaView>
     );
   }
 
   const avatarDisplay = localAvatarUri || data.avatarUrl;
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    backButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      fontSize: 17,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.text,
+    },
+    headerPlaceholder: {
+      width: 44,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      paddingBottom: 20,
+    },
+    // Avatar
+    avatarContainer: {
+      alignItems: "center",
+      marginTop: 20,
+      marginBottom: 32,
+    },
+    avatarWrapper: {
+      position: "relative",
+    },
+    avatar: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.fill,
+    },
+    avatarPlaceholder: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: colors.fill,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    editBadge: {
+      position: "absolute",
+      bottom: 4,
+      right: 4,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 3,
+      borderColor: colors.background,
+    },
+    changePhotoText: {
+      marginTop: 12,
+      fontSize: 14,
+      fontFamily: "Inter_500Medium",
+      color: colors.textSecondary,
+    },
+    // Form
+    form: {
+      paddingHorizontal: 16,
+      gap: 16,
+    },
+    inputGroup: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    inputLabel: {
+      fontSize: 12,
+      fontFamily: "Inter_400Regular",
+      color: colors.textSecondary,
+      marginBottom: 6,
+    },
+    input: {
+      fontSize: 16,
+      fontFamily: "Inter_500Medium",
+      color: colors.text,
+      padding: 0,
+    },
+    usernameInputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    usernameInput: {
+      flex: 1,
+    },
+    usernameIndicator: {
+      marginLeft: 8,
+    },
+    errorText: {
+      fontSize: 12,
+      fontFamily: "Inter_400Regular",
+      color: colors.error,
+      marginTop: 6,
+    },
+    successText: {
+      fontSize: 12,
+      fontFamily: "Inter_400Regular",
+      color: colors.success,
+      marginTop: 6,
+    },
+    // Button
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
+    saveButton: {
+      backgroundColor: colors.buttonPrimary,
+      borderRadius: 28,
+      paddingVertical: 16,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    saveButtonDisabled: {
+      opacity: 0.6,
+    },
+    saveButtonText: {
+      fontSize: 16,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.buttonPrimaryText,
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -212,7 +372,7 @@ export default function EditProfileScreen() {
                     />
                   ) : (
                     <View style={styles.avatarPlaceholder}>
-                      <Ionicons name="person" size={50} color={colors.secondary} />
+                      <Ionicons name="person" size={50} color={colors.textSecondary} />
                     </View>
                   )}
                   <View style={styles.editBadge}>
@@ -232,7 +392,7 @@ export default function EditProfileScreen() {
                     value={data.firstName}
                     onChangeText={(text) => setData(prev => ({ ...prev, firstName: text }))}
                     placeholder="Введите имя"
-                    placeholderTextColor={colors.secondary}
+                    placeholderTextColor={colors.placeholderText}
                     autoCapitalize="words"
                   />
                 </View>
@@ -245,7 +405,7 @@ export default function EditProfileScreen() {
                     value={data.lastName}
                     onChangeText={(text) => setData(prev => ({ ...prev, lastName: text }))}
                     placeholder="Введите фамилию"
-                    placeholderTextColor={colors.secondary}
+                    placeholderTextColor={colors.placeholderText}
                     autoCapitalize="words"
                   />
                 </View>
@@ -259,18 +419,18 @@ export default function EditProfileScreen() {
                       value={data.username}
                       onChangeText={handleUsernameChange}
                       placeholder="username"
-                      placeholderTextColor={colors.secondary}
+                      placeholderTextColor={colors.placeholderText}
                       autoCapitalize="none"
                       autoCorrect={false}
                     />
                     {checkingUsername && (
-                      <ActivityIndicator size="small" color={colors.secondary} style={styles.usernameIndicator} />
+                      <ActivityIndicator size="small" color={colors.textSecondary} style={styles.usernameIndicator} />
                     )}
                     {!checkingUsername && usernameAvailable === true && data.username.length >= 3 && (
-                      <Ionicons name="checkmark-circle" size={22} color="#4CAF50" style={styles.usernameIndicator} />
+                      <Ionicons name="checkmark-circle" size={22} color={colors.success} style={styles.usernameIndicator} />
                     )}
                     {!checkingUsername && usernameAvailable === false && (
-                      <Ionicons name="close-circle" size={22} color="#F44336" style={styles.usernameIndicator} />
+                      <Ionicons name="close-circle" size={22} color={colors.error} style={styles.usernameIndicator} />
                     )}
                   </View>
                   {usernameError && (
@@ -303,154 +463,3 @@ export default function EditProfileScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.white,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
-    color: colors.primary,
-  },
-  headerPlaceholder: {
-    width: 44,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 20,
-  },
-  // Avatar
-  avatarContainer: {
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 32,
-  },
-  avatarWrapper: {
-    position: "relative",
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#F0F0F0",
-  },
-  avatarPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#F0F0F0",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  editBadge: {
-    position: "absolute",
-    bottom: 4,
-    right: 4,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 3,
-    borderColor: colors.background,
-  },
-  changePhotoText: {
-    marginTop: 12,
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-    color: colors.secondary,
-  },
-  // Form
-  form: {
-    paddingHorizontal: 16,
-    gap: 16,
-  },
-  inputGroup: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#E5E5E5",
-  },
-  inputLabel: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    color: colors.secondary,
-    marginBottom: 6,
-  },
-  input: {
-    fontSize: 16,
-    fontFamily: "Inter_500Medium",
-    color: colors.primary,
-    padding: 0,
-  },
-  usernameInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  usernameInput: {
-    flex: 1,
-  },
-  usernameIndicator: {
-    marginLeft: 8,
-  },
-  errorText: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    color: "#F44336",
-    marginTop: 6,
-  },
-  successText: {
-    fontSize: 12,
-    fontFamily: "Inter_400Regular",
-    color: "#4CAF50",
-    marginTop: 6,
-  },
-  // Button
-  buttonContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 28,
-    paddingVertical: 16,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
-  },
-});
-

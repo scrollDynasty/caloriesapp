@@ -1,16 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
-import { Tabs, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import { Tabs, useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { defaultColors, useTheme } from "../../context/ThemeContext";
-import { useAvatarUri } from "../../stores/userPreferences";
+import { apiService } from "../../services/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// Custom Progress Icon Component - три полоски как на дизайне
 const ProgressIcon = ({ color, size = 24 }: { color: string; size?: number }) => (
   <View style={{ width: size, height: size, justifyContent: 'flex-end', alignItems: 'center', flexDirection: 'row', gap: 2 }}>
     <View style={{ width: 4, height: size * 0.4, backgroundColor: color, borderRadius: 2 }} />
@@ -24,7 +23,6 @@ const TAB_BAR_HEIGHT = 56;
 const MARGIN = 16;
 const GAP_BETWEEN = 2;
 
-// Custom Tab Button с закруглённым фоном и плавной анимацией
 const CustomTabButton = ({ children, onPress, accessibilityState, themeColors }: any) => {
   const focused = accessibilityState?.selected;
   const animValue = useRef(new Animated.Value(focused ? 1 : 0)).current;
@@ -66,13 +64,33 @@ const CustomTabButton = ({ children, onPress, accessibilityState, themeColors }:
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const avatarUri = useAvatarUri();
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const { colors, isDark } = useTheme();
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
   const tabBarBottom = Math.max(insets.bottom, 12);
 
-  // Вычисляем ширину панели табов так, чтобы FAB был вплотную (2px gap)
+  // Load avatar on mount and when screen gains focus
+  const loadAvatar = useCallback(async () => {
+    try {
+      const profile = await apiService.getProfile();
+      setAvatarUri(profile.avatar_url || null);
+    } catch (error) {
+      if (__DEV__) console.error("Failed to load avatar:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAvatar();
+  }, [loadAvatar]);
+
+  // Reload avatar when returning from other screens (e.g., edit-profile)
+  useFocusEffect(
+    useCallback(() => {
+      loadAvatar();
+    }, [loadAvatar])
+  );
+
   const tabBarWidth = SCREEN_WIDTH - MARGIN * 2 - FAB_SIZE - GAP_BETWEEN;
 
   const toggleFab = () => {

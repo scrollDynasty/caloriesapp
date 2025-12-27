@@ -2,9 +2,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AxiosResponse } from "axios";
 import axios, {
-    AxiosError,
-    AxiosInstance,
-    InternalAxiosRequestConfig,
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
 } from "axios";
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
@@ -772,6 +772,39 @@ class ApiService {
     message: string;
   }> {
     const response = await this.api.post(`${API_ENDPOINTS.AUTH}/check-username`, { username });
+    return response.data;
+  }
+
+  async uploadAvatar(
+    uri: string,
+    fileName: string,
+    mimeType: string
+  ): Promise<{ avatar_url: string; message: string }> {
+    const formData = new FormData();
+    const normalizedUri =
+      Platform.OS === "ios" ? uri.replace("file://", "") : uri;
+    const ensuredFileName = fileName && fileName.includes(".")
+      ? fileName
+      : `${fileName || `avatar_${Date.now()}`}.jpg`;
+    const ensuredMime = mimeType || "image/jpeg";
+    
+    formData.append("file", {
+      uri: normalizedUri,
+      name: ensuredFileName,
+      type: ensuredMime,
+    } as any);
+
+    const response = await this.api.post<{ avatar_url: string; message: string }>(
+      `${API_ENDPOINTS.AUTH}/upload-avatar`, 
+      formData, 
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        timeout: 30000,
+      }
+    );
+    
     return response.data;
   }
 

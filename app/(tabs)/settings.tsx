@@ -1,19 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -22,7 +21,6 @@ import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
 import { dataCache } from "../../stores/dataCache";
-import { setAvatarUri, useAvatarUri } from "../../stores/userPreferences";
 import { getLocalDayRange, getLocalTimezoneOffset } from "../../utils/timezone";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -101,8 +99,7 @@ export default function SettingsScreen() {
   const { isSnowEnabled, setSnowEnabled } = useSnow();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
-  const avatarUri = useAvatarUri();
-  const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   
   // Daily data state
   const [dailyData, setDailyData] = useState({
@@ -129,7 +126,7 @@ export default function SettingsScreen() {
         username: data?.username,
         avatar_url: data?.avatar_url,
       });
-      // Sync avatar if server has one
+      // Update avatar from API
       if (data?.avatar_url) {
         setAvatarUri(data.avatar_url);
       }
@@ -241,30 +238,9 @@ export default function SettingsScreen() {
     );
   };
 
-  const handlePickAvatar = async () => {
-    if (!galleryPermission?.granted) {
-      if (galleryPermission?.canAskAgain) {
-        const result = await requestGalleryPermission();
-        if (!result.granted) {
-          Alert.alert("Разрешение галереи", "Разрешите доступ к фотографиям, чтобы выбрать аватар.");
-          return;
-        }
-      } else {
-        Alert.alert("Разрешение галереи", "Разрешите доступ к фотографиям в настройках устройства.");
-        return;
-      }
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]?.uri) {
-      await setAvatarUri(result.assets[0].uri);
-    }
+  const handlePickAvatar = () => {
+    // Navigate directly to edit profile where user can change avatar
+    router.push("/edit-profile");
   };
 
   const openLink = (url: string) => {

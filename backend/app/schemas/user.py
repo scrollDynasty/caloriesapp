@@ -58,3 +58,8 @@ class UsernameCheckResponse(BaseModel):
     username: str
     available: bool
     message: str
+
+
+class AvatarUploadResponse(BaseModel):
+    avatar_url: str
+    message: str

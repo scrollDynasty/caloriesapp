@@ -2,20 +2,23 @@ import httpx
 import json
 import logging
 import time
+import uuid
+from pathlib import Path
 from urllib.parse import urlencode, quote
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, File, UploadFile
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.config import settings
 from app.schemas.auth import Token, GoogleAuthRequest, AppleAuthRequest
 from app.schemas.user import UserResponse
-from app.schemas.user import UserProfileUpdate, UserProfileResponse, UsernameCheckRequest, UsernameCheckResponse
+from app.schemas.user import UserProfileUpdate, UserProfileResponse, UsernameCheckRequest, UsernameCheckResponse, AvatarUploadResponse
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.utils.auth import create_access_token
 from app.utils.oauth import verify_google_token, verify_apple_token
 from app.services.user_service import get_or_create_user_by_google, get_or_create_user_by_apple
+from app.services.storage import storage_service
 
 logger = logging.getLogger(__name__)
 
@@ -319,3 +322,62 @@ async def check_username_availability(
         available=True,
         message="Имя пользователя доступно",
     )
+
+
+@router.post("/upload-avatar", response_model=AvatarUploadResponse)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Upload user avatar to Yandex Object Storage"""
+    
+    allowed_mime_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/heic",
+        "image/heif",
+    }
+    
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Файл должен быть изображением"
+        )
+    
+    if file.content_type not in allowed_mime_types:
+        logger.warning(f"Unexpected mime type {file.content_type}")
+    
+    file_ext = Path(file.filename or "avatar").suffix or ".jpg"
+    unique_filename = f"{uuid.uuid4()}{file_ext}"
+    
+    s3_object_path = f"avatars/{current_user.id}/{unique_filename}"
+    
+    try:
+        contents = await file.read()
+        await file.close()
+        
+        file_url = storage_service.upload_file(
+            file_content=contents,
+            object_name=s3_object_path,
+            content_type=file.content_type
+        )
+        
+        logger.info(f"Avatar uploaded to S3: {file_url}")
+        
+        current_user.avatar_url = file_url
+        db.commit()
+        db.refresh(current_user)
+        
+        return {
+            "avatar_url": file_url,
+            "message": "Аватар успешно загружен"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error uploading avatar: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при загрузке аватара"
+        )
