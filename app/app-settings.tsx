@@ -23,7 +23,6 @@ interface ToggleSettings {
 
 const TOGGLE_SETTINGS_KEY = "@caloriesapp:toggle_settings";
 
-// Theme Preview Card - iOS 17 style
 function ThemePreviewCard({
   mode,
   selected,
@@ -39,7 +38,6 @@ function ThemePreviewCard({
 }) {
   const isDark = mode === "dark";
   
-  // Preview colors based on the mode being previewed
   const previewBg = isDark ? "#1C1C1E" : "#F2F2F7";
   const cardBg = isDark ? "#2C2C2E" : "#FFFFFF";
   const dotColors = ["#FF6B6B", "#34C759", "#007AFF"];
@@ -113,7 +111,6 @@ function ThemePreviewCard({
   );
 }
 
-// Setting Toggle Row - iOS style
 function SettingToggle({
   title,
   subtitle,
@@ -320,7 +317,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  // Section
   sectionContainer: {
     marginTop: 24,
   },
@@ -354,7 +350,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     lineHeight: 20,
   },
-  // Theme Selector
   themeSelector: {
     flexDirection: "row",
     gap: 12,
@@ -428,7 +423,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
   },
-  // Toggles Section
   togglesSection: {
     marginHorizontal: 16,
     borderRadius: 16,

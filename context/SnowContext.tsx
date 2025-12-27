@@ -25,7 +25,6 @@ interface SnowProviderProps {
 export function SnowProvider({ children }: SnowProviderProps) {
   const [isSnowEnabled, setIsSnowEnabled] = useState(false);
 
-  // Load saved preference on mount
   useEffect(() => {
     loadSnowPreference();
   }, []);

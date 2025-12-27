@@ -75,28 +75,21 @@ class DataCache {
   private static readonly USER_TTL = 7 * 24 * 60 * 60 * 1000;
   private static readonly ONBOARDING_TTL = 7 * 24 * 60 * 60 * 1000;
 
-  // Лимиты размера кэшей для предотвращения утечек памяти
   private static readonly MAX_DAILY_ENTRIES = 60; // ~2 месяца
   private static readonly MAX_WATER_ENTRIES = 60;
   private static readonly MAX_WEEK_ENTRIES = 12; // ~3 месяца
 
-  // Кэши
   private dailyMealsCache: Map<string, CacheEntry<DailyMealsData>> = new Map();
   private waterCache: Map<string, CacheEntry<WaterData>> = new Map();
   private weekCache: Map<string, CacheEntry<WeekData>> = new Map();
   private userCache: CacheEntry<UserData> | null = null;
   private onboardingCache: CacheEntry<OnboardingData> | null = null;
 
-  // Флаги для отслеживания фоновых обновлений
   private pendingUpdates: Set<string> = new Set();
 
-  /**
-   * Удаляет старые записи из Map, если превышен лимит (LRU-подобное поведение)
-   */
   private evictOldEntries<T>(cache: Map<string, CacheEntry<T>>, maxSize: number): void {
     if (cache.size <= maxSize) return;
     
-    // Сортируем по timestamp и удаляем самые старые
     const entries = Array.from(cache.entries())
       .sort((a, b) => a[1].timestamp - b[1].timestamp);
     
@@ -106,7 +99,6 @@ class DataCache {
     }
   }
 
-  // ===== Daily Meals =====
 
   getDailyMeals(dateKey: string): DailyMealsData | null {
     const entry = this.dailyMealsCache.get(dateKey);
@@ -130,7 +122,6 @@ class DataCache {
       timestamp: Date.now(),
       isStale: false,
     });
-    // Очищаем старые записи при превышении лимита
     this.evictOldEntries(this.dailyMealsCache, DataCache.MAX_DAILY_ENTRIES);
   }
 
@@ -142,7 +133,6 @@ class DataCache {
     }
   }
 
-  // ===== Water =====
 
   getWater(dateKey: string): WaterData | null {
     const entry = this.waterCache.get(dateKey);
@@ -177,7 +167,6 @@ class DataCache {
     }
   }
 
-  // ===== Week Data =====
 
   getWeekData(weekKey: string): WeekData | null {
     const entry = this.weekCache.get(weekKey);
@@ -212,7 +201,6 @@ class DataCache {
     }
   }
 
-  // ===== User Data =====
 
   getUser(): UserData | null {
     if (!this.userCache) return null;
@@ -236,7 +224,6 @@ class DataCache {
     };
   }
 
-  // ===== Onboarding Data =====
 
   getOnboarding(): OnboardingData | null {
     if (!this.onboardingCache) return null;
@@ -260,7 +247,6 @@ class DataCache {
     };
   }
 
-  // ===== Pending Updates Tracking =====
 
   isPendingUpdate(key: string): boolean {
     return this.pendingUpdates.has(key);
@@ -293,7 +279,6 @@ class DataCache {
     this.pendingUpdates.clear();
   }
 
-  // Инвалидация данных за сегодня (после добавления еды/воды)
   invalidateToday(dateKey: string): void {
     this.invalidateDailyMeals(dateKey);
     this.invalidateWater(dateKey);

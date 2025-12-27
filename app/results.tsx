@@ -9,7 +9,6 @@ import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { calculateCalories, UserData } from "../utils/calorieCalculator";
 
-// Circular progress for macros
 function CircularProgress({
   progress,
   size = 48,
@@ -106,7 +105,6 @@ function MacroRow({
   );
 }
 
-// Tip item
 function TipItem({ icon, text, delay, isDark, colors }: { icon: string; text: string; delay: number; isDark: boolean; colors: any }) {
   return (
     <Animated.View entering={FadeInDown.delay(delay)} style={styles.tipItem}>

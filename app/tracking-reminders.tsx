@@ -120,7 +120,6 @@ export default function TrackingRemindersScreen() {
       const stored = await AsyncStorage.getItem(REMINDERS_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Convert stored time strings back to Date objects
         const restored: RemindersData = {
           breakfast: { 
             enabled: parsed.breakfast.enabled, 
@@ -182,7 +181,6 @@ export default function TrackingRemindersScreen() {
       setTempTime(selectedTime);
       
       if (Platform.OS === "android") {
-        // On Android, save immediately when time is selected
         const newReminders = {
           ...reminders,
           [editingReminder]: { ...reminders[editingReminder], time: selectedTime },
@@ -431,7 +429,6 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 40,
   },
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",

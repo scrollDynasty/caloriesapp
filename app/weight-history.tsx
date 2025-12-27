@@ -368,7 +368,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 40,
   },
-  // Stats
   statsContainer: {
     flexDirection: "row",
     paddingHorizontal: 16,
@@ -395,7 +394,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: "Inter_700Bold",
   },
-  // Chart
   chartCard: {
     marginHorizontal: 16,
     borderRadius: 16,
@@ -412,7 +410,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     marginBottom: 12,
   },
-  // Changes
   changesCard: {
     marginHorizontal: 16,
     borderRadius: 16,
@@ -441,7 +438,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_600SemiBold",
   },
-  // History
   historyHeader: {
     paddingHorizontal: 16,
     marginBottom: 12,
@@ -484,7 +480,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
   },
-  // Empty
   emptyContainer: {
     marginHorizontal: 16,
     borderRadius: 16,

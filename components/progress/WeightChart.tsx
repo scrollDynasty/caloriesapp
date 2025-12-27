@@ -21,17 +21,14 @@ export function WeightChart({ data, targetWeight }: WeightChartProps) {
     );
   }
 
-  // Сортируем по дате
   const sortedData = [...data].sort((a, b) => 
     new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
-  // Берем последние 15 записей для графика
   const chartData = sortedData.slice(-15);
 
   const weights = chartData.map(d => d.weight);
   const labels = chartData.map((d, index) => {
-    // Показываем не все лейблы, чтобы не было overlap
     if (index % Math.ceil(chartData.length / 6) === 0 || index === chartData.length - 1) {
       const date = new Date(d.created_at);
       return `${date.getDate()}/${date.getMonth() + 1}`;
@@ -39,10 +36,9 @@ export function WeightChart({ data, targetWeight }: WeightChartProps) {
     return "";
   });
 
-  // Вычисляем диапазон для Y-оси
   const minWeight = Math.min(...weights);
   const maxWeight = Math.max(...weights);
-  const range = Math.max(maxWeight - minWeight, 2); // минимум 2 кг диапазон
+  const range = Math.max(maxWeight - minWeight, 2);
   
   return (
     <View style={styles.container}>

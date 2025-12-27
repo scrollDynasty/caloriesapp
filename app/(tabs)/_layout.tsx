@@ -70,7 +70,6 @@ export default function TabsLayout() {
   const fabAnimation = useRef(new Animated.Value(0)).current;
   const tabBarBottom = Math.max(insets.bottom, 12);
 
-  // Load avatar on mount and when screen gains focus
   const loadAvatar = useCallback(async () => {
     try {
       const profile = await apiService.getProfile();
@@ -84,7 +83,6 @@ export default function TabsLayout() {
     loadAvatar();
   }, [loadAvatar]);
 
-  // Reload avatar when returning from other screens (e.g., edit-profile)
   useFocusEffect(
     useCallback(() => {
       loadAvatar();

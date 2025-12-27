@@ -16,7 +16,6 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   
-  // Анимации
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
@@ -32,7 +31,6 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }, 1600); 
 
-    // Последовательность анимаций
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -70,7 +68,6 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
       ),
     ]).start();
 
-    // Завершение через 2.5 секунды
     setTimeout(() => {
       clearInterval(breathingInterval);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -94,7 +91,6 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
       });
     }, 2500);
 
-    // Cleanup
     return () => {
       clearInterval(breathingInterval);
     };

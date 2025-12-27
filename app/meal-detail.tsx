@@ -24,7 +24,6 @@ import { apiService } from "../services/api";
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const IMAGE_HEIGHT = SCREEN_HEIGHT * 0.38;
 
-// Circle constants
 const CIRCLE_SIZE = 52;
 const STROKE_WIDTH = 4;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
@@ -47,11 +46,9 @@ export default function MealDetailScreen() {
   const fats = Number(params.fats || 0);
   const isManual = params.isManual === "true";
 
-  // Carousel state
   const [currentPage, setCurrentPage] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
-  // For editing
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(mealName);
   const [editCalories, setEditCalories] = useState(calories.toString());
@@ -61,7 +58,6 @@ export default function MealDetailScreen() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Dynamic data from AI/Neural Network
   const [loadingDetail, setLoadingDetail] = useState(true);
   const [ingredients, setIngredients] = useState<Array<{ name: string; calories: number }>>([]);
   const [extraMacros, setExtraMacros] = useState({
@@ -71,7 +67,6 @@ export default function MealDetailScreen() {
   });
   const [healthScore, setHealthScore] = useState<number | null>(null);
 
-  // Load meal detail data from API
   useEffect(() => {
     const loadMealDetail = async () => {
       try {
@@ -95,8 +90,6 @@ export default function MealDetailScreen() {
         }
       } catch (error: any) {
         if (__DEV__) console.warn("Failed to load meal detail:", error);
-        // If API doesn't support detail endpoint yet, data will remain empty
-        // This is expected until backend implements neural network analysis
       } finally {
         setLoadingDetail(false);
       }
@@ -222,7 +215,6 @@ export default function MealDetailScreen() {
             
             try {
               await apiService.addMealIngredient(mealId, { name, calories });
-              // Обновляем локальный список
               setIngredients([...ingredients, { name, calories }]);
               Alert.alert("Успешно", "Ингредиент добавлен");
             } catch (error: any) {
@@ -250,7 +242,6 @@ export default function MealDetailScreen() {
               setSaving(true);
               const corrected = await apiService.correctMealWithAI(mealId, correctionText);
               
-              // Обновляем данные на основе ответа AI
               if (corrected.meal_name) setEditName(corrected.meal_name);
               if (corrected.calories) setEditCalories(corrected.calories.toString());
               if (corrected.protein) setEditProtein(corrected.protein.toString());
@@ -279,10 +270,8 @@ export default function MealDetailScreen() {
     );
   };
 
-  // Page 1: Calories + Macros (Protein, Carbs, Fats)
   const renderPage1 = () => (
     <View style={styles.carouselPage}>
-      {/* Calories Card */}
       <View style={styles.caloriesCard}>
         <View style={styles.caloriesIconContainer}>
           <Ionicons name="flame" size={24} color={colors.primary} />
@@ -302,7 +291,6 @@ export default function MealDetailScreen() {
         </View>
       </View>
 
-      {/* Macros Row */}
       <View style={styles.macrosRow}>
         <View style={styles.macroCard}>
           <Text style={styles.macroIcon}>🍖</Text>
@@ -352,10 +340,8 @@ export default function MealDetailScreen() {
     </View>
   );
 
-  // Page 2: Extra Macros (Fiber, Sugar, Sodium) + Health Score
   const renderPage2 = () => (
     <View style={styles.carouselPage}>
-      {/* Extra Macros Row */}
       <View style={styles.extraMacrosRow}>
         <View style={styles.extraMacroCard}>
           <Text style={styles.extraMacroIcon}>🍆</Text>
@@ -785,7 +771,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.text,
   },
 
-  // Carousel
   carouselContainer: {
     marginBottom: 20,
   },
@@ -797,7 +782,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     gap: 12,
   },
 
-  // Page 1: Calories Card
   caloriesCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -845,7 +829,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     paddingVertical: 4,
   },
 
-  // Page 1: Macros Row
   macrosRow: {
     flexDirection: "row",
     backgroundColor: colors.card,
@@ -893,7 +876,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     minWidth: 50,
   },
 
-  // Page 2: Extra Macros Row
   extraMacrosRow: {
     flexDirection: "row",
     gap: 10,
@@ -924,7 +906,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.text,
   },
 
-  // Page 2: Health Score Card
   healthScoreCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -973,7 +954,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.text,
   },
 
-  // Pagination
   paginationDots: {
     flexDirection: "row",
     justifyContent: "center",
@@ -990,7 +970,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.primary,
   },
 
-  // Ingredients
   ingredientsSection: {
     marginBottom: 20,
     paddingHorizontal: 20,
@@ -1069,7 +1048,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     marginTop: 6,
   },
 
-  // Feedback
   feedbackSection: {
     flexDirection: "row",
     alignItems: "center",

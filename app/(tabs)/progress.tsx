@@ -37,7 +37,6 @@ export default function ProgressScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("90_days");
   const [selectedCaloriePeriod, setSelectedCaloriePeriod] = useState<CaloriePeriod>("this_week");
   
-  // Progress data
   const [streakCount, setStreakCount] = useState(0);
   const [badgesCount, setBadgesCount] = useState(0);
   const [weightStats, setWeightStats] = useState<any>(null);
@@ -108,7 +107,6 @@ export default function ProgressScreen() {
           asset.mimeType || "image/jpeg"
         );
         
-        // Reload photos
         const photos = await apiService.getProgressPhotos();
         setProgressPhotos(photos);
         

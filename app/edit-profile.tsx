@@ -73,7 +73,6 @@ export default function EditProfileScreen() {
     }
   };
 
-  // Debounced username check
   useEffect(() => {
     if (!data.username || data.username.length < 3) {
       setUsernameError(null);
@@ -124,7 +123,6 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = useCallback(async () => {
-    // Validate username
     if (data.username && data.username.length < 3) {
       Alert.alert("Ошибка", "Username должен быть минимум 3 символа");
       return;
@@ -140,7 +138,6 @@ export default function EditProfileScreen() {
 
       let avatarUrl = data.avatarUrl;
 
-      // Upload avatar to Yandex Storage if it's a new local file
       if (localAvatarUri && localAvatarUri !== data.avatarUrl && localAvatarUri.startsWith("file://")) {
         try {
           const fileName = localAvatarUri.split("/").pop() || "avatar.jpg";
@@ -158,11 +155,9 @@ export default function EditProfileScreen() {
           return;
         }
       } else if (localAvatarUri && localAvatarUri !== data.avatarUrl) {
-        // If it's already a URL (not local file), use it as is
         avatarUrl = localAvatarUri;
       }
 
-      // Update profile on server
       await apiService.updateProfile({
         first_name: data.firstName,
         last_name: data.lastName,
@@ -180,7 +175,6 @@ export default function EditProfileScreen() {
   }, [data, localAvatarUri, usernameError, router]);
 
   const handleUsernameChange = (text: string) => {
-    // Only allow lowercase letters, numbers, and underscores
     const sanitized = text.toLowerCase().replace(/[^a-z0-9_]/g, "");
     setData(prev => ({ ...prev, username: sanitized }));
   };
@@ -229,7 +223,6 @@ export default function EditProfileScreen() {
     scrollContent: {
       paddingBottom: 20,
     },
-    // Avatar
     avatarContainer: {
       alignItems: "center",
       marginTop: 20,
@@ -271,7 +264,6 @@ export default function EditProfileScreen() {
       fontFamily: "Inter_500Medium",
       color: colors.textSecondary,
     },
-    // Form
     form: {
       paddingHorizontal: 16,
       gap: 16,
@@ -317,7 +309,6 @@ export default function EditProfileScreen() {
       color: colors.success,
       marginTop: 6,
     },
-    // Button
     buttonContainer: {
       paddingHorizontal: 16,
       paddingBottom: 16,

@@ -44,7 +44,6 @@ interface NutritionGoals {
 }
 
 interface OnboardingData {
-  // Основные данные пользователя
   gender?: "male" | "female";
   height?: number;
   weight?: number;
@@ -52,13 +51,11 @@ interface OnboardingData {
   workout_frequency?: "0-2" | "3-5" | "6+";
   goal?: "lose" | "maintain" | "gain";
   
-  // Дополнительные данные из онбординга
   has_trainer?: boolean;
-  barrier?: string; // inconsistency, bad-habits, lack-of-support, busy-schedule, lack-of-ideas
+  barrier?: string; 
   diet_type?: "classic" | "pescatarian" | "vegetarian" | "vegan";
-  motivation?: string; // eat-healthy, boost-energy, stay-motivated, feel-better
+  motivation?: string; 
   
-  // Расчётные значения
   target_calories?: number;
   protein_grams?: number;
   carbs_grams?: number;
@@ -68,7 +65,6 @@ interface OnboardingData {
   sodium_mg?: number;
 }
 
-// Circular progress component
 function CircularProgress({
   progress,
   size = 60,
@@ -119,7 +115,6 @@ function CircularProgress({
   );
 }
 
-// Goal Card Component
 function GoalCard({
   icon,
   label,
@@ -194,7 +189,6 @@ function GoalCard({
   );
 }
 
-// Micronutrient Card
 function MicroCard({
   icon,
   label,
@@ -239,7 +233,6 @@ function MicroCard({
   );
 }
 
-// Edit Modal
 function EditGoalModal({
   visible,
   label,
@@ -323,7 +316,6 @@ function EditGoalModal({
   );
 }
 
-// Auto-generate step screens
 type AutoGenerateStep = "goal" | "workout" | "measurements" | "result";
 
 function AutoGenerateFlow({
@@ -379,12 +371,10 @@ function AutoGenerateFlow({
     const h = parseInt(height, 10) || 175;
     const w = parseInt(weight, 10) || 70;
 
-    // Расчёт возраста из даты рождения
     const age = initialData?.birth_date
       ? new Date().getFullYear() - new Date(initialData.birth_date).getFullYear()
       : 25;
 
-    // Базовые данные для расчёта
     const userData: UserData = {
       gender: initialData?.gender || "male",
       age,
@@ -396,7 +386,6 @@ function AutoGenerateFlow({
 
     const result = calculateCalories(userData);
 
-    // Базовые значения
     let calories = result.targetCalories;
     let protein = result.macros.protein.grams;
     let carbs = result.macros.carbs.grams;
@@ -405,82 +394,57 @@ function AutoGenerateFlow({
     let sugar = 50;
     let sodium = 2300;
 
-    // === КОРРЕКТИРОВКА НА ОСНОВЕ ТИПА ДИЕТЫ ===
     const dietType = initialData?.diet_type || "classic";
     
     if (dietType === "vegetarian" || dietType === "vegan") {
-      // Вегетарианцам и веганам нужно больше белка (растительный белок усваивается хуже)
       protein = Math.round(protein * 1.1);
-      // Больше клетчатки из растительной пищи
       fiber = 45;
-      // Меньше натрия (меньше обработанных продуктов)
       sodium = 2000;
     }
     
     if (dietType === "pescatarian") {
-      // Пескатарианцы получают достаточно белка из рыбы
       fiber = 40;
     }
-
-    // === КОРРЕКТИРОВКА НА ОСНОВЕ БАРЬЕРА ===
     const barrier = initialData?.barrier;
     
     if (barrier === "busy-schedule") {
-      // Занятой график - немного упрощаем цели
-      // Меньше сахара (меньше времени на сладости = меньше соблазна)
       sugar = 40;
     }
     
     if (barrier === "bad-habits") {
-      // Вредные привычки - строже с сахаром и натрием
       sugar = 35;
       sodium = 2000;
     }
     
     if (barrier === "inconsistency") {
-      // Непоследовательность - более мягкие цели для начала
-      // Не меняем значения, чтобы не демотивировать
     }
 
-    // === КОРРЕКТИРОВКА НА ОСНОВЕ МОТИВАЦИИ ===
     const motivation = initialData?.motivation;
     
     if (motivation === "boost-energy") {
-      // Для энергии - больше углеводов
       const extraCarbs = Math.round(carbs * 0.05);
       carbs += extraCarbs;
-      // Компенсируем жирами
       fats = Math.max(fats - Math.round(extraCarbs / 2), Math.round(fats * 0.85));
     }
     
     if (motivation === "feel-better") {
-      // Чувствовать себя лучше - больше белка для насыщения
       protein = Math.round(protein * 1.05);
     }
 
-    // === КОРРЕКТИРОВКА ПРИ НАЛИЧИИ ТРЕНЕРА ===
     if (initialData?.has_trainer) {
-      // С тренером можно быть более агрессивным
       if (goal === "lose") {
-        // Дефицит можно увеличить
         calories = Math.round(calories * 0.95);
       } else if (goal === "gain") {
-        // Профицит тоже
         calories = Math.round(calories * 1.05);
       }
-      // Больше белка для восстановления
       protein = Math.round(protein * 1.1);
     }
 
-    // === КОРРЕКТИРОВКА ПО ПОЛУ ===
     if (initialData?.gender === "female") {
-      // Женщинам обычно нужно меньше натрия
       sodium = Math.min(sodium, 2000);
-      // И может быть больше железа (через больше белка)
       protein = Math.max(protein, Math.round(w * 1.6));
     }
 
-    // === ФИНАЛЬНЫЕ ОКРУГЛЕНИЯ ===
     const goals: NutritionGoals = {
       calories: Math.round(calories),
       protein: Math.round(protein),
@@ -821,7 +785,6 @@ function AutoGenerateFlow({
   );
 }
 
-// Workout Option Component
 function WorkoutOption({
   dots,
   title,
@@ -923,7 +886,6 @@ function ResultMacroRow({
   );
 }
 
-// Tip Item
 function TipItem({ icon, text, colors }: { icon: string; text: string; colors: any }) {
   return (
     <View style={styles.tipItem}>
@@ -935,7 +897,6 @@ function TipItem({ icon, text, colors }: { icon: string; text: string; colors: a
   );
 }
 
-// Main Component
 export default function NutritionGoalsScreen() {
   const fontsLoaded = useFonts();
   const router = useRouter();
@@ -1409,7 +1370,6 @@ const styles = StyleSheet.create({
   bottomSpacer: {
     height: 100,
   },
-  // Modal
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -1470,7 +1430,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_600SemiBold",
   },
-  // Auto Generate
   autoGenerateOverlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 2000,
@@ -1616,7 +1575,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_500Medium",
   },
-  // Result
   resultHeader: {
     alignItems: "center",
     marginBottom: 24,

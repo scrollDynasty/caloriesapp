@@ -36,7 +36,6 @@ interface OnboardingFullData {
 
 type EditField = "weight" | "height" | "birthDate" | "gender" | "stepGoal" | "targetWeight" | null;
 
-// Calculate age from birth date
 function calculateAge(birthDate: Date): number {
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
@@ -64,7 +63,6 @@ export default function PersonalDataScreen() {
     stepGoal: 10000,
   });
 
-  // Edit modal states
   const [editField, setEditField] = useState<EditField>(null);
   const [editValue, setEditValue] = useState<string>("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -96,14 +94,12 @@ export default function PersonalDataScreen() {
     }
   };
 
-  // Full recalculation and save
   const handleSave = useCallback(async (field: EditField, value: any) => {
     if (!field) return;
 
     try {
       setSaving(true);
       
-      // Create updated data
       let updatedData = { ...data };
       
       switch (field) {
@@ -138,10 +134,8 @@ export default function PersonalDataScreen() {
       let payload: any = {};
 
       if (canRecalculate) {
-        // Calculate age from birth date
         const age = calculateAge(updatedData.birthDate!);
 
-        // Prepare data for calorie calculation
         const userData: UserData = {
           gender: updatedData.gender!,
           age,
@@ -151,10 +145,8 @@ export default function PersonalDataScreen() {
           goal: updatedData.goal!,
         };
 
-        // Recalculate everything
         const calculations = calculateCalories(userData);
 
-        // Full payload with recalculated values
         payload = {
           gender: updatedData.gender,
           workout_frequency: updatedData.workoutFrequency,
@@ -162,7 +154,6 @@ export default function PersonalDataScreen() {
           weight: updatedData.weight,
           birth_date: updatedData.birthDate?.toISOString().split("T")[0],
           goal: updatedData.goal,
-          // Recalculated values
           bmr: calculations.bmr,
           tdee: calculations.tdee,
           target_calories: calculations.targetCalories,
@@ -176,11 +167,9 @@ export default function PersonalDataScreen() {
           fats_calories: calculations.macros.fats.calories,
           fats_percentage: calculations.macros.fats.percentage,
         };
-        // Also add target_weight and step_goal
         payload.target_weight = updatedData.targetWeight;
         payload.step_goal = updatedData.stepGoal;
       } else {
-        // Partial update - only changed field
         switch (field) {
           case "weight":
             payload.weight = updatedData.weight;
@@ -607,7 +596,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     flex: 1,
   },
 
-  // Target Card
   targetCard: {
     marginHorizontal: 16,
     marginTop: 16,
@@ -644,7 +632,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     color: "#FFFFFF",
   },
-  // Section
   section: {
     marginHorizontal: 16,
     backgroundColor: colors.card,
@@ -690,7 +677,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   bottomSpacer: {
     height: 40,
   },
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
@@ -769,7 +755,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
   },
-  // Gender Options
   genderOption: {
     flexDirection: "row",
     alignItems: "center",
@@ -797,7 +782,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
   },
-  // Date Picker
   datePickerContainer: {
     backgroundColor: colors.card,
     borderRadius: 16,

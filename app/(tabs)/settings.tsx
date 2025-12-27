@@ -34,7 +34,6 @@ interface UserInfo {
   avatar_url?: string;
 }
 
-// Section Header
 function SectionHeader({ title, rightText, onRightPress }: { title: string; rightText?: string; onRightPress?: () => void }) {
   const { colors: themeColors } = useTheme();
   return (
@@ -49,7 +48,6 @@ function SectionHeader({ title, rightText, onRightPress }: { title: string; righ
   );
 }
 
-// Menu Item
 function MenuItem({ 
   icon, 
   title, 
@@ -101,7 +99,6 @@ export default function SettingsScreen() {
   const [loading, setLoading] = useState(true);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   
-  // Daily data state
   const [dailyData, setDailyData] = useState({
     consumedCalories: 0,
     consumedProtein: 0,
@@ -126,7 +123,6 @@ export default function SettingsScreen() {
         username: data?.username,
         avatar_url: data?.avatar_url,
       });
-      // Update avatar from API
       if (data?.avatar_url) {
         setAvatarUri(data.avatar_url);
       }
@@ -137,12 +133,10 @@ export default function SettingsScreen() {
     }
   }, []);
 
-  // Load user on mount
   useEffect(() => {
     loadUser();
   }, [loadUser]);
 
-  // Reload user when screen comes into focus (e.g., after editing profile)
   useFocusEffect(
     useCallback(() => {
       if (!loading) {
@@ -151,12 +145,10 @@ export default function SettingsScreen() {
     }, [loading, loadUser])
   );
 
-  // Load daily data and onboarding - используем кэш для избежания дублирующих запросов
   useEffect(() => {
     const loadDailyData = async () => {
       const { dateStr } = getLocalDayRange();
       
-      // Сначала проверяем кэш
       const cachedDaily = dataCache.getDailyMeals(dateStr);
       const cachedOnboarding = dataCache.getOnboarding();
       
@@ -173,7 +165,6 @@ export default function SettingsScreen() {
         return;
       }
       
-      // Если нет кэша - загружаем
       try {
         setDailyLoading(true);
         const [dailyMeals, onboarding] = await Promise.all([
@@ -239,7 +230,6 @@ export default function SettingsScreen() {
   };
 
   const handlePickAvatar = () => {
-    // Navigate directly to edit profile where user can change avatar
     router.push("/edit-profile");
   };
 
@@ -271,10 +261,8 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>Профиль</Text>
 
-        {/* Profile Card */}
         <TouchableOpacity 
           style={[styles.profileCard, { backgroundColor: themeColors.card }]} 
           activeOpacity={0.8}
@@ -298,7 +286,6 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={20} color={themeColors.textTertiary} />
         </TouchableOpacity>
 
-        {/* App Theme */}
         <SectionHeader title="App Theme" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <View style={styles.themeItem}>
@@ -316,7 +303,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Invite Friends */}
         <SectionHeader title="Пригласить друзей" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <TouchableOpacity style={styles.referralCard} activeOpacity={0.7}>
@@ -333,7 +319,6 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Account */}
         <SectionHeader title="Аккаунт" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="person-outline" title="Личные данные" onPress={() => router.push("/personal-data" as any)} />
@@ -342,7 +327,6 @@ export default function SettingsScreen() {
           <MenuItem icon="people-outline" title="Обновиться до семейного плана" isLast />
         </View>
 
-        {/* Goals & Tracking */}
         <SectionHeader title="Цели и отслеживание" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="navigate-outline" title="Изменить цели питания" onPress={() => router.push("/nutrition-goals" as any)} />
@@ -351,7 +335,6 @@ export default function SettingsScreen() {
           <MenuItem icon="time-outline" title="История веса" onPress={() => router.push("/weight-history" as any)} isLast />
         </View>
 
-        {/* Widgets */}
         <View style={styles.widgetsSection}>
           <View style={styles.widgetsHeader}>
             <Text style={[styles.widgetsTitle, { color: themeColors.textTertiary }]}>Виджеты</Text>
@@ -364,7 +347,6 @@ export default function SettingsScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.widgetsScrollContent}
           >
-            {/* Streak Widget */}
             <View style={[styles.widgetStreakCard, { backgroundColor: themeColors.card }]}>
               <View style={styles.widgetStreakStar}>
                 <Text style={styles.widgetStarIcon}>✨</Text>
@@ -373,7 +355,6 @@ export default function SettingsScreen() {
               <Text style={styles.widgetStreakValue}>{dailyData.streakCount}</Text>
             </View>
             
-            {/* Calories + Macros Combined */}
             <View style={[styles.widgetCombinedCard, { backgroundColor: themeColors.card }]}>
               <View style={styles.widgetCaloriesSection}>
                 {(() => {
@@ -449,7 +430,6 @@ export default function SettingsScreen() {
               </View>
             </View>
             
-            {/* Action Buttons */}
             <View style={styles.widgetActionsColumn}>
               <TouchableOpacity style={[styles.widgetActionBtn, { backgroundColor: themeColors.card }]} activeOpacity={0.7} onPress={() => {}}>
                 <Ionicons name="scan-outline" size={18} color={themeColors.text} />
@@ -463,7 +443,6 @@ export default function SettingsScreen() {
           </ScrollView>
         </View>
 
-        {/* Support & Legal */}
         <SectionHeader title="Поддержка и юридическая информация" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="mail-outline" title="Написать в поддержку" />
@@ -471,7 +450,6 @@ export default function SettingsScreen() {
           <MenuItem icon="shield-checkmark-outline" title="Политика конфиденциальности" isLast />
         </View>
 
-        {/* Social */}
         <SectionHeader title="Следи за нами" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="logo-instagram" title="Instagram" onPress={() => openLink("https://instagram.com")} />
@@ -479,7 +457,6 @@ export default function SettingsScreen() {
           <MenuItem icon="logo-twitter" title="X" onPress={() => openLink("https://x.com")} isLast />
         </View>
 
-        {/* Account Actions */}
         <SectionHeader title="Действия с аккаунтом" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="log-out-outline" title="Выйти" onPress={handleLogout} />
@@ -519,7 +496,6 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 20,
   },
-  // Profile Card
   profileCard: {
     marginHorizontal: 20,
     borderRadius: 20,
@@ -574,7 +550,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     marginTop: 1,
   },
-  // Section Header
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -593,7 +568,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_500Medium",
   },
-  // Section
   section: {
     marginHorizontal: 20,
     borderRadius: 16,
@@ -604,7 +578,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
-  // Theme Item
   themeItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -626,7 +599,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     marginTop: 2,
   },
-  // Referral Card
   referralCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -653,7 +625,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     lineHeight: 18,
   },
-  // Menu Item
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -695,7 +666,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "Inter_500Medium",
   },
-  // Widgets
   widgetsSection: {
     marginTop: 24,
   },
@@ -720,7 +690,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 10,
   },
-  // Streak Card (огонёк)
   widgetStreakCard: {
     borderRadius: 18,
     padding: 14,
@@ -735,7 +704,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
-  // Combined Card (калории + макросы)
   widgetCombinedCard: {
     borderRadius: 18,
     padding: 14,
@@ -761,7 +729,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
   },
-  // Action Buttons Column
   widgetActionsColumn: {
     gap: 8,
     justifyContent: "center",
@@ -785,7 +752,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     textAlign: "center",
   },
-  // Streak Widget
   widgetStreakStar: {
     position: "absolute",
     top: 0,
@@ -803,7 +769,6 @@ const styles = StyleSheet.create({
     color: "#FF8C42",
     marginTop: -10,
   },
-  // Calories Widget
   widgetCaloriesCircleContainer: {
     width: 85,
     height: 85,

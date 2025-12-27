@@ -200,18 +200,15 @@ export default function HomeScreen() {
   }, [recentLimit, selectedDateTimestamp]);
 
   const loadUserData = useCallback(async () => {
-    // Проверяем кэш - показываем мгновенно если есть
     const cachedUser = dataCache.getUser();
     const cachedOnboarding = dataCache.getOnboarding();
     
     if (cachedUser && cachedOnboarding) {
-      // Мгновенно показываем кэшированные данные — без фоновых обновлений
       setUserData(cachedUser);
       setOnboardingData(cachedOnboarding);
       setLoading(false);
       hasLoadedRef.current = true;
       
-      // Загружаем последние блюда из кэша
       fetchLatestMeals().catch(() => null);
       return;
     }
@@ -344,7 +341,6 @@ export default function HomeScreen() {
     } catch (err: any) {
       if (__DEV__) console.warn("Daily data load error", err);
       if (!isMountedRef.current) return;
-      // Показываем ошибку только если нет кэша
       if (!cachedDaily) {
         setDailyError(err?.response?.data?.detail || err?.message || "Ошибка загрузки данных");
       }
@@ -457,7 +453,6 @@ export default function HomeScreen() {
       const weekTs = getWeekStartTimestamp(baseDate.getTime());
       const weekKey = `week-${weekTs}`;
       
-      // Проверяем кэш недельных данных
       const cachedWeek = dataCache.getWeekData(weekKey);
       if (cachedWeek && !dataCache.isWeekStale(weekKey)) {
         setWeekAchievements(cachedWeek.achievements);
@@ -486,7 +481,6 @@ export default function HomeScreen() {
           progressMap[r.date] = caloriesProgress;
         });
         
-        // Сохраняем в кэш
         dataCache.setWeekData(weekKey, {
           weekKey,
           achievements: achievementsMap,
@@ -509,7 +503,6 @@ export default function HomeScreen() {
     [onboardingData?.target_calories]
   );
 
-  // useFocusEffect удален - данные загружаются через другие эффекты
 
   useEffect(() => {
     const loadData = async () => {
@@ -570,15 +563,15 @@ export default function HomeScreen() {
       },
       fiber: {
         consumed: dailyData.consumedFiber,
-        target: 38, // Рекомендуемая норма клетчатки
+        target: 38,
       },
       sugar: {
         consumed: dailyData.consumedSugar,
-        target: 50, // Рекомендуемый максимум сахара
+        target: 50,
       },
       sodium: {
         consumed: dailyData.consumedSodium,
-        target: 2300, // Рекомендуемый максимум натрия в мг
+        target: 2300, 
       },
       healthScore: dailyData.healthScore,
       water: {

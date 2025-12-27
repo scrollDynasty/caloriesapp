@@ -18,11 +18,10 @@ import { apiService } from "../services/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-// Конфигурация линейки
 const MIN_WEIGHT = 30;
 const MAX_WEIGHT = 200;
-const STEP = 0.5; // Шаг 0.5 кг
-const TICK_WIDTH = 10; // Ширина между делениями
+const STEP = 0.5;
+const TICK_WIDTH = 10; 
 const VISIBLE_TICKS = Math.floor(SCREEN_WIDTH / TICK_WIDTH);
 
 export default function ChangeWeightScreen() {
@@ -37,24 +36,20 @@ export default function ChangeWeightScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const isScrolling = useRef(false);
 
-  // Общее количество делений
   const totalTicks = Math.floor((MAX_WEIGHT - MIN_WEIGHT) / STEP) + 1;
   const rulerWidth = totalTicks * TICK_WIDTH;
 
-  // Преобразование веса в позицию скролла
   const weightToScrollX = useCallback((w: number) => {
     const tickIndex = (w - MIN_WEIGHT) / STEP;
     return tickIndex * TICK_WIDTH;
   }, []);
 
-  // Преобразование позиции скролла в вес
   const scrollXToWeight = useCallback((scrollX: number) => {
     const tickIndex = Math.round(scrollX / TICK_WIDTH);
     const newWeight = MIN_WEIGHT + tickIndex * STEP;
     return Math.max(MIN_WEIGHT, Math.min(MAX_WEIGHT, newWeight));
   }, []);
 
-  // Инициализация скролла на текущий вес
   const handleContentSizeChange = useCallback(() => {
     if (scrollViewRef.current && !isScrolling.current) {
       const scrollX = weightToScrollX(weight);
@@ -62,7 +57,6 @@ export default function ChangeWeightScreen() {
     }
   }, [weight, weightToScrollX]);
 
-  // Обработка скролла
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const scrollX = event.nativeEvent.contentOffset.x;
@@ -74,7 +68,6 @@ export default function ChangeWeightScreen() {
     [scrollXToWeight, weight]
   );
 
-  // Привязка к ближайшему делению при окончании скролла
   const handleScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       isScrolling.current = false;
@@ -94,7 +87,6 @@ export default function ChangeWeightScreen() {
     isScrolling.current = true;
   }, []);
 
-  // Сохранение веса
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -108,7 +100,6 @@ export default function ChangeWeightScreen() {
     }
   };
 
-  // Генерация делений линейки
   const renderTicks = () => {
     const ticks = [];
     for (let i = 0; i < totalTicks; i++) {

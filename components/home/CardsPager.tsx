@@ -42,13 +42,11 @@ const SMALL_STROKE_WIDTH = 4;
 const SMALL_RADIUS = (SMALL_CIRCLE_SIZE - SMALL_STROKE_WIDTH) / 2;
 const SMALL_CIRCUMFERENCE = 2 * Math.PI * SMALL_RADIUS;
 
-// ==================== PAGE 1: Flippable Calories & Macros ====================
 
 interface FlippableNutritionCardProps {
   stats: CardsPagerProps["stats"];
 }
 
-// Primary data (calories, protein, carbs, fats)
 const getPrimaryData = (stats: CardsPagerProps["stats"]) => ({
   main: {
     consumed: stats.consumedCalories,
@@ -84,7 +82,6 @@ const getPrimaryData = (stats: CardsPagerProps["stats"]) => ({
   ],
 });
 
-// Secondary data (fiber, sugar, sodium) - теперь использует реальные данные
 const getSecondaryData = (stats: CardsPagerProps["stats"]) => ({
   macros: [
     { 
@@ -103,9 +100,8 @@ const getSecondaryData = (stats: CardsPagerProps["stats"]) => ({
       label: "Сахар", 
       icon: "🍬", 
       color: "#E91E63",
-      // Для сахара: меньше - лучше, инвертируем прогресс
       progress: stats.sugar.target > 0 ? Math.min(1, stats.sugar.consumed / stats.sugar.target) : 0,
-      isInverted: true, // Флаг что превышение - плохо
+      isInverted: true, 
     },
     { 
       consumed: stats.sodium.consumed, 
@@ -149,7 +145,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
     });
   }, [isFlipped, flipAnim]);
 
-  // Animation values for primary content
   const primaryOpacity = flipAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [1, 0, 0],
@@ -165,7 +160,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
     outputRange: [1, 0.95, 0.9],
   });
 
-  // Animation values for secondary content
   const secondaryOpacity = flipAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, 0, 1],
@@ -466,7 +460,6 @@ function WaterCard({ consumed, target, onAdd }: { consumed: number; target: numb
   );
 }
 
-// ==================== MAIN PAGER ====================
 
 export const CardsPager = memo(function CardsPager({ stats, onAddWater }: CardsPagerProps) {
   const { colors: themeColors } = useTheme();
@@ -482,12 +475,10 @@ export const CardsPager = memo(function CardsPager({ stats, onAddWater }: CardsP
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
   const pages = [
-    // Page 1: Flippable Calories + Macros / Extra Macros + Health Score
     <View key="page1" style={styles.pageContainer}>
       <FlippableNutritionCard stats={stats} />
     </View>,
 
-    // Page 2: Activity + Water (kept as separate page for swipe)
     <View key="page2" style={styles.pageContainer}>
       <View style={styles.activityRow}>
         <AppleHealthCard />
@@ -563,7 +554,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
 
-  // Flippable Container
   flippableContainer: {
     position: "relative",
     minHeight: 260,
@@ -578,7 +568,6 @@ const styles = StyleSheet.create({
     right: 0,
   },
 
-  // Calories Card
   caloriesCard: {
     marginHorizontal: 20,
     marginBottom: 12,
@@ -630,7 +619,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // Macros Row
   macrosRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -693,7 +681,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Health Score Card
   healthScoreCard: {
     marginHorizontal: 20,
     padding: 20,
@@ -734,7 +721,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Activity Row
   activityRow: {
     flexDirection: "row",
     paddingHorizontal: 20,
@@ -814,7 +800,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  // Water Card
   waterCard: {
     marginHorizontal: 20,
     padding: 16,

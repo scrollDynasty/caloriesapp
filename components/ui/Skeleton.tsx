@@ -54,7 +54,6 @@ export const Skeleton = memo(function Skeleton({
   );
 });
 
-// Skeleton для карточки калорий
 export const CaloriesCardSkeleton = memo(function CaloriesCardSkeleton() {
   const { colors: themeColors } = useTheme();
   return (
@@ -68,7 +67,6 @@ export const CaloriesCardSkeleton = memo(function CaloriesCardSkeleton() {
   );
 });
 
-// Skeleton для карточек макросов
 export const MacrosRowSkeleton = memo(function MacrosRowSkeleton() {
   const { colors: themeColors } = useTheme();
   return (
@@ -84,7 +82,6 @@ export const MacrosRowSkeleton = memo(function MacrosRowSkeleton() {
   );
 });
 
-// Skeleton для полной карточки питания
 export const NutritionCardSkeleton = memo(function NutritionCardSkeleton() {
   return (
     <View style={styles.nutritionContainer}>
@@ -94,7 +91,6 @@ export const NutritionCardSkeleton = memo(function NutritionCardSkeleton() {
   );
 });
 
-// Skeleton для карточки еды
 export const MealCardSkeleton = memo(function MealCardSkeleton() {
   const { colors: themeColors } = useTheme();
   return (
@@ -116,7 +112,6 @@ export const MealCardSkeleton = memo(function MealCardSkeleton() {
   );
 });
 
-// Skeleton для списка еды
 export const RecentMealsSkeleton = memo(function RecentMealsSkeleton({ count = 2 }: { count?: number }) {
   return (
     <View style={styles.recentMeals}>
