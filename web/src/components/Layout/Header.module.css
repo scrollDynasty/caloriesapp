@@ -12,17 +12,46 @@
   gap: 8px;
 }
 
+.logoLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.logoLink:hover {
+  opacity: 0.8;
+}
+
 .logoContainer {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.logoImage {
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.logoTextLink {
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s;
+}
+
+.logoTextLink:hover {
+  opacity: 0.8;
 }
 
 .logoText {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.5px;
   color: var(--foreground);
@@ -36,7 +65,7 @@
 }
 
 .navLink {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--foreground);
   transition: opacity 0.2s;

@@ -11,14 +11,14 @@
 }
 
 .labelTitle {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 2px;
 }
 
 .labelValue {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 800;
   color: var(--foreground);
 }

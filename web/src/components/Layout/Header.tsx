@@ -7,10 +7,21 @@ export default function Header() {
   return (
     <nav className={styles.nav}>
       <div className={styles.navLeft}>
-        <div className={styles.logoContainer}>
-          <Image src="/logo.png" alt="Yeb-Ich logo" width={32} height={32} />
-        </div>
-        <h1 className={styles.logoText}>Yeb-Ich</h1>
+        <Link href="/" className={styles.logoLink}>
+          <div className={styles.logoContainer}>
+            <Image 
+              src="/logo.png" 
+              alt="Yeb-Ich logo" 
+              width={48} 
+              height={48} 
+              className={styles.logoImage}
+              priority
+            />
+          </div>
+        </Link>
+        <Link href="/" className={styles.logoTextLink}>
+          <h1 className={styles.logoText}>Yeb-Ich</h1>
+        </Link>
       </div>
 
       <div className={styles.navLinks}>

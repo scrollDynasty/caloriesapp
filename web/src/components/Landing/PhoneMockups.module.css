@@ -100,7 +100,7 @@
 }
 
 .resultTitle {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--foreground);
   margin: 0;
@@ -125,14 +125,14 @@
 }
 
 .statLabel {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   color: #71717a;
   margin-bottom: 4px;
 }
 
 .statValue {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--foreground);
 }
@@ -144,7 +144,7 @@
   border: none;
   border-radius: 99px;
   padding: 12px 15px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.2s;

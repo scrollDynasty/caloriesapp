@@ -39,9 +39,9 @@
 }
 
 .topText {
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 400;
-  height: 10px;
+  height: 11px;
   opacity: 0.9;
   margin-bottom: -1px;
   display: flex;
@@ -49,23 +49,23 @@
 }
 
 .bottomText {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  height: 15px;
+  height: 16px;
   margin-bottom: -1px;
   display: flex;
   align-items: center;
-  line-height: 14.4px;
+  line-height: 15px;
 }
 
 .button.large .topText {
-  font-size: 10px;
-  height: 12px;
+  font-size: 11px;
+  height: 13px;
 }
 
 .button.large .bottomText {
-  font-size: 16px;
-  height: 20px;
-  line-height: 19.2px;
+  font-size: 18px;
+  height: 22px;
+  line-height: 21px;
 }
 

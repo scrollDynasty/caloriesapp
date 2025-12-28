@@ -32,7 +32,7 @@
 }
 
 .text {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--foreground);
   white-space: nowrap;
@@ -50,7 +50,7 @@
 }
 
 .ratingText {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--rating-yellow);
 }
