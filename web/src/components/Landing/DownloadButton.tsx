@@ -11,12 +11,12 @@ export default function DownloadButton({
   size = "large",
 }: DownloadButtonProps) {
   const isAppStore = platform === "appstore";
-  const iconSize = size === "small" ? 20 : isAppStore ? 28 : 24;
+  const iconSize = size === "small" ? 22 : isAppStore ? 32 : 28;
 
   return (
     <a
       href="#"
-      className={`${styles.button} ${styles[size]}`}
+      className={`${styles.button} ${styles[size]} ${isAppStore ? styles.appStore : styles.googlePlay}`}
       aria-label={
         isAppStore
           ? "Download on the App Store"

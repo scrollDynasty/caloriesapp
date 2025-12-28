@@ -1,26 +1,39 @@
 .button {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background-color: #000000;
   color: #ffffff;
-  border-radius: 8px;
-  padding: 6px 12px;
-  transition: opacity 0.2s;
+  border-radius: 5px;
+  padding: 8px 16px;
+  transition: all 0.2s;
   cursor: pointer;
+  border: none;
+  text-decoration: none;
+}
+
+.button.appStore {
+  background-color: #000000;
+}
+
+.button.googlePlay {
+  background-color: #000000;
 }
 
 .button:hover {
-  opacity: 0.9;
+  background-color: #1a1a1a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .button.large {
-  padding: 8px 16px;
-  min-width: 140px;
+  padding: 11px 20px;
+  min-width: 170px;
 }
 
 .button.small {
-  padding: 6px 12px;
+  padding: 8px 16px;
+  min-width: 150px;
 }
 
 .icon {
@@ -33,39 +46,42 @@
 .text {
   display: flex;
   flex-direction: column;
-  line-height: 0;
-  padding-top: 0;
-  padding-bottom: 1px;
+  line-height: 1;
+  justify-content: center;
 }
 
 .topText {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 400;
-  height: 11px;
+  line-height: 1;
   opacity: 0.9;
-  margin-bottom: -1px;
-  display: flex;
-  align-items: center;
+  margin-bottom: 2px;
 }
 
 .bottomText {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
-  height: 16px;
-  margin-bottom: -1px;
-  display: flex;
-  align-items: center;
-  line-height: 15px;
+  line-height: 1;
+  letter-spacing: -0.2px;
 }
 
 .button.large .topText {
   font-size: 11px;
-  height: 13px;
+  margin-bottom: 3px;
 }
 
 .button.large .bottomText {
-  font-size: 18px;
-  height: 22px;
-  line-height: 21px;
+  font-size: 20px;
+  letter-spacing: -0.3px;
+}
+
+.button.small .topText {
+  font-size: 9px;
+  margin-bottom: 2px;
+}
+
+.button.small .bottomText {
+  font-size: 15px;
+  letter-spacing: -0.2px;
 }
 
