@@ -82,16 +82,6 @@ export default function FeaturesSection() {
                   key={feature.id}
                   className={`${styles.featureCard} ${isActive ? styles.featureCardActive : ""}`}
                   onClick={() => handleFeatureClick(feature.id)}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }
-                  }}
                 >
                   <h3 className={styles.featureTitle}>{feature.title}</h3>
                   <p className={styles.featureDescription}>{feature.description}</p>
