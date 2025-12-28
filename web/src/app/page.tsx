@@ -5,6 +5,7 @@ import FeaturesSection from "../components/Landing/FeaturesSection";
 import Hero from "../components/Landing/Hero";
 import InfluencersSection from "../components/Landing/InfluencersSection";
 import PhoneMockups from "../components/Landing/PhoneMockups";
+import WhyChooseSection from "../components/Landing/WhyChooseSection";
 import Header from "../components/Layout/Header";
 import styles from "./page.module.css";
 
@@ -47,6 +48,7 @@ export default function Home() {
         <InfluencersSection />
       </div>
       <FeaturesSection />
+      <WhyChooseSection />
     </div>
   );
 }

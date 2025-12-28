@@ -41,11 +41,25 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background: linear-gradient(135deg, #ffffff 0%, #fefefe 20%, #fdfdfd 40%, #fcfcfc 60%, #fefefe 80%, #ffffff 100%);
+  background-size: 300% 300%;
+  animation: subtleGradient 30s ease infinite;
   scrollbar-width: none; 
   -ms-overflow-style: none; 
   margin: 0;
   padding: 0;
+}
+
+@keyframes subtleGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 body::-webkit-scrollbar {

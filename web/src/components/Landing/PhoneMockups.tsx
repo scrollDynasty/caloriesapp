@@ -1,5 +1,4 @@
 import Image from "next/image";
-import FloatingLabel from "../ui/FloatingLabel";
 import styles from "./PhoneMockups.module.css";
 
 export default function PhoneMockups() {
@@ -9,14 +8,13 @@ export default function PhoneMockups() {
         <div className={styles.phoneFrame}>
           <div className={styles.phoneContent}>
             <Image
-              src="/food-demo.png"
-              alt="Scanning food"
+              src="/photo1.jpg"
+              alt="Track Your Food With Just a Picture"
               fill
               className={styles.phoneImage}
-              style={{ objectFit: "cover" }}
+              style={{ objectFit: "cover", objectPosition: "60% center" }}
+              unoptimized
             />
-            <div className={styles.scanArea}></div>
-            <div className={styles.scanOverlay}></div>
           </div>
         </div>
       </div>
@@ -25,35 +23,16 @@ export default function PhoneMockups() {
         <div className={styles.phoneFrame}>
           <div className={styles.phoneContent}>
             <Image
-              src="/food-demo.png"
-              alt="Food results"
+              src="/photo3.jpg"
+              alt="Hydration & Fitness Tracking"
               fill
               className={styles.phoneImage}
-              style={{ objectFit: "cover" }}
+              style={{ objectFit: "cover", objectPosition: "60% center" }}
+              unoptimized
             />
-            <div className={styles.resultOverlay}>
-              <div className={styles.resultHeader}>
-                <h3 className={styles.resultTitle}>Pancakes with...</h3>
-              </div>
-              <div className={styles.resultStats}>
-                <div className={styles.statCard}>
-                  <div className={styles.statLabel}>Calories</div>
-                  <div className={styles.statValue}>615</div>
-                </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statLabel}>Carbs</div>
-                  <div className={styles.statValue}>93g</div>
-                </div>
-              </div>
-              <button className={styles.doneButton}>Done</button>
-            </div>
           </div>
         </div>
       </div>
-
-      <FloatingLabel title="Blueberries" value="8" position="top-right" />
-      <FloatingLabel title="Pancakes" value="595" position="middle-right" />
-      <FloatingLabel title="Syrup" value="12" position="middle-center" />
     </div>
   );
 }

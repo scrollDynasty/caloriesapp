@@ -43,7 +43,6 @@
   border-radius: 32px;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #f5deb3 0%, #daa520 100%);
 }
 
 .phoneImage {

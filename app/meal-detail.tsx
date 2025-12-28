@@ -337,40 +337,6 @@ export default function MealDetailScreen() {
           )}
         </View>
       </View>
-    </View>
-  );
-
-  const renderPage2 = () => (
-    <View style={styles.carouselPage}>
-      <View style={styles.extraMacrosRow}>
-        <View style={styles.extraMacroCard}>
-          <Text style={styles.extraMacroIcon}>🍆</Text>
-          <Text style={styles.extraMacroLabel}>Клетчатка</Text>
-          {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
-          ) : (
-            <Text style={styles.extraMacroValue}>{extraMacros.fiber}g</Text>
-          )}
-        </View>
-        <View style={styles.extraMacroCard}>
-          <Text style={styles.extraMacroIcon}>🍬</Text>
-          <Text style={styles.extraMacroLabel}>Сахар</Text>
-          {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
-          ) : (
-            <Text style={styles.extraMacroValue}>{extraMacros.sugar}g</Text>
-          )}
-        </View>
-        <View style={styles.extraMacroCard}>
-          <Text style={styles.extraMacroIcon}>🧂</Text>
-          <Text style={styles.extraMacroLabel}>Натрий</Text>
-          {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
-          ) : (
-            <Text style={styles.extraMacroValue}>{extraMacros.sodium}mg</Text>
-          )}
-        </View>
-      </View>
 
       {/* Health Score Card */}
       <View style={styles.healthScoreCard}>
@@ -409,6 +375,40 @@ export default function MealDetailScreen() {
             {healthScore !== null ? `${healthScore}/10` : "Н/д"}
           </Text>
         )}
+      </View>
+    </View>
+  );
+
+  const renderPage2 = () => (
+    <View style={styles.carouselPage}>
+      <View style={styles.extraMacrosRow}>
+        <View style={styles.extraMacroCard}>
+          <Text style={styles.extraMacroIcon}>🍆</Text>
+          <Text style={styles.extraMacroLabel}>Клетчатка</Text>
+          {loadingDetail ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+          ) : (
+            <Text style={styles.extraMacroValue}>{extraMacros.fiber}g</Text>
+          )}
+        </View>
+        <View style={styles.extraMacroCard}>
+          <Text style={styles.extraMacroIcon}>🍬</Text>
+          <Text style={styles.extraMacroLabel}>Сахар</Text>
+          {loadingDetail ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+          ) : (
+            <Text style={styles.extraMacroValue}>{extraMacros.sugar}g</Text>
+          )}
+        </View>
+        <View style={styles.extraMacroCard}>
+          <Text style={styles.extraMacroIcon}>🧂</Text>
+          <Text style={styles.extraMacroLabel}>Натрий</Text>
+          {loadingDetail ? (
+            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+          ) : (
+            <Text style={styles.extraMacroValue}>{extraMacros.sodium}mg</Text>
+          )}
+        </View>
       </View>
     </View>
   );
