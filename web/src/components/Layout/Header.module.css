@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 0;
+  padding: 16px 0;
   width: 100%;
 }
 
@@ -92,6 +92,19 @@
 }
 
 @media (max-width: 768px) {
+  .nav {
+    padding: 12px 0;
+  }
+
+  .logoContainer {
+    width: 48px;
+    height: 48px;
+  }
+
+  .logoText {
+    font-size: 24px;
+  }
+
   .navActions {
     display: none;
   }

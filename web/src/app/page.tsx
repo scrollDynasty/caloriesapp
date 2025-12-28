@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import FeaturesSection from "../components/Landing/FeaturesSection";
 import Hero from "../components/Landing/Hero";
 import InfluencersSection from "../components/Landing/InfluencersSection";
 import PhoneMockups from "../components/Landing/PhoneMockups";
@@ -45,6 +46,7 @@ export default function Home() {
       <div className={styles.influencersWrapper}>
         <InfluencersSection />
       </div>
+      <FeaturesSection />
     </div>
   );
 }
