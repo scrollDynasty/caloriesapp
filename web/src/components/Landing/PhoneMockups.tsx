@@ -5,7 +5,6 @@ import styles from "./PhoneMockups.module.css";
 export default function PhoneMockups() {
   return (
     <div className={styles.container}>
-      {/* Left phone - scanning */}
       <div className={styles.phoneLeft}>
         <div className={styles.phoneFrame}>
           <div className={styles.phoneContent}>
@@ -22,7 +21,6 @@ export default function PhoneMockups() {
         </div>
       </div>
 
-      {/* Right phone - results */}
       <div className={styles.phoneRight}>
         <div className={styles.phoneFrame}>
           <div className={styles.phoneContent}>
@@ -53,7 +51,6 @@ export default function PhoneMockups() {
         </div>
       </div>
 
-      {/* Floating labels */}
       <FloatingLabel title="Blueberries" value="8" position="top-right" />
       <FloatingLabel title="Pancakes" value="595" position="middle-right" />
       <FloatingLabel title="Syrup" value="12" position="middle-center" />

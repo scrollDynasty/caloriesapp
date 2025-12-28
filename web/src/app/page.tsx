@@ -23,7 +23,15 @@ export default function Home() {
 
   return (
     <div className={styles.page}>
-      <div className={`${styles.headerWrapper} ${isScrolled ? styles.headerWrapperScrolled : ""}`}>
+      <div 
+        className={styles.headerWrapper}
+        style={isScrolled ? {
+          backgroundColor: 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        } as React.CSSProperties : {}}
+      >
         <div className={styles.headerContent}>
           <Header />
         </div>

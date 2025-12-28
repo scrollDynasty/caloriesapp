@@ -14,16 +14,9 @@
   width: 100%;
   z-index: 100;
   background-color: rgba(255, 255, 255, 1);
-  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
   margin: 0;
   padding: 0;
-  will-change: background-color, backdrop-filter;
-}
-
-.headerWrapperScrolled {
-  background-color: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease, box-shadow 0.3s ease;
 }
 
 .headerContent {
