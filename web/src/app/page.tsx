@@ -6,6 +6,7 @@ import Hero from "../components/Landing/Hero";
 import InfluencersSection from "../components/Landing/InfluencersSection";
 import LightModeSection from "../components/Landing/LightModeSection";
 import PhoneMockups from "../components/Landing/PhoneMockups";
+import TestimonialsSection from "../components/Landing/TestimonialsSection";
 import WhyChooseSection from "../components/Landing/WhyChooseSection";
 import Header from "../components/Layout/Header";
 import styles from "./page.module.css";
@@ -51,6 +52,9 @@ export default function Home() {
       <FeaturesSection />
       <WhyChooseSection />
       <LightModeSection />
+      <div style={{ position: 'relative', minHeight: '100vh' }}>
+        <TestimonialsSection />
+      </div>
     </div>
   );
 }
