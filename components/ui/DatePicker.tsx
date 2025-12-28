@@ -1,7 +1,7 @@
 import { Picker } from "@react-native-picker/picker";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 interface DatePickerProps {
   value: Date;
@@ -33,12 +33,16 @@ const PickerColumn = ({
   value,
   onValueChange,
   columnWidth,
+  themeColors,
+  isDark,
 }: {
   label: string;
   items: (string | number)[];
   value: string | number;
   onValueChange: (value: string | number) => void;
   columnWidth?: number;
+  themeColors: any;
+  isDark: boolean;
 }) => {
   const containerStyle = columnWidth
     ? [styles.columnContainer, { width: columnWidth }]
@@ -65,23 +69,24 @@ const PickerColumn = ({
 
   return (
     <View style={containerStyle}>
-      <Text style={styles.columnLabel}>{label}</Text>
-      <View style={wrapperStyle}>
+      <Text style={[styles.columnLabel, { color: themeColors.textSecondary }]}>{label}</Text>
+      <View style={[wrapperStyle, { backgroundColor: themeColors.background }, { borderRadius: 12 }]}>
         {}
         {Platform.OS === "android" && (
-          <View style={styles.selectedItemOverlay} pointerEvents="none" />
+          <View style={[styles.selectedItemOverlay, { backgroundColor: isDark ? themeColors.gray5 : "#F4F2EF" }]} pointerEvents="none" />
         )}
         <Picker
           selectedValue={value}
           onValueChange={onValueChange}
-          style={pickerStyle}
-          itemStyle={Platform.OS === "ios" ? styles.pickerItem : undefined}
+          style={[pickerStyle, { color: themeColors.text }]}
+          itemStyle={Platform.OS === "ios" ? [styles.pickerItem, { color: themeColors.text }] : { color: themeColors.text }}
         >
           {items.map((item) => (
             <Picker.Item
               key={String(item)}
               label={String(item)}
               value={item}
+              color={themeColors.text}
             />
           ))}
         </Picker>
@@ -94,6 +99,7 @@ export const DatePicker = React.memo(function DatePicker({
   value,
   onValueChange,
 }: DatePickerProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const [day, setDay] = useState(value.getDate());
   const [month, setMonth] = useState(value.getMonth());
   const [year, setYear] = useState(value.getFullYear());
@@ -187,6 +193,8 @@ export const DatePicker = React.memo(function DatePicker({
           value={day}
           onValueChange={handleDayChange}
           columnWidth={100}
+          themeColors={themeColors}
+          isDark={isDark}
         />
         <PickerColumn
           label="МЕСЯЦ"
@@ -194,6 +202,8 @@ export const DatePicker = React.memo(function DatePicker({
           value={MONTHS[month]}
           onValueChange={handleMonthChange}
           columnWidth={200}
+          themeColors={themeColors}
+          isDark={isDark}
         />
         <PickerColumn
           label="ГОД"
@@ -201,6 +211,8 @@ export const DatePicker = React.memo(function DatePicker({
           value={year}
           onValueChange={handleYearChange}
           columnWidth={120}
+          themeColors={themeColors}
+          isDark={isDark}
         />
       </View>
     </View>
@@ -228,7 +240,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   columnLabel: {
-    color: colors.secondary,
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 16.94,
@@ -249,7 +260,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: 40,
     marginTop: -20,
-    backgroundColor: "#F4F2EF",
     borderRadius: 12,
     zIndex: 0,
   },
@@ -257,13 +267,9 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     zIndex: 1,
-    ...(Platform.OS === "ios" && {
-      backgroundColor: "transparent",
-    }),
   },
   pickerItem: {
     fontSize: 20,
-    color: colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
 });

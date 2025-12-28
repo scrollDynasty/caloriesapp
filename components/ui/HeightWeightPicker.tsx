@@ -1,7 +1,7 @@
 import { Picker } from "@react-native-picker/picker";
 import React, { useMemo } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
-import { colors } from "../../constants/theme";
+import { useTheme } from "../../context/ThemeContext";
 
 interface HeightWeightPickerProps {
   label: string;
@@ -20,6 +20,7 @@ export const HeightWeightPicker = React.memo(function HeightWeightPicker({
   min,
   max,
 }: HeightWeightPickerProps) {
+  const { colors: themeColors, isDark } = useTheme();
   const items = useMemo(
     () => Array.from({ length: max - min + 1 }, (_, i) => min + i),
     [min, max]
@@ -27,19 +28,20 @@ export const HeightWeightPicker = React.memo(function HeightWeightPicker({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.pickerWrapper}>
+      <Text style={[styles.label, { color: themeColors.textSecondary }]}>{label}</Text>
+      <View style={[styles.pickerWrapper, { backgroundColor: themeColors.background }]}>
         <Picker
           selectedValue={value}
           onValueChange={onValueChange}
-          style={styles.picker}
-          itemStyle={Platform.OS === "ios" ? styles.pickerItem : undefined}
+          style={[styles.picker, { color: themeColors.text }]}
+          itemStyle={Platform.OS === "ios" ? [styles.pickerItem, { color: themeColors.text }] : { color: themeColors.text }}
         >
           {items.map((item) => (
             <Picker.Item
               key={item}
               label={String(item)}
               value={item}
+              color={themeColors.text}
             />
           ))}
         </Picker>
@@ -54,7 +56,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   label: {
-    color: colors.secondary,
     fontSize: 14,
     fontWeight: "600",
     lineHeight: 16.94,
@@ -67,17 +68,14 @@ const styles = StyleSheet.create({
     width: 120,
     height: 280,
     overflow: "hidden",
+    borderRadius: 12,
   },
   picker: {
     width: "100%",
     height: "100%",
-    ...(Platform.OS === "ios" && {
-      backgroundColor: "transparent",
-    }),
   },
   pickerItem: {
     fontSize: 20,
-    color: colors.primary,
     fontFamily: "Inter_600SemiBold",
   },
 });

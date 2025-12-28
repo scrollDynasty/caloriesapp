@@ -6,13 +6,14 @@ import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
 import { GenderRadioButton } from "../../components/ui/GenderRadioButton";
 import { ProgressBar } from "../../components/ui/ProgressBar";
-import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 type Gender = "male" | "female";
 
 export default function Step1() {
+  const { colors: themeColors } = useTheme();
   const fontsLoaded = useFonts();
   const router = useRouter();
   const { updateData } = useOnboarding();
@@ -31,7 +32,7 @@ export default function Step1() {
     updateData({ gender: selectedGender });
     
     router.push({
-      pathname: "/steps/step2",
+      pathname: "/steps/step3",
     } as any);
   };
 
@@ -40,7 +41,7 @@ export default function Step1() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={["top"]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -56,8 +57,8 @@ export default function Step1() {
         <View style={styles.contentContainer}>
           {}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Выберите пол</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: themeColors.text }]}>Выберите пол</Text>
+            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
               Это поможет нам рассчитать вашу суточную норму калорий
             </Text>
           </View>
@@ -95,7 +96,6 @@ export default function Step1() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -115,7 +115,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    color: colors.primary,
     fontSize: 28,
     fontWeight: "700",
     lineHeight: 33.88,
@@ -123,7 +122,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   subtitle: {
-    color: colors.secondary,
     fontSize: 16,
     fontWeight: "400",
     lineHeight: 24,

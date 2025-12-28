@@ -6,11 +6,12 @@ import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
 import { DatePicker } from "../../components/ui/DatePicker";
 import { ProgressBar } from "../../components/ui/ProgressBar";
-import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 
 export default function Step4() {
+  const { colors: themeColors } = useTheme();
   const fontsLoaded = useFonts();
   const router = useRouter();
   const { updateData } = useOnboarding();
@@ -34,7 +35,7 @@ export default function Step4() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]} edges={["top"]}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -50,8 +51,8 @@ export default function Step4() {
         <View style={styles.contentContainer}>
           {}
           <View style={styles.textSection}>
-            <Text style={styles.title}>Дата рождения</Text>
-            <Text style={styles.subtitle}>
+            <Text style={[styles.title, { color: themeColors.text }]}>Дата рождения</Text>
+            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
               Это поможет скорректировать программу питания
             </Text>
           </View>
@@ -78,7 +79,6 @@ export default function Step4() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -98,7 +98,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    color: colors.primary,
     fontSize: 28,
     fontWeight: "700",
     lineHeight: 33.88,
@@ -106,7 +105,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
   },
   subtitle: {
-    color: colors.secondary,
     fontSize: 16,
     fontWeight: "400",
     lineHeight: 24,
