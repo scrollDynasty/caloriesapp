@@ -37,6 +37,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-weight: 500;
   height: auto;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {

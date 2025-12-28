@@ -52,9 +52,7 @@ export default function Home() {
       <FeaturesSection />
       <WhyChooseSection />
       <LightModeSection />
-      <div style={{ position: 'relative', minHeight: '100vh' }}>
-        <TestimonialsSection />
-      </div>
+      <TestimonialsSection />
     </div>
   );
 }
