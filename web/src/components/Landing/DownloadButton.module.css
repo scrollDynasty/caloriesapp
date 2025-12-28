@@ -39,7 +39,6 @@
 }
 
 .topText {
-  font-family: var(--font-inter);
   font-size: 8px;
   font-weight: 400;
   height: 10px;
@@ -50,7 +49,6 @@
 }
 
 .bottomText {
-  font-family: var(--font-inter);
   font-size: 12px;
   font-weight: 600;
   height: 15px;

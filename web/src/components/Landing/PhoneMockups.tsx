@@ -1,4 +1,5 @@
 import Image from "next/image";
+import FloatingLabel from "../ui/FloatingLabel";
 import styles from "./PhoneMockups.module.css";
 
 export default function PhoneMockups() {
@@ -53,18 +54,9 @@ export default function PhoneMockups() {
       </div>
 
       {/* Floating labels */}
-      <div className={styles.label1}>
-        <div className={styles.labelTitle}>Blueberries</div>
-        <div className={styles.labelValue}>8</div>
-      </div>
-      <div className={styles.label2}>
-        <div className={styles.labelTitle}>Pancakes</div>
-        <div className={styles.labelValue}>595</div>
-      </div>
-      <div className={styles.label3}>
-        <div className={styles.labelTitle}>Syrup</div>
-        <div className={styles.labelValue}>12</div>
-      </div>
+      <FloatingLabel title="Blueberries" value="8" position="top-right" />
+      <FloatingLabel title="Pancakes" value="595" position="middle-right" />
+      <FloatingLabel title="Syrup" value="12" position="middle-center" />
     </div>
   );
 }

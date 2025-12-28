@@ -1,0 +1,47 @@
+.label {
+  position: absolute;
+  background-color: #ffffff;
+  box-shadow: var(--shadow-md);
+  border-radius: 12px;
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+}
+
+.labelTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 2px;
+}
+
+.labelValue {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--foreground);
+}
+
+.top-right {
+  top: 15%;
+  right: 40px;
+}
+
+.middle-right {
+  top: 30%;
+  right: -20px;
+}
+
+.middle-center {
+  top: 45%;
+  right: 43.99%;
+  left: 45%;
+}
+
+@media (max-width: 1200px) {
+  .label {
+    display: none;
+  }
+}
+

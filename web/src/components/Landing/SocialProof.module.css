@@ -32,7 +32,6 @@
 }
 
 .text {
-  font-family: var(--font-inter);
   font-size: 14px;
   font-weight: 500;
   color: var(--foreground);
@@ -46,14 +45,11 @@
 }
 
 .starIcon {
-  width: 14px;
-  height: 14px;
   color: var(--rating-yellow);
   flex-shrink: 0;
 }
 
 .ratingText {
-  font-family: var(--font-inter);
   font-size: 14px;
   font-weight: 500;
   color: var(--rating-yellow);
