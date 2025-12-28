@@ -3,7 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  output: "export",
   images: {
+    unoptimized: true, 
     remotePatterns: [
       {
         protocol: "https",
@@ -16,6 +18,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  trailingSlash: true, // Better for static hosting
 };
 
 export default nextConfig;
