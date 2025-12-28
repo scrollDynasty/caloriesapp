@@ -1,16 +1,42 @@
 .page {
+  width: 100%;
   min-height: 100vh;
   background-color: var(--background);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 0 20px;
+  padding: 0;
+  margin: 0;
+}
+
+.headerWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 100;
+  background-color: rgba(255, 255, 255, 1);
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+  margin: 0;
+  padding: 0;
+  will-change: background-color, backdrop-filter;
+}
+
+.headerWrapperScrolled {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+.headerContent {
+  width: 100%;
+  max-width: 1400px;
+  padding: 0 40px;
+  margin: 0 auto;
 }
 
 .container {
   width: 100%;
   max-width: 1400px;
-  padding: 0 40px;
+  padding: 112px 40px 0;
   display: flex;
   flex-direction: column;
   gap: 60px;
@@ -26,6 +52,11 @@
   width: 100%;
 }
 
+.influencersWrapper {
+  width: 100%;
+  padding: 0 40px;
+}
+
 @media (max-width: 1200px) {
   .content {
     flex-direction: column;
@@ -34,8 +65,8 @@
 }
 
 @media (max-width: 768px) {
-  .page {
-    padding: 0 16px;
+  .headerContent {
+    padding: 0 20px;
   }
 
   .container {
@@ -46,5 +77,9 @@
   .content {
     gap: 40px;
     padding-bottom: 60px;
+  }
+
+  .influencersWrapper {
+    padding: 0 20px;
   }
 }

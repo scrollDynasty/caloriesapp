@@ -1,0 +1,124 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+  align-items: center;
+  padding: 60px 0 100px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 576px;
+}
+
+.heading {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -1px;
+  color: var(--foreground);
+  text-align: center;
+  margin: 0;
+}
+
+.cards {
+  display: flex;
+  gap: 32px;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+}
+
+.card {
+  flex: 1;
+  min-width: 0;
+  height: 600px;
+  background-color: #f0f0f0;
+  border-radius: 32px;
+  overflow: hidden;
+  position: relative;
+}
+
+.cardImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0) 100%);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  z-index: 1;
+  min-height: 300px;
+}
+
+.quoteIcon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+}
+
+.cardName {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.cardQuote {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 14px 0 0 0;
+}
+
+@media (max-width: 1200px) {
+  .cards {
+    flex-wrap: wrap;
+  }
+
+  .card {
+    flex: 1 1 calc(50% - 16px);
+    min-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    gap: 40px;
+    padding: 40px 0 60px;
+  }
+
+  .heading {
+    font-size: 32px;
+    letter-spacing: -0.5px;
+  }
+
+  .cards {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .card {
+    width: 100%;
+    height: 500px;
+  }
+}
+
