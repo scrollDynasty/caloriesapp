@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import FeaturesSection from "../components/Landing/FeaturesSection";
 import Hero from "../components/Landing/Hero";
 import InfluencersSection from "../components/Landing/InfluencersSection";
+import LightModeSection from "../components/Landing/LightModeSection";
 import PhoneMockups from "../components/Landing/PhoneMockups";
 import WhyChooseSection from "../components/Landing/WhyChooseSection";
 import Header from "../components/Layout/Header";
@@ -49,6 +50,7 @@ export default function Home() {
       </div>
       <FeaturesSection />
       <WhyChooseSection />
+      <LightModeSection />
     </div>
   );
 }

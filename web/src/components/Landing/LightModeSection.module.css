@@ -1,0 +1,143 @@
+.section {
+  width: 100%;
+  padding: 100px 0;
+  background: transparent;
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 80px;
+}
+
+.textContent {
+  flex: 1;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ef4444;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.heading {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 56px;
+  letter-spacing: -1px;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.emojiRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.emoji {
+  font-size: 24px;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.phoneWrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.phoneFrame {
+  width: 320px;
+  height: 640px;
+  background-color: #000000;
+  border-radius: 40px;
+  padding: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  transform: rotate(5deg);
+}
+
+.phoneContent {
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 32px;
+  position: relative;
+  overflow: hidden;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.phoneImage {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  object-fit: contain;
+  object-position: center center;
+}
+
+
+@media (max-width: 1200px) {
+  .content {
+    flex-direction: column;
+    gap: 60px;
+  }
+
+  .textContent {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .phoneFrame {
+    transform: rotate(0deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 0;
+  }
+
+  .container {
+    padding: 0 20px;
+  }
+
+  .heading {
+    font-size: 36px;
+    line-height: 44px;
+  }
+
+  .phoneFrame {
+    width: 280px;
+    height: 560px;
+  }
+
+}
+
