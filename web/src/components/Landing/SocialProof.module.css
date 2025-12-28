@@ -1,0 +1,61 @@
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 7px 17px 7px 7px;
+  box-shadow: var(--shadow-sm);
+  width: fit-content;
+  margin-bottom: 32px;
+}
+
+.users {
+  display: flex;
+  align-items: center;
+  margin-left: -8px;
+}
+
+.userAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  border: 2px solid #ffffff;
+  background-color: #e5e5e5;
+  margin-left: -8px;
+  position: relative;
+}
+
+.userAvatar:first-child {
+  margin-left: 0;
+}
+
+.text {
+  font-family: var(--font-inter);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.starIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--rating-yellow);
+  flex-shrink: 0;
+}
+
+.ratingText {
+  font-family: var(--font-inter);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--rating-yellow);
+}
+
