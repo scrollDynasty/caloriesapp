@@ -16,6 +16,7 @@ export default function Header() {
               height={64} 
               className={styles.logoImage}
               priority
+              unoptimized
             />
           </div>
         </Link>
