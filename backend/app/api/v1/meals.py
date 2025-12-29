@@ -1016,7 +1016,6 @@ async def add_meal_ingredient(
             detail="Фотография не найдена"
         )
     
-    # Получаем текущие ингредиенты
     current_ingredients = []
     ingredients_json = getattr(photo, 'ingredients_json', None)
     if ingredients_json:
@@ -1025,14 +1024,12 @@ async def add_meal_ingredient(
         except Exception:
             current_ingredients = []
     
-    # Добавляем новый ингредиент
     new_ingredient = {
         "name": ingredient.get("name", "Ингредиент"),
         "calories": ingredient.get("calories", 0)
     }
     current_ingredients.append(new_ingredient)
     
-    # Сохраняем обновленный список (если поле существует)
     if hasattr(photo, 'ingredients_json'):
         photo.ingredients_json = json.dumps(current_ingredients, ensure_ascii=False)
         db.commit()

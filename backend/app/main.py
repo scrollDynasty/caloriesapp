@@ -1,10 +1,12 @@
 import app.fastapi_patch
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.database import init_db, engine, Base
 from app.api.v1 import auth, onboarding, meals, progress
+from sqlalchemy import text
 
 app = FastAPI(
     title="Calories App API",
@@ -30,6 +32,32 @@ app.add_middleware(
     expose_headers=["*"],
     max_age=3600,
 )
+
+@app.middleware("http")
+async def intercept_user_delete(request: Request, call_next):
+    path = str(request.url.path)
+    if request.method == "DELETE" and "/admin/UserAdmin/item/" in path:
+        import re
+        match = re.search(r'/admin/UserAdmin/item/(\d+)', path)
+        if match:
+            user_id = int(match.group(1))
+            try:
+                with engine.begin() as conn:
+                    result = conn.execute(
+                        text("DELETE FROM users WHERE id = :user_id").bindparams(user_id=user_id)
+                    )
+                    if result.rowcount > 0:
+                        return JSONResponse({"status": 0, "msg": "success", "data": {"id": user_id}})
+                    else:
+                        return JSONResponse({"status": 1, "msg": "User not found"}, status_code=404)
+            except Exception as e:
+                import traceback
+                print(f"Error deleting user {user_id}: {e}")
+                print(traceback.format_exc())
+                return JSONResponse({"status": 1, "msg": str(e)}, status_code=500)
+    
+    response = await call_next(request)
+    return response
 
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):

@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -9,24 +10,64 @@ import { RadioButton } from "../../components/ui/RadioButton";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
+import { apiService } from "../../services/api";
+import { saveOnboardingData } from "../../services/onboarding";
+
+const ONBOARDING_DATA_KEY = "@yebich:onboarding_data";
 
 export default function Step9() {
   const { colors: themeColors } = useTheme();
   const fontsLoaded = useFonts();
   const router = useRouter();
-  const { updateData } = useOnboarding();
+  const { updateData, data: onboardingData } = useOnboarding();
   const [selectedMotivation, setSelectedMotivation] = useState<string | null>("eat-healthy");
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!fontsLoaded) {
     return null;
   }
 
-  const handleNextPress = () => {
-    if (!selectedMotivation) {
+  const handleNextPress = async () => {
+    if (!selectedMotivation || isSaving) {
       return;
     }
     
     updateData({ motivation: selectedMotivation });
+    
+    updateData({ motivation: selectedMotivation });
+    
+    const finalData = {
+      ...onboardingData,
+      motivation: selectedMotivation,
+    };
+
+    if (
+      finalData.gender &&
+      finalData.height &&
+      finalData.weight &&
+      finalData.workoutFrequency &&
+      finalData.goal
+    ) {
+      setIsSaving(true);
+      try {
+        const token = await apiService.getToken();
+        if (token) {
+          const result = await saveOnboardingData(finalData);
+          if (result.success) {
+            if (__DEV__) console.log("✅ Onboarding data saved successfully");
+            await AsyncStorage.removeItem(ONBOARDING_DATA_KEY);
+          } else {
+            if (__DEV__) console.error("❌ Failed to save onboarding data:", result.error);
+          }
+        } else {
+          if (__DEV__) console.warn("⚠️ No token found, data will be synced after login");
+        }
+      } catch (error) {
+        if (__DEV__) console.error("❌ Error saving onboarding data:", error);
+      } finally {
+        setIsSaving(false);
+      }
+    }
     
     router.push({
       pathname: "/results",
@@ -88,7 +129,7 @@ export default function Step9() {
         {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
-            label="Продолжить"
+            label={isSaving ? "Сохранение..." : "Продолжить"}
             onPress={handleNextPress}
             icon={null}
           />

@@ -96,12 +96,34 @@ export default function CallbackScreen() {
         }
 
         if (!hasExistingData) {
-          if (onboardingData && Object.keys(onboardingData).length > 0) {
+          let dataToSave = onboardingData;
+          
+          try {
+            const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
+            const storedData = await AsyncStorage.getItem("@yebich:onboarding_data");
+            if (storedData) {
+              const parsedData = JSON.parse(storedData);
+              if (parsedData && Object.keys(parsedData).length > 0) {
+                dataToSave = { ...onboardingData, ...parsedData };
+                if (__DEV__) console.log("📦 Found onboarding data in storage, merging with context");
+              }
+            }
+          } catch (storageError) {
+            if (__DEV__) console.warn("⚠️ Error reading stored data:", storageError);
+          }
+          
+          if (dataToSave && Object.keys(dataToSave).length > 0) {
             try {
               if (__DEV__) console.log("💾 Saving onboarding data (first time)...");
-              const saveResult = await saveOnboardingData(onboardingData);
+              const saveResult = await saveOnboardingData(dataToSave);
               if (saveResult.success) {
                 if (__DEV__) console.log("✅ Onboarding data saved");
+                try {
+                  const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
+                  await AsyncStorage.removeItem("@yebich:onboarding_data");
+                } catch (e) {
+                  if (__DEV__) console.warn("⚠️ Error clearing stored data:", e);
+                }
               } else if (__DEV__) {
                 console.warn("⚠️ Onboarding save failed:", saveResult.error);
               }
@@ -109,7 +131,7 @@ export default function CallbackScreen() {
               if (__DEV__) console.error("❌ Ошибка сохранения данных онбординга:", saveError);
             }
           } else if (__DEV__) {
-            console.log("ℹ️ No onboarding data in context to save");
+            console.log("ℹ️ No onboarding data to save");
           }
         }
 

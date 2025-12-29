@@ -77,16 +77,18 @@ export default function PersonalDataScreen() {
       setLoading(true);
       const onboarding = await apiService.getOnboardingData();
       
-      setData({
-        weight: onboarding.weight || null,
-        height: onboarding.height || null,
-        birthDate: onboarding.birth_date ? new Date(onboarding.birth_date) : null,
-        gender: onboarding.gender || null,
-        goal: onboarding.goal || null,
-        workoutFrequency: onboarding.workout_frequency || null,
-        targetWeight: onboarding.target_weight || onboarding.weight || null,
-        stepGoal: onboarding.step_goal || 10000,
-      });
+      if (onboarding) {
+        setData({
+          weight: onboarding.weight || null,
+          height: onboarding.height || null,
+          birthDate: onboarding.birth_date ? new Date(onboarding.birth_date) : null,
+          gender: onboarding.gender || null,
+          goal: onboarding.goal || null,
+          workoutFrequency: onboarding.workout_frequency || null,
+          targetWeight: onboarding.target_weight || onboarding.weight || null,
+          stepGoal: onboarding.step_goal || 10000,
+        });
+      }
     } catch (error) {
       if (__DEV__) console.error("Error loading personal data:", error);
     } finally {
