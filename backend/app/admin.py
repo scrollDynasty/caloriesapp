@@ -17,7 +17,7 @@ from app.models.progress_photo import ProgressPhoto
 admin_settings = AdminSettings(
     database_url_async=f"mysql+aiomysql://{settings.db_user}:{settings.db_password}@{settings.db_host}:{settings.db_port}/{settings.db_name}?charset=utf8mb4",
     debug=settings.debug,
-    site_title="Calories App - Admin Panel",
+    site_title="Yeb-Ich Admin Panel",
     site_icon="https://img.icons8.com/fluency/48/vegetarian-food.png",
     language="en_US",
     amis_cdn="https://unpkg.com",

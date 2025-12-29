@@ -986,9 +986,11 @@ def delete_meal_photo(
             detail="Фотография не найдена"
         )
 
-    full_path = MEDIA_ROOT.parent / photo.file_path
-    if full_path.exists():
-        full_path.unlink()
+    if photo.file_path and photo.file_path != "manual" and photo.mime_type != "manual":
+        try:
+            storage_service.delete_file(photo.file_path)
+        except Exception as e:
+            logger.warning(f"Failed to delete file from storage: {e}")
 
     db.delete(photo)
     db.commit()
