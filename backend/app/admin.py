@@ -1,3 +1,6 @@
+# Импортируем патч для совместимости ДО импорта fastapi-amis-admin
+import app.fastapi_patch  # noqa: F401
+
 from fastapi import FastAPI
 from fastapi_amis_admin.admin.settings import Settings as AdminSettings
 from fastapi_amis_admin.admin.site import AdminSite

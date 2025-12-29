@@ -1,9 +1,11 @@
+# Импортируем патч для совместимости ДО импорта админ-панели
+import app.fastapi_patch  # noqa: F401
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import init_db, engine, Base
 from app.api.v1 import auth, onboarding, meals, progress
-from app.admin import site
 
 app = FastAPI(
     title="Calories App API",
@@ -11,7 +13,15 @@ app = FastAPI(
     version="1.0.0",
 )
 
-site.mount_app(app)
+# Пытаемся подключить админ-панель, но не падаем если она не работает
+admin_enabled = False
+try:
+    from app.admin import site
+    site.mount_app(app)
+    admin_enabled = True
+except Exception as e:
+    print(f"Warning: Admin panel could not be loaded: {e}")
+    admin_enabled = False
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,7 +48,10 @@ async def startup_event():
     print(f"Server starting on {settings.host}:{settings.port}")
     print(f"Environment: {settings.environment}")
     print(f"Database: {settings.db_name}@{settings.db_host}")
-    print(f"Admin panel: http://{settings.host}:{settings.port}/admin/")
+    if admin_enabled:
+        print(f"Admin panel: http://{settings.host}:{settings.port}/admin/")
+    else:
+        print("Admin panel: disabled (compatibility issue)")
 
 
 @app.on_event("shutdown")
