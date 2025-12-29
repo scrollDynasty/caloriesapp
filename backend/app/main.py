@@ -1,5 +1,4 @@
-# Импортируем патч для совместимости ДО импорта админ-панели
-import app.fastapi_patch  # noqa: F401
+import app.fastapi_patch
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +12,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Пытаемся подключить админ-панель, но не падаем если она не работает
 admin_enabled = False
 try:
     from app.admin import site

@@ -1,5 +1,4 @@
-# Импортируем патч для совместимости ДО импорта fastapi-amis-admin
-import app.fastapi_patch  # noqa: F401
+import app.fastapi_patch
 
 from fastapi import FastAPI
 from fastapi_amis_admin.admin.settings import Settings as AdminSettings
@@ -177,23 +176,3 @@ class ProgressPhotoAdmin(admin.ModelAdmin):
         return query.order_by(ProgressPhoto.created_at.desc())
     
     form_excluded = [ProgressPhoto.id, ProgressPhoto.created_at, ProgressPhoto.file_size, ProgressPhoto.mime_type]
-
-
-# ==================== Информация для доступа ====================
-"""
-ДОСТУП К АДМИН-ПАНЕЛИ:
-
-URL: https://api.yeb-ich.com/admin/
-     или http://localhost:8000/admin/
-
-На данный момент fastapi-amis-admin НЕ имеет встроенной аутентификации.
-Админ-панель открыта для всех.
-
-Для добавления защиты паролем установите:
-pip install fastapi-user-auth
-
-И раскомментируйте код аутентификации ниже.
-
-ВНИМАНИЕ: Рекомендуется закрыть доступ к /admin через Nginx
-или добавить IP-фильтрацию!
-"""
