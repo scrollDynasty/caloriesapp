@@ -494,10 +494,37 @@ class RecipeAdmin(admin.ModelAdmin):
         return {k: v for k, v in data_dict.items() if v is not None}
 
 
+class PressInquiryReadSchema(BaseModel):
+    id: int
+    email: str
+    subject: str
+    message: str
+    status: InquiryStatus
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    admin_notes: Optional[str] = None
+    replied_at: Optional[datetime] = None
+    
+    @field_serializer('created_at', 'updated_at', 'replied_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    def dict(self, **kwargs) -> dict[str, Any]:
+        return self.model_dump(mode='json', **kwargs)
+    
+    class Config:
+        from_attributes = True
+
+
 @site.register_admin
 class PressInquiryAdmin(admin.ModelAdmin):
     page_schema = "Press Inquiries"
     model = PressInquiry
+    schema_read = PressInquiryReadSchema
     
     list_display = [
         PressInquiry.id,
