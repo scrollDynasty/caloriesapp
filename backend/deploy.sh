@@ -54,6 +54,19 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
     rm /tmp/backend.tar.gz
     echo "✅ Files deployed to $REMOTE_DIR"
     
+    # Создаём и активируем venv если его нет
+    if [ ! -d "$REMOTE_DIR/venv" ]; then
+        echo "📦 Creating virtual environment..."
+        python3 -m venv $REMOTE_DIR/venv
+    fi
+    
+    # Устанавливаем зависимости
+    echo "📦 Installing dependencies..."
+    source $REMOTE_DIR/venv/bin/activate
+    pip install --upgrade pip
+    pip install -r $REMOTE_DIR/requirements.txt
+    deactivate
+    
     # Устанавливаем переменную окружения
     export ENVIRONMENT=$ENVIRONMENT
     export DEBUG=$([ "$ENVIRONMENT" = "dev" ] && echo "true" || echo "false")
@@ -91,8 +104,17 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
         # Удаляем все процессы с неправильными именами и старые процессы
         pm2 delete all 2>/dev/null || true
         
-        # Запускаем новый процесс с правильным синтаксисом
-        pm2 start run.py --name \$PM2_NAME --interpreter python3
+        # Проверяем наличие venv и используем его Python
+        if [ -d "$REMOTE_DIR/venv/bin" ]; then
+            PYTHON_INTERPRETER="$REMOTE_DIR/venv/bin/python3"
+            echo "📦 Using Python from venv: \$PYTHON_INTERPRETER"
+        else
+            PYTHON_INTERPRETER="python3"
+            echo "⚠️  venv not found, using system python3"
+        fi
+        
+        # Запускаем новый процесс с правильным интерпретатором
+        pm2 start run.py --name \$PM2_NAME --interpreter \$PYTHON_INTERPRETER
         pm2 save
         echo "✅ Backend restarted as \$PM2_NAME"
     else
