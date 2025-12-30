@@ -300,13 +300,10 @@ export default function PersonalDataScreen() {
             <Text style={styles.targetValue}>{data.targetWeight || data.weight || "--"} кг</Text>
           </View>
           <TouchableOpacity 
-            style={[
-              styles.changeGoalButton,
-              { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFF0" }
-            ]}
+            style={styles.changeGoalButton}
             onPress={() => openEditModal("targetWeight")}
           >
-            <Text style={[styles.changeGoalText, { color: colors.text }]}>Изменить цель</Text>
+            <Text style={styles.changeGoalText}>Изменить цель</Text>
           </TouchableOpacity>
         </View>
 
@@ -618,6 +615,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     color: colors.text,
   },
   changeGoalButton: {
+    backgroundColor: colors.backgroundSecondary,
     borderColor: colors.border,
     borderWidth: 1,
     paddingHorizontal: 18,
@@ -627,6 +625,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   changeGoalText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
+    color: colors.text,
   },
   section: {
     marginHorizontal: 16,

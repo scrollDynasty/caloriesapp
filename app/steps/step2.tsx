@@ -6,18 +6,66 @@ import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
 import { ProgressBar } from "../../components/ui/ProgressBar";
 import { RadioButton } from "../../components/ui/RadioButton";
-import { colors } from "../../constants/theme";
-import { useFonts } from "../../hooks/use-fonts";
 import { useOnboarding } from "../../context/OnboardingContext";
+import { useTheme } from "../../context/ThemeContext";
+import { useFonts } from "../../hooks/use-fonts";
 
 type WorkoutFrequency = "0-2" | "3-5" | "6+";
 
 export default function Step2() {
+  const { colors } = useTheme();
   const fontsLoaded = useFonts();
   const router = useRouter();
   const { updateData } = useOnboarding();
   const [selectedFrequency, setSelectedFrequency] =
     useState<WorkoutFrequency | null>(null);
+
+  const styles = StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 48,
+    },
+    contentContainer: {
+      paddingHorizontal: 24,
+      paddingTop: 32,
+      paddingBottom: 32,
+    },
+    textSection: {
+      alignItems: "center",
+      marginBottom: 40,
+      gap: 12,
+    },
+    title: {
+      color: colors.primary,
+      fontSize: 28,
+      fontWeight: "700",
+      lineHeight: 33.88,
+      textAlign: "center",
+      fontFamily: "Inter_700Bold",
+    },
+    subtitle: {
+      color: colors.secondary,
+      fontSize: 16,
+      fontWeight: "400",
+      lineHeight: 24,
+      textAlign: "center",
+      fontFamily: "Inter_400Regular",
+    },
+    optionsContainer: {
+      gap: 16,
+    },
+    buttonContainer: {
+      paddingHorizontal: 24,
+      paddingTop: 24,
+    },
+  });
 
   if (!fontsLoaded) {
     return null;
@@ -95,50 +143,3 @@ export default function Step2() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 48,
-  },
-  contentContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 32,
-  },
-  textSection: {
-    alignItems: "center",
-    marginBottom: 40,
-    gap: 12,
-  },
-  title: {
-    color: colors.primary,
-    fontSize: 28,
-    fontWeight: "700",
-    lineHeight: 33.88,
-    textAlign: "center",
-    fontFamily: "Inter_700Bold",
-  },
-  subtitle: {
-    color: colors.secondary,
-    fontSize: 16,
-    fontWeight: "400",
-    lineHeight: 24,
-    textAlign: "center",
-    fontFamily: "Inter_400Regular",
-  },
-  optionsContainer: {
-    gap: 16,
-  },
-  buttonContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-});

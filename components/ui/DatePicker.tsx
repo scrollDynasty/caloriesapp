@@ -73,7 +73,7 @@ const PickerColumn = ({
       <View style={[wrapperStyle, { backgroundColor: themeColors.background }, { borderRadius: 12 }]}>
         {}
         {Platform.OS === "android" && (
-          <View style={[styles.selectedItemOverlay, { backgroundColor: isDark ? themeColors.gray5 : "#F4F2EF" }]} pointerEvents="none" />
+          <View style={[styles.selectedItemOverlay, { backgroundColor: isDark ? themeColors.gray5 : "#FFFFF0" }]} pointerEvents="none" />
         )}
         <Picker
           selectedValue={value}

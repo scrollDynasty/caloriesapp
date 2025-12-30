@@ -612,7 +612,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.text,
   },
   changeGoalButton: {
-    backgroundColor: "#FFFFF0",
+    backgroundColor: colors.backgroundSecondary,
     borderColor: colors.border,
     borderWidth: 1,
     paddingHorizontal: 18,

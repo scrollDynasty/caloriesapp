@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
 
   flippableContainer: {
     position: "relative",
-    minHeight: 260,
+    minHeight: 300,
   },
   flipContent: {
     width: "100%",
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   caloriesCard: {
     marginHorizontal: 20,
     marginBottom: 12,
-    paddingVertical: 28,
+    paddingVertical: 36,
     paddingHorizontal: 24,
     borderRadius: 24,
     flexDirection: "row",

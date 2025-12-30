@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FoodImagePreview from "../components/features/FoodImagePreview";
 import TextContent from "../components/features/TextContent";
 import { PrimaryButton, SecondaryButton } from "../components/ui/Button";
-import { colors } from "../constants/theme";
+import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { authService } from "../services/auth";
 import { getImageHeight, getImageWidth } from "../utils/responsive";
@@ -21,6 +21,7 @@ import Step8 from "./steps/step8";
 import Step9 from "./steps/step9";
 
 export default function Index() {
+  const { colors } = useTheme();
   const fontsLoaded = useFonts();
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -43,6 +44,46 @@ export default function Index() {
       setCheckingAuth(false);
     }
   };
+
+  const styles = StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 48,
+    },
+    imageWrapper: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 16,
+      width: "100%",
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    textContainer: {
+      paddingHorizontal: 24,
+      paddingBottom: 24,
+      gap: 16, 
+    },
+    preloadContainer: {
+      position: "absolute",
+      top: -9999,
+      left: -9999,
+      width: 1,
+      height: 1,
+      opacity: 0,
+      overflow: "hidden",
+      pointerEvents: "none",
+    },
+  });
 
   if (!fontsLoaded || checkingAuth) {
     return (
@@ -114,43 +155,3 @@ export default function Index() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 48,
-  },
-  imageWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-    width: "100%",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  textContainer: {
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-    gap: 16, 
-  },
-  preloadContainer: {
-    position: "absolute",
-    top: -9999,
-    left: -9999,
-    width: 1,
-    height: 1,
-    opacity: 0,
-    overflow: "hidden",
-    pointerEvents: "none",
-  },
-});
