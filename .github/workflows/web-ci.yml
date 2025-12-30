@@ -15,6 +15,16 @@ on:
     paths:
       - 'web/**'
       - '.github/workflows/web-ci.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - development
 
 jobs:
   lint-and-build:
