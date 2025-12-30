@@ -35,7 +35,20 @@ export default function PressPage() {
     setIsSubmitting(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const getApiUrl = () => {
+        if (typeof window !== "undefined") {
+          const hostname = window.location.hostname;
+          if (hostname === "yeb-ich.com" || hostname === "www.yeb-ich.com") {
+            return "https://api.yeb-ich.com";
+          }
+          if (hostname === "localhost" || hostname === "127.0.0.1") {
+            return "http://localhost:8000";
+          }
+        }
+        return process.env.NEXT_PUBLIC_API_URL || "https://api.yeb-ich.com";
+      };
+
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/api/v1/press/inquiry`, {
         method: "POST",
         headers: {
