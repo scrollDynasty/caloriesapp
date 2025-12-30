@@ -101,19 +101,23 @@ jobs:
           ssh scroll@yeb-ich.com << 'ENDSSH'
             set -e
             REMOTE_DIR="/var/www/yeb-ich.com/html"
-            mkdir -p $REMOTE_DIR
+            sudo mkdir -p $REMOTE_DIR
             if [ -d "$REMOTE_DIR/current" ]; then
               echo "[INFO] Backing up current version..."
-              rm -rf $REMOTE_DIR/backup
-              mv $REMOTE_DIR/current $REMOTE_DIR/backup
+              sudo rm -rf $REMOTE_DIR/backup
+              sudo mv $REMOTE_DIR/current $REMOTE_DIR/backup
             fi
-            mkdir -p $REMOTE_DIR/current
-            cd $REMOTE_DIR/current
+            sudo mkdir -p $REMOTE_DIR/current
+            cd /tmp
+            mkdir -p web_extract
+            cd web_extract
             tar -xzf /tmp/web.tar.gz
-            rm /tmp/web.tar.gz
+            sudo cp -r . $REMOTE_DIR/current/
+            cd /
+            rm -rf /tmp/web_extract
             cd $REMOTE_DIR
-            rm -rf *.html *.js *.json _next 2>/dev/null || true
-            cp -r current/* .
+            sudo rm -rf *.html *.js *.json _next 2>/dev/null || true
+            sudo cp -r current/* .
             sudo chown -R www-data:www-data $REMOTE_DIR
             sudo chmod -R 755 $REMOTE_DIR
             if sudo nginx -t; then
@@ -125,7 +129,6 @@ jobs:
             fi
             echo "[OK] Files deployed successfully"
           ENDSSH
-          rm /tmp/web.tar.gz
 
   deploy-dev:
     name: Deploy to Development
@@ -173,22 +176,25 @@ jobs:
           ssh scroll@yeb-ich.com << 'ENDSSH'
             set -e
             REMOTE_DIR="/var/www/yeb-ich.com/html-dev"
-            mkdir -p $REMOTE_DIR
+            sudo mkdir -p $REMOTE_DIR
             if [ -d "$REMOTE_DIR/current" ]; then
               echo "[INFO] Backing up current version..."
-              rm -rf $REMOTE_DIR/backup
-              mv $REMOTE_DIR/current $REMOTE_DIR/backup
+              sudo rm -rf $REMOTE_DIR/backup
+              sudo mv $REMOTE_DIR/current $REMOTE_DIR/backup
             fi
-            mkdir -p $REMOTE_DIR/current
-            cd $REMOTE_DIR/current
+            sudo mkdir -p $REMOTE_DIR/current
+            cd /tmp
+            mkdir -p web_extract
+            cd web_extract
             tar -xzf /tmp/web-dev.tar.gz
-            rm /tmp/web-dev.tar.gz
+            sudo cp -r . $REMOTE_DIR/current/
+            cd /
+            rm -rf /tmp/web_extract /tmp/web-dev.tar.gz
             cd $REMOTE_DIR
-            rm -rf *.html *.js *.json _next 2>/dev/null || true
-            cp -r current/* .
+            sudo rm -rf *.html *.js *.json _next 2>/dev/null || true
+            sudo cp -r current/* .
             sudo chown -R www-data:www-data $REMOTE_DIR
             sudo chmod -R 755 $REMOTE_DIR
             echo "[OK] Development files deployed successfully"
           ENDSSH
-          rm /tmp/web-dev.tar.gz
 
