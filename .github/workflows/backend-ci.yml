@@ -4,14 +4,14 @@ on:
   push:
     branches:
       - master
-      - develop
+      - development
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
     branches:
       - master
-      - develop
+      - development
     paths:
       - 'backend/**'
       - '.github/workflows/backend-ci.yml'
@@ -107,7 +107,7 @@ jobs:
     name: Deploy to Development
     runs-on: ubuntu-latest
     needs: lint-and-test
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/development' && github.event_name == 'push'
     
     steps:
       - name: Checkout code
