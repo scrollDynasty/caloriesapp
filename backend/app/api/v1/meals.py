@@ -67,31 +67,44 @@ async def upload_meal_photo(
     db: Session = Depends(get_db),
 ):
 
-    allowed_mime_types = {
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/heic",
-        "image/heif",
-    }
-    if not file.content_type or not file.content_type.startswith("image/"):
+    from app.core.security import validate_file_content, validate_file_size, sanitize_filename
+    from app.core.config import settings
+    
+    allowed_mime_types = settings.allowed_file_types
+    
+    if not file.content_type or file.content_type not in allowed_mime_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Файл должен быть изображением"
+            detail="Неподдерживаемый тип файла"
         )
 
     barcode_value = barcode.strip() if barcode and barcode.strip() else None
     meal_name_value = meal_name.strip() if meal_name and meal_name.strip() else None
 
-    file_ext = Path(file.filename or "photo").suffix or ".jpg"
+    original_filename = file.filename or "photo"
+    sanitized_filename = sanitize_filename(original_filename)
+    file_ext = Path(sanitized_filename).suffix or ".jpg"
     unique_filename = f"{uuid.uuid4()}{file_ext}"
     
-    # Путь в S3 бакете
     s3_object_path = f"meal_photos/{current_user.id}/{unique_filename}"
 
     try:
         contents = await file.read()
         file_size = len(contents)
+        
+        # Валидация размера файла
+        if not validate_file_size(file_size, max_size_mb=settings.max_file_size_mb):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Файл слишком большой. Максимальный размер: {settings.max_file_size_mb}MB"
+            )
+        
+        # Валидация реального содержимого файла (magic bytes)
+        if not validate_file_content(contents, file.content_type):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Файл не соответствует заявленному типу"
+            )
         
         # Явно закрываем UploadFile для освобождения ресурсов
         await file.close()

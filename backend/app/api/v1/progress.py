@@ -190,17 +190,38 @@ async def upload_progress_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not file.content_type or not file.content_type.startswith("image/"):
+    from app.core.security import validate_file_content, validate_file_size, sanitize_filename
+    from app.core.config import settings
+    
+    allowed_mime_types = settings.allowed_file_types
+    
+    if not file.content_type or file.content_type not in allowed_mime_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Файл должен быть изображением"
+            detail="Неподдерживаемый тип файла"
         )
     
-    ext = Path(file.filename).suffix if file.filename else ".jpg"
+    original_filename = file.filename or "photo"
+    sanitized_filename = sanitize_filename(original_filename)
+    ext = Path(sanitized_filename).suffix if sanitized_filename else ".jpg"
     unique_name = f"{current_user.id}_{uuid.uuid4().hex}{ext}"
     s3_object_path = f"progress_photos/{unique_name}"
     
     content = await file.read()
+    file_size = len(content)
+    
+    if not validate_file_size(file_size, max_size_mb=settings.max_file_size_mb):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Файл слишком большой. Максимальный размер: {settings.max_file_size_mb}MB"
+        )
+    
+    if not validate_file_content(content, file.content_type):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Файл не соответствует заявленному типу"
+        )
+    
     file_url = storage_service.upload_file(
         file_content=content,
         object_name=s3_object_path,

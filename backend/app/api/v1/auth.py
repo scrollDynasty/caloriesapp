@@ -321,30 +321,40 @@ async def upload_avatar(
     db: Session = Depends(get_db),
 ):
     
-    allowed_mime_types = {
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/heic",
-        "image/heif",
-    }
+    from app.core.security import validate_file_content, validate_file_size, sanitize_filename
+    from app.core.config import settings
     
-    if not file.content_type or not file.content_type.startswith("image/"):
+    allowed_mime_types = settings.allowed_file_types
+    
+    if not file.content_type or file.content_type not in allowed_mime_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Файл должен быть изображением"
+            detail="Неподдерживаемый тип файла"
         )
     
-    if file.content_type not in allowed_mime_types:
-        pass
-    
-    file_ext = Path(file.filename or "avatar").suffix or ".jpg"
+    original_filename = file.filename or "avatar"
+    sanitized_filename = sanitize_filename(original_filename)
+    file_ext = Path(sanitized_filename).suffix or ".jpg"
     unique_filename = f"{uuid.uuid4()}{file_ext}"
     
     s3_object_path = f"avatars/{current_user.id}/{unique_filename}"
     
     try:
         contents = await file.read()
+        file_size = len(contents)
+        
+        if not validate_file_size(file_size, max_size_mb=settings.max_file_size_mb):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Файл слишком большой. Максимальный размер: {settings.max_file_size_mb}MB"
+            )
+        
+        if not validate_file_content(contents, file.content_type):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Файл не соответствует заявленному типу"
+            )
+        
         await file.close()
         
         file_url = storage_service.upload_file(

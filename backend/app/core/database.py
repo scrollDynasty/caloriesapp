@@ -47,7 +47,10 @@ def init_db():
             alters.append("ADD COLUMN carbs INT NULL")
         if alters:
             sql = "ALTER TABLE meal_photos " + ", ".join(alters)
-            conn.execute(text(sql))
+            if all("ADD COLUMN" in alter.upper() for alter in alters):
+                conn.execute(text(sql))
+            else:
+                raise ValueError("Unsafe SQL operation detected")
 
         user_columns = {col["name"] for col in inspector.get_columns("users")}
         user_alters = []
@@ -57,5 +60,9 @@ def init_db():
 
             user_alters.append("ADD COLUMN last_streak_date DATETIME NULL")
         if user_alters:
-            sql_users = "ALTER TABLE users " + ", ".join(user_alters)
-            conn.execute(text(sql_users))
+            # Валидация: только ADD COLUMN команды
+            if all("ADD COLUMN" in alter.upper() for alter in user_alters):
+                sql_users = "ALTER TABLE users " + ", ".join(user_alters)
+                conn.execute(text(sql_users))
+            else:
+                raise ValueError("Unsafe SQL operation detected")

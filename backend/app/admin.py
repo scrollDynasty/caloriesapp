@@ -4,6 +4,10 @@ from fastapi import FastAPI
 from fastapi_amis_admin.admin.settings import Settings as AdminSettings
 from fastapi_amis_admin.admin.site import AdminSite
 from fastapi_amis_admin.admin import admin
+from fastapi_amis_admin.utils.pydantic import model_fields as original_model_fields
+from pydantic import BaseModel
+from typing import Optional
+from sqlalchemy.inspection import inspect as sqlalchemy_inspect
 
 from app.core.config import settings
 from app.models.user import User
@@ -12,6 +16,30 @@ from app.models.meal_photo import MealPhoto
 from app.models.water_log import WaterLog
 from app.models.weight_log import WeightLog
 from app.models.progress_photo import ProgressPhoto
+
+
+def patched_model_fields(model):
+    if hasattr(model, 'model_fields'):
+        return original_model_fields(model)
+    
+    if hasattr(model, '__table__'):
+        mapper = sqlalchemy_inspect(model)
+        fields = {}
+        for column in mapper.columns:
+            fields[column.name] = {
+                'name': column.name,
+                'type': column.type.python_type if hasattr(column.type, 'python_type') else str,
+                'required': not column.nullable and column.default is None,
+            }
+        return fields
+    
+    # Fallback на оригинальную функцию
+    return original_model_fields(model)
+
+
+# Применяем патч
+import fastapi_amis_admin.utils.pydantic as pydantic_utils
+pydantic_utils.model_fields = patched_model_fields
 
 
 admin_settings = AdminSettings(
@@ -36,10 +64,22 @@ admin_settings = AdminSettings(
 site = AdminSite(settings=admin_settings)
 
 
+class UserUpdateSchema(BaseModel):
+    email: Optional[str] = None
+    name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    avatar_url: Optional[str] = None
+    streak_count: Optional[int] = None
+    last_streak_date: Optional[str] = None
+
+
 @site.register_admin
 class UserAdmin(admin.ModelAdmin):
     page_schema = "Users"
     model = User
+    update_schema = UserUpdateSchema
     
     list_display = [
         User.id,
@@ -56,6 +96,28 @@ class UserAdmin(admin.ModelAdmin):
     search_fields = [User.email, User.username, User.first_name, User.last_name, User.google_id]
     
     form_excluded = [User.id, User.created_at, User.updated_at, User.apple_id, User.google_id]
+    
+    async def on_update_pre(self, request, data, item_id: int = None):
+        if hasattr(data, 'model_dump'):
+            data_dict = data.model_dump(exclude_unset=True)
+        elif isinstance(data, dict):
+            data_dict = data
+        else:
+            data_dict = dict(data) if hasattr(data, '__dict__') else {}
+        
+        if hasattr(self, 'update_schema') and self.update_schema:
+            try:
+                filtered = {k: v for k, v in data_dict.items() if v is not None}
+                if filtered:
+                    validated = self.update_schema(**filtered)
+                    return validated.model_dump(exclude_unset=True)
+                return {}
+            except Exception:
+                # Если валидация не прошла, возвращаем отфильтрованные данные
+                return {k: v for k, v in data_dict.items() if v is not None}
+        
+        # Если схемы нет, просто фильтруем None
+        return {k: v for k, v in data_dict.items() if v is not None}
     
     async def delete(self, request, item_id: int):
         from sqlalchemy import text
