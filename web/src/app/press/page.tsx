@@ -36,16 +36,21 @@ export default function PressPage() {
 
     try {
       const getApiUrl = () => {
+        if (process.env.NEXT_PUBLIC_API_URL) {
+          return process.env.NEXT_PUBLIC_API_URL;
+        }
+        
         if (typeof window !== "undefined") {
           const hostname = window.location.hostname;
-          if (hostname === "yeb-ich.com" || hostname === "www.yeb-ich.com") {
-            return "https://api.yeb-ich.com";
-          }
           if (hostname === "localhost" || hostname === "127.0.0.1") {
             return "http://localhost:8000";
           }
+          if (hostname === "yeb-ich.com" || hostname === "www.yeb-ich.com") {
+            return "https://api.yeb-ich.com";
+          }
         }
-        return process.env.NEXT_PUBLIC_API_URL || "https://api.yeb-ich.com";
+        
+        return "https://api.yeb-ich.com";
       };
 
       const apiUrl = getApiUrl();
