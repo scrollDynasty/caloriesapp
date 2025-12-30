@@ -93,6 +93,12 @@ backend/htmlcov/
 backend/.tox/
 backend/ssl/
 
+# Kubernetes Secrets - НЕ коммитьте!
+k8s/secrets.yaml
+k8s/secrets.env
+k8s/*.secret
+k8s/*.key
+
 # IDE
 .vscode/
 .idea/
