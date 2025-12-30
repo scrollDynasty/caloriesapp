@@ -190,22 +190,91 @@
 
 @media (max-width: 768px) {
   .container {
-    height: 500px;
+    width: 100%;
+    max-width: 100%;
+    height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .phoneLeft,
+  .phoneLeft {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    width: 180px;
+    height: 360px;
+    margin-right: -40px;
+    z-index: 1;
+  }
+
   .phoneRight {
-    width: 200px;
-    height: 400px;
+    position: relative;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    transform: none;
+    width: 180px;
+    height: 360px;
+    z-index: 2;
   }
 
   .phoneFrame {
-    width: 180px;
-    height: 400px;
+    width: 160px;
+    height: 360px;
+    border: 6px solid #1a1a1a;
+    border-radius: 32px;
     padding: 0;
   }
 
   .phoneContent {
+    border-radius: 26px;
     padding: 0;
+  }
+
+  .phoneImage {
+    border-radius: 26px;
+  }
+
+  .scanArea {
+    left: 20px;
+    right: 20px;
+    top: 60px;
+    height: 200px;
+  }
+
+  .scanOverlay {
+    width: 50px;
+    height: 50px;
+    bottom: 30px;
+  }
+
+  .resultOverlay {
+    height: 180px;
+    padding: 16px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .resultTitle {
+    font-size: 16px;
+  }
+
+  .statCard {
+    padding: 8px;
+    max-width: 80px;
+  }
+
+  .statLabel {
+    font-size: 9px;
+  }
+
+  .statValue {
+    font-size: 14px;
+  }
+
+  .doneButton {
+    padding: 10px 12px;
+    font-size: 14px;
   }
 }

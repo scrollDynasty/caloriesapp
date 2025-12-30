@@ -3,13 +3,72 @@
   background: transparent;
 }
 
-/* Top Section - Ratings */
 .ratingsSection {
   padding: 100px 40px 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 32px;
+}
+
+@media (max-width: 768px) {
+  .ratingsSection {
+    padding: 60px 20px 40px;
+    gap: 24px;
+  }
+
+  .starsContainer {
+    gap: 8px;
+  }
+
+  .star {
+    width: 36px;
+    height: 36px;
+  }
+
+  .ratingsTextContainer {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .laurel {
+    font-size: 36px;
+  }
+
+  .ratingsTitle {
+    font-size: 32px;
+    line-height: 1.2;
+  }
+
+  .storeRatings {
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .storeRating {
+    gap: 10px;
+  }
+
+  .storeIcon {
+    font-size: 24px;
+  }
+
+  .ratingText {
+    font-size: 18px;
+  }
+
+  .downloadButtons {
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 280px;
+    margin-top: 24px;
+  }
+
+  .downloadButtons > * {
+    width: 100%;
+  }
 }
 
 .starsContainer {
@@ -219,33 +278,98 @@
 @media (max-width: 768px) {
   .ratingsSection {
     padding: 60px 20px 40px;
+    gap: 24px;
   }
 
   .bottomSection {
     padding: 40px 20px 30px;
   }
 
-  .ratingsTitle {
-    font-size: 24px;
-  }
-
   .starsContainer {
-    gap: 4px;
+    gap: 8px;
   }
 
   .star {
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .ratingsTextContainer {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .laurel {
+    font-size: 36px;
+  }
+
+  .ratingsTitle {
+    font-size: 32px;
+    line-height: 1.2;
   }
 
   .storeRatings {
     flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .storeRating {
+    gap: 10px;
+  }
+
+  .storeIcon {
+    font-size: 24px;
+  }
+
+  .ratingText {
+    font-size: 18px;
+  }
+
+  .downloadButtons {
+    flex-direction: column;
     gap: 12px;
+    width: 100%;
+    max-width: 280px;
+    margin-top: 24px;
+  }
+
+  .downloadButtons > * {
+    width: 100%;
+  }
+
+  .columns {
+    gap: 32px;
+  }
+
+  .column {
+    gap: 12px;
+  }
+
+  .logoText {
+    font-size: 20px;
+  }
+
+  .columnTitle {
+    font-size: 16px;
+  }
+
+  .link {
+    font-size: 14px;
   }
 
   .bottomBar {
     flex-direction: column;
     gap: 20px;
     align-items: flex-start;
+    padding-top: 32px;
+  }
+
+  .copyright {
+    font-size: 12px;
+  }
+
+  .socialIcons {
+    gap: 12px;
   }
 }

@@ -47,6 +47,46 @@ const testimonials: Testimonial[] = [
     avatar:
       "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop",
   },
+  {
+    id: "6",
+    username: "Sarah M.",
+    quote:
+      "Best calorie tracking app I've ever used! The interface is so clean and intuitive. Lost 10kg in 3 months! 🎉",
+    avatar:
+      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop",
+  },
+  {
+    id: "7",
+    username: "FitnessPro",
+    quote:
+      "Finally an app that doesn't make tracking feel like a chore. Love the AI features! ⚡",
+    avatar:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop",
+  },
+  {
+    id: "8",
+    username: "HealthyEats",
+    quote:
+      "The portion visualization is a game changer! Makes meal planning so much easier. Highly recommend! 🌟",
+    avatar:
+      "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop",
+  },
+  {
+    id: "9",
+    username: "Alex K.",
+    quote:
+      "Been using it for 6 months now. My nutritionist is impressed with my progress! 📊",
+    avatar:
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop",
+  },
+  {
+    id: "10",
+    username: "WellnessJourney",
+    quote:
+      "This app changed my relationship with food. I'm more mindful and feel so much better! 💚",
+    avatar:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=100&h=100&fit=crop",
+  },
 ];
 
 export default function TestimonialsSection() {

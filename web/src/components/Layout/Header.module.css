@@ -85,9 +85,119 @@
   gap: 12px;
 }
 
+.mobileMenuButton {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+  position: relative;
+}
+
+.burgerLine {
+  width: 100%;
+  height: 3px;
+  background-color: var(--foreground);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.burgerLineOpen:nth-child(1) {
+  transform: rotate(45deg) translate(8px, 8px);
+}
+
+.burgerLineOpen:nth-child(2) {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.burgerLineOpen:nth-child(3) {
+  transform: rotate(-45deg) translate(8px, -8px);
+}
+
+/* Мобильное меню */
+.mobileMenu {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 80%;
+  max-width: 320px;
+  height: 100vh;
+  background-color: rgba(255, 255, 240, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 1000;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+}
+
+.mobileMenuOpen {
+  right: 0;
+}
+
+.mobileMenuContent {
+  display: flex;
+  flex-direction: column;
+  padding: 80px 24px 32px;
+  gap: 8px;
+}
+
+.mobileNavLink {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--foreground);
+  text-decoration: none;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(44, 36, 22, 0.1);
+  transition: opacity 0.2s;
+}
+
+.mobileNavLink:hover {
+  opacity: 0.7;
+}
+
+.mobileNavLink:last-of-type {
+  border-bottom: none;
+  margin-bottom: 24px;
+}
+
+.mobileMenuActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.mobileMenuActions > * {
+  width: 100%;
+}
+
+.mobileMenuOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
 @media (max-width: 1024px) {
   .navLinks {
     display: none;
+  }
+
+  .mobileMenuButton {
+    display: flex;
   }
 }
 
@@ -107,5 +217,28 @@
 
   .navActions {
     display: none;
+  }
+
+  .mobileMenuButton {
+    width: 24px;
+    height: 24px;
+  }
+
+  .burgerLine {
+    height: 2.5px;
+  }
+
+  .mobileMenu {
+    width: 85%;
+    max-width: 280px;
+  }
+
+  .mobileMenuContent {
+    padding: 70px 20px 24px;
+  }
+
+  .mobileNavLink {
+    font-size: 16px;
+    padding: 14px 0;
   }
 }
