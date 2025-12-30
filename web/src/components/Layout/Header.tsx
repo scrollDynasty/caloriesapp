@@ -61,6 +61,7 @@ export default function Header() {
 
         {/* Мобильное бургер-меню */}
         <button
+          type="button"
           className={styles.mobileMenuButton}
           onClick={toggleMenu}
           aria-label="Toggle menu"

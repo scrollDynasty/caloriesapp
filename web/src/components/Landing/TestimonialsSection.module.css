@@ -188,8 +188,17 @@
     gap: 16px;
   }
 
-  .cardsGrid > * {
-    grid-column: 1 !important;
+  .cardsGrid > :nth-child(1),
+  .cardsGrid > :nth-child(2),
+  .cardsGrid > :nth-child(3),
+  .cardsGrid > :nth-child(4),
+  .cardsGrid > :nth-child(5),
+  .cardsGrid > :nth-child(6),
+  .cardsGrid > :nth-child(7),
+  .cardsGrid > :nth-child(8),
+  .cardsGrid > :nth-child(9),
+  .cardsGrid > :nth-child(10) {
+    grid-column: 1;
   }
 
   .card {
