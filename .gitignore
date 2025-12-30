@@ -55,6 +55,8 @@ Desktop.ini
 backend/.env
 backend/.env.*
 backend/.env.backup.*
+backend/.env.prod
+backend/.env.dev
 !.env.example
 !.env.*.sample
 
