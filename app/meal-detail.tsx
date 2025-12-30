@@ -549,7 +549,6 @@ export default function MealDetailScreen() {
               ingredients.map((ingredient, index) => (
                 <TouchableOpacity key={index} style={styles.ingredientItem}>
                   <Text style={styles.ingredientName}>{ingredient.name}</Text>
-                  <Text style={styles.ingredientCalories}>• {ingredient.calories} cal</Text>
                 </TouchableOpacity>
               ))
             ) : (
@@ -1010,12 +1009,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
-  },
-  ingredientCalories: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-    color: colors.textSecondary,
-    marginLeft: 8,
   },
   loadingIngredients: {
     paddingVertical: 24,

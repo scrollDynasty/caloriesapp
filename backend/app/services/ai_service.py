@@ -301,12 +301,14 @@ class AIService:
                 '{"name": "recipe name in Russian", "description": "brief description in Russian", '
                 '"meal_type": "завтрак" | "обед" | "ужин" | "перекус", '
                 '"calories": int, "protein": int, "fat": int, "carbs": int, '
+                '"fiber": int, "sugar": int, "sodium": int, "health_score": float (0.0-10.0), '
                 '"time": int, "difficulty": "Легко" | "Средне" | "Сложно", '
                 '"ingredients": ["ingredient1 in Russian", "ingredient2", ...], '
                 '"instructions": ["step1 in Russian", "step2", ...]}\n'
                 "Rules:\n"
                 "- All values per serving\n"
-                "- calories in kcal, protein/fat/carbs in grams\n"
+                "- calories in kcal, protein/fat/carbs/fiber/sugar in grams, sodium in mg\n"
+                "- health_score: 0.0-10.0 based on nutritional value (higher is healthier, use 1 decimal place)\n"
                 "- time in minutes\n"
                 "- difficulty: Легко (up to 20 min), Средне (20-40 min), Сложно (40+ min)\n"
                 "- All text in Russian\n"
@@ -337,6 +339,10 @@ class AIService:
                 "protein": _parse_number(extracted.get("protein")),
                 "fat": _parse_number(extracted.get("fat")),
                 "carbs": _parse_number(extracted.get("carbs")),
+                "fiber": _parse_number(extracted.get("fiber")),
+                "sugar": _parse_number(extracted.get("sugar")),
+                "sodium": _parse_number(extracted.get("sodium")),
+                "health_score": _parse_number(extracted.get("health_score")),
                 "time": _parse_number(extracted.get("time")),
                 "difficulty": extracted.get("difficulty", "Легко"),
                 "ingredients": extracted.get("ingredients", []),

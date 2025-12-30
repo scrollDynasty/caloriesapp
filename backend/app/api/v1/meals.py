@@ -20,6 +20,7 @@ from app.models.user import User
 from app.models.meal_photo import MealPhoto
 from app.models.water_log import WaterLog
 from app.models.onboarding_data import OnboardingData
+from app.models.recipe import Recipe
 from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, MealPhotoCreate
 from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
 from app.services.storage import storage_service
@@ -28,6 +29,16 @@ from app.utils.date_utils import get_day_range_utc
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+def format_health_score(score: Optional[int]) -> Optional[float]:
+    if score is None:
+        return None
+    score_float = float(score)
+    if score_float > 100:
+        score_float = 10.0
+    elif score_float > 10:
+        score_float = score_float / 10.0
+    return round(min(max(score_float, 0), 10), 1)
 
 
 
@@ -377,14 +388,35 @@ def get_meal_photo_detail(
             "updated_at": photo.updated_at.isoformat() if photo.updated_at else None,
         },
         "url": photo_url,
-        "ingredients": json.loads(getattr(photo, 'ingredients_json', None)) if getattr(photo, 'ingredients_json', None) else None,
+        "ingredients": _parse_ingredients(getattr(photo, 'ingredients_json', None)),
         "extra_macros": {
             "fiber": photo.fiber or 0,
             "sugar": photo.sugar or 0,
             "sodium": photo.sodium or 0,
         },
-        "health_score": photo.health_score,
+        "health_score": format_health_score(photo.health_score),
     }
+
+
+def _parse_ingredients(ingredients_json: Optional[str]) -> Optional[List[Dict[str, Any]]]:
+    if not ingredients_json:
+        return None
+    try:
+        ingredients = json.loads(ingredients_json)
+        if not isinstance(ingredients, list):
+            return None
+        result = []
+        for item in ingredients:
+            if isinstance(item, str):
+                result.append({"name": item, "calories": 0})
+            elif isinstance(item, dict):
+                result.append({
+                    "name": item.get("name", str(item)),
+                    "calories": item.get("calories", 0)
+                })
+        return result if result else None
+    except (json.JSONDecodeError, TypeError):
+        return None
 
 
 @router.get("/meals/barcode/{barcode}")
@@ -576,9 +608,17 @@ def get_daily_meals(
     health_scores = []
     
     for p in photos:
-        meal_score = p.health_score
-        if meal_score is not None:
-            health_scores.append(meal_score)
+        meal_score_raw = p.health_score
+        meal_score_display = format_health_score(meal_score_raw)
+        if meal_score_display is not None:
+            health_scores.append(meal_score_display)
+        
+        photo_url = None
+        if p.file_path:
+            if p.file_path.startswith('http'):
+                photo_url = p.file_path
+            else:
+                photo_url = f"/api/v1/meals/photos/{p.id}"
         
         meals_data.append({
             "id": p.id,
@@ -591,7 +631,8 @@ def get_daily_meals(
             "fiber": p.fiber or 0,
             "sugar": p.sugar or 0,
             "sodium": p.sodium or 0,
-            "health_score": meal_score,
+            "health_score": meal_score_display,
+            "image_url": photo_url,
         })
     
     avg_health_score = None
@@ -975,7 +1016,7 @@ def get_water_daily(
         entries=entries,
     )
 
-@router.post("/recipes/generate")
+@router.post("/meals/recipes/generate")
 async def generate_recipe(
     request: Dict[str, str] = Body(...),
     current_user: User = Depends(get_current_user),
@@ -990,9 +1031,9 @@ async def generate_recipe(
             detail="Опишите желаемый рецепт"
         )
     
-    recipe = await ai_service.generate_recipe(user_request)
+    recipe_data = await ai_service.generate_recipe(user_request)
     
-    if not recipe:
+    if not recipe_data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось сгенерировать рецепт"
@@ -1000,19 +1041,275 @@ async def generate_recipe(
     
     created_at = datetime.now(timezone.utc)
     
+    meal_type_map = {
+        "завтрак": "breakfast",
+        "обед": "lunch",
+        "ужин": "dinner",
+        "перекус": "snack"
+    }
+    meal_type_en = meal_type_map.get(recipe_data.get("meal_type", "перекус"), "snack")
+    
+    image_urls = {
+        "breakfast": "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600",
+        "lunch": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600",
+        "dinner": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600",
+        "snack": "https://images.unsplash.com/photo-1506802913710-40e2e66339c9?w=600",
+    }
+    image_url = image_urls.get(meal_type_en, image_urls["snack"])
+    
+    health_score_raw = recipe_data.get("health_score")
+    health_score_int = None
+    if health_score_raw is not None:
+        try:
+            health_score_float = float(health_score_raw)
+            if health_score_float > 10:
+                health_score_float = health_score_float / 10.0
+            health_score_int = int(round(min(max(health_score_float, 0), 10) * 10))
+        except (ValueError, TypeError):
+            health_score_int = None
+    
+    try:
+        recipe_db = Recipe(
+            name=recipe_data.get("name", "Рецепт"),
+            description=recipe_data.get("description", ""),
+            image_url=image_url,
+            calories=recipe_data.get("calories", 0) or 0,
+            protein=recipe_data.get("protein", 0) or 0,
+            fat=recipe_data.get("fat", 0) or 0,
+            carbs=recipe_data.get("carbs", 0) or 0,
+            fiber=recipe_data.get("fiber"),
+            sugar=recipe_data.get("sugar"),
+            sodium=recipe_data.get("sodium"),
+            health_score=health_score_int,
+            time_minutes=recipe_data.get("time"),
+            difficulty=recipe_data.get("difficulty", "Легко"),
+            meal_type=recipe_data.get("meal_type", "перекус"),
+            ingredients_json=json.dumps(recipe_data.get("ingredients", []), ensure_ascii=False),
+            instructions_json=json.dumps(recipe_data.get("instructions", []), ensure_ascii=False),
+            created_by_user_id=current_user.id,
+            is_ai_generated=1,
+            usage_count=1,
+            created_at=created_at,
+        )
+        
+        db.add(recipe_db)
+        db.flush()
+        logger.info(f"Recipe created: {recipe_db.id} - {recipe_db.name}")
+        
+        meal_photo = MealPhoto(
+            user_id=current_user.id,
+            file_path=image_url,
+            file_name="ai_recipe",
+            file_size=0,
+            mime_type="image/jpeg",
+            meal_name=recipe_data.get("name"),
+            detected_meal_name=recipe_data.get("name"),
+            calories=recipe_data.get("calories") or 0,
+            protein=recipe_data.get("protein") or 0,
+            fat=recipe_data.get("fat") or 0,
+            carbs=recipe_data.get("carbs") or 0,
+            fiber=recipe_data.get("fiber"),
+            sugar=recipe_data.get("sugar"),
+            sodium=recipe_data.get("sodium"),
+            health_score=health_score_int,
+            ingredients_json=json.dumps(recipe_data.get("ingredients", []), ensure_ascii=False),
+            recipe_id=recipe_db.id,
+            created_at=created_at,
+        )
+        
+        db.add(meal_photo)
+        db.commit()
+        db.refresh(meal_photo)
+        db.refresh(recipe_db)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Ошибка при сохранении рецепта: {str(e)}"
+        )
+    
+    return {
+        "recipe": {
+            "id": recipe_db.id,
+            "name": recipe_db.name,
+            "description": recipe_db.description,
+            "image_url": recipe_db.image_url,
+            "meal_type": recipe_db.meal_type,
+            "calories": recipe_db.calories,
+            "protein": recipe_db.protein,
+            "fat": recipe_db.fat,
+            "carbs": recipe_db.carbs,
+            "fiber": recipe_db.fiber,
+            "sugar": recipe_db.sugar,
+            "sodium": recipe_db.sodium,
+            "health_score": format_health_score(recipe_db.health_score),
+            "time": recipe_db.time_minutes,
+            "difficulty": recipe_db.difficulty,
+            "ingredients": json.loads(recipe_db.ingredients_json),
+            "instructions": json.loads(recipe_db.instructions_json),
+        },
+        "meal_id": meal_photo.id,
+        "added_to_diet": True,
+    }
+
+@router.get("/meals/recipes/popular")
+def get_popular_recipes(
+    limit: int = Query(10, le=50),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    popular_recipes = (
+        db.query(Recipe)
+        .order_by(Recipe.usage_count.desc(), Recipe.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    
+    results = []
+    for recipe in popular_recipes:
+        results.append({
+            "id": recipe.id,
+            "name": recipe.name,
+            "description": recipe.description,
+            "image_url": recipe.image_url,
+            "calories": recipe.calories,
+            "protein": recipe.protein,
+            "fat": recipe.fat,
+            "carbs": recipe.carbs,
+            "fiber": recipe.fiber,
+            "sugar": recipe.sugar,
+            "sodium": recipe.sodium,
+            "health_score": format_health_score(recipe.health_score),
+            "time": recipe.time_minutes,
+            "difficulty": recipe.difficulty,
+            "meal_type": recipe.meal_type,
+            "usage_count": recipe.usage_count,
+            "ingredients": json.loads(recipe.ingredients_json) if recipe.ingredients_json else [],
+            "instructions": json.loads(recipe.instructions_json) if recipe.instructions_json else [],
+        })
+    
+    return results
+
+@router.get("/meals/recipes/search")
+def search_recipes(
+    q: str,
+    limit: int = Query(20, le=50),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Поиск рецептов по названию."""
+    if not q or len(q) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Запрос должен содержать минимум 2 символа"
+        )
+    
+    search_pattern = f"%{q}%"
+    recipes = (
+        db.query(Recipe)
+        .filter(Recipe.name.like(search_pattern))
+        .order_by(Recipe.usage_count.desc())
+        .limit(limit)
+        .all()
+    )
+    
+    results = []
+    for recipe in recipes:
+        results.append({
+            "id": recipe.id,
+            "name": recipe.name,
+            "description": recipe.description,
+            "image_url": recipe.image_url,
+            "calories": recipe.calories,
+            "protein": recipe.protein,
+            "fat": recipe.fat,
+            "carbs": recipe.carbs,
+            "fiber": recipe.fiber,
+            "sugar": recipe.sugar,
+            "sodium": recipe.sodium,
+            "health_score": format_health_score(recipe.health_score),
+            "time": recipe.time_minutes,
+            "difficulty": recipe.difficulty,
+            "meal_type": recipe.meal_type,
+            "usage_count": recipe.usage_count,
+            "ingredients": json.loads(recipe.ingredients_json) if recipe.ingredients_json else [],
+            "instructions": json.loads(recipe.instructions_json) if recipe.instructions_json else [],
+        })
+    
+    return results
+
+@router.get("/meals/recipes/{recipe_id}")
+def get_recipe(
+    recipe_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Получение рецепта по ID."""
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    
+    if not recipe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Рецепт не найден"
+        )
+    
+    return {
+        "id": recipe.id,
+        "name": recipe.name,
+        "description": recipe.description,
+        "image_url": recipe.image_url,
+        "calories": recipe.calories,
+        "protein": recipe.protein,
+        "fat": recipe.fat,
+        "carbs": recipe.carbs,
+        "fiber": recipe.fiber,
+        "sugar": recipe.sugar,
+        "sodium": recipe.sodium,
+        "health_score": format_health_score(recipe.health_score),
+        "time": recipe.time_minutes,
+        "difficulty": recipe.difficulty,
+        "meal_type": recipe.meal_type,
+        "usage_count": recipe.usage_count,
+        "ingredients": json.loads(recipe.ingredients_json) if recipe.ingredients_json else [],
+        "instructions": json.loads(recipe.instructions_json) if recipe.instructions_json else [],
+    }
+
+@router.post("/meals/recipes/{recipe_id}/use")
+def use_recipe(
+    recipe_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Добавляет существующий рецепт в рацион пользователя."""
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    
+    if not recipe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Рецепт не найден"
+        )
+    
+    recipe.usage_count += 1
+    
     meal_photo = MealPhoto(
         user_id=current_user.id,
-        file_path="",
-        file_name="ai_recipe",
+        file_path=recipe.image_url or "",
+        file_name="recipe_usage",
         file_size=0,
-        mime_type="text/plain",
-        meal_name=recipe.get("name"),
-        detected_meal_name=recipe.get("name"),
-        calories=recipe.get("calories"),
-        protein=recipe.get("protein"),
-        fat=recipe.get("fat"),
-        carbs=recipe.get("carbs"),
-        created_at=created_at,
+        mime_type="image/jpeg",
+        meal_name=recipe.name,
+        detected_meal_name=recipe.name,
+        calories=recipe.calories,
+        protein=recipe.protein,
+        fat=recipe.fat,
+        carbs=recipe.carbs,
+        fiber=recipe.fiber,
+        sugar=recipe.sugar,
+        sodium=recipe.sodium,
+        health_score=recipe.health_score,
+        ingredients_json=recipe.ingredients_json,
+        recipe_id=recipe.id,
+        created_at=datetime.now(timezone.utc),
     )
     
     db.add(meal_photo)
@@ -1020,51 +1317,6 @@ async def generate_recipe(
     db.refresh(meal_photo)
     
     return {
-        "recipe": recipe,
         "meal_id": meal_photo.id,
         "added_to_diet": True,
     }
-
-@router.get("/recipes/popular")
-def get_popular_recipes(
-    limit: int = Query(10, le=50),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """Возвращает популярные рецепты на основе статистики всех пользователей."""
-    popular_meals = (
-        db.query(
-            MealPhoto.meal_name,
-            MealPhoto.detected_meal_name,
-            MealPhoto.calories,
-            MealPhoto.protein,
-            MealPhoto.fat,
-            MealPhoto.carbs,
-            func.count(MealPhoto.id).label("count"),
-            func.avg(MealPhoto.calories).label("avg_calories"),
-        )
-        .filter(
-            MealPhoto.meal_name.isnot(None),
-            MealPhoto.meal_name != "",
-            MealPhoto.calories.isnot(None),
-            MealPhoto.file_name != "ai_recipe",
-        )
-        .group_by(MealPhoto.meal_name)
-        .order_by(func.count(MealPhoto.id).desc())
-        .limit(limit)
-        .all()
-    )
-    
-    results = []
-    for meal in popular_meals:
-        meal_name = meal.meal_name or meal.detected_meal_name or "Блюдо"
-        results.append({
-            "name": meal_name,
-            "calories": int(meal.avg_calories) if meal.avg_calories else meal.calories,
-            "protein": meal.protein,
-            "fat": meal.fat,
-            "carbs": meal.carbs,
-            "count": meal.count,
-        })
-    
-    return results

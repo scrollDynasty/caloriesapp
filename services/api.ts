@@ -1067,8 +1067,10 @@ class ApiService {
     prompt: string
   ): Promise<{
     recipe: {
+      id?: number;
       name: string;
       description: string;
+      image_url?: string;
       meal_type?: string;
       calories: number;
       protein: number;
@@ -1097,15 +1099,49 @@ class ApiService {
   }
 
   async getPopularRecipes(limit: number = 10): Promise<Array<{
+    id: number;
     name: string;
+    description: string;
+    image_url: string;
     calories: number;
     protein: number;
     fat: number;
     carbs: number;
-    count: number;
+    time: number;
+    difficulty: string;
+    meal_type: string;
+    ingredients: string[];
+    instructions: string[];
+    usage_count: number;
   }>> {
     const response = await this.api.get('/api/v1/meals/recipes/popular', {
       params: { limit: Math.min(limit, 50) },
+    });
+    return response.data;
+  }
+
+  async searchRecipes(query: string): Promise<Array<{
+    id: number;
+    name: string;
+    description: string;
+    image_url: string;
+    calories: number;
+    protein: number;
+    fat: number;
+    carbs: number;
+    time: number;
+    difficulty: string;
+    meal_type: string;
+    ingredients: string[];
+    instructions: string[];
+    usage_count: number;
+  }>> {
+    const sanitizedQuery = sanitizeString(query, 100);
+    if (!sanitizedQuery || sanitizedQuery.length < 2) {
+      return [];
+    }
+    const response = await this.api.get('/api/v1/meals/recipes/search', {
+      params: { q: sanitizedQuery, limit: 50 },
     });
     return response.data;
   }

@@ -25,14 +25,23 @@ def get_db():
         db.close()
 
 def init_db():
+    import os
+    from pathlib import Path
     from app.models.user import User
     from app.models.onboarding_data import OnboardingData
     from app.models.meal_photo import MealPhoto
     from app.models.water_log import WaterLog
+    from app.models.recipe import Recipe
     Base.metadata.create_all(bind=engine)
 
     with engine.begin() as conn:
         inspector = inspect(conn)
+        
+        tables = inspector.get_table_names()
+        if "recipes" not in tables:
+            Recipe.__table__.create(bind=engine, checkfirst=True)
+            print("Таблица recipes создана")
+        
         columns = {col["name"] for col in inspector.get_columns("meal_photos")}
         alters = []
         if "detected_meal_name" not in columns:
@@ -45,6 +54,18 @@ def init_db():
             alters.append("ADD COLUMN fat INT NULL")
         if "carbs" not in columns:
             alters.append("ADD COLUMN carbs INT NULL")
+        if "fiber" not in columns:
+            alters.append("ADD COLUMN fiber INT NULL")
+        if "sugar" not in columns:
+            alters.append("ADD COLUMN sugar INT NULL")
+        if "sodium" not in columns:
+            alters.append("ADD COLUMN sodium INT NULL")
+        if "health_score" not in columns:
+            alters.append("ADD COLUMN health_score INT NULL")
+        if "ingredients_json" not in columns:
+            alters.append("ADD COLUMN ingredients_json TEXT NULL")
+        if "recipe_id" not in columns:
+            alters.append("ADD COLUMN recipe_id INT NULL")
         if alters:
             sql = "ALTER TABLE meal_photos " + ", ".join(alters)
             if all("ADD COLUMN" in alter.upper() for alter in alters):
@@ -57,10 +78,8 @@ def init_db():
         if "streak_count" not in user_columns:
             user_alters.append("ADD COLUMN streak_count INT NULL")
         if "last_streak_date" not in user_columns:
-
             user_alters.append("ADD COLUMN last_streak_date DATETIME NULL")
         if user_alters:
-            # Валидация: только ADD COLUMN команды
             if all("ADD COLUMN" in alter.upper() for alter in user_alters):
                 sql_users = "ALTER TABLE users " + ", ".join(user_alters)
                 conn.execute(text(sql_users))

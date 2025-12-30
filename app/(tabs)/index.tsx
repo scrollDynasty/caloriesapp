@@ -164,10 +164,14 @@ export default function HomeScreen() {
         const time = created
           ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
           : "";
-        const imageUrl =
-          m.mime_type === "manual" || !m.file_path
-            ? undefined
-            : apiService.getMealPhotoUrl(m.id, token);
+        let imageUrl: string | undefined = undefined;
+        if (m.file_path) {
+          if (m.file_path.startsWith('http://') || m.file_path.startsWith('https://')) {
+            imageUrl = m.file_path;
+          } else if (m.mime_type !== "manual") {
+            imageUrl = apiService.getMealPhotoUrl(m.id, token);
+          }
+        }
         return {
           id: m.id,
           name: m.detected_meal_name || m.meal_name || "Блюдо",

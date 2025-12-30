@@ -26,9 +26,12 @@ class MealPhoto(Base):
     sugar = Column(Integer, nullable=True)  
     sodium = Column(Integer, nullable=True) 
     health_score = Column(Integer, nullable=True) 
-    ingredients_json = Column(Text, nullable=True)  
+    ingredients_json = Column(Text, nullable=True)
+    
+    recipe_id = Column(Integer, ForeignKey("recipes.id", ondelete="SET NULL"), nullable=True, index=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", backref=backref("meal_photos", cascade="all, delete-orphan"))
+    recipe = relationship("Recipe", backref="meal_usages")

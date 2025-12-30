@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -646,6 +647,15 @@ const UZBEK_RECIPES: Recipe[] = [
 
 const CATEGORIES = ["Все", "Завтрак", "Обед", "Ужин"];
 
+const mapMealType = (mealType?: string): string => {
+  if (!mealType) return "Обед";
+  const lower = mealType.toLowerCase();
+  if (lower.includes("завтрак") || lower === "breakfast") return "Завтрак";
+  if (lower.includes("обед") || lower === "lunch") return "Обед";
+  if (lower.includes("ужин") || lower === "dinner") return "Ужин";
+  return "Обед";
+};
+
 const getDifficultyColor = (difficulty: string) => {
   switch (difficulty) {
     case "Легко":
@@ -666,13 +676,94 @@ export default function RecipesScreen() {
   const [generating, setGenerating] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const [serverRecipes, setServerRecipes] = useState<Recipe[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Recipe[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
+  const loadServerRecipes = useCallback(async () => {
+    try {
+      const recipes = await apiService.getPopularRecipes(50);
+      const mapped: Recipe[] = recipes.map((r: any) => ({
+        id: `server-${r.id}`,
+        title: r.name,
+        image: r.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400",
+        calories: r.calories || 0,
+        time: r.time || 30,
+        difficulty: r.difficulty || "Средне",
+        category: mapMealType(r.meal_type),
+        ingredients: r.ingredients || [],
+        instructions: r.instructions || [],
+        description: r.description || "",
+      }));
+      setServerRecipes(mapped);
+    } catch {
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadServerRecipes();
+    }, [loadServerRecipes])
+  );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadServerRecipes();
+    setRefreshing(false);
+  }, [loadServerRecipes]);
+
+  const allRecipes = useMemo(() => {
+    const combined = [...serverRecipes, ...UZBEK_RECIPES];
+    const seen = new Set<string>();
+    return combined.filter(r => {
+      if (seen.has(r.title.toLowerCase())) return false;
+      seen.add(r.title.toLowerCase());
+      return true;
+    });
+  }, [serverRecipes]);
+
+  const handleSearch = useCallback(async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const results = await apiService.searchRecipes(query.trim());
+      const mapped: Recipe[] = results.map((r: any) => ({
+        id: `server-${r.id}`,
+        title: r.name,
+        image: r.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400",
+        calories: r.calories || 0,
+        time: r.time || 30,
+        difficulty: r.difficulty || "Средне",
+        category: mapMealType(r.meal_type),
+        ingredients: r.ingredients || [],
+        instructions: r.instructions || [],
+        description: r.description || "",
+      }));
+      setSearchResults(mapped);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
   const filteredRecipes = useMemo(() => {
-    if (selectedCategory === "Все") return UZBEK_RECIPES;
-    return UZBEK_RECIPES.filter((recipe) => recipe.category === selectedCategory);
-  }, [selectedCategory]);
+    if (searchQuery.trim().length >= 2) {
+      return searchResults;
+    }
+    if (selectedCategory === "Все") return allRecipes;
+    return allRecipes.filter((recipe) => recipe.category === selectedCategory);
+  }, [selectedCategory, allRecipes, searchQuery, searchResults]);
 
   const handleRecipePress = (recipe: Recipe) => {
     router.push({
@@ -705,6 +796,10 @@ export default function RecipesScreen() {
       setShowGenerateModal(false);
       setPrompt("");
 
+      await loadServerRecipes();
+
+      const imageUrl = result.recipe.image_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400";
+
       Alert.alert(
         "Рецепт создан!",
         `Рецепт "${result.recipe.name}" успешно добавлен в ваш рацион.`,
@@ -715,13 +810,13 @@ export default function RecipesScreen() {
               router.push({
                 pathname: "/recipe-detail",
                 params: {
-                  id: "ai",
+                  id: result.recipe.id ? `server-${result.recipe.id}` : "ai",
                   title: result.recipe.name,
-                  image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400",
+                  image: imageUrl,
                   calories: result.recipe.calories?.toString() || "0",
-                  time: result.recipe.time?.toString() || "0",
-                  difficulty: result.recipe.difficulty || "Легко",
-                  category: result.recipe.meal_type || "перекус",
+                  time: result.recipe.time?.toString() || "30",
+                  difficulty: result.recipe.difficulty || "Средне",
+                  category: mapMealType(result.recipe.meal_type),
                   description: result.recipe.description || "",
                   ingredients: JSON.stringify(result.recipe.ingredients || []),
                   instructions: JSON.stringify(result.recipe.instructions || []),
@@ -757,10 +852,6 @@ export default function RecipesScreen() {
         </Text>
         <View style={styles.recipeInfo}>
           <View style={styles.infoItem}>
-            <Ionicons name="flame" size={14} color={colors.textSecondary} />
-            <Text style={styles.infoText}>{item.calories} ккал</Text>
-          </View>
-          <View style={styles.infoItem}>
             <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
             <Text style={styles.infoText}>{item.time} мин</Text>
           </View>
@@ -785,34 +876,62 @@ export default function RecipesScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.categoriesWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContent}
-        >
-          {CATEGORIES.map((category) => (
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <Ionicons name="search" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Поиск рецептов..."
+            placeholderTextColor={colors.textSecondary}
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
             <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryChip,
-                selectedCategory === category && styles.categoryChipActive,
-              ]}
-              onPress={() => setSelectedCategory(category)}
-              activeOpacity={0.7}
+              onPress={() => {
+                setSearchQuery("");
+                setSearchResults([]);
+              }}
+              style={styles.searchClear}
             >
-              <Text
-                style={[
-                  styles.categoryText,
-                  selectedCategory === category && styles.categoryTextActive,
-                ]}
-              >
-                {category}
-              </Text>
+              <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+          )}
+        </View>
       </View>
+
+      {searchQuery.trim().length < 2 && (
+        <View style={styles.categoriesWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesContent}
+          >
+            {CATEGORIES.map((category) => (
+              <TouchableOpacity
+                key={category}
+                style={[
+                  styles.categoryChip,
+                  selectedCategory === category && styles.categoryChipActive,
+                ]}
+                onPress={() => setSelectedCategory(category)}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.categoryText,
+                    selectedCategory === category && styles.categoryTextActive,
+                  ]}
+                >
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       <FlatList
         data={filteredRecipes}
@@ -823,11 +942,29 @@ export default function RecipesScreen() {
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={ADAPTIVE_COLUMNS > 1 ? styles.row : undefined}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="restaurant-outline" size={64} color={colors.textSecondary} />
-            <Text style={styles.emptyText}>Рецепты не найдены</Text>
-            <Text style={styles.emptySubtext}>Создайте свой первый рецепт!</Text>
+            {isSearching ? (
+              <>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={styles.emptyText}>Поиск...</Text>
+              </>
+            ) : searchQuery.trim().length >= 2 ? (
+              <>
+                <Ionicons name="search-outline" size={64} color={colors.textSecondary} />
+                <Text style={styles.emptyText}>Ничего не найдено</Text>
+                <Text style={styles.emptySubtext}>Попробуйте другой запрос</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons name="restaurant-outline" size={64} color={colors.textSecondary} />
+                <Text style={styles.emptyText}>Рецепты не найдены</Text>
+                <Text style={styles.emptySubtext}>Создайте свой первый рецепт!</Text>
+              </>
+            )}
           </View>
         }
       />
@@ -941,6 +1078,34 @@ const createStyles = (colors: any, isDark: boolean) =>
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 6,
+    },
+    searchContainer: {
+      paddingHorizontal: 24,
+      paddingBottom: 16,
+      backgroundColor: colors.background,
+    },
+    searchInputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: isDark ? "#2C2C2E" : colors.card,
+      borderRadius: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : colors.border,
+    },
+    searchIcon: {
+      marginRight: 12,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+      fontFamily: "Inter_400Regular",
+      color: colors.text,
+    },
+    searchClear: {
+      marginLeft: 8,
+      padding: 4,
     },
     categoriesWrapper: {
       marginBottom: 24,
