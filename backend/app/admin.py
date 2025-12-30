@@ -545,20 +545,50 @@ class PressInquiryAdmin(admin.ModelAdmin):
         query = await super().get_list_query(request)
         return query.order_by(PressInquiry.created_at.desc())
     
-    form_excluded = [PressInquiry.id, PressInquiry.created_at, PressInquiry.updated_at, PressInquiry.ip_address, PressInquiry.user_agent]
+    form_excluded = []
     
     async def get_form_item(self, request, modelfield, action: str = None):
+        if modelfield.name == "id":
+            return {
+                "type": "input-text",
+                "readOnly": True,
+                "disabled": True,
+            }
         if modelfield.name == "message":
             return {
                 "type": "textarea",
                 "rows": 12,
                 "maxLength": 5000,
-                "readOnly": True,
-                "disabled": True,
+                "readOnly": action == "read",
+                "disabled": action == "read",
             }
         if modelfield.name == "email" or modelfield.name == "subject":
             return {
                 "type": "input-text",
+                "readOnly": True,
+                "disabled": True,
+            }
+        if modelfield.name == "status":
+            return {
+                "type": "select",
+                "options": [
+                    {"label": "Pending", "value": "pending"},
+                    {"label": "Read", "value": "read"},
+                    {"label": "Replied", "value": "replied"},
+                    {"label": "Archived", "value": "archived"},
+                ],
+                "readOnly": action == "read",
+                "disabled": action == "read",
+            }
+        if modelfield.name == "ip_address" or modelfield.name == "user_agent":
+            return {
+                "type": "input-text",
+                "readOnly": True,
+                "disabled": True,
+            }
+        if modelfield.name == "created_at" or modelfield.name == "updated_at" or modelfield.name == "replied_at":
+            return {
+                "type": "input-datetime",
                 "readOnly": True,
                 "disabled": True,
             }
@@ -567,5 +597,7 @@ class PressInquiryAdmin(admin.ModelAdmin):
                 "type": "textarea",
                 "rows": 6,
                 "maxLength": 2000,
+                "readOnly": action == "read",
+                "disabled": action == "read",
             }
         return await super().get_form_item(request, modelfield, action)
