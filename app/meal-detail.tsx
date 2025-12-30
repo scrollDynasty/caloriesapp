@@ -88,8 +88,8 @@ export default function MealDetailScreen() {
         if (detail.health_score !== undefined) {
           setHealthScore(detail.health_score);
         }
-      } catch (error: any) {
-        if (__DEV__) console.warn("Failed to load meal detail:", error);
+      } catch {
+        // Ignore errors
       } finally {
         setLoadingDetail(false);
       }

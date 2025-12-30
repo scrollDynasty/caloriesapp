@@ -69,16 +69,11 @@ async def log_requests(request: Request, call_next):
     
     response = await call_next(request)
     
-    process_time = time.time() - start_time
-    if process_time > 1.0:
-        logger.warning(f"Slow request: {request.method} {path} took {process_time:.2f}s")
-    
     return response
 
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    """Глобальный обработчик ошибок."""
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,

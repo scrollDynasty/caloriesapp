@@ -58,9 +58,6 @@ class UserAdmin(admin.ModelAdmin):
     form_excluded = [User.id, User.created_at, User.updated_at, User.apple_id, User.google_id]
     
     async def delete(self, request, item_id: int):
-        import sys
-        print(f"[UserAdmin.delete] Called with item_id={item_id}", file=sys.stderr, flush=True)
-        
         from sqlalchemy import text
         
         db = self.site.db
@@ -70,14 +67,9 @@ class UserAdmin(admin.ModelAdmin):
                     text("DELETE FROM users WHERE id = :user_id").bindparams(user_id=item_id)
                 )
                 rows_deleted = result.rowcount
-                print(f"[UserAdmin.delete] SQL DELETE executed, rows_deleted={rows_deleted}", file=sys.stderr, flush=True)
-                
                 await session.commit()
-                print(f"[UserAdmin.delete] Transaction committed", file=sys.stderr, flush=True)
-                
                 return {"status": "success", "data": rows_deleted > 0}
-            except Exception as e:
-                print(f"[UserAdmin.delete] Error: {e}", file=sys.stderr, flush=True)
+            except Exception:
                 await session.rollback()
                 raise
     

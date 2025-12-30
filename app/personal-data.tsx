@@ -89,8 +89,8 @@ export default function PersonalDataScreen() {
           stepGoal: onboarding.step_goal || 10000,
         });
       }
-    } catch (error) {
-      if (__DEV__) console.error("Error loading personal data:", error);
+    } catch {
+      // Ignore errors
     } finally {
       setLoading(false);
     }
@@ -194,13 +194,7 @@ export default function PersonalDataScreen() {
         }
       }
 
-      if (__DEV__) {
-        console.log("Saving personal data:", JSON.stringify(payload, null, 2));
-      }
       const result = await apiService.saveOnboardingData(payload);
-      if (__DEV__) {
-        console.log("Save result:", JSON.stringify(result, null, 2));
-      }
       
       dataCache.invalidateOnboarding();
       dataCache.invalidateAll();
@@ -208,8 +202,7 @@ export default function PersonalDataScreen() {
       setData(updatedData);
       setEditField(null);
       
-    } catch (error) {
-      if (__DEV__) console.error("Error saving:", error);
+    } catch {
       Alert.alert("Ошибка", "Не удалось сохранить изменения");
     } finally {
       setSaving(false);

@@ -16,7 +16,6 @@ function RootNavigator() {
 
   useEffect(() => {
     const unsubscribe = onAuthExpired(() => {
-      if (__DEV__) console.log("Auth expired, redirecting to login...");
       const isOnLogin = segments[0] === "auth";
       if (!isOnLogin) {
         router.replace("/auth/login");

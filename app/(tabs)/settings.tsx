@@ -126,8 +126,7 @@ export default function SettingsScreen() {
       if (data?.avatar_url) {
         setAvatarUri(data.avatar_url);
       }
-    } catch (err) {
-      if (__DEV__) console.warn("Не удалось загрузить пользователя", err);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -180,8 +179,8 @@ export default function SettingsScreen() {
           streakCount: dailyMeals.streak_count || 0,
         });
         setOnboardingData(onboarding);
-      } catch (error) {
-        if (__DEV__) console.error("Error loading daily data:", error);
+      } catch {
+        // Ignore errors
       } finally {
         setDailyLoading(false);
       }
@@ -202,8 +201,7 @@ export default function SettingsScreen() {
             try {
               await authService.signOut();
               router.replace("/auth/login" as any);
-            } catch (error: any) {
-              if (__DEV__) console.error("Logout error", error);
+            } catch {
               Alert.alert("Ошибка", "Не удалось выйти из аккаунта");  
             }
           },

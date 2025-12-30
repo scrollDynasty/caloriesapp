@@ -37,8 +37,8 @@ export default function SaveProgress() {
         }
         
         cachedDataRef.current = data;
-      } catch (error) {
-        if (__DEV__) console.error("Error loading cached data:", error);
+      } catch {
+        // Ignore errors
       }
     };
     
@@ -93,15 +93,12 @@ export default function SaveProgress() {
       if (result.success) {
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        const saved = await saveOnboardingAfterAuth();
-        if (__DEV__) console.log("📊 Apple auth - onboarding save result:", saved);
-        
+        await saveOnboardingAfterAuth();
         router.replace("/(tabs)");
       } else {
         Alert.alert("Ошибка", result.error || "Не удалось войти через Apple");
       }
     } catch (error: any) {
-      if (__DEV__) console.error("Ошибка авторизации:", error);
       Alert.alert("Ошибка", error.message || "Произошла ошибка");
     } finally {
       setLoading(false);
@@ -115,18 +112,11 @@ export default function SaveProgress() {
     
     setLoading(true);
     try {
-      if (__DEV__) console.log("🔐 Starting Google auth...");
-      
       const result = await authService.signInWithGoogle();
       
       if (result.success && result.token && result.user) {
-        if (__DEV__) console.log("✅ Google auth successful!");
-        
         await new Promise(resolve => setTimeout(resolve, 200));
-        
-        const saved = await saveOnboardingAfterAuth();
-        if (__DEV__) console.log("📊 Google auth - onboarding save result:", saved);
-        
+        await saveOnboardingAfterAuth();
         router.replace("/(tabs)");
       } else {
         const errorMessage = result.error || "Не удалось войти через Google";
@@ -138,7 +128,6 @@ export default function SaveProgress() {
         );
       }
     } catch (error: any) {
-      if (__DEV__) console.error("Auth error:", error);
       Alert.alert(
         "Ошибка",
         error.message || "Произошла ошибка при авторизации"

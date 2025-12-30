@@ -74,8 +74,7 @@ export default function TabsLayout() {
     try {
       const profile = await apiService.getProfile();
       setAvatarUri(profile.avatar_url || null);
-    } catch (error) {
-      if (__DEV__) console.error("Failed to load avatar:", error);
+    } catch {
     }
   }, []);
 

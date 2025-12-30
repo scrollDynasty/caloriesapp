@@ -51,8 +51,8 @@ export default function MealResultScreen() {
       if (photoId) {
         await apiService.deleteMealPhoto(photoId);
       }
-    } catch (error: any) {
-      if (__DEV__) console.warn("Error deleting photo:", error);
+    } catch {
+      // Ignore errors
     } finally {
       router.replace("/scan-meal" as any);
     }
@@ -73,7 +73,6 @@ export default function MealResultScreen() {
         params: { refresh: Date.now().toString() },
       } as any);
     } catch (error: any) {
-      if (__DEV__) console.error("Error saving meal:", error);
       Alert.alert("Ошибка", error?.response?.data?.detail || "Не удалось сохранить блюдо");
     } finally {
       setSaving(false);

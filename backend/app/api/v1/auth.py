@@ -44,7 +44,6 @@ async def auth_google_initiate(state: str = Query(default="caloriesapp://auth/ca
         else:
             redirect_uri = f"http://{settings.host}:{settings.port}/api/v1/auth/google/callback"
 
-    logger.warning(f"Google OAuth: Using redirect_uri={redirect_uri}, state={state}")
 
     params = {
         "client_id": settings.google_client_id,
@@ -80,7 +79,6 @@ async def auth_google_callback(
         if now - v > _CODE_TTL_SECONDS:
             _processed_codes.pop(k, None)
     if code in _processed_codes:
-        logger.warning("Google OAuth: repeated code usage detected, skipping.")
         redirect_uri = state or "caloriesapp://auth/callback"
         return RedirectResponse(url=f"{redirect_uri}?error=code_already_used")
     _processed_codes[code] = now
@@ -94,7 +92,6 @@ async def auth_google_callback(
             else:
                 callback_redirect_uri = f"http://{settings.host}:{settings.port}/api/v1/auth/google/callback"
 
-        logger.warning(f"Google OAuth callback: Using redirect_uri={callback_redirect_uri} for token exchange")
 
         token_url = "https://oauth2.googleapis.com/token"
         token_data = {
@@ -113,9 +110,6 @@ async def auth_google_callback(
                 error_description = error_data.get("error_description", "")
                 error_code = error_data.get("error", "")
 
-                logger.error(f"Google OAuth error: {error_code} - {error_description}")
-                logger.error(f"Used redirect_uri: {callback_redirect_uri}")
-                logger.error(f"Client ID: {settings.google_client_id[:20]}...")
 
                 if "redirect_uri_mismatch" in error_description.lower() or error_code == "redirect_uri_mismatch":
                     redirect_uri = state or "caloriesapp://auth/callback"
@@ -164,9 +158,6 @@ async def auth_google_callback(
         user_param = quote(json.dumps(user_data))
         callback_url = f"{redirect_uri}?token={access_token}&user={user_param}"
 
-        logger.info(f"✅ OAuth successful! Redirecting to: {redirect_uri}")
-        logger.info(f"📦 Token length: {len(access_token)}, User data keys: {list(user_data.keys())}")
-        logger.info(f"🔗 Full callback URL: {callback_url}")
 
         return RedirectResponse(url=callback_url, status_code=302)
 
@@ -345,7 +336,7 @@ async def upload_avatar(
         )
     
     if file.content_type not in allowed_mime_types:
-        logger.warning(f"Unexpected mime type {file.content_type}")
+        pass
     
     file_ext = Path(file.filename or "avatar").suffix or ".jpg"
     unique_filename = f"{uuid.uuid4()}{file_ext}"
@@ -362,7 +353,6 @@ async def upload_avatar(
             content_type=file.content_type
         )
         
-        logger.info(f"Avatar uploaded to S3: {file_url}")
         
         current_user.avatar_url = file_url
         db.commit()
@@ -374,7 +364,6 @@ async def upload_avatar(
         }
         
     except Exception as e:
-        logger.error(f"Error uploading avatar: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при загрузке аватара"

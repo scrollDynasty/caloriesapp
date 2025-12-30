@@ -36,7 +36,8 @@ def _extract_json(text: str) -> Optional[Dict[str, Any]]:
                 return json.loads(match)
             except json.JSONDecodeError:
                 continue
-    except Exception as e:
+    except Exception:
+        pass
     return None
 
 
@@ -209,7 +210,6 @@ class AIService:
             if not response_text:
                 return None
             
-            logger.info(f"OpenAI barcode analysis: {response_text}")
             
             extracted = _extract_json(response_text)
             if not extracted:
@@ -223,7 +223,6 @@ class AIService:
             }
             
         except Exception as e:
-            logger.error(f"Barcode analysis failed: {e}")
             return None
 
     async def correct_meal(
@@ -261,7 +260,6 @@ class AIService:
             if not response_text:
                 return None
             
-            logger.info(f"OpenAI correction response: {response_text}")
             
             extracted = _extract_json(response_text)
             if not extracted:
@@ -281,7 +279,6 @@ class AIService:
             }
             
         except Exception as e:
-            logger.error(f"Meal correction failed: {e}")
             return None
 
 

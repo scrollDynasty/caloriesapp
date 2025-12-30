@@ -185,8 +185,7 @@ class ApiService {
       if (token) {
         this.cachedToken = token;
       }
-    } catch (error) {
-      if (__DEV__) console.error("Ошибка загрузки токена:", error);
+    } catch {
     }
   }
 
@@ -196,8 +195,7 @@ class ApiService {
       this.cachedToken = token;
       
       await AsyncStorage.setItem(TOKEN_KEY, token);
-    } catch (error) {
-      if (__DEV__) console.error("Ошибка сохранения токена:", error);
+    } catch {
     }
   }
 
@@ -213,8 +211,7 @@ class ApiService {
         this.cachedToken = token;
       }
       return token;
-    } catch (error) {
-      if (__DEV__) console.error("Ошибка получения токена:", error);
+    } catch {
       return null;
     }
   }
@@ -223,8 +220,8 @@ class ApiService {
     try {
       this.cachedToken = null;
       await AsyncStorage.removeItem(TOKEN_KEY);
-    } catch (error) {
-      if (__DEV__) console.error("Ошибка удаления токена:", error);
+    } catch {
+      // Ignore errors
     }
   }
 
@@ -269,7 +266,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate("user")) {
         dataCache.setPendingUpdate("user");
         this.getCurrentUser()
-          .catch((e) => { if (__DEV__) console.warn("Background user update failed:", e); })
+          .catch(() => {})
           .finally(() => dataCache.clearPendingUpdate("user"));
       }
       return { data: cached, isFromCache: true };
@@ -305,7 +302,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate("onboarding")) {
         dataCache.setPendingUpdate("onboarding");
         this.getOnboardingData()
-          .catch((e) => { if (__DEV__) console.warn("Background onboarding update failed:", e); })
+          .catch(() => {})
           .finally(() => dataCache.clearPendingUpdate("onboarding"));
       }
       return { data: cached, isFromCache: true };
@@ -430,9 +427,6 @@ class ApiService {
           health_score: null,
         };
       } catch (fallbackError: any) {
-        if (__DEV__ && fallbackError?.response?.status !== 404) {
-          console.warn("Barcode lookup failed", fallbackError?.message || fallbackError);
-        }
         throw new Error(fallbackError?.message || "Не удалось найти продукт");
       }
     }
@@ -477,7 +471,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate(`water-${date}`)) {
         dataCache.setPendingUpdate(`water-${date}`);
         this.getDailyWater(date, tzOffsetMinutes)
-          .catch((e) => { if (__DEV__) console.warn("Background water update failed:", e); })
+          .catch(() => {})
           .finally(() => dataCache.clearPendingUpdate(`water-${date}`));
       }
       return { data: cached as WaterDaily, isFromCache: true, isStale };
@@ -548,7 +542,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate(`daily-${date}`)) {
         dataCache.setPendingUpdate(`daily-${date}`);
         this.getDailyMeals(date, tzOffsetMinutes)
-          .catch((e) => { if (__DEV__) console.warn("Background daily update failed:", e); })
+          .catch(() => {})
           .finally(() => dataCache.clearPendingUpdate(`daily-${date}`));
       }
       return { data: cached, isFromCache: true, isStale };
@@ -613,7 +607,7 @@ class ApiService {
       if (isStale && !dataCache.isPendingUpdate(`week-${weekKey}`)) {
         dataCache.setPendingUpdate(`week-${weekKey}`);
         this.getDailyMealsBatch(dates, tzOffsetMinutes)
-          .catch((e) => { if (__DEV__) console.warn("Background week update failed:", e); })
+          .catch(() => {})
           .finally(() => dataCache.clearPendingUpdate(`week-${weekKey}`));
       }
       
@@ -689,7 +683,6 @@ class ApiService {
       });
       return response.data;
     } catch (error: any) {
-      if (__DEV__) console.error("Health check failed:", error);
       throw new Error(
         error.code === "ECONNABORTED" || error.message?.includes("timeout")
           ? "Сервер не отвечает. Проверьте, что бэкенд запущен."

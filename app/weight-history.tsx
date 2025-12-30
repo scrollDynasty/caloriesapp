@@ -2,13 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WeightChart } from "../components/progress/WeightChart";
@@ -117,8 +117,8 @@ export default function WeightHistoryScreen() {
     try {
       const data = await apiService.getWeightStats();
       setStats(data);
-    } catch (error) {
-      if (__DEV__) console.error("Error loading weight stats:", error);
+    } catch {
+      // Ignore errors
     } finally {
       setLoading(false);
       setRefreshing(false);

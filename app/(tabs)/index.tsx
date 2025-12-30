@@ -190,8 +190,7 @@ export default function HomeScreen() {
       setRecentMeals(filtered);
       setRecentHasMore(mealsForSelectedDay.length >= limit);
       setRecentSkip(skip + limit);
-    } catch (err) {
-      if (__DEV__) console.warn("Failed to load latest meal", err);
+    } catch {
       setRecentError("Не удалось загрузить последние блюда");
     }
     finally {
@@ -235,11 +234,10 @@ export default function HomeScreen() {
       if (onboarding) {
         setOnboardingData(onboarding);
       }
-    } catch (error: any) {
+    } catch {
       if (isMountedRef.current) {
-        if (__DEV__) console.error("Error loading data:", error);
+        hasLoadedRef.current = false;
       }
-      hasLoadedRef.current = false;
     } finally {
       isLoadingRef.current = false;
       if (isMountedRef.current) {
@@ -338,11 +336,10 @@ export default function HomeScreen() {
         [dateStr]: isAchieved,
       }));
       setStreakCount(data.streak_count || 0);
-    } catch (err: any) {
-      if (__DEV__) console.warn("Daily data load error", err);
+    } catch {
       if (!isMountedRef.current) return;
       if (!cachedDaily) {
-        setDailyError(err?.response?.data?.detail || err?.message || "Ошибка загрузки данных");
+        setDailyError("Ошибка загрузки данных");  
       }
     } finally {
       if (isMountedRef.current) {
@@ -494,8 +491,8 @@ export default function HomeScreen() {
         }));
         
         lastWeekLoadedRef.current = weekTs;
-      } catch (e) {
-        if (__DEV__) console.warn("Week achievements failed", e);
+      } catch {
+        // Ignore errors
       } finally {
         weekLoadInProgress.current = false;
       }
@@ -528,8 +525,8 @@ export default function HomeScreen() {
       await loadUserData();
       await loadDailyData(selectedDateTimestamp, true); 
       await fetchLatestMeals({ append: false, limit: recentLimit, force: true });
-    } catch (err) {
-      if (__DEV__) console.warn("Refresh error", err);
+    } catch {
+      // Ignore errors
     } finally {
       setRefreshing(false);
     }

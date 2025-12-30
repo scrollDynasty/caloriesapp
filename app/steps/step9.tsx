@@ -35,10 +35,8 @@ export default function Step9() {
     setIsSaving(true);
     
     try {
-      // Сначала сохраняем в AsyncStorage через контекст
       await updateData({ motivation: selectedMotivation });
       
-      // Читаем актуальные данные из AsyncStorage
       let finalData: any = { ...onboardingData, motivation: selectedMotivation };
       
       try {
@@ -47,15 +45,9 @@ export default function Step9() {
           const parsed = JSON.parse(storedData);
           finalData = { ...parsed };
         }
-      } catch (e) {
-        if (__DEV__) console.warn("Could not read stored data:", e);
+      } catch {
       }
 
-      if (__DEV__) {
-        console.log("📋 Step9: Final data before results:", JSON.stringify(finalData, null, 2));
-      }
-
-      // Если пользователь уже залогинен, сохраняем на сервер
       if (
         finalData.gender &&
         finalData.height &&
@@ -65,30 +57,13 @@ export default function Step9() {
       ) {
         const token = await apiService.getToken();
         if (token) {
-          if (__DEV__) console.log("🔑 Token found, saving to server...");
           const result = await saveOnboardingData(finalData);
           if (result.success) {
-            if (__DEV__) console.log("✅ Onboarding data saved successfully");
             await AsyncStorage.removeItem(ONBOARDING_DATA_KEY);
-          } else {
-            if (__DEV__) console.error("❌ Failed to save onboarding data:", result.error);
           }
-        } else {
-          if (__DEV__) console.log("ℹ️ No token found, data will be synced after login");
-        }
-      } else {
-        if (__DEV__) {
-          console.warn("⚠️ Missing required fields in finalData:", {
-            gender: finalData.gender,
-            height: finalData.height,
-            weight: finalData.weight,
-            workoutFrequency: finalData.workoutFrequency,
-            goal: finalData.goal,
-          });
         }
       }
-    } catch (error) {
-      if (__DEV__) console.error("❌ Error in step9:", error);
+    } catch {
     } finally {
       setIsSaving(false);
     }

@@ -282,7 +282,7 @@ def delete_progress_photo(
     try:
         storage_service.delete_file(photo.file_path)
     except Exception as e:
-        logger.warning(f"Failed to delete file from S3: {e}")
+        pass
     
     db.delete(photo)
     db.commit()

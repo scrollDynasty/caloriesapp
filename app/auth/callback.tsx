@@ -37,12 +37,7 @@ export default function CallbackScreen() {
 
   const handleCallback = async () => {
     try {
-      if (__DEV__) {
-        console.log("🔍 Callback received with params:", JSON.stringify(params, null, 2));
-      }
-      
       if (params.error) {
-        if (__DEV__) console.error("❌ OAuth error:", params.error);
         if (isMounted.current) {
           setError(`Ошибка авторизации: ${params.error}`);
         }
@@ -53,16 +48,7 @@ export default function CallbackScreen() {
       const token = params.token as string;
       let userStr = params.user as string;
 
-      if (__DEV__) {
-        console.log("📦 Token present:", !!token);
-        console.log("📦 User string present:", !!userStr);
-      }
-
       if (!token || !userStr) {
-        if (__DEV__) {
-          console.error("❌ Missing data - token:", !!token, "user:", !!userStr);
-          console.error("❌ All params:", Object.keys(params));
-        }
         if (isMounted.current) {
           setError("Ошибка: отсутствуют данные авторизации");
         }
@@ -74,25 +60,17 @@ export default function CallbackScreen() {
         userStr = decodeURIComponent(userStr);
         userStr = userStr.replace(/#.*$/, "");
         const user = JSON.parse(userStr);
-        
-        if (__DEV__) {
-          console.log("✅ User data parsed:", { email: user.email, user_id: user.user_id });
-        }
 
         await apiService.saveToken(token);
-        if (__DEV__) console.log("✅ Token saved");
 
         let hasExistingData = false;
         try {
           const existingData = await apiService.getOnboardingData();
           if (existingData && Object.keys(existingData).length > 0) {
             hasExistingData = true;
-            if (__DEV__) console.log("ℹ️ Onboarding data already exists on server, skipping save");
           }
-        } catch (error: any) {
-          if (error?.response?.status !== 404 && __DEV__) {
-            console.warn("⚠️ Error checking existing data:", error);
-          }
+        } catch {
+          // Ignore errors
         }
 
         if (!hasExistingData) {
@@ -105,55 +83,37 @@ export default function CallbackScreen() {
               const parsedData = JSON.parse(storedData);
               if (parsedData && Object.keys(parsedData).length > 0) {
                 dataToSave = { ...onboardingData, ...parsedData };
-                if (__DEV__) console.log("📦 Found onboarding data in storage, merging with context");
               }
             }
-          } catch (storageError) {
-            if (__DEV__) console.warn("⚠️ Error reading stored data:", storageError);
+          } catch {
           }
           
           if (dataToSave && Object.keys(dataToSave).length > 0) {
             try {
-              if (__DEV__) console.log("💾 Saving onboarding data (first time)...");
               const saveResult = await saveOnboardingData(dataToSave);
               if (saveResult.success) {
-                if (__DEV__) console.log("✅ Onboarding data saved");
                 try {
                   const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
                   await AsyncStorage.removeItem("@yebich:onboarding_data");
-                } catch (e) {
-                  if (__DEV__) console.warn("⚠️ Error clearing stored data:", e);
+                } catch {
                 }
-              } else if (__DEV__) {
-                console.warn("⚠️ Onboarding save failed:", saveResult.error);
               }
-            } catch (saveError: any) {
-              if (__DEV__) console.error("❌ Ошибка сохранения данных онбординга:", saveError);
+            } catch {
             }
-          } else if (__DEV__) {
-            console.log("ℹ️ No onboarding data to save");
           }
         }
-
-        if (__DEV__) console.log("🚀 Redirecting to main screen...");
         if (isMounted.current) {
           router.replace("/(tabs)");
         }
-      } catch (parseError: any) {
-        if (__DEV__) {
-          console.error("❌ Error parsing user data:", parseError);
-        }
+      } catch {
         if (isMounted.current) {
           setError("Ошибка при обработке данных");
         }
         safeRedirect("/save-progress");
       }
-    } catch (err: any) {
-      if (__DEV__) {
-        console.error("❌ Callback error:", err);
-      }
+    } catch {
       if (isMounted.current) {
-        setError(`Ошибка: ${err.message || "Неизвестная ошибка"}`);
+        setError("Ошибка: Неизвестная ошибка");
       }
       safeRedirect("/save-progress");
     }

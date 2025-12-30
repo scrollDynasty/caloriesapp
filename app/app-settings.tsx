@@ -3,12 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeMode, useTheme } from "../context/ThemeContext";
@@ -168,8 +168,8 @@ export default function AppSettingsScreen() {
       if (stored) {
         setToggleSettings(JSON.parse(stored));
       }
-    } catch (error) {
-      if (__DEV__) console.error("Error loading toggle settings:", error);
+    } catch {
+      // Ignore errors
     }
   };
 
@@ -181,8 +181,8 @@ export default function AppSettingsScreen() {
     setToggleSettings(newSettings);
     try {
       await AsyncStorage.setItem(TOGGLE_SETTINGS_KEY, JSON.stringify(newSettings));
-    } catch (error) {
-      if (__DEV__) console.error("Error saving toggle settings:", error);
+    } catch {
+      // Ignore errors
     }
   };
 

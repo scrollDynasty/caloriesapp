@@ -66,8 +66,8 @@ export default function EditProfileScreen() {
       if (profile.avatar_url) {
         setLocalAvatarUri(profile.avatar_url);
       }
-    } catch (error) {
-      if (__DEV__) console.error("Error loading profile:", error);
+    } catch {
+      // Ignore errors
     } finally {
       setLoading(false);
     }
@@ -86,8 +86,8 @@ export default function EditProfileScreen() {
         const result = await apiService.checkUsername(data.username);
         setUsernameAvailable(result.available);
         setUsernameError(result.available ? null : result.message);
-      } catch (error) {
-        if (__DEV__) console.error("Error checking username:", error);
+      } catch {
+        // Ignore errors
       } finally {
         setCheckingUsername(false);
       }
@@ -147,9 +147,7 @@ export default function EditProfileScreen() {
             "image/jpeg"
           );
           avatarUrl = uploadResult.avatar_url;
-          if (__DEV__) console.log("Avatar uploaded:", avatarUrl);
-        } catch (uploadError) {
-          if (__DEV__) console.error("Error uploading avatar:", uploadError);
+        } catch {
           Alert.alert("Ошибка", "Не удалось загрузить фотографию");
           setSaving(false);
           return;
@@ -167,7 +165,6 @@ export default function EditProfileScreen() {
 
       router.back();
     } catch (error: any) {
-      if (__DEV__) console.error("Error saving profile:", error);
       Alert.alert("Ошибка", error.response?.data?.detail || "Не удалось сохранить профиль");
     } finally {
       setSaving(false);

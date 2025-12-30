@@ -24,15 +24,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         const stored = await AsyncStorage.getItem(ONBOARDING_DATA_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (__DEV__) {
-            console.log("📂 OnboardingContext: Loaded data from storage:", Object.keys(parsed));
-          }
           setData(parsed);
-        } else {
-          if (__DEV__) console.log("📂 OnboardingContext: No stored data found");
         }
-      } catch (error) {
-        if (__DEV__) console.error("Error loading onboarding data:", error);
+      } catch {
       } finally {
         setIsLoaded(true);
       }
@@ -41,18 +35,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateData = async (stepData: Partial<OnboardingData>) => {
-    if (__DEV__) {
-      console.log("📝 OnboardingContext: Updating data with:", Object.keys(stepData));
-    }
     const newData = { ...data, ...stepData };
     setData(newData);
     try {
       await AsyncStorage.setItem(ONBOARDING_DATA_KEY, JSON.stringify(newData));
-      if (__DEV__) {
-        console.log("💾 OnboardingContext: Saved to AsyncStorage. Current keys:", Object.keys(newData));
-      }
-    } catch (error) {
-      if (__DEV__) console.error("Error saving onboarding data:", error);
+    } catch {
+      // Ignore storage errors
     }
   };
 
@@ -60,8 +48,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setData({});
     try {
       await AsyncStorage.removeItem(ONBOARDING_DATA_KEY);
-    } catch (error) {
-      if (__DEV__) console.error("Error clearing onboarding data:", error);
+    } catch {
+      // Ignore storage errors
     }
   };
 

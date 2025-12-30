@@ -45,9 +45,7 @@ def get_or_create_user_by_google(
         db.add(user)
         db.commit()
         db.refresh(user)
-        logger.info(f"Created new user {user.id} via Google OAuth")
     else:
-        # Существующий пользователь - обновляем данные аккуратно
         updated = False
         
         if email and user.email != email:
@@ -58,8 +56,6 @@ def get_or_create_user_by_google(
             user.name = name
             updated = True
         
-        # ВАЖНО: Не перезаписываем кастомную аватарку!
-        # Обновляем только если у пользователя нет аватарки или это Google аватарка
         if avatar_url and not _is_custom_avatar(user.avatar_url):
             if user.avatar_url != avatar_url:
                 user.avatar_url = avatar_url
@@ -100,7 +96,6 @@ def get_or_create_user_by_apple(
         db.add(user)
         db.commit()
         db.refresh(user)
-        logger.info(f"Created new user {user.id} via Apple OAuth")
     else:
         updated = False
         

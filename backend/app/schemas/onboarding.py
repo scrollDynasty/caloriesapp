@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, field_validator
+from typing import Optional, Union
 from datetime import date, datetime
 from app.models.onboarding_data import Gender, WorkoutFrequency, Goal, DietType
 
@@ -13,7 +13,21 @@ class OnboardingDataCreate(BaseModel):
     weight: Optional[float] = None
     target_weight: Optional[float] = None
 
-    birth_date: Optional[date] = None
+    birth_date: Optional[Union[date, str]] = None
+    
+    @field_validator('birth_date', mode='before')
+    @classmethod
+    def parse_birth_date(cls, v):
+        if v is None or v == '':
+            return None
+        if isinstance(v, date):
+            return v
+        if isinstance(v, str):
+            try:
+                return datetime.strptime(v.split('T')[0], '%Y-%m-%d').date()
+            except (ValueError, AttributeError):
+                return None
+        return v
     step_goal: Optional[int] = None
 
     has_trainer: Optional[bool] = None

@@ -67,8 +67,7 @@ export default function ProgressScreen() {
       setBmi(progressData.bmi);
       setBmiCategory(progressData.bmi_category);
       setProgressPhotos(photos);
-    } catch (error: any) {
-      if (__DEV__) console.error("Error loading progress data:", error);
+    } catch {
       Alert.alert("Ошибка", "Не удалось загрузить данные прогресса");
     } finally {
       setLoading(false);
@@ -112,8 +111,7 @@ export default function ProgressScreen() {
         
         Alert.alert("Успешно", "Фото прогресса добавлено");
       }
-    } catch (error: any) {
-      if (__DEV__) console.error("Error uploading photo:", error);
+    } catch {
       Alert.alert("Ошибка", "Не удалось загрузить фото");
     }
   };

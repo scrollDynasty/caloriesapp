@@ -4,14 +4,14 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -144,16 +144,16 @@ export default function TrackingRemindersScreen() {
         };
         setReminders(restored);
       }
-    } catch (error) {
-      if (__DEV__) console.error("Error loading reminders:", error);
+    } catch {
+      // Ignore errors
     }
   };
 
   const saveReminders = async (newReminders: RemindersData) => {
     try {
       await AsyncStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(newReminders));
-    } catch (error) {
-      if (__DEV__) console.error("Error saving reminders:", error);
+    } catch {
+      // Ignore errors
     }
   };
 

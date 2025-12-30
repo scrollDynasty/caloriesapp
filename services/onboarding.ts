@@ -26,11 +26,6 @@ export interface OnboardingData {
 
 export async function saveOnboardingData(data: OnboardingData) {
   try {
-    if (__DEV__) {
-      console.log("📥 saveOnboardingData called with:", JSON.stringify(data, null, 2));
-    }
-    
-    // Проверяем обязательные поля
     const missingFields: string[] = [];
     if (!data.gender) missingFields.push("gender");
     if (!data.height) missingFields.push("height");
@@ -39,9 +34,7 @@ export async function saveOnboardingData(data: OnboardingData) {
     if (!data.goal) missingFields.push("goal");
     
     if (missingFields.length > 0) {
-      const errorMsg = `Недостаточно данных для расчета. Отсутствуют: ${missingFields.join(", ")}`;
-      if (__DEV__) console.error("❌ " + errorMsg);
-      throw new Error(errorMsg);
+      throw new Error(`Недостаточно данных для расчета. Отсутствуют: ${missingFields.join(", ")}`);
     }
 
     let age = 25; 
@@ -55,8 +48,6 @@ export async function saveOnboardingData(data: OnboardingData) {
         age--;
       }
     }
-
-    if (__DEV__) console.log("📊 Calculated age:", age);
 
     const gender = data.gender!;
     const height = data.height!;
@@ -74,11 +65,6 @@ export async function saveOnboardingData(data: OnboardingData) {
     };
 
     const calculations = calculateCalories(userData);
-    
-    if (__DEV__) {
-      console.log("📊 Calculated calories:", calculations.targetCalories);
-      console.log("📊 Calculated macros:", calculations.macros);
-    }
 
     let birthDateStr: string | undefined;
     if (data.birthDate) {
@@ -86,7 +72,10 @@ export async function saveOnboardingData(data: OnboardingData) {
       if (typeof birthDateValue === 'string') {
         birthDateStr = birthDateValue.split("T")[0];
       } else {
-        birthDateStr = birthDateValue.toISOString().split("T")[0];
+        const year = birthDateValue.getFullYear();
+        const month = String(birthDateValue.getMonth() + 1).padStart(2, '0');
+        const day = String(birthDateValue.getDate()).padStart(2, '0');
+        birthDateStr = `${year}-${month}-${day}`;
       }
     }
 
@@ -117,19 +106,9 @@ export async function saveOnboardingData(data: OnboardingData) {
       fats_percentage: calculations.macros.fats.percentage,
     };
 
-    if (__DEV__) {
-      console.log("📤 Sending payload to server:", JSON.stringify(payload, null, 2));
-    }
-
     const result = await apiService.saveOnboardingData(payload);
-    
-    if (__DEV__) {
-      console.log("✅ Server response:", JSON.stringify(result, null, 2));
-    }
-    
     return { success: true, data: result };
   } catch (error: any) {
-    if (__DEV__) console.error("❌ Ошибка сохранения данных:", error);
 
     let errorMessage = "Ошибка при сохранении данных";
     
@@ -167,7 +146,6 @@ export async function getOnboardingData() {
     const data = await apiService.getOnboardingData();
     return { success: true, data };
   } catch (error: any) {
-    if (__DEV__) console.error("Error getting onboarding data:", error);
     return {
       success: false,
       error: error.message || "Ошибка при получении данных",

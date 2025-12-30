@@ -3,24 +3,24 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeOut,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -935,8 +935,8 @@ export default function NutritionGoalsScreen() {
         sugar: data.sugar_grams || 50,
         sodium: data.sodium_mg || 2300,
       });
-    } catch (error) {
-      if (__DEV__) console.error("Error loading onboarding data:", error);
+    } catch {
+      // Ignore errors
     } finally {
       setLoading(false);
     }
@@ -979,8 +979,7 @@ export default function NutritionGoalsScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       dataCache.invalidateOnboarding();
       router.back();
-    } catch (error) {
-      if (__DEV__) console.error("Error saving goals:", error);
+    } catch {
       Alert.alert("Ошибка", "Не удалось сохранить цели");
     } finally {
       setSaving(false);

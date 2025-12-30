@@ -37,8 +37,8 @@ export default function Index() {
         router.replace("/(tabs)");
         return;
       }
-    } catch (error) {
-      if (__DEV__) console.error("Error checking auth:", error);
+    } catch {
+      // Ignore errors
     } finally {
       setCheckingAuth(false);
     }

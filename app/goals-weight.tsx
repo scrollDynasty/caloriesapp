@@ -3,19 +3,19 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -87,8 +87,8 @@ export default function GoalsWeightScreen() {
         targetWeight: onboarding.target_weight || onboarding.weight || null,
         stepGoal: onboarding.step_goal || 10000,
       });
-    } catch (error) {
-      if (__DEV__) console.error("Error loading personal data:", error);
+    } catch {
+      // Ignore errors
     } finally {
       setLoading(false);
     }
@@ -192,13 +192,7 @@ export default function GoalsWeightScreen() {
         }
       }
 
-      if (__DEV__) {
-        console.log("Saving goals weight data:", JSON.stringify(payload, null, 2));
-      }
       const result = await apiService.saveOnboardingData(payload);
-      if (__DEV__) {
-        console.log("Save result:", JSON.stringify(result, null, 2));
-      }
       
       dataCache.invalidateOnboarding();
       dataCache.invalidateAll();
@@ -206,8 +200,7 @@ export default function GoalsWeightScreen() {
       setData(updatedData);
       setEditField(null);
       
-    } catch (error) {
-      if (__DEV__) console.error("Error saving:", error);
+    } catch {
       Alert.alert("Ошибка", "Не удалось сохранить изменения");
     } finally {
       setSaving(false);
