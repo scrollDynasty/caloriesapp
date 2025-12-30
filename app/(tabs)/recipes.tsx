@@ -36,12 +36,11 @@ interface Recipe {
   difficulty: "Легко" | "Средне" | "Сложно";
   category: string;
   ingredients: string[];
+  instructions: string[];
   description: string;
-  isPopular?: boolean;
-  count?: number;
 }
 
-const POPULAR_UZBEK_RECIPES: Recipe[] = [
+const UZBEK_RECIPES: Recipe[] = [
   {
     id: "breakfast-1",
     title: "Каша маш",
@@ -50,9 +49,16 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 30,
     difficulty: "Средне",
     category: "Завтрак",
-    ingredients: ["Маш", "Рис", "Морковь", "Лук", "Мясо"],
+    ingredients: ["200г маша", "100г риса", "1 морковь", "1 луковица", "300г мяса", "Масло", "Соль, специи"],
+    instructions: [
+      "Замочите маш на 2 часа в холодной воде",
+      "Нарежьте мясо кубиками и обжарьте на масле до золотистой корочки",
+      "Добавьте нарезанный лук и тертую морковь, обжарьте 5 минут",
+      "Добавьте маш, рис и залейте водой (1:3)",
+      "Варите на медленном огне 40 минут до готовности",
+      "Посолите, добавьте специи и перемешайте"
+    ],
     description: "Традиционный узбекский завтрак с машем и рисом",
-    isPopular: true,
   },
   {
     id: "breakfast-2",
@@ -62,9 +68,16 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 40,
     difficulty: "Средне",
     category: "Завтрак",
-    ingredients: ["Тесто", "Тыква", "Лук", "Масло"],
+    ingredients: ["500г слоеного теста", "400г тыквы", "2 луковицы", "Масло", "Соль, перец", "Кунжут"],
+    instructions: [
+      "Нарежьте тыкву мелкими кубиками, лук полукольцами",
+      "Смешайте тыкву с луком, добавьте соль, перец и масло",
+      "Раскатайте тесто, нарежьте на квадраты 10×10см",
+      "Выложите начинку в центр каждого квадрата",
+      "Защипните края в виде треугольника, смажьте яйцом",
+      "Посыпьте кунжутом и выпекайте при 200°C 35-40 минут"
+    ],
     description: "Хрустящая самса с тыквенной начинкой",
-    isPopular: true,
   },
   {
     id: "breakfast-3",
@@ -74,9 +87,16 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 20,
     difficulty: "Легко",
     category: "Завтрак",
-    ingredients: ["Молоко", "Рис", "Сахар", "Масло"],
+    ingredients: ["1л молока", "100г риса", "50г сахара", "50г масла", "Щепотка соли"],
+    instructions: [
+      "Промойте рис в холодной воде несколько раз",
+      "Вскипятите молоко, добавьте щепотку соли",
+      "Всыпьте рис и варите на медленном огне 15 минут",
+      "Добавьте сахар и масло, перемешайте",
+      "Варите еще 5 минут до загустения",
+      "Подавайте горячим"
+    ],
     description: "Молочная рисовая каша по-узбекски",
-    isPopular: true,
   },
   {
     id: "breakfast-4",
@@ -86,21 +106,35 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 25,
     difficulty: "Средне",
     category: "Завтрак",
-    ingredients: ["Лапша", "Овощи", "Яйцо", "Соус"],
+    ingredients: ["200г лапши", "2 огурца", "2 помидора", "2 яйца", "100мл соуса кукси", "Зелень"],
+    instructions: [
+      "Отварите лапшу согласно инструкции на упаковке",
+      "Нарежьте огурцы и помидоры тонкой соломкой",
+      "Сварите яйца вкрутую, разрежьте пополам",
+      "Промойте лапшу холодной водой",
+      "Выложите лапшу, овощи, яйца в глубокую тарелку",
+      "Залейте холодным соусом кукси, украсьте зеленью"
+    ],
     description: "Холодный суп с лапшой",
-    isPopular: true,
   },
   {
     id: "breakfast-5",
     title: "Катлама",
-    image: "https://images.unsplash.com/photo-1612874742036-e570796f688d?w=400",
+    image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400",
     calories: 350,
     time: 30,
     difficulty: "Средне",
     category: "Завтрак",
-    ingredients: ["Тесто", "Масло", "Яйцо", "Зелень"],
+    ingredients: ["500г муки", "250мл воды", "100мл масла", "2 яйца", "Зелень", "Соль"],
+    instructions: [
+      "Замесите тесто из муки, воды, яйца и соли",
+      "Оставьте тесто на 20 минут под пленкой",
+      "Раскатайте тесто очень тонко, смажьте маслом",
+      "Посыпьте рубленой зеленью",
+      "Сложите гармошкой, затем скрутите в рулет",
+      "Обжарьте на сковороде с обеих сторон до золотистого цвета"
+    ],
     description: "Слоеная лепешка",
-    isPopular: true,
   },
   {
     id: "breakfast-6",
@@ -110,9 +144,16 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 45,
     difficulty: "Сложно",
     category: "Завтрак",
-    ingredients: ["Тесто", "Мясо", "Лук", "Специи"],
+    ingredients: ["300г муки", "300г фарша", "2 луковицы", "Соль, перец", "Зелень", "Сметана"],
+    instructions: [
+      "Замесите крутое тесто из муки и воды, оставьте на 30 минут",
+      "Смешайте фарш с мелко нарезанным луком, солью и перцем",
+      "Раскатайте тесто тонко, нарежьте на квадраты 4×4см",
+      "Положите немного фарша, защипните уголки",
+      "Отварите в кипящей подсоленной воде 7-8 минут",
+      "Подавайте со сметаной и зеленью"
+    ],
     description: "Узбекские пельмени",
-    isPopular: true,
   },
   {
     id: "breakfast-7",
@@ -122,9 +163,16 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 25,
     difficulty: "Легко",
     category: "Завтрак",
-    ingredients: ["Мука", "Масло", "Сахар", "Яйца"],
+    ingredients: ["200г муки", "100г масла", "100г сахара", "3 яйца", "1 ч.л. разрыхлителя"],
+    instructions: [
+      "Взбейте яйца с сахаром до пышной массы",
+      "Растопите масло и добавьте в яичную смесь",
+      "Просейте муку с разрыхлителем",
+      "Замесите мягкое тесто",
+      "Сформируйте небольшие лепешки",
+      "Выпекайте при 180°C 20-25 минут"
+    ],
     description: "Сладкая выпечка",
-    isPopular: true,
   },
   {
     id: "breakfast-8",
@@ -134,9 +182,16 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 5,
     difficulty: "Легко",
     category: "Завтрак",
-    ingredients: ["Нон", "Масло", "Мед"],
+    ingredients: ["1 нон (узбекская лепешка)", "50г масла", "2 ст.л. меда"],
+    instructions: [
+      "Разогрейте нон в духовке или на сковороде",
+      "Размягчите масло при комнатной температуре",
+      "Разрежьте нон на порции",
+      "Намажьте каждый кусок маслом",
+      "Полейте медом по вкусу",
+      "Подавайте с горячим чаем"
+    ],
     description: "Узбекская лепешка с маслом",
-    isPopular: true,
   },
   {
     id: "breakfast-9",
@@ -146,9 +201,16 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 30,
     difficulty: "Средне",
     category: "Завтрак",
-    ingredients: ["Рис", "Мясо", "Морковь", "Лук"],
+    ingredients: ["200г риса", "200г мяса", "1 морковь", "1 луковица", "Масло", "Зира, соль"],
+    instructions: [
+      "Нарежьте мясо небольшими кусочками",
+      "Обжарьте мясо на масле до золотистого цвета",
+      "Добавьте нарезанный лук и тертую морковь",
+      "Промойте рис и добавьте к мясу",
+      "Залейте водой (1:2), добавьте зиру и соль",
+      "Варите под крышкой на медленном огне 20 минут"
+    ],
     description: "Легкий плов на завтрак",
-    isPopular: true,
   },
   {
     id: "breakfast-10",
@@ -158,21 +220,39 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 15,
     difficulty: "Легко",
     category: "Завтрак",
-    ingredients: ["Яйца", "Помидоры", "Лук", "Специи"],
+    ingredients: ["4 яйца", "3 помидора", "1 луковица", "Масло", "Соль, перец, зелень"],
+    instructions: [
+      "Нарежьте помидоры кубиками, лук полукольцами",
+      "Обжарьте лук на масле до прозрачности",
+      "Добавьте помидоры, тушите 5 минут",
+      "Взбейте яйца с солью и перцем",
+      "Влейте яйца к помидорам, перемешайте",
+      "Готовьте 3-4 минуты, посыпьте зеленью"
+    ],
     description: "Простое и полезное блюдо",
-    isPopular: true,
   },
   {
     id: "lunch-1",
     title: "Плов",
-    image: "https://images.unsplash.com/photo-1645177628172-a94c30a5460a?w=400",
+    image: "https://images.unsplash.com/photo-1516714435131-44d6b64dc6a2?w=400",
     calories: 650,
     time: 90,
     difficulty: "Сложно",
     category: "Обед",
-    ingredients: ["Рис", "Баранина", "Морковь", "Лук", "Специи"],
+    ingredients: ["1кг риса", "1кг баранины", "1кг моркови", "4 луковицы", "200мл масла", "Зира, барбарис"],
+    instructions: [
+      "Нарежьте мясо крупными кусками, лук полукольцами",
+      "Морковь нарежьте длинной соломкой",
+      "Раскалите казан, налейте масло",
+      "Обжарьте мясо до корочки, добавьте лук",
+      "Добавьте морковь, жарьте 15 минут",
+      "Залейте кипятком, тушите 40 минут",
+      "Промойте рис, выложите ровным слоем",
+      "Залейте водой выше риса на 2см",
+      "Варите на сильном огне до испарения воды",
+      "Накройте крышкой, томите 30 минут"
+    ],
     description: "Классический узбекский плов",
-    isPopular: true,
   },
   {
     id: "lunch-2",
@@ -182,21 +262,39 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 120,
     difficulty: "Средне",
     category: "Обед",
-    ingredients: ["Баранина", "Картофель", "Морковь", "Лук", "Помидоры"],
+    ingredients: ["1кг баранины", "4 картофелины", "3 моркови", "2 луковицы", "3 помидора", "Зелень"],
+    instructions: [
+      "Нарежьте мясо крупными кусками",
+      "Залейте мясо холодной водой, доведите до кипения",
+      "Снимите пену, варите 1 час",
+      "Нарежьте овощи крупными кусками",
+      "Добавьте лук и морковь, варите 20 минут",
+      "Добавьте картофель и помидоры",
+      "Варите до готовности картофеля",
+      "Посолите, добавьте зелень"
+    ],
     description: "Наваристый мясной суп",
-    isPopular: true,
   },
   {
     id: "lunch-3",
     title: "Лагман",
-    image: "https://images.unsplash.com/photo-1612874742036-e570796f688d?w=400",
+    image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400",
     calories: 550,
     time: 60,
     difficulty: "Средне",
     category: "Обед",
-    ingredients: ["Лапша", "Мясо", "Овощи", "Специи"],
+    ingredients: ["400г лапши", "500г мяса", "2 перца", "3 помидора", "1 редька", "Лук, чеснок", "Специи"],
+    instructions: [
+      "Нарежьте мясо соломкой, обжарьте на сильном огне",
+      "Добавьте нарезанный лук и чеснок",
+      "Нарежьте овощи соломкой",
+      "Добавьте перец, редьку, обжарьте 5 минут",
+      "Добавьте помидоры, залейте водой",
+      "Тушите 20 минут, добавьте специи",
+      "Отварите лапшу отдельно",
+      "Выложите лапшу, полейте подливой"
+    ],
     description: "Лапша с мясом и овощами",
-    isPopular: true,
   },
   {
     id: "lunch-4",
@@ -206,9 +304,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 50,
     difficulty: "Средне",
     category: "Обед",
-    ingredients: ["Тесто", "Мясо", "Лук", "Тыква"],
+    ingredients: ["500г муки", "500г фарша", "3 луковицы", "200г тыквы", "Соль, перец", "Масло"],
+    instructions: [
+      "Замесите тесто из муки и воды, оставьте на 30 минут",
+      "Смешайте фарш с мелко нарезанным луком",
+      "Добавьте тертую тыкву, соль, перец",
+      "Раскатайте тесто, нарежьте на квадраты",
+      "Выложите начинку, защипните края конвертом",
+      "Готовьте на пару 40-45 минут",
+      "Подавайте со сметаной"
+    ],
     description: "Манты на пару",
-    isPopular: true,
   },
   {
     id: "lunch-5",
@@ -218,9 +324,18 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 80,
     difficulty: "Средне",
     category: "Обед",
-    ingredients: ["Мясо", "Картофель", "Капуста", "Морковь", "Лук"],
+    ingredients: ["1кг мяса", "6 картофелин", "1 капуста", "4 моркови", "3 луковицы", "Специи"],
+    instructions: [
+      "Нарежьте мясо кусочками среднего размера",
+      "Нарежьте все овощи крупными кусками",
+      "В казан выложите слоями: лук, мясо, морковь",
+      "Затем капусту и картофель",
+      "Посолите, добавьте специи",
+      "Влейте немного воды, накройте крышкой",
+      "Тушите на медленном огне 1,5 часа",
+      "Не перемешивайте до готовности"
+    ],
     description: "Тушеное мясо с овощами",
-    isPopular: true,
   },
   {
     id: "lunch-6",
@@ -230,9 +345,18 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 90,
     difficulty: "Сложно",
     category: "Обед",
-    ingredients: ["Конина", "Лапша", "Лук", "Специи"],
+    ingredients: ["500г конины", "500г теста для лапши", "3 луковицы", "Специи", "Зелень"],
+    instructions: [
+      "Отварите конину с луком до мягкости (1,5 часа)",
+      "Раскатайте тесто тонко, подсушите 10 минут",
+      "Нарежьте лапшу тонкой соломкой",
+      "Отварите лапшу в подсоленной воде",
+      "Нарежьте мясо тонкими ломтиками",
+      "Нарежьте лук тонкими кольцами",
+      "Смешайте лапшу, мясо, лук",
+      "Полейте бульоном, посыпьте зеленью"
+    ],
     description: "Традиционное блюдо с кониной",
-    isPopular: true,
   },
   {
     id: "lunch-7",
@@ -242,9 +366,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 45,
     difficulty: "Средне",
     category: "Обед",
-    ingredients: ["Тесто", "Мясо", "Лук", "Специи"],
+    ingredients: ["500г слоеного теста", "500г баранины", "3 луковицы", "Курдючный жир", "Зира, соль"],
+    instructions: [
+      "Нарежьте мясо мелкими кубиками",
+      "Мелко нарежьте лук и курдючный жир",
+      "Смешайте мясо, лук, жир, добавьте зиру и соль",
+      "Раскатайте тесто, нарежьте квадратами",
+      "Выложите начинку, защипните треугольником",
+      "Смажьте яйцом, посыпьте кунжутом",
+      "Выпекайте при 200°C 35-40 минут"
+    ],
     description: "Хрустящая самса с мясной начинкой",
-    isPopular: true,
   },
   {
     id: "lunch-8",
@@ -254,9 +386,18 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 60,
     difficulty: "Средне",
     category: "Обед",
-    ingredients: ["Рис", "Мясо", "Овощи", "Зелень"],
+    ingredients: ["200г риса", "500г баранины", "3 помидора", "2 моркови", "Лук", "Зелень"],
+    instructions: [
+      "Нарежьте мясо кусочками, обжарьте",
+      "Добавьте нарезанный лук, обжарьте",
+      "Добавьте тертую морковь",
+      "Нарежьте помидоры, добавьте к мясу",
+      "Залейте водой, варите 30 минут",
+      "Добавьте промытый рис",
+      "Варите до готовности риса",
+      "Посыпьте зеленью перед подачей"
+    ],
     description: "Густой рисовый суп",
-    isPopular: true,
   },
   {
     id: "lunch-9",
@@ -266,9 +407,18 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 120,
     difficulty: "Сложно",
     category: "Обед",
-    ingredients: ["Баранина", "Рис", "Субпродукты", "Специи"],
+    ingredients: ["Бараньи кишки", "500г печени", "300г риса", "Лук", "Специи", "Курдючный жир"],
+    instructions: [
+      "Тщательно промойте кишки",
+      "Мелко нарубите печень и лук",
+      "Отварите рис до полуготовности",
+      "Смешайте печень, рис, лук, специи",
+      "Наполните кишки начинкой неплотно",
+      "Завяжите концы ниткой",
+      "Варите в воде 1,5 часа на слабом огне",
+      "Подавайте нарезанным кружочками"
+    ],
     description: "Колбаса из баранины",
-    isPopular: true,
   },
   {
     id: "lunch-10",
@@ -278,9 +428,18 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 40,
     difficulty: "Легко",
     category: "Обед",
-    ingredients: ["Баранина", "Лук", "Специи"],
+    ingredients: ["1кг баранины", "3 луковицы", "Зира", "Соль, перец", "Уксус"],
+    instructions: [
+      "Нарежьте мясо кусками 4×4см",
+      "Нарежьте лук кольцами",
+      "Смешайте мясо с луком, зирой, солью",
+      "Добавьте немного уксуса",
+      "Маринуйте 2-3 часа в холодильнике",
+      "Нанижите мясо на шампуры",
+      "Жарьте на углях, переворачивая",
+      "Подавайте с луком и зеленью"
+    ],
     description: "Мясо на углях",
-    isPopular: true,
   },
   {
     id: "dinner-1",
@@ -290,9 +449,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 10,
     difficulty: "Легко",
     category: "Ужин",
-    ingredients: ["Помидоры", "Лук", "Зелень", "Специи"],
+    ingredients: ["4 помидора", "2 луковицы", "Кинза", "Базилик", "Соль", "Масло"],
+    instructions: [
+      "Нарежьте помидоры крупными дольками",
+      "Лук нарежьте тонкими полукольцами",
+      "Мелко нарубите зелень",
+      "Смешайте все ингредиенты",
+      "Посолите по вкусу",
+      "Заправьте растительным маслом",
+      "Дайте настояться 10 минут"
+    ],
     description: "Легкий овощной салат",
-    isPopular: true,
   },
   {
     id: "dinner-2",
@@ -302,9 +469,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 15,
     difficulty: "Легко",
     category: "Ужин",
-    ingredients: ["Редька", "Морковь", "Мясо", "Яйца"],
+    ingredients: ["1 редька", "2 моркови", "300г отварного мяса", "3 яйца", "Майонез", "Соль"],
+    instructions: [
+      "Натрите редьку на крупной терке",
+      "Посолите, дайте постоять 10 минут, отожмите",
+      "Натрите морковь",
+      "Нарежьте мясо соломкой",
+      "Отварите яйца, нарежьте кубиками",
+      "Смешайте все ингредиенты",
+      "Заправьте майонезом, перемешайте"
+    ],
     description: "Сытный салат",
-    isPopular: true,
   },
   {
     id: "dinner-3",
@@ -314,9 +489,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 15,
     difficulty: "Легко",
     category: "Ужин",
-    ingredients: ["Катык", "Редис", "Огурцы", "Зелень"],
+    ingredients: ["500мл катыка", "3 редиса", "2 огурца", "Зелень", "Соль", "Вода"],
+    instructions: [
+      "Взбейте катык с холодной водой (1:1)",
+      "Нарежьте редис тонкими кружочками",
+      "Огурцы нарежьте мелкими кубиками",
+      "Мелко нарубите зелень",
+      "Добавьте овощи в катык",
+      "Посолите по вкусу",
+      "Охладите перед подачей"
+    ],
     description: "Холодный суп на катыке",
-    isPopular: true,
   },
   {
     id: "dinner-4",
@@ -326,9 +509,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 30,
     difficulty: "Средне",
     category: "Ужин",
-    ingredients: ["Фарш", "Лук", "Специи"],
+    ingredients: ["500г фарша", "2 луковицы", "Зира", "Кориандр", "Соль, перец"],
+    instructions: [
+      "Мелко нарежьте лук",
+      "Смешайте фарш с луком",
+      "Добавьте специи, соль, перец",
+      "Хорошо вымесите фарш",
+      "Сформируйте продолговатые котлеты",
+      "Нанижите на шампуры",
+      "Жарьте на углях 15-20 минут"
+    ],
     description: "Котлеты на углях",
-    isPopular: true,
   },
   {
     id: "dinner-5",
@@ -338,9 +529,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 10,
     difficulty: "Легко",
     category: "Ужин",
-    ingredients: ["Редька", "Лук", "Масло", "Специи"],
+    ingredients: ["1 редька", "1 луковица", "Масло", "Соль", "Перец"],
+    instructions: [
+      "Натрите редьку на крупной терке",
+      "Посолите, дайте постоять 10 минут",
+      "Отожмите лишний сок",
+      "Лук нарежьте тонкими полукольцами",
+      "Смешайте редьку с луком",
+      "Заправьте маслом",
+      "Поперчите по вкусу"
+    ],
     description: "Острый салат",
-    isPopular: true,
   },
   {
     id: "dinner-6",
@@ -350,9 +549,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 40,
     difficulty: "Средне",
     category: "Ужин",
-    ingredients: ["Мясо", "Картофель", "Лук", "Помидоры"],
+    ingredients: ["500г мяса", "6 картофелин", "2 луковицы", "3 помидора", "Специи"],
+    instructions: [
+      "Нарежьте мясо кусочками",
+      "Обжарьте мясо до золотистой корочки",
+      "Добавьте нарезанный лук",
+      "Картофель нарежьте кубиками, добавьте к мясу",
+      "Обжарьте 10 минут",
+      "Добавьте нарезанные помидоры",
+      "Тушите под крышкой 20 минут"
+    ],
     description: "Жареное мясо с картофелем",
-    isPopular: true,
   },
   {
     id: "dinner-7",
@@ -362,9 +569,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 20,
     difficulty: "Легко",
     category: "Ужин",
-    ingredients: ["Укроп", "Мята", "Базилик", "Катык"],
+    ingredients: ["Укроп", "Мята", "Базилик", "Кинза", "500мл катыка", "Соль"],
+    instructions: [
+      "Мелко нарубите всю зелень",
+      "Залейте зелень кипятком на 5 минут",
+      "Слейте воду, охладите",
+      "Взбейте катык",
+      "Добавьте зелень в катык",
+      "Посолите по вкусу",
+      "Подавайте холодным"
+    ],
     description: "Травяной суп",
-    isPopular: true,
   },
   {
     id: "dinner-8",
@@ -374,9 +589,17 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 35,
     difficulty: "Средне",
     category: "Ужин",
-    ingredients: ["Тесто", "Картофель", "Лук", "Масло"],
+    ingredients: ["500г муки", "4 картофелины", "2 луковицы", "Масло для жарки", "Соль"],
+    instructions: [
+      "Замесите тесто из муки, воды и соли",
+      "Отварите картофель, разомните в пюре",
+      "Обжарьте лук, смешайте с пюре",
+      "Раскатайте тесто, нарежьте кружками",
+      "Выложите начинку, защипните края",
+      "Обжарьте на масле до золотистого цвета",
+      "Подавайте горячими"
+    ],
     description: "Хрустящие чебуреки",
-    isPopular: true,
   },
   {
     id: "dinner-9",
@@ -386,44 +609,70 @@ const POPULAR_UZBEK_RECIPES: Recipe[] = [
     time: 5,
     difficulty: "Легко",
     category: "Ужин",
-    ingredients: ["Катык", "Укроп", "Чеснок"],
+    ingredients: ["500мл катыка", "Укроп", "2 зубчика чеснока", "Соль"],
+    instructions: [
+      "Мелко нарубите укроп",
+      "Раздавите чеснок",
+      "Смешайте катык с зеленью и чесноком",
+      "Посолите по вкусу",
+      "Хорошо перемешайте",
+      "Охладите 10 минут",
+      "Подавайте как соус или самостоятельное блюдо"
+    ],
     description: "Легкий йогурт",
-    isPopular: true,
   },
   {
     id: "dinner-10",
     title: "Кутабы",
-    image: "https://images.unsplash.com/photo-1612874742036-e570796f688d?w=400",
+    image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400",
     calories: 280,
     time: 30,
     difficulty: "Средне",
     category: "Ужин",
-    ingredients: ["Тесто", "Зелень", "Сыр"],
+    ingredients: ["300г муки", "Зелень (шпинат, кинза)", "100г сыра", "Масло", "Соль"],
+    instructions: [
+      "Замесите мягкое тесто, оставьте на 20 минут",
+      "Мелко нарубите зелень",
+      "Натрите сыр на терке",
+      "Смешайте зелень с сыром",
+      "Раскатайте тесто тонко, вырежьте круги",
+      "Выложите начинку на половину, накройте",
+      "Обжарьте на сухой сковороде с обеих сторон",
+      "Смажьте маслом после жарки"
+    ],
     description: "Тонкие лепешки с начинкой",
-    isPopular: true,
   },
 ];
 
 const CATEGORIES = ["Все", "Завтрак", "Обед", "Ужин"];
 
+const getDifficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case "Легко":
+      return "#51CF66";
+    case "Средне":
+      return "#FFD43B";
+    case "Сложно":
+      return "#FF6B6B";
+    default:
+      return "#9A9A9E";
+  }
+};
+
 export default function RecipesScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState("Все");
-  const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const [recipes, setRecipes] = useState<Recipe[]>(POPULAR_UZBEK_RECIPES);
 
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const filteredRecipes = useMemo(() => {
-    if (selectedCategory === "Все") {
-      return recipes;
-    }
-    return recipes.filter((recipe) => recipe.category === selectedCategory);
-  }, [selectedCategory, recipes]);
+    if (selectedCategory === "Все") return UZBEK_RECIPES;
+    return UZBEK_RECIPES.filter((recipe) => recipe.category === selectedCategory);
+  }, [selectedCategory]);
 
   const handleRecipePress = (recipe: Recipe) => {
     router.push({
@@ -438,6 +687,7 @@ export default function RecipesScreen() {
         category: recipe.category,
         description: recipe.description,
         ingredients: JSON.stringify(recipe.ingredients),
+        instructions: JSON.stringify(recipe.instructions),
       },
     } as any);
   };
@@ -452,7 +702,6 @@ export default function RecipesScreen() {
     setGenerating(true);
     try {
       const result = await apiService.generateRecipe(sanitizedPrompt);
-
       setShowGenerateModal(false);
       setPrompt("");
 
@@ -490,19 +739,6 @@ export default function RecipesScreen() {
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "Легко":
-        return "#51CF66";
-      case "Средне":
-        return "#FFD43B";
-      case "Сложно":
-        return "#FF6B6B";
-      default:
-        return colors.secondary;
-    }
-  };
-
   const renderRecipeCard = ({ item }: { item: Recipe }) => (
     <TouchableOpacity
       style={[styles.recipeCard, { width: ADAPTIVE_CARD_WIDTH }]}
@@ -510,12 +746,7 @@ export default function RecipesScreen() {
       activeOpacity={0.8}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.recipeImage}
-          contentFit="cover"
-          transition={200}
-        />
+        <Image source={{ uri: item.image }} style={styles.recipeImage} contentFit="cover" transition={200} />
         <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
           <Text style={styles.difficultyText}>{item.difficulty}</Text>
         </View>
@@ -583,29 +814,23 @@ export default function RecipesScreen() {
         </ScrollView>
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : (
-        <FlatList
-          data={filteredRecipes}
-          renderItem={renderRecipeCard}
-          keyExtractor={(item) => item.id}
-          numColumns={ADAPTIVE_COLUMNS}
-          key={`grid-${ADAPTIVE_COLUMNS}`}
-          contentContainerStyle={styles.listContent}
-          columnWrapperStyle={ADAPTIVE_COLUMNS > 1 ? styles.row : undefined}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="restaurant-outline" size={64} color={colors.textSecondary} />
-              <Text style={styles.emptyText}>Рецепты не найдены</Text>
-              <Text style={styles.emptySubtext}>Создайте свой первый рецепт!</Text>
-            </View>
-          }
-        />
-      )}
+      <FlatList
+        data={filteredRecipes}
+        renderItem={renderRecipeCard}
+        keyExtractor={(item) => item.id}
+        numColumns={ADAPTIVE_COLUMNS}
+        key={`grid-${ADAPTIVE_COLUMNS}`}
+        contentContainerStyle={styles.listContent}
+        columnWrapperStyle={ADAPTIVE_COLUMNS > 1 ? styles.row : undefined}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Ionicons name="restaurant-outline" size={64} color={colors.textSecondary} />
+            <Text style={styles.emptyText}>Рецепты не найдены</Text>
+            <Text style={styles.emptySubtext}>Создайте свой первый рецепт!</Text>
+          </View>
+        }
+      />
 
       <Modal
         visible={showGenerateModal}
@@ -632,9 +857,7 @@ export default function RecipesScreen() {
 
             <ScrollView style={styles.modalBody} keyboardShouldPersistTaps="handled">
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>
-                  Опишите желаемый рецепт
-                </Text>
+                <Text style={styles.inputLabel}>Опишите желаемый рецепт</Text>
                 <Text style={styles.inputHint}>
                   Например: "Сделай мне завтрак на 300 калорий, у меня есть яйца, молоко и овсянка"
                 </Text>
@@ -643,13 +866,12 @@ export default function RecipesScreen() {
                   placeholder="Опишите тип приёма пищи, калорийность, доступные ингредиенты..."
                   placeholderTextColor={colors.textSecondary}
                   value={prompt}
-                  onChangeText={(text) => setPrompt(text)}
+                  onChangeText={setPrompt}
                   multiline
                   numberOfLines={5}
                   textAlignVertical="top"
                   autoCapitalize="sentences"
                   autoCorrect={false}
-                  keyboardType="default"
                 />
               </View>
 
@@ -828,12 +1050,6 @@ const createStyles = (colors: any, isDark: boolean) =>
       fontFamily: "Inter_500Medium",
       color: colors.textSecondary,
     },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: colors.background,
-    },
     emptyContainer: {
       flex: 1,
       justifyContent: "center",
@@ -934,4 +1150,3 @@ const createStyles = (colors: any, isDark: boolean) =>
       color: "#FFFFFF",
     },
   });
-
