@@ -5,8 +5,8 @@ import sys
 
 class Settings(BaseSettings):
 
-    environment: str = "production"
-    debug: bool = False
+    environment: str = os.getenv("ENVIRONMENT", "development")
+    debug: bool = os.getenv("DEBUG", "false").lower() == "true"
 
     db_host: str = "localhost"
     db_port: int = 3306
@@ -19,7 +19,6 @@ class Settings(BaseSettings):
 
     api_domain: str = "https://api.yeb-ich.com"
 
-    # CORS: в production только production домены
     cors_origins: str = "https://api.yeb-ich.com,https://yeb-ich.com,http://localhost:3000,http://localhost:8081,http://localhost:19006,http://127.0.0.1:8081,http://127.0.0.1:19006"
 
     jwt_secret_key: str = ""

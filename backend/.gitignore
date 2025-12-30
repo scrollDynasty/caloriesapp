@@ -12,6 +12,11 @@ ENV/
 # Environment
 .env
 .env.local
+.env.*
+!.env.sample
+!.env.dev.sample
+!.env.prod.sample
+.env.backup.*
 
 # IDE
 .vscode/

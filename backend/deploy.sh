@@ -1,10 +1,29 @@
 set -e
 
-SERVER_USER="scroll"
-SERVER_HOST="api.yeb-ich.com"
-REMOTE_DIR="/home/scroll/backend"
+ENVIRONMENT="${1:-prod}"
 
-echo "🚀 Deploying backend folder to $SERVER_HOST..."
+if [ "$ENVIRONMENT" != "dev" ] && [ "$ENVIRONMENT" != "prod" ]; then
+    echo "❌ Ошибка: Неверное окружение. Используйте 'dev' или 'prod'"
+    echo "Использование: $0 [dev|prod]"
+    exit 1
+fi
+
+if [ "$ENVIRONMENT" = "prod" ]; then
+    SERVER_USER="scroll"
+    SERVER_HOST="api.yeb-ich.com"
+    REMOTE_DIR="/home/scroll/backend"
+    ENV_FILE=".env"
+    echo "🚀 Deploying backend to PRODUCTION ($SERVER_HOST)..."
+else
+    SERVER_USER="scroll"
+    SERVER_HOST="api.yeb-ich.com"
+    REMOTE_DIR="/home/scroll/backend-dev"
+    ENV_FILE=".env.dev"
+    echo "🚀 Deploying backend to DEVELOPMENT ($SERVER_HOST)..."
+fi
+
+echo "📋 Environment: $ENVIRONMENT"
+echo "📁 Remote directory: $REMOTE_DIR"
 
 echo "📦 Creating archive..."
 cd "$(dirname "$0")"
@@ -20,26 +39,47 @@ echo "📤 Uploading to server..."
 scp /tmp/backend.tar.gz $SERVER_USER@$SERVER_HOST:/tmp/
 
 echo "⚙️ Extracting on server..."
-ssh $SERVER_USER@$SERVER_HOST << 'ENDSSH'
-    mkdir -p /home/scroll/backend
-    cd /home/scroll/backend
+ssh $SERVER_USER@$SERVER_HOST << ENDSSH
+    set -e
+    mkdir -p $REMOTE_DIR
+    cd $REMOTE_DIR
     tar -xzf /tmp/backend.tar.gz
     rm /tmp/backend.tar.gz
-    echo "✅ Files deployed to /home/scroll/backend"
+    echo "✅ Files deployed to $REMOTE_DIR"
     
-    # Обновляем nginx конфиг
-    if [ -f "/home/scroll/backend/nginx/api.yeb-ich.com.conf" ]; then
+    # Устанавливаем переменную окружения
+    export ENVIRONMENT=$ENVIRONMENT
+    export DEBUG=$([ "$ENVIRONMENT" = "dev" ] && echo "true" || echo "false")
+    
+    # Проверяем наличие .env файла
+    if [ ! -f "$REMOTE_DIR/$ENV_FILE" ]; then
+        echo "⚠️  Warning: $ENV_FILE not found. Creating from sample..."
+        if [ -f "$REMOTE_DIR/env.$ENVIRONMENT.sample" ]; then
+            cp "$REMOTE_DIR/env.$ENVIRONMENT.sample" "$REMOTE_DIR/$ENV_FILE"
+            echo "✅ Created $ENV_FILE from sample. Please update it with real values!"
+        else
+            echo "❌ Error: env.$ENVIRONMENT.sample not found!"
+            exit 1
+        fi
+    fi
+    
+    # Обновляем nginx конфиг только для prod
+    if [ "$ENVIRONMENT" = "prod" ] && [ -f "$REMOTE_DIR/nginx/api.yeb-ich.com.conf" ]; then
         echo "📝 Updating nginx config..."
-        sudo cp /home/scroll/backend/nginx/api.yeb-ich.com.conf /etc/nginx/sites-available/api.yeb-ich.com.conf
+        sudo cp $REMOTE_DIR/nginx/api.yeb-ich.com.conf /etc/nginx/sites-available/api.yeb-ich.com.conf
         sudo nginx -t && sudo systemctl reload nginx
         echo "✅ Nginx reloaded"
     fi
     
     # Перезапускаем backend через pm2
+    PM2_NAME="backend-$ENVIRONMENT"
     if command -v pm2 &> /dev/null; then
-        echo "🔄 Restarting backend with pm2..."
-        pm2 restart backend || pm2 start /home/scroll/backend/run.py --name backend --interpreter python3
-        echo "✅ Backend restarted"
+        echo "🔄 Restarting backend with pm2 (name: $PM2_NAME)..."
+        cd $REMOTE_DIR
+        pm2 delete $PM2_NAME 2>/dev/null || true
+        pm2 start run.py --name $PM2_NAME --interpreter python3 --env production
+        pm2 save
+        echo "✅ Backend restarted as $PM2_NAME"
     else
         echo "⚠️ pm2 not found, skipping backend restart"
     fi
@@ -47,6 +87,9 @@ ENDSSH
 
 rm /tmp/backend.tar.gz
 
+rm /tmp/backend.tar.gz
+
 echo ""
 echo "✅ Deployment finished!"
-echo "📁 Files location: /home/scroll/backend"
+echo "📁 Files location: $REMOTE_DIR"
+echo "🌍 Environment: $ENVIRONMENT"

@@ -1,0 +1,197 @@
+name: Web CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-ci.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-ci.yml'
+
+jobs:
+  lint-and-build:
+    name: Lint and Build
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./web
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Lint with Biome
+        run: npm run lint
+      
+      - name: Format check with Biome
+        run: npm run format -- --check
+      
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Check build output
+        run: |
+          if [ ! -d "out" ]; then
+            echo "❌ Build output directory 'out' not found!"
+            exit 1
+          fi
+          echo "✅ Build successful, output in 'out' directory"
+
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      
+      - name: Build for production
+        working-directory: ./web
+        run: |
+          npm ci
+          npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H yeb-ich.com >> ~/.ssh/known_hosts
+      
+      - name: Create deployment archive
+        working-directory: ./web
+        run: |
+          cd out
+          tar -czf /tmp/web.tar.gz .
+      
+      - name: Deploy to production server
+        run: |
+          scp /tmp/web.tar.gz root@yeb-ich.com:/tmp/web.tar.gz
+          ssh root@yeb-ich.com << 'ENDSSH'
+            set -e
+            REMOTE_DIR="/var/www/yeb-ich.com/html"
+            mkdir -p $REMOTE_DIR
+            if [ -d "$REMOTE_DIR/current" ]; then
+              echo "[INFO] Backing up current version..."
+              rm -rf $REMOTE_DIR/backup
+              mv $REMOTE_DIR/current $REMOTE_DIR/backup
+            fi
+            mkdir -p $REMOTE_DIR/current
+            cd $REMOTE_DIR/current
+            tar -xzf /tmp/web.tar.gz
+            rm /tmp/web.tar.gz
+            cd $REMOTE_DIR
+            rm -rf *.html *.js *.json _next 2>/dev/null || true
+            cp -r current/* .
+            chown -R www-data:www-data $REMOTE_DIR
+            chmod -R 755 $REMOTE_DIR
+            if nginx -t; then
+              systemctl reload nginx
+              echo "[OK] Nginx reloaded successfully"
+            else
+              echo "[ERROR] Nginx configuration error!"
+              exit 1
+            fi
+            echo "[OK] Files deployed successfully"
+          ENDSSH
+          rm /tmp/web.tar.gz
+
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      
+      - name: Build for development
+        working-directory: ./web
+        run: |
+          npm ci
+          npm run build
+        env:
+          NODE_ENV: development
+      
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H yeb-ich.com >> ~/.ssh/known_hosts
+      
+      - name: Create deployment archive
+        working-directory: ./web
+        run: |
+          cd out
+          tar -czf /tmp/web-dev.tar.gz .
+      
+      - name: Deploy to development server
+        run: |
+          scp /tmp/web-dev.tar.gz root@yeb-ich.com:/tmp/web-dev.tar.gz
+          ssh root@yeb-ich.com << 'ENDSSH'
+            set -e
+            REMOTE_DIR="/var/www/yeb-ich.com/html-dev"
+            mkdir -p $REMOTE_DIR
+            if [ -d "$REMOTE_DIR/current" ]; then
+              echo "[INFO] Backing up current version..."
+              rm -rf $REMOTE_DIR/backup
+              mv $REMOTE_DIR/current $REMOTE_DIR/backup
+            fi
+            mkdir -p $REMOTE_DIR/current
+            cd $REMOTE_DIR/current
+            tar -xzf /tmp/web-dev.tar.gz
+            rm /tmp/web-dev.tar.gz
+            cd $REMOTE_DIR
+            rm -rf *.html *.js *.json _next 2>/dev/null || true
+            cp -r current/* .
+            chown -R www-data:www-data $REMOTE_DIR
+            chmod -R 755 $REMOTE_DIR
+            echo "[OK] Development files deployed successfully"
+          ENDSSH
+          rm /tmp/web-dev.tar.gz
+

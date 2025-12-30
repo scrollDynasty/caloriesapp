@@ -51,7 +51,9 @@ Desktop.ini
 .env
 backend/.env
 backend/.env.*
+backend/.env.backup.*
 !.env.example
+!.env.*.sample
 
 # typescript
 *.tsbuildinfo
