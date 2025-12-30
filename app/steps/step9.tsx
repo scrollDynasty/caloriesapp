@@ -32,26 +32,40 @@ export default function Step9() {
       return;
     }
     
-    updateData({ motivation: selectedMotivation });
+    setIsSaving(true);
     
-    updateData({ motivation: selectedMotivation });
-    
-    const finalData = {
-      ...onboardingData,
-      motivation: selectedMotivation,
-    };
-
-    if (
-      finalData.gender &&
-      finalData.height &&
-      finalData.weight &&
-      finalData.workoutFrequency &&
-      finalData.goal
-    ) {
-      setIsSaving(true);
+    try {
+      // Сначала сохраняем в AsyncStorage через контекст
+      await updateData({ motivation: selectedMotivation });
+      
+      // Читаем актуальные данные из AsyncStorage
+      let finalData: any = { ...onboardingData, motivation: selectedMotivation };
+      
       try {
+        const storedData = await AsyncStorage.getItem(ONBOARDING_DATA_KEY);
+        if (storedData) {
+          const parsed = JSON.parse(storedData);
+          finalData = { ...parsed };
+        }
+      } catch (e) {
+        if (__DEV__) console.warn("Could not read stored data:", e);
+      }
+
+      if (__DEV__) {
+        console.log("📋 Step9: Final data before results:", JSON.stringify(finalData, null, 2));
+      }
+
+      // Если пользователь уже залогинен, сохраняем на сервер
+      if (
+        finalData.gender &&
+        finalData.height &&
+        finalData.weight &&
+        finalData.workoutFrequency &&
+        finalData.goal
+      ) {
         const token = await apiService.getToken();
         if (token) {
+          if (__DEV__) console.log("🔑 Token found, saving to server...");
           const result = await saveOnboardingData(finalData);
           if (result.success) {
             if (__DEV__) console.log("✅ Onboarding data saved successfully");
@@ -60,13 +74,23 @@ export default function Step9() {
             if (__DEV__) console.error("❌ Failed to save onboarding data:", result.error);
           }
         } else {
-          if (__DEV__) console.warn("⚠️ No token found, data will be synced after login");
+          if (__DEV__) console.log("ℹ️ No token found, data will be synced after login");
         }
-      } catch (error) {
-        if (__DEV__) console.error("❌ Error saving onboarding data:", error);
-      } finally {
-        setIsSaving(false);
+      } else {
+        if (__DEV__) {
+          console.warn("⚠️ Missing required fields in finalData:", {
+            gender: finalData.gender,
+            height: finalData.height,
+            weight: finalData.weight,
+            workoutFrequency: finalData.workoutFrequency,
+            goal: finalData.goal,
+          });
+        }
       }
+    } catch (error) {
+      if (__DEV__) console.error("❌ Error in step9:", error);
+    } finally {
+      setIsSaving(false);
     }
     
     router.push({

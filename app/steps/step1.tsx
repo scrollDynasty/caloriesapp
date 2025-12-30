@@ -25,7 +25,6 @@ export default function Step1() {
 
   const handleNextPress = () => {
     if (!selectedGender) {
-      
       return;
     }
     

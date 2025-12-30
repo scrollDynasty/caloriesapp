@@ -23,6 +23,14 @@ admin_settings = AdminSettings(
     amis_cdn="https://unpkg.com",
     amis_pkg="amis@6.3.0",
     amis_theme="antd",
+    engine_options={
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 30,
+        "echo": False,
+    },
 )
 
 site = AdminSite(settings=admin_settings)

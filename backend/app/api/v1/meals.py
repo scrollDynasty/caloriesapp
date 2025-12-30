@@ -1,8 +1,9 @@
 import uuid
 import logging
 import json
-import base64
 import re
+import tempfile
+import os
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
@@ -12,120 +13,23 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile, HTTPException, s
 from fastapi.responses import FileResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from app.core.dependencies import get_current_user, get_db
+from app.core.config import settings
 from app.models.user import User
 from app.models.meal_photo import MealPhoto
-from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, MealPhotoCreate
-from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
 from app.models.water_log import WaterLog
 from app.models.onboarding_data import OnboardingData
-from app.core.database import get_db
-from app.core.config import settings
+from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, MealPhotoCreate
+from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
 from app.services.storage import storage_service
+from app.services.ai_service import ai_service
+from app.utils.date_utils import get_day_range_utc
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-import tempfile
-import os
 
 
-async def analyze_barcode_product_with_ai(product_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    from openai import AsyncOpenAI
-
-    api_key = settings.openai_api_key
-    if not api_key:
-        logger.warning("OpenAI API key not configured")
-        return None
-
-    model_name = getattr(settings, "openai_model", "gpt-4o")
-    nutriments = product_data.get("nutriments", {})
-    product_name = product_data.get("product_name") or product_data.get("generic_name") or "Продукт"
-    
-    try:
-        system_prompt = (
-            "You are an expert nutritionist. Analyze food product data and estimate missing nutritional values. "
-            "Always respond with valid JSON only, no additional text or markdown."
-        )
-        
-        user_prompt = (
-            f"Analyze this food product and estimate complete nutritional content per 100g:\n"
-            f"Product name: {product_name}\n"
-            f"Existing nutriments data: {json.dumps(nutriments)}\n\n"
-            "Respond ONLY with a JSON object in this exact format:\n"
-            '{"fiber": number, "sugar": number, "sodium": number, "health_score": number}\n'
-            "Rules:\n"
-            "- Use integers only, no decimal points\n"
-            "- fiber and sugar in grams per 100g\n"
-            "- sodium in milligrams (mg) per 100g\n"
-            "- health_score: rate the overall healthiness from 0 to 10, where:\n"
-            "  * 0-3 = unhealthy (high sugar, processed, high sodium, empty calories)\n"
-            "  * 4-6 = moderate (balanced but could be better)\n"
-            "  * 7-10 = healthy (whole foods, high fiber, good protein, low sugar, low sodium)\n"
-            "- Use existing data from nutriments if available, otherwise estimate based on product type\n"
-            "- If you cannot estimate a value, use 0"
-        )
-
-        async with AsyncOpenAI(
-            api_key=api_key,
-            timeout=settings.openai_timeout
-        ) as client:
-            response = await client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_tokens=256,
-                temperature=0.1,
-            )
-
-        generated_text = None
-        if response.choices and len(response.choices) > 0:
-            generated_text = response.choices[0].message.content
-
-        if not generated_text:
-            logger.warning("OpenAI returned empty response for barcode analysis")
-            return None
-
-        logger.info(f"OpenAI barcode analysis response: {generated_text}")
-
-        extracted = None
-        try:
-            matches = re.findall(r"\{.*\}", generated_text, flags=re.DOTALL)
-            for m in matches:
-                try:
-                    extracted = json.loads(m)
-                    break
-                except Exception:
-                    continue
-        except Exception:
-            extracted = None
-
-        if extracted:
-            def _num(val: Any) -> Optional[int]:
-                try:
-                    if val is None:
-                        return None
-                    if isinstance(val, (int, float)):
-                        return int(val)
-                    if isinstance(val, str):
-                        digits = "".join(ch for ch in val if (ch.isdigit() or ch == "." or ch == "-"))
-                        return int(float(digits)) if digits else None
-                except Exception:
-                    return None
-                return None
-
-            return {
-                "fiber": _num(extracted.get("fiber")),
-                "sugar": _num(extracted.get("sugar")),
-                "sodium": _num(extracted.get("sodium")),
-                "health_score": _num(extracted.get("health_score")),
-            }
-
-        return None
-    except Exception as e:
-        logger.warning(f"OpenAI barcode analysis failed: {e}")
-        return None
 
 async def fetch_openfoodfacts_product(barcode: str) -> Optional[Dict[str, Any]]:
     hosts = [
@@ -144,148 +48,13 @@ async def fetch_openfoodfacts_product(barcode: str) -> Optional[Dict[str, Any]]:
                 data = resp.json()
                 if data.get("status") == 1 and data.get("product"):
                     return data.get("product")
-        except httpx.HTTPStatusError as e:
-            logger.warning(f"OpenFoodFacts status error for {barcode}: {e}")
+        except httpx.HTTPStatusError:
             continue
-        except Exception as e:
-            logger.warning(f"OpenFoodFacts request failed for {barcode}: {e}")
+        except Exception:
             continue
 
     return None
 
-async def get_nutrition_insights(file_path: Path, meal_name_hint: Optional[str]) -> Optional[Dict[str, Any]]:
-
-    from openai import AsyncOpenAI
-
-    api_key = settings.openai_api_key
-    if not api_key:
-        logger.warning("OpenAI API key not configured")
-        return None
-
-    model_name = getattr(settings, "openai_model", "gpt-4o")
-
-    try:
-        # Определяем MIME тип изображения
-        mime_guess = "image/jpeg"
-        suffix = file_path.suffix.lower()
-        if suffix in {".png"}:
-            mime_guess = "image/png"
-        elif suffix in {".webp"}:
-            mime_guess = "image/webp"
-        elif suffix in {".heic", ".heif"}:
-            mime_guess = "image/heic"
-
-        # Читаем и кодируем изображение в base64
-        with open(file_path, "rb") as f:
-            b64_image = base64.b64encode(f.read()).decode("utf-8")
-
-        # Формируем промпт для GPT-4o
-        system_prompt = (
-            "You are an expert nutrition assistant. Analyze food photos and estimate nutritional values accurately. "
-            "Always respond with valid JSON only, no additional text or markdown."
-        )
-        
-        user_prompt = (
-            "Analyze this food photo and estimate the complete nutritional content. "
-            "Respond ONLY with a JSON object in this exact format:\n"
-            '{"name": "dish name in Russian", "calories": number, "protein": number, "fat": number, "carbs": number, "fiber": number, "sugar": number, "sodium": number, "health_score": number}\n'
-            "Rules:\n"
-            "- Use integers only, no decimal points\n"
-            "- Values should be per portion shown in the photo\n"
-            "- calories in kcal\n"
-            "- protein, fat, carbs, fiber, sugar in grams\n"
-            "- sodium in milligrams (mg)\n"
-            "- health_score: rate the overall healthiness of this dish from 0 to 10, where:\n"
-            "  * 0-3 = unhealthy (high sugar, processed, fried, empty calories)\n"
-            "  * 4-6 = moderate (balanced but could be better)\n"
-            "  * 7-10 = healthy (whole foods, high fiber, good protein, low sugar)\n"
-            "- name should be in Russian language\n"
-            "- If you cannot estimate a value, use 0"
-        )
-        if meal_name_hint:
-            user_prompt = f"{user_prompt}\n\nHint: the dish might be '{meal_name_hint}'"
-
-        async with AsyncOpenAI(
-            api_key=api_key,
-            timeout=settings.openai_timeout
-        ) as client:
-            response = await client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": user_prompt},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:{mime_guess};base64,{b64_image}",
-                                    "detail": "high"
-                                },
-                            }
-                        ],
-                    }
-                ],
-                max_tokens=256,
-                temperature=0.1,
-            )
-
-        # Извлекаем ответ
-        generated_text = None
-        if response.choices and len(response.choices) > 0:
-            generated_text = response.choices[0].message.content
-
-        if not generated_text:
-            logger.warning("OpenAI returned empty response")
-            return None
-
-        logger.info(f"OpenAI response: {generated_text}")
-
-        # Парсим JSON из ответа
-        extracted = None
-        try:
-            # Пытаемся найти JSON в ответе
-            matches = re.findall(r"\{.*\}", generated_text, flags=re.DOTALL)
-            for m in matches:
-                try:
-                    extracted = json.loads(m)
-                    break
-                except Exception:
-                    continue
-        except Exception:
-            extracted = None
-
-        if extracted:
-            def _num(val: Any) -> Optional[int]:
-                try:
-                    if val is None:
-                        return None
-                    if isinstance(val, (int, float)):
-                        return int(val)
-                    if isinstance(val, str):
-                        digits = "".join(ch for ch in val if (ch.isdigit() or ch == "." or ch == "-"))
-                        return int(float(digits)) if digits else None
-                except Exception:
-                    return None
-                return None
-
-            return {
-                "calories": _num(extracted.get("calories")),
-                "protein": _num(extracted.get("protein")),
-                "fat": _num(extracted.get("fat")),
-                "carbs": _num(extracted.get("carbs")),
-                "fiber": _num(extracted.get("fiber")),
-                "sugar": _num(extracted.get("sugar")),
-                "sodium": _num(extracted.get("sodium")),
-                "health_score": _num(extracted.get("health_score")),
-                "detected_meal_name": extracted.get("name") or meal_name_hint,
-            }
-
-        return None
-    except Exception as e:
-        logger.warning(f"OpenAI nutrition call failed: {e}")
-        return None
 
 @router.post("/meals/upload", response_model=MealPhotoUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_meal_photo(
@@ -297,7 +66,6 @@ async def upload_meal_photo(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    logger.info(f"Upload request from user {current_user.id}, filename: {file.filename}")
 
     allowed_mime_types = {
         "image/jpeg",
@@ -311,8 +79,6 @@ async def upload_meal_photo(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Файл должен быть изображением"
         )
-    if file.content_type not in allowed_mime_types:
-        logger.warning(f"Unexpected mime type {file.content_type}, proceeding but ensure client sends correct type")
 
     barcode_value = barcode.strip() if barcode and barcode.strip() else None
     meal_name_value = meal_name.strip() if meal_name and meal_name.strip() else None
@@ -337,7 +103,6 @@ async def upload_meal_photo(
             content_type=file.content_type
         )
         
-        logger.info(f"File uploaded to S3: {file_url}")
 
         if client_timestamp and client_tz_offset_minutes is not None:
             try:
@@ -349,9 +114,7 @@ async def upload_meal_photo(
                 client_dt = client_dt.replace(tzinfo=client_tz)
                 
                 created_at_now = client_dt.astimezone(timezone.utc)
-                logger.info(f"Client time: {client_timestamp}, offset: {client_tz_offset_minutes}min, UTC: {created_at_now}")
-            except (ValueError, AttributeError) as e:
-                logger.warning(f"Failed to parse client_timestamp: {e}, using server time")
+            except (ValueError, AttributeError):
                 created_at_now = datetime.now(timezone.utc)
         else:
             created_at_now = datetime.now(timezone.utc)
@@ -362,7 +125,7 @@ async def upload_meal_photo(
                 temp_file.write(contents)
                 temp_file_path = Path(temp_file.name)
             
-            nutrition = await get_nutrition_insights(
+            nutrition = await ai_service.analyze_meal_photo(
                 file_path=temp_file_path,
                 meal_name_hint=meal_name_value,
             )
@@ -370,8 +133,8 @@ async def upload_meal_photo(
             if temp_file_path and temp_file_path.exists():
                 try:
                     os.unlink(temp_file_path)
-                except Exception as e:
-                    logger.warning(f"Failed to delete temp file: {e}")
+                except Exception:
+                    pass
 
 
         meal_photo = MealPhoto(
@@ -658,13 +421,11 @@ async def lookup_barcode(
         ),
     }
     
-    # Получаем клетчатку и сахар из OpenFoodFacts, если есть
     fiber_off = _num(nutriments.get("fiber_100g") or nutriments.get("fiber_serving"))
     sugar_off = _num(nutriments.get("sugars_100g") or nutriments.get("sugars_serving"))
     sodium_off = _num(nutriments.get("sodium_100g") or nutriments.get("sodium_serving"))
     
-    # Используем AI для получения дополнительных данных и health_score
-    ai_analysis = await analyze_barcode_product_with_ai(product)
+    ai_analysis = await ai_service.analyze_barcode_product(product)
     
     if ai_analysis:
         base_data["fiber"] = fiber_off if fiber_off is not None else ai_analysis.get("fiber")
@@ -672,7 +433,6 @@ async def lookup_barcode(
         base_data["sodium"] = sodium_off if sodium_off is not None else ai_analysis.get("sodium")
         base_data["health_score"] = ai_analysis.get("health_score")
     else:
-        # Если AI не сработал, используем данные из OpenFoodFacts
         base_data["fiber"] = fiber_off
         base_data["sugar"] = sugar_off
         base_data["sodium"] = sodium_off
@@ -725,23 +485,14 @@ def get_daily_meals(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    from datetime import datetime, timedelta, timezone
-
     try:
+        start_utc, end_utc, tz = get_day_range_utc(date, tz_offset_minutes)
         target_date = datetime.strptime(date, "%Y-%m-%d").date()
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный формат даты. Используйте YYYY-MM-DD"
         )
-
-    offset = timedelta(minutes=tz_offset_minutes)
-    tz = timezone(offset)
-    start_local = datetime.combine(target_date, datetime.min.time())
-    end_local = start_local + timedelta(days=1)
-
-    start_utc = (start_local - offset).replace(tzinfo=timezone.utc)
-    end_utc = (end_local - offset).replace(tzinfo=timezone.utc)
 
     photos = (
         db.query(MealPhoto)
@@ -806,14 +557,12 @@ def get_daily_meals(
                     db.commit()
                     db.refresh(current_user)
     except Exception as e:
-        logger.warning(f"Failed to update streak: {e}")
+        pass
 
-    # Собираем данные блюд и вычисляем среднюю оценку здоровья
     meals_data = []
     health_scores = []
     
     for p in photos:
-        # Используем оценку от нейросети из БД
         meal_score = p.health_score
         if meal_score is not None:
             health_scores.append(meal_score)
@@ -832,7 +581,6 @@ def get_daily_meals(
             "health_score": meal_score,
         })
     
-    # Среднее значение оценки здоровья всех блюд за день
     avg_health_score = None
     if health_scores:
         avg_health_score = round(sum(health_scores) / len(health_scores), 1)
@@ -858,23 +606,14 @@ def get_daily_meals_batch(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    from datetime import datetime, timedelta, timezone
-
     dates: list = payload.get("dates") or []
     results = []
-    offset = timedelta(minutes=tz_offset_minutes)
-    tz = timezone(offset)
 
     for date_str in dates:
       try:
-          target_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+          start_utc, end_utc, tz = get_day_range_utc(date_str, tz_offset_minutes)
       except ValueError:
           continue
-
-      start_local = datetime.combine(target_date, datetime.min.time())
-      end_local = start_local + timedelta(days=1)
-      start_utc = (start_local - offset).replace(tzinfo=timezone.utc)
-      end_utc = (end_local - offset).replace(tzinfo=timezone.utc)
 
       photos = (
           db.query(MealPhoto)
@@ -989,8 +728,8 @@ def delete_meal_photo(
     if photo.file_path and photo.file_path != "manual" and photo.mime_type != "manual":
         try:
             storage_service.delete_file(photo.file_path)
-        except Exception as e:
-            logger.warning(f"Failed to delete file from storage: {e}")
+        except Exception:
+            pass
 
     db.delete(photo)
     db.commit()
@@ -1035,7 +774,6 @@ async def add_meal_ingredient(
         db.commit()
     else:
         db.commit()
-        logger.warning(f"Field ingredients_json does not exist in MealPhoto model. Migration may not have been applied.")
     
     return {"success": True, "ingredients": current_ingredients}
 
@@ -1046,8 +784,6 @@ async def correct_meal_with_ai(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-
-    from openai import AsyncOpenAI
 
     photo = db.query(MealPhoto).filter(
         MealPhoto.id == photo_id,
@@ -1060,14 +796,12 @@ async def correct_meal_with_ai(
             detail="Фотография не найдена"
         )
     
-    api_key = settings.openai_api_key
-    if not api_key:
+    if not ai_service.is_configured:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI сервис недоступен"
         )
 
-    model_name = getattr(settings, "openai_model", "gpt-4o")
     correction_text = correction_request.get("correction", "")
     
     if not correction_text:
@@ -1076,7 +810,6 @@ async def correct_meal_with_ai(
             detail="Не указано, что нужно исправить"
         )
     
-    # Формируем контекст текущего блюда
     current_data = {
         "name": photo.meal_name or photo.detected_meal_name,
         "calories": photo.calories,
@@ -1090,116 +823,39 @@ async def correct_meal_with_ai(
     }
     
     try:
-        system_prompt = (
-            "You are an expert nutrition assistant. User wants to correct a meal's nutritional information. "
-            "Analyze their request and provide corrected values. Always respond with valid JSON only, no additional text or markdown."
-        )
+        corrected = await ai_service.correct_meal(current_data, correction_text)
         
-        user_prompt = (
-            f"Current meal data: {json.dumps(current_data, ensure_ascii=False)}\n\n"
-            f"User's correction request: {correction_text}\n\n"
-            "Based on this request, provide corrected nutritional data. "
-            "Respond ONLY with a JSON object in this exact format:\n"
-            '{"name": "dish name in Russian", "calories": number, "protein": number, "fat": number, "carbs": number, '
-            '"fiber": number, "sugar": number, "sodium": number, "health_score": number, '
-            '"ingredients": [{"name": "ingredient", "calories": number}]}\n'
-            "Rules:\n"
-            "- Use integers only\n"
-            "- calories in kcal\n"
-            "- protein, fat, carbs, fiber, sugar in grams\n"
-            "- sodium in milligrams (mg)\n"
-            "- health_score from 0 to 10\n"
-            "- name should be in Russian\n"
-            "- ingredients array can be empty if not relevant\n"
-            "- Only change values that the user mentioned, keep others the same"
-        )
-
-        async with AsyncOpenAI(
-            api_key=api_key,
-            timeout=settings.openai_timeout
-        ) as client:
-            response = await client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                max_tokens=512,
-                temperature=0.2,
-            )
-
-        generated_text = None
-        if response.choices and len(response.choices) > 0:
-            generated_text = response.choices[0].message.content
-
-        if not generated_text:
+        if not corrected:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="AI не смог сгенерировать ответ"
+                detail="Не удалось обработать коррекцию"
             )
 
-        logger.info(f"OpenAI correction response: {generated_text}")
-
-        # Парсим JSON из ответа
-        extracted = None
-        try:
-            matches = re.findall(r"\{.*\}", generated_text, flags=re.DOTALL)
-            for m in matches:
-                try:
-                    extracted = json.loads(m)
-                    break
-                except Exception:
-                    continue
-        except Exception:
-            extracted = None
-
-        if not extracted:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Не удалось разобрать ответ AI"
-            )
-
-        def _num(val: Any) -> Optional[int]:
-            try:
-                if val is None:
-                    return None
-                if isinstance(val, (int, float)):
-                    return int(val)
-                if isinstance(val, str):
-                    digits = "".join(ch for ch in val if (ch.isdigit() or ch == "." or ch == "-"))
-                    return int(float(digits)) if digits else None
-            except Exception:
-                return None
-            return None
-
-        # Обновляем данные блюда
-        if extracted.get("name"):
-            photo.meal_name = extracted.get("name")
-        if extracted.get("calories") is not None:
-            photo.calories = _num(extracted.get("calories"))
-        if extracted.get("protein") is not None:
-            photo.protein = _num(extracted.get("protein"))
-        if extracted.get("fat") is not None:
-            photo.fat = _num(extracted.get("fat"))
-        if extracted.get("carbs") is not None:
-            photo.carbs = _num(extracted.get("carbs"))
-        if extracted.get("fiber") is not None:
-            photo.fiber = _num(extracted.get("fiber"))
-        if extracted.get("sugar") is not None:
-            photo.sugar = _num(extracted.get("sugar"))
-        if extracted.get("sodium") is not None:
-            photo.sodium = _num(extracted.get("sodium"))
-        if extracted.get("health_score") is not None:
-            photo.health_score = _num(extracted.get("health_score"))
+        if corrected.get("name"):
+            photo.meal_name = corrected["name"]
+        if corrected.get("calories") is not None:
+            photo.calories = corrected["calories"]
+        if corrected.get("protein") is not None:
+            photo.protein = corrected["protein"]
+        if corrected.get("fat") is not None:
+            photo.fat = corrected["fat"]
+        if corrected.get("carbs") is not None:
+            photo.carbs = corrected["carbs"]
+        if corrected.get("fiber") is not None:
+            photo.fiber = corrected["fiber"]
+        if corrected.get("sugar") is not None:
+            photo.sugar = corrected["sugar"]
+        if corrected.get("sodium") is not None:
+            photo.sodium = corrected["sodium"]
+        if corrected.get("health_score") is not None:
+            photo.health_score = corrected["health_score"]
         
-        # Обновляем ингредиенты, если есть (если поле существует)
-        if extracted.get("ingredients") and hasattr(photo, 'ingredients_json'):
-            photo.ingredients_json = json.dumps(extracted.get("ingredients"), ensure_ascii=False)
+        if corrected.get("ingredients") and hasattr(photo, 'ingredients_json'):
+            photo.ingredients_json = json.dumps(corrected["ingredients"], ensure_ascii=False)
         
         db.commit()
         db.refresh(photo)
         
-        # Формируем ответ
         ingredients = []
         ingredients_json = getattr(photo, 'ingredients_json', None)
         if ingredients_json:
@@ -1226,7 +882,7 @@ async def correct_meal_with_ai(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error correcting meal with AI: {str(e)}", exc_info=True)
+        pass
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка при исправлении: {str(e)}"

@@ -1,6 +1,25 @@
 from sqlalchemy.orm import Session
 from typing import Optional
 from app.models.user import User
+from app.core.config import settings
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _is_custom_avatar(avatar_url: Optional[str]) -> bool:
+    if not avatar_url:
+        return False
+    
+    custom_indicators = [
+        settings.yandex_storage_endpoint,
+        "storage.yandexcloud.net",
+        f"{settings.yandex_storage_bucket_name}.",
+        "/avatars/", 
+    ]
+    
+    return any(indicator in avatar_url for indicator in custom_indicators)
+
 
 def get_or_create_user_by_google(
     db: Session, 
@@ -12,7 +31,9 @@ def get_or_create_user_by_google(
     last_name: Optional[str] = None
 ) -> User:
     user = db.query(User).filter(User.google_id == google_id).first()
+    
     if not user:
+        # Новый пользователь - создаём с данными из Google
         user = User(
             google_id=google_id, 
             email=email, 
@@ -24,20 +45,38 @@ def get_or_create_user_by_google(
         db.add(user)
         db.commit()
         db.refresh(user)
+        logger.info(f"Created new user {user.id} via Google OAuth")
     else:
-        # Update existing user if data changed
+        # Существующий пользователь - обновляем данные аккуратно
+        updated = False
+        
         if email and user.email != email:
             user.email = email
+            updated = True
+            
         if name and user.name != name:
             user.name = name
-        if avatar_url and user.avatar_url != avatar_url:
-            user.avatar_url = avatar_url
+            updated = True
+        
+        # ВАЖНО: Не перезаписываем кастомную аватарку!
+        # Обновляем только если у пользователя нет аватарки или это Google аватарка
+        if avatar_url and not _is_custom_avatar(user.avatar_url):
+            if user.avatar_url != avatar_url:
+                user.avatar_url = avatar_url
+                updated = True
+        
         if first_name and user.first_name != first_name:
             user.first_name = first_name
+            updated = True
+            
         if last_name and user.last_name != last_name:
             user.last_name = last_name
-        db.commit()
-        db.refresh(user)
+            updated = True
+        
+        if updated:
+            db.commit()
+            db.refresh(user)
+            
     return user
 
 def get_or_create_user_by_apple(
@@ -49,6 +88,7 @@ def get_or_create_user_by_apple(
     last_name: Optional[str] = None
 ) -> User:
     user = db.query(User).filter(User.apple_id == apple_id).first()
+    
     if not user:
         user = User(
             apple_id=apple_id, 
@@ -60,16 +100,28 @@ def get_or_create_user_by_apple(
         db.add(user)
         db.commit()
         db.refresh(user)
+        logger.info(f"Created new user {user.id} via Apple OAuth")
     else:
-        # Update existing user if data changed
+        updated = False
+        
         if email and user.email != email:
             user.email = email
+            updated = True
+            
         if name and user.name != name:
             user.name = name
+            updated = True
+            
         if first_name and user.first_name != first_name:
             user.first_name = first_name
+            updated = True
+            
         if last_name and user.last_name != last_name:
             user.last_name = last_name
-        db.commit()
-        db.refresh(user)
+            updated = True
+        
+        if updated:
+            db.commit()
+            db.refresh(user)
+            
     return user

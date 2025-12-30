@@ -1,17 +1,27 @@
 import app.fastapi_patch
+import logging
+import time
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
-from app.core.database import init_db, engine, Base
+from app.core.database import init_db, engine
 from app.api.v1 import auth, onboarding, meals, progress
 from sqlalchemy import text
+
+logging.basicConfig(
+    level=logging.INFO if settings.environment == "production" else logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Calories App API",
     description="API для приложения подсчета калорий",
     version="1.0.0",
+    docs_url="/docs" if settings.debug else None,
+    redoc_url="/redoc" if settings.debug else None,
 )
 
 admin_enabled = False
@@ -34,7 +44,10 @@ app.add_middleware(
 )
 
 @app.middleware("http")
-async def intercept_user_delete(request: Request, call_next):
+async def log_requests(request: Request, call_next):
+    """Middleware для логирования времени запросов."""
+    start_time = time.time()
+    
     path = str(request.url.path)
     if request.method == "DELETE" and "/admin/UserAdmin/item/" in path:
         import re
@@ -51,13 +64,26 @@ async def intercept_user_delete(request: Request, call_next):
                     else:
                         return JSONResponse({"status": 1, "msg": "User not found"}, status_code=404)
             except Exception as e:
-                import traceback
-                print(f"Error deleting user {user_id}: {e}")
-                print(traceback.format_exc())
+                logger.error(f"Error deleting user {user_id}: {e}")
                 return JSONResponse({"status": 1, "msg": str(e)}, status_code=500)
     
     response = await call_next(request)
+    
+    process_time = time.time() - start_time
+    if process_time > 1.0:
+        logger.warning(f"Slow request: {request.method} {path} took {process_time:.2f}s")
+    
     return response
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Глобальный обработчик ошибок."""
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"}
+    )
 
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):

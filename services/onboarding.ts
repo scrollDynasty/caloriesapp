@@ -26,21 +26,29 @@ export interface OnboardingData {
 
 export async function saveOnboardingData(data: OnboardingData) {
   try {
+    if (__DEV__) {
+      console.log("📥 saveOnboardingData called with:", JSON.stringify(data, null, 2));
+    }
     
-    if (
-      !data.gender ||
-      !data.height ||
-      !data.weight ||
-      !data.workoutFrequency ||
-      !data.goal
-    ) {
-      throw new Error("Недостаточно данных для расчета");
+    // Проверяем обязательные поля
+    const missingFields: string[] = [];
+    if (!data.gender) missingFields.push("gender");
+    if (!data.height) missingFields.push("height");
+    if (!data.weight) missingFields.push("weight");
+    if (!data.workoutFrequency) missingFields.push("workoutFrequency");
+    if (!data.goal) missingFields.push("goal");
+    
+    if (missingFields.length > 0) {
+      const errorMsg = `Недостаточно данных для расчета. Отсутствуют: ${missingFields.join(", ")}`;
+      if (__DEV__) console.error("❌ " + errorMsg);
+      throw new Error(errorMsg);
     }
 
     let age = 25; 
     if (data.birthDate) {
       const today = new Date();
-      const birth = new Date(data.birthDate);
+      // birthDate может быть строкой из AsyncStorage
+      const birth = typeof data.birthDate === 'string' ? new Date(data.birthDate) : new Date(data.birthDate);
       age = today.getFullYear() - birth.getFullYear();
       const monthDiff = today.getMonth() - birth.getMonth();
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
@@ -48,25 +56,48 @@ export async function saveOnboardingData(data: OnboardingData) {
       }
     }
 
+    if (__DEV__) console.log("📊 Calculated age:", age);
+
+    const gender = data.gender!;
+    const height = data.height!;
+    const weight = data.weight!;
+    const workoutFrequency = data.workoutFrequency!;
+    const goal = data.goal!;
+
     const userData: UserData = {
-      gender: data.gender,
+      gender,
       age,
-      height: data.height,
-      weight: data.weight,
-      workoutFrequency: data.workoutFrequency,
-      goal: data.goal,
+      height,
+      weight,
+      workoutFrequency,
+      goal,
     };
 
     const calculations = calculateCalories(userData);
+    
+    if (__DEV__) {
+      console.log("📊 Calculated calories:", calculations.targetCalories);
+      console.log("📊 Calculated macros:", calculations.macros);
+    }
+
+    let birthDateStr: string | undefined;
+    if (data.birthDate) {
+      const birthDateValue = data.birthDate as Date | string;
+      if (typeof birthDateValue === 'string') {
+        birthDateStr = birthDateValue.split("T")[0];
+      } else {
+        birthDateStr = birthDateValue.toISOString().split("T")[0];
+      }
+    }
 
     const payload = {
-      gender: data.gender,
-      workout_frequency: data.workoutFrequency,
-      height: data.height,
-      weight: data.weight,
-      birth_date: data.birthDate?.toISOString().split("T")[0],
+      gender,
+      workout_frequency: workoutFrequency,
+      height,
+      weight,
+      birth_date: birthDateStr,
       has_trainer: data.hasTrainer,
-      goal: data.goal,
+      goal,
       barrier: data.barrier,
       diet_type: data.dietType,
       motivation: data.motivation,
@@ -86,10 +117,19 @@ export async function saveOnboardingData(data: OnboardingData) {
       fats_percentage: calculations.macros.fats.percentage,
     };
 
+    if (__DEV__) {
+      console.log("📤 Sending payload to server:", JSON.stringify(payload, null, 2));
+    }
+
     const result = await apiService.saveOnboardingData(payload);
+    
+    if (__DEV__) {
+      console.log("✅ Server response:", JSON.stringify(result, null, 2));
+    }
+    
     return { success: true, data: result };
   } catch (error: any) {
-    if (__DEV__) console.error("Ошибка сохранения данных:", error);
+    if (__DEV__) console.error("❌ Ошибка сохранения данных:", error);
 
     let errorMessage = "Ошибка при сохранении данных";
     
