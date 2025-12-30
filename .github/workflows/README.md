@@ -5,7 +5,7 @@
 Автоматизирует проверку и деплой backend приложения.
 
 ### Триггеры
-- Push в `main` → деплой в production
+- Push в `master` → деплой в production
 - Push в `develop` → деплой в development
 - Pull Request → только проверки
 
@@ -19,7 +19,7 @@
    - Валидация импортов
    - Проверка конфигурации
 
-2. **Deploy to Production** (только для `main`)
+2. **Deploy to Production** (только для `master`)
    - Настройка SSH
    - Деплой через `deploy.sh prod`
 
@@ -35,7 +35,7 @@
 Автоматизирует проверку и деплой web приложения.
 
 ### Триггеры
-- Push в `main` → деплой в production
+- Push в `master` → деплой в production
 - Push в `develop` → деплой в development
 - Pull Request → только проверки
 
@@ -47,7 +47,7 @@
    - Проверка форматирования (Biome)
    - Сборка Next.js приложения
 
-2. **Deploy to Production** (только для `main`)
+2. **Deploy to Production** (только для `master`)
    - Сборка для production
    - Создание архива
    - Деплой на сервер

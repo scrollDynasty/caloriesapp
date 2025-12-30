@@ -54,7 +54,7 @@ npm run build
    - Добавьте секрет `SSH_PRIVATE_KEY` с содержимым вашего приватного SSH ключа
 
 2. **Workflows автоматически запускаются:**
-   - При push в `main` → деплой в **production**
+   - При push в `master` → деплой в **production**
    - При push в `develop` → деплой в **development**
    - При Pull Request → только проверки (без деплоя)
 
