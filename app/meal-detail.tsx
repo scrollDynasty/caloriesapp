@@ -89,7 +89,7 @@ export default function MealDetailScreen() {
           setHealthScore(detail.health_score);
         }
       } catch {
-        // Ignore errors
+
       } finally {
         setLoadingDetail(false);
       }
@@ -338,7 +338,7 @@ export default function MealDetailScreen() {
         </View>
       </View>
 
-      {/* Health Score Card */}
+      {}
       <View style={styles.healthScoreCard}>
         <View style={styles.healthScoreIcon}>
           <Ionicons name="flash" size={22} color="#FF6B9D" />
@@ -421,7 +421,7 @@ export default function MealDetailScreen() {
   return (
     <View style={styles.container}>
       <SnowOverlay />
-      {/* Image Section */}
+      {}
       {imageUrl ? (
         <View style={styles.imageContainer}>
           <Image
@@ -429,7 +429,7 @@ export default function MealDetailScreen() {
             style={styles.image}
             contentFit="cover"
           />
-          {/* Header over image */}
+          {}
           <View style={[styles.headerOverlay, { paddingTop: insets.top + 8 }]}>
             <View style={styles.headerContent}>
               <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
@@ -466,13 +466,13 @@ export default function MealDetailScreen() {
         </View>
       )}
 
-      {/* Content Card */}
+      {}
       <View style={[styles.contentCard, !imageUrl && styles.contentCardNoImage]}>
         <ScrollView 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {/* Bookmark & Time */}
+          {}
           <View style={styles.metaRow}>
             <TouchableOpacity style={styles.bookmarkButton}>
               <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
@@ -480,7 +480,7 @@ export default function MealDetailScreen() {
             <Text style={styles.timeText}>{mealTime}</Text>
           </View>
 
-          {/* Meal Name & Portions */}
+          {}
           <View style={styles.titleRow}>
             {isEditing ? (
               <TextInput
@@ -498,7 +498,7 @@ export default function MealDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Carousel Section */}
+          {}
           <View style={styles.carouselContainer}>
             <FlatList
               ref={flatListRef}
@@ -520,7 +520,7 @@ export default function MealDetailScreen() {
                 index,
               })}
             />
-            {/* Pagination dots */}
+            {}
             <View style={styles.paginationDots}>
               {carouselPages.map((_, index) => (
                 <View
@@ -531,7 +531,7 @@ export default function MealDetailScreen() {
             </View>
           </View>
 
-          {/* Ingredients Section */}
+          {}
           <View style={styles.ingredientsSection}>
             <View style={styles.ingredientsHeader}>
               <Text style={styles.ingredientsTitle}>Ингредиенты</Text>
@@ -561,7 +561,7 @@ export default function MealDetailScreen() {
             )}
           </View>
 
-          {/* Feedback Section */}
+          {}
           <View style={styles.feedbackSection}>
             <View style={styles.feedbackContent}>
               <Text style={styles.feedbackIcon}>-:-</Text>
@@ -577,12 +577,12 @@ export default function MealDetailScreen() {
             </View>
           </View>
 
-          {/* Spacer for bottom buttons */}
+          {}
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>
 
-      {/* Bottom Buttons */}
+      {}
       <View style={[styles.bottomButtons, { paddingBottom: insets.bottom + 16 }]}>
         {isEditing ? (
           <>
@@ -617,7 +617,7 @@ export default function MealDetailScreen() {
         )}
       </View>
 
-      {/* Loading overlay */}
+      {}
       {deleting && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />

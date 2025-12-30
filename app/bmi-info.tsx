@@ -21,7 +21,7 @@ export default function BMIInfoScreen() {
   const categoryInfo = BMI_CATEGORIES[category] || BMI_CATEGORIES.normal;
 
   const handleSourcePress = () => {
-    Linking.openURL("https://www.who.int/health-topics/obesity");
+    Linking.openURL("https://www.cdc.gov/healthyweight/assessing/bmi/index.html");
   };
 
   return (
@@ -35,7 +35,7 @@ export default function BMIInfoScreen() {
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {/* BMI Value Section */}
+        {}
         <View style={styles.bmiSection}>
           <View style={styles.bmiHeader}>
             <Text style={[styles.bmiLabel, { color: colors.text }]}>Твой вес</Text>
@@ -52,7 +52,7 @@ export default function BMIInfoScreen() {
             <Text style={[styles.bmiValue, { color: colors.textSecondary }]}>—</Text>
           )}
 
-          {/* BMI Scale */}
+          {}
           <View style={styles.scaleContainer}>
             <View style={styles.scaleBar}>
               <View style={[styles.scaleSegment, { backgroundColor: "#4DABF7", flex: 18.5 }]} />
@@ -61,7 +61,7 @@ export default function BMIInfoScreen() {
               <View style={[styles.scaleSegment, { backgroundColor: "#FF6B6B", flex: 10 }]} />
             </View>
             
-            {/* Indicator */}
+            {}
             {bmi && (
               <View style={[styles.indicator, { left: `${Math.min(95, Math.max(2, (bmi / 40) * 100))}%` }]}>
                 <View style={[styles.indicatorLine, { backgroundColor: colors.text }]} />
@@ -69,7 +69,7 @@ export default function BMIInfoScreen() {
             )}
           </View>
 
-          {/* Legend */}
+          {}
           <View style={styles.legend}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: "#4DABF7" }]} />
@@ -98,7 +98,7 @@ export default function BMIInfoScreen() {
           </View>
         </View>
 
-        {/* Disclaimer */}
+        {}
         <View style={styles.infoSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Отказ от ответственности
@@ -110,7 +110,7 @@ export default function BMIInfoScreen() {
           </Text>
         </View>
 
-        {/* Why BMI matters */}
+        {}
         <View style={styles.infoSection}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
             Так почему же ИМТ важен?
@@ -137,7 +137,7 @@ export default function BMIInfoScreen() {
           </View>
         </View>
 
-        {/* Source Link */}
+        {}
         <TouchableOpacity onPress={handleSourcePress}>
           <Text style={[styles.sourceLink, { color: colors.primary }]}>Источник</Text>
         </TouchableOpacity>

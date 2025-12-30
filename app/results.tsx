@@ -168,7 +168,7 @@ export default function Results() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
+        {}
         <Animated.View entering={FadeIn.delay(100)} style={styles.headerSection}>
           <View style={[styles.checkIcon, { backgroundColor: colors.text }]}>
             <Ionicons name="checkmark" size={28} color={isDark ? colors.black : colors.white} />
@@ -186,7 +186,7 @@ export default function Results() {
           </View>
         </Animated.View>
 
-        {/* Daily Recommendation Card */}
+        {}
         <Animated.View 
           entering={FadeInUp.delay(300).springify()}
           style={[styles.recommendationCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}
@@ -196,7 +196,7 @@ export default function Results() {
             Ты можешь изменить это в любое время
           </Text>
 
-          {/* Macros List - вертикальный список */}
+          {}
           <View style={styles.macrosList}>
             <MacroRow
               icon="🔥"
@@ -236,7 +236,7 @@ export default function Results() {
             />
           </View>
 
-          {/* Health Score */}
+          {}
           <Animated.View 
             entering={FadeInUp.delay(800)}
             style={[styles.healthScore, { backgroundColor: isDark ? colors.fillTertiary : "#F8F8F8" }]}
@@ -254,7 +254,7 @@ export default function Results() {
           </Animated.View>
         </Animated.View>
 
-        {/* Tips Card */}
+        {}
         <Animated.View 
           entering={FadeInUp.delay(900).springify()}
           style={[styles.tipsCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}
@@ -291,7 +291,7 @@ export default function Results() {
           />
         </Animated.View>
 
-        {/* Sources */}
+        {}
         <View style={styles.sourcesSection}>
           <Text style={[styles.sourcesTitle, { color: colors.textSecondary }]}>
             План основан на следующих источниках, среди прочих рецензируемых медицинских исследований:
@@ -303,7 +303,7 @@ export default function Results() {
         </View>
       </ScrollView>
 
-      {/* Bottom Button */}
+      {}
       <View style={[styles.bottomContainer, { backgroundColor: colors.background }]}>
         <TouchableOpacity
           style={[styles.continueButton, { backgroundColor: colors.buttonPrimary }]}

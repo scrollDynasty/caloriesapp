@@ -168,10 +168,10 @@ export default function ProgressScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={themeColors.primary} />
         }
       >
-        {/* Header */}
+        {}
         <Text style={[styles.title, { color: themeColors.text }]}>Прогресс</Text>
 
-        {/* Cards Row */}
+        {}
         <View style={styles.cardsRow}>
           <ProgressCard
             icon="flame-outline"
@@ -191,7 +191,7 @@ export default function ProgressScreen() {
           />
         </View>
 
-        {/* Weight Dynamics */}
+        {}
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
@@ -221,7 +221,7 @@ export default function ProgressScreen() {
             </Text>
           )}
 
-          {/* Time Period Selector */}
+          {}
           <View style={styles.periodSelector}>
             {(Object.keys(TIME_PERIOD_LABELS) as TimePeriod[]).map((period) => (
               <TouchableOpacity
@@ -244,10 +244,10 @@ export default function ProgressScreen() {
             ))}
           </View>
 
-          {/* Chart */}
+          {}
           <WeightChart data={filteredWeightHistory} targetWeight={weightStats?.target_weight} />
 
-          {/* Current Weight Progress */}
+          {}
           {weightStats?.current_weight && weightStats?.target_weight && (
             <View style={styles.weightProgress}>
               <View style={styles.weightProgressHeader}>
@@ -262,7 +262,7 @@ export default function ProgressScreen() {
                 {weightStats.current_weight} кг
               </Text>
               
-              {/* Progress Bar */}
+              {}
               <View style={styles.progressBarContainer}>
                 <View style={[styles.progressBarBg, { backgroundColor: themeColors.border }]}>
                   <View
@@ -288,7 +288,7 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {/* Weight Changes */}
+        {}
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения веса
@@ -307,7 +307,7 @@ export default function ProgressScreen() {
           ))}
         </View>
 
-        {/* Progress Photos */}
+        {}
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Фото прогресса
@@ -345,13 +345,13 @@ export default function ProgressScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Average Calories */}
+        {}
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Среднее количество калорий в день
           </Text>
 
-          {/* Period Selector */}
+          {}
           <View style={styles.periodSelector}>
             {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
               <TouchableOpacity
@@ -396,13 +396,13 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {/* Energy Per Week */}
+        {}
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Энергия за неделю
           </Text>
 
-          {/* Period Selector for Calories */}
+          {}
           <View style={styles.periodSelector}>
             {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
               <TouchableOpacity
@@ -493,7 +493,7 @@ export default function ProgressScreen() {
           })()}
         </View>
 
-        {/* Energy Changes */}
+        {}
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения расхода
@@ -552,7 +552,7 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {/* BMI Card */}
+        {}
         <BMICard
           bmi={bmi}
           bmiCategory={bmiCategory}

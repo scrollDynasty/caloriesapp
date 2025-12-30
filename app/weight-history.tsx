@@ -118,7 +118,7 @@ export default function WeightHistoryScreen() {
       const data = await apiService.getWeightStats();
       setStats(data);
     } catch {
-      // Ignore errors
+
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -146,7 +146,7 @@ export default function WeightHistoryScreen() {
 
   const renderHeader = () => (
     <>
-      {/* Stats Cards */}
+      {}
       <View style={styles.statsContainer}>
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Текущий</Text>
@@ -179,7 +179,7 @@ export default function WeightHistoryScreen() {
         </View>
       </View>
 
-      {/* Chart */}
+      {}
       <View style={[styles.chartCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>График веса</Text>
         <WeightChart 
@@ -188,7 +188,7 @@ export default function WeightHistoryScreen() {
         />
       </View>
 
-      {/* Changes by Period */}
+      {}
       {stats?.changes && stats.changes.length > 0 && (
         <View style={[styles.changesCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Изменения</Text>
@@ -220,7 +220,7 @@ export default function WeightHistoryScreen() {
         </View>
       )}
 
-      {/* History Title */}
+      {}
       <View style={styles.historyHeader}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>История</Text>
       </View>
@@ -267,7 +267,7 @@ export default function WeightHistoryScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-      {/* Header */}
+      {}
       <View style={[styles.header, { backgroundColor: colors.background }]}>
         <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: colors.card }, isDark && styles.noShadow]} 

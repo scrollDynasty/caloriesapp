@@ -40,7 +40,6 @@ export async function saveOnboardingData(data: OnboardingData) {
     let age = 25; 
     if (data.birthDate) {
       const today = new Date();
-      // birthDate может быть строкой из AsyncStorage
       const birth = typeof data.birthDate === 'string' ? new Date(data.birthDate) : new Date(data.birthDate);
       age = today.getFullYear() - birth.getFullYear();
       const monthDiff = today.getMonth() - birth.getMonth();
@@ -109,11 +108,9 @@ export async function saveOnboardingData(data: OnboardingData) {
     const result = await apiService.saveOnboardingData(payload);
     return { success: true, data: result };
   } catch (error: any) {
-
     let errorMessage = "Ошибка при сохранении данных";
     
     if (error.response) {
-      
       const status = error.response.status;
       const detail = error.response.data?.detail;
       

@@ -38,7 +38,7 @@ export default function Index() {
         return;
       }
     } catch {
-      // Ignore errors
+
     } finally {
       setCheckingAuth(false);
     }

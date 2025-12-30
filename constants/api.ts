@@ -1,10 +1,20 @@
-
 import Constants from "expo-constants";
+import { validateApiUrl } from "../utils/validation";
 
-export const API_BASE_URL =
-  Constants.expoConfig?.extra?.apiUrl ||
-  process.env.EXPO_PUBLIC_API_URL ||
-  "https://api.yeb-ich.com";
+const getApiBaseUrl = (): string => {
+  const url =
+    Constants.expoConfig?.extra?.apiUrl ||
+    process.env.EXPO_PUBLIC_API_URL ||
+    "https://api.yeb-ich.com";
+  
+  if (!validateApiUrl(url)) {
+    throw new Error("Invalid API URL: must use HTTPS (except localhost)");
+  }
+  
+  return url;
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const API_ENDPOINTS = {
   

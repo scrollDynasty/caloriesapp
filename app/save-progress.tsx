@@ -19,10 +19,10 @@ export default function SaveProgress() {
   const { data: onboardingData, clearData } = useOnboarding();
   const [loading, setLoading] = useState(false);
   
-  // Кешируем данные при первом рендере, чтобы не потерять их
+
   const cachedDataRef = useRef<Partial<OnboardingData> | null>(null);
 
-  // Загружаем и кешируем данные при монтировании
+
   useEffect(() => {
     const loadAndCacheData = async () => {
       try {
@@ -38,7 +38,7 @@ export default function SaveProgress() {
         
         cachedDataRef.current = data;
       } catch {
-        // Ignore errors
+
       }
     };
     

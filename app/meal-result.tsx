@@ -52,7 +52,7 @@ export default function MealResultScreen() {
         await apiService.deleteMealPhoto(photoId);
       }
     } catch {
-      // Ignore errors
+
     } finally {
       router.replace("/scan-meal" as any);
     }

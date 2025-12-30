@@ -492,7 +492,7 @@ export default function HomeScreen() {
         
         lastWeekLoadedRef.current = weekTs;
       } catch {
-        // Ignore errors
+
       } finally {
         weekLoadInProgress.current = false;
       }
@@ -526,7 +526,7 @@ export default function HomeScreen() {
       await loadDailyData(selectedDateTimestamp, true); 
       await fetchLatestMeals({ append: false, limit: recentLimit, force: true });
     } catch {
-      // Ignore errors
+
     } finally {
       setRefreshing(false);
     }

@@ -253,7 +253,7 @@ export default function TabsLayout() {
         />
       </Tabs>
 
-      {/* Blur Backdrop when FAB is expanded */}
+      {}
       {fabExpanded && (
         <TouchableOpacity
           style={styles.blurBackdrop}
@@ -271,7 +271,7 @@ export default function TabsLayout() {
         </TouchableOpacity>
       )}
 
-      {/* FAB Sub-buttons */}
+      {}
       <Animated.View
         style={[
           styles.fabSubButtonContainer,
@@ -347,7 +347,7 @@ export default function TabsLayout() {
         </TouchableOpacity>
       </Animated.View>
 
-      {/* Main FAB Button - справа, центрирован по высоте панели */}
+      {}
       <TouchableOpacity 
         style={[
           styles.fab, 

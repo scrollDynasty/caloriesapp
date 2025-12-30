@@ -132,7 +132,7 @@ export default function ChangeWeightScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-      {/* Header */}
+      {}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -141,9 +141,9 @@ export default function ChangeWeightScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      {/* Content */}
+      {}
       <View style={styles.content}>
-        {/* Weight Display */}
+        {}
         <View style={styles.weightDisplay}>
           <Text style={[styles.weightLabel, { color: colors.textSecondary }]}>Текущий вес</Text>
           <Text style={[styles.weightValue, { color: colors.text }]}>
@@ -151,9 +151,9 @@ export default function ChangeWeightScreen() {
           </Text>
         </View>
 
-        {/* Ruler */}
+        {}
         <View style={styles.rulerContainer}>
-          {/* Center indicator */}
+          {}
           <View style={[styles.centerIndicator, { backgroundColor: colors.text }]} />
           
           <ScrollView
@@ -178,7 +178,7 @@ export default function ChangeWeightScreen() {
         </View>
       </View>
 
-      {/* Save Button */}
+      {}
       <View style={[styles.footer, { backgroundColor: colors.background }]}>
         <TouchableOpacity
           style={[styles.saveButton, { backgroundColor: colors.text }, saving && { opacity: 0.6 }]}

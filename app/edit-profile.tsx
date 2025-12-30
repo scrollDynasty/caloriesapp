@@ -67,7 +67,7 @@ export default function EditProfileScreen() {
         setLocalAvatarUri(profile.avatar_url);
       }
     } catch {
-      // Ignore errors
+
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export default function EditProfileScreen() {
         setUsernameAvailable(result.available);
         setUsernameError(result.available ? null : result.message);
       } catch {
-        // Ignore errors
+
       } finally {
         setCheckingUsername(false);
       }
@@ -335,7 +335,7 @@ export default function EditProfileScreen() {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View style={{ flex: 1 }}>
-            {/* Header */}
+            {}
             <View style={styles.header}>
               <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Ionicons name="chevron-back" size={24} color={colors.primary} />
@@ -349,7 +349,7 @@ export default function EditProfileScreen() {
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.scrollContent}
             >
-              {/* Avatar */}
+              {}
               <TouchableOpacity style={styles.avatarContainer} onPress={handlePickAvatar}>
                 <View style={styles.avatarWrapper}>
                   {avatarDisplay ? (
@@ -370,9 +370,9 @@ export default function EditProfileScreen() {
                 <Text style={styles.changePhotoText}>Сменить фото</Text>
               </TouchableOpacity>
 
-              {/* Form */}
+              {}
               <View style={styles.form}>
-                {/* First Name */}
+                {}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Имя</Text>
                   <TextInput
@@ -385,7 +385,7 @@ export default function EditProfileScreen() {
                   />
                 </View>
 
-                {/* Last Name */}
+                {}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Фамилия</Text>
                   <TextInput
@@ -398,7 +398,7 @@ export default function EditProfileScreen() {
                   />
                 </View>
 
-                {/* Username */}
+                {}
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Имя пользователя</Text>
                   <View style={styles.usernameInputContainer}>
@@ -431,7 +431,7 @@ export default function EditProfileScreen() {
               </View>
             </ScrollView>
 
-            {/* Save Button */}
+            {}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.saveButton, saving && styles.saveButtonDisabled]}

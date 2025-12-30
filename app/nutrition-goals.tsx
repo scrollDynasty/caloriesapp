@@ -477,7 +477,7 @@ function AutoGenerateFlow({
       style={[styles.autoGenerateOverlay, { backgroundColor: isDark ? colors.background : "#FFFFFF" }]}
     >
       <SafeAreaView style={styles.autoGenerateContainer} edges={["top"]}>
-        {/* Header */}
+        {}
         <View style={styles.autoGenerateHeader}>
           <TouchableOpacity style={styles.autoGenerateBackButton} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -636,7 +636,7 @@ function AutoGenerateFlow({
                   Ты можешь изменить это в любое время
                 </Text>
 
-                {/* Вертикальный список макросов */}
+                {}
                 <View style={styles.resultMacrosList}>
                   <ResultMacroRow
                     icon="🔥"
@@ -686,7 +686,7 @@ function AutoGenerateFlow({
                 </View>
               </View>
 
-              {/* Учтённые данные */}
+              {}
               <View style={[styles.consideredDataCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}>
                 <Text style={[styles.consideredDataTitle, { color: colors.text }]}>
                   Учтённые данные:
@@ -769,7 +769,7 @@ function AutoGenerateFlow({
           )}
         </ScrollView>
 
-        {/* Bottom Button */}
+        {}
         <View style={[styles.autoGenerateBottom, { backgroundColor: isDark ? colors.background : "#FFFFFF" }]}>
           <TouchableOpacity
             style={[styles.autoGenerateFlowButton, { backgroundColor: colors.buttonPrimary }]}
@@ -936,7 +936,7 @@ export default function NutritionGoalsScreen() {
         sodium: data.sodium_mg || 2300,
       });
     } catch {
-      // Ignore errors
+
     } finally {
       setLoading(false);
     }
@@ -998,7 +998,7 @@ export default function NutritionGoalsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -1022,7 +1022,7 @@ export default function NutritionGoalsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Main Goals */}
+        {}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>ОСНОВНЫЕ ЦЕЛИ</Text>
           <View style={styles.goalsGrid}>
@@ -1069,7 +1069,7 @@ export default function NutritionGoalsScreen() {
           </View>
         </View>
 
-        {/* Micronutrients Toggle */}
+        {}
         <TouchableOpacity
           style={[styles.micronutrientsToggle, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}
           onPress={toggleMicronutrients}
@@ -1090,7 +1090,7 @@ export default function NutritionGoalsScreen() {
           </Animated.View>
         </TouchableOpacity>
 
-        {/* Micronutrients Section - простой условный рендеринг */}
+        {}
         {showMicronutrients && (
           <View style={styles.micronutrientsContainer}>
             <MicroCard
@@ -1129,7 +1129,7 @@ export default function NutritionGoalsScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Auto Generate Button - фиксированный внизу экрана */}
+      {}
       <View style={[styles.bottomButtonContainer, { backgroundColor: colors.background }]}>
         <TouchableOpacity
           style={[styles.autoGenerateButtonFixed, { backgroundColor: colors.buttonPrimary }]}
@@ -1146,7 +1146,7 @@ export default function NutritionGoalsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Edit Modal */}
+      {}
       <EditGoalModal
         visible={editingGoal !== null}
         label={editingGoal?.label || ""}
@@ -1158,7 +1158,7 @@ export default function NutritionGoalsScreen() {
         colors={colors}
       />
 
-      {/* Auto Generate Flow */}
+      {}
       <AutoGenerateFlow
         visible={showAutoGenerate}
         onClose={() => setShowAutoGenerate(false)}

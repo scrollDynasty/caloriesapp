@@ -10,6 +10,7 @@ import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
 import { DailyMealsData, dataCache, OnboardingData, UserData } from "../stores/dataCache";
 import { getLocalDateStr, getLocalISOString, getLocalTimezoneOffset } from "../utils/timezone";
+import { sanitizeBarcode, sanitizeFileName, sanitizeNumber, sanitizeString, sanitizeUrl } from "../utils/validation";
 
 const TOKEN_KEY = "@yebich:auth_token";
 
@@ -190,17 +191,18 @@ class ApiService {
   }
 
   async saveToken(token: string): Promise<void> {
+    if (typeof token !== 'string' || !token.trim()) {
+      throw new Error("Invalid token");
+    }
+    
     try {
-      
-      this.cachedToken = token;
-      
-      await AsyncStorage.setItem(TOKEN_KEY, token);
+      this.cachedToken = token.trim();
+      await AsyncStorage.setItem(TOKEN_KEY, this.cachedToken);
     } catch {
     }
   }
 
   async getToken(): Promise<string | null> {
-    
     if (this.cachedToken) {
       return this.cachedToken;
     }
@@ -221,7 +223,6 @@ class ApiService {
       this.cachedToken = null;
       await AsyncStorage.removeItem(TOKEN_KEY);
     } catch {
-      // Ignore errors
     }
   }
 
@@ -323,13 +324,20 @@ class ApiService {
     barcode?: string,
     mealName?: string
   ): Promise<MealPhotoUploadResponse> {
+    if (typeof uri !== 'string' || !uri) {
+      throw new Error("Invalid file URI");
+    }
+    
     const formData = new FormData();
     const normalizedUri =
       Platform.OS === "ios" ? uri.replace("file://", "") : uri;
-    const ensuredFileName = fileName && fileName.includes(".")
-      ? fileName
-      : `${fileName || `photo_${Date.now()}`}.jpg`;
-    const ensuredMime = mimeType || "image/jpeg";
+    const sanitizedFileName = sanitizeFileName(fileName || `photo_${Date.now()}`);
+    const ensuredFileName = sanitizedFileName.includes(".")
+      ? sanitizedFileName
+      : `${sanitizedFileName}.jpg`;
+    const ensuredMime = (mimeType && /^image\/(jpeg|jpg|png|webp|heic|heif)$/i.test(mimeType))
+      ? mimeType
+      : "image/jpeg";
     
     formData.append("file", {
       uri: normalizedUri,
@@ -337,8 +345,8 @@ class ApiService {
       type: ensuredMime,
     } as any);
     
-    formData.append("barcode", barcode || "");
-    formData.append("meal_name", mealName || "");
+    formData.append("barcode", barcode ? sanitizeBarcode(barcode) : "");
+    formData.append("meal_name", mealName ? sanitizeString(mealName, 200) : "");
     formData.append("client_timestamp", getLocalISOString());
     formData.append("client_tz_offset_minutes", String(getLocalTimezoneOffset()));
 
@@ -358,9 +366,26 @@ class ApiService {
   }
 
   async createManualMeal(payload: ManualMealPayload) {
-    const localTimestamp = payload.created_at || getLocalISOString();
+    const sanitizedPayload: ManualMealPayload = {
+      meal_name: sanitizeString(payload.meal_name || "", 200),
+      calories: sanitizeNumber(payload.calories, 0, 100000) ?? null,
+      protein: sanitizeNumber(payload.protein, 0, 100000) ?? null,
+      fat: sanitizeNumber(payload.fat, 0, 100000) ?? null,
+      carbs: sanitizeNumber(payload.carbs, 0, 100000) ?? null,
+      fiber: sanitizeNumber(payload.fiber, 0, 100000) ?? null,
+      sugar: sanitizeNumber(payload.sugar, 0, 100000) ?? null,
+      sodium: sanitizeNumber(payload.sodium, 0, 100000) ?? null,
+      health_score: sanitizeNumber(payload.health_score, 0, 100) ?? null,
+      created_at: payload.created_at || getLocalISOString(),
+    };
+    
+    if (!sanitizedPayload.meal_name) {
+      throw new Error("Название блюда обязательно");
+    }
+    
+    const localTimestamp = sanitizedPayload.created_at;
     const data = {
-      ...payload,
+      ...sanitizedPayload,
       created_at: localTimestamp,
     };
     const response = await this.api.post(API_ENDPOINTS.MEALS_MANUAL, data, {
@@ -376,7 +401,7 @@ class ApiService {
   }
 
   async lookupBarcode(barcode: string): Promise<BarcodeLookup> {
-    const code = (barcode || "").trim();
+    const code = sanitizeBarcode(barcode);
     if (!code) {
       throw new Error("Пустой штрихкод");
     }
@@ -433,9 +458,17 @@ class ApiService {
   }
 
   async addWater(payload: WaterPayload) {
+    const sanitizedAmount = sanitizeNumber(payload.amount_ml, 1, 10000);
+    if (sanitizedAmount === null) {
+      throw new Error("Объём воды должен быть от 1 до 10000 мл");
+    }
+    
+    const sanitizedGoal = payload.goal_ml ? sanitizeNumber(payload.goal_ml, 0, 10000) : null;
+    
     const localTimestamp = payload.created_at || getLocalISOString();
     const data = {
-      ...payload,
+      amount_ml: sanitizedAmount,
+      goal_ml: sanitizedGoal,
       created_at: localTimestamp,
     };
     const response = await this.api.post(API_ENDPOINTS.WATER, data, {
@@ -486,10 +519,13 @@ class ApiService {
   }
 
   async getMealPhotos(skip: number = 0, limit: number = 100): Promise<MealPhoto[]> {
-    const key = `meal-photos-${skip}-${limit}`;
+    const sanitizedSkip = Math.max(0, Math.floor(sanitizeNumber(skip, 0, 10000) ?? 0));
+    const sanitizedLimit = Math.max(1, Math.min(100, Math.floor(sanitizeNumber(limit, 1, 100) ?? 100)));
+    
+    const key = `meal-photos-${sanitizedSkip}-${sanitizedLimit}`;
     return this.dedupRequest(key, async () => {
       const response = await this.api.get<MealPhoto[]>(API_ENDPOINTS.MEALS_PHOTOS, {
-        params: { skip, limit },
+        params: { skip: sanitizedSkip, limit: sanitizedLimit },
       });
       return response.data;
     });
@@ -500,18 +536,22 @@ class ApiService {
     limit: number = 100,
     ttlMs: number = 30000
   ): Promise<MealPhoto[]> {
+    const sanitizedSkip = Math.max(0, Math.floor(sanitizeNumber(skip, 0, 10000) ?? 0));
+    const sanitizedLimit = Math.max(1, Math.min(100, Math.floor(sanitizeNumber(limit, 1, 100) ?? 100)));
+    const sanitizedTtl = Math.max(0, Math.min(300000, sanitizeNumber(ttlMs, 0, 300000) ?? 30000));
+    
     const now = Date.now();
     const isCacheValid =
       this.mealPhotosCache.timestamp &&
-      now - (this.mealPhotosCache.timestamp || 0) < ttlMs &&
-      skip === 0;
+      now - (this.mealPhotosCache.timestamp || 0) < sanitizedTtl &&
+      sanitizedSkip === 0;
 
     if (isCacheValid) {
-      return this.mealPhotosCache.data.slice(0, limit);
+      return this.mealPhotosCache.data.slice(0, sanitizedLimit);
     }
 
-    const data = await this.getMealPhotos(skip, limit);
-    if (skip === 0) {
+    const data = await this.getMealPhotos(sanitizedSkip, sanitizedLimit);
+    if (sanitizedSkip === 0) {
       this.mealPhotosCache = { data, timestamp: now };
     }
     return data;
@@ -623,13 +663,22 @@ class ApiService {
   }
 
   async deleteMealPhoto(photoId: number) {
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
     await this.api.delete(`${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`);
     this.removeMealPhotoFromCache(photoId);
     dataCache.invalidateDailyMeals(getLocalDateStr());
   }
 
   getMealPhotoUrl(photoId: number, token?: string): string {
-    const qs = token ? `?token=${token}` : "";
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
+    const sanitizedToken = token ? encodeURIComponent(sanitizeString(token, 500)) : "";
+    const qs = sanitizedToken ? `?token=${sanitizedToken}` : "";
     return `${API_BASE_URL}${API_ENDPOINTS.MEALS_PHOTO}/${photoId}${qs}`;
   }
 
@@ -640,9 +689,21 @@ class ApiService {
     fat?: number;
     carbs?: number;
   }): Promise<MealPhoto> {
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
+    const sanitizedData = {
+      meal_name: data.meal_name ? sanitizeString(data.meal_name, 200) : undefined,
+      calories: data.calories !== undefined ? sanitizeNumber(data.calories, 0, 100000) : undefined,
+      protein: data.protein !== undefined ? sanitizeNumber(data.protein, 0, 100000) : undefined,
+      fat: data.fat !== undefined ? sanitizeNumber(data.fat, 0, 100000) : undefined,
+      carbs: data.carbs !== undefined ? sanitizeNumber(data.carbs, 0, 100000) : undefined,
+    };
+    
     const response = await this.api.put<MealPhoto>(
       `${API_ENDPOINTS.MEALS_PHOTO}/${photoId}`,
-      data,
+      sanitizedData,
     );
     this.upsertMealPhotoInCache(response.data);
     dataCache.invalidateDailyMeals(getLocalDateStr());
@@ -662,6 +723,10 @@ class ApiService {
     };
     health_score?: number;
   }> {
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
     const key = `meal-detail-${photoId}`;
     return this.dedupRequest(key, async () => {
       try {
@@ -722,7 +787,14 @@ class ApiService {
     username?: string;
     avatar_url?: string;
   }> {
-    const response = await this.api.put(`${API_ENDPOINTS.AUTH}/profile`, data);
+    const sanitizedData = {
+      first_name: data.first_name ? sanitizeString(data.first_name, 100) : undefined,
+      last_name: data.last_name ? sanitizeString(data.last_name, 100) : undefined,
+      username: data.username ? sanitizeString(data.username.toLowerCase().replace(/[^a-z0-9_]/g, ''), 50) : undefined,
+      avatar_url: data.avatar_url ? sanitizeUrl(data.avatar_url) : null,
+    };
+    
+    const response = await this.api.put(`${API_ENDPOINTS.AUTH}/profile`, sanitizedData);
     return response.data;
   }
 
@@ -731,7 +803,11 @@ class ApiService {
     available: boolean;
     message: string;
   }> {
-    const response = await this.api.post(`${API_ENDPOINTS.AUTH}/check-username`, { username });
+    const sanitized = sanitizeString(username.toLowerCase().replace(/[^a-z0-9_]/g, ''), 50);
+    if (!sanitized || sanitized.length < 3) {
+      throw new Error("Username должен быть минимум 3 символа");
+    }
+    const response = await this.api.post(`${API_ENDPOINTS.AUTH}/check-username`, { username: sanitized });
     return response.data;
   }
 
@@ -740,13 +816,20 @@ class ApiService {
     fileName: string,
     mimeType: string
   ): Promise<{ avatar_url: string; message: string }> {
+    if (typeof uri !== 'string' || !uri) {
+      throw new Error("Invalid file URI");
+    }
+    
     const formData = new FormData();
     const normalizedUri =
       Platform.OS === "ios" ? uri.replace("file://", "") : uri;
-    const ensuredFileName = fileName && fileName.includes(".")
-      ? fileName
-      : `${fileName || `avatar_${Date.now()}`}.jpg`;
-    const ensuredMime = mimeType || "image/jpeg";
+    const sanitizedFileName = sanitizeFileName(fileName || `avatar_${Date.now()}`);
+    const ensuredFileName = sanitizedFileName.includes(".")
+      ? sanitizedFileName
+      : `${sanitizedFileName}.jpg`;
+    const ensuredMime = (mimeType && /^image\/(jpeg|jpg|png|webp|heic|heif)$/i.test(mimeType))
+      ? mimeType
+      : "image/jpeg";
     
     formData.append("file", {
       uri: normalizedUri,
@@ -774,8 +857,13 @@ class ApiService {
     weight: number;
     created_at: string;
   }> {
+    const sanitizedWeight = sanitizeNumber(weight, 30, 300);
+    if (sanitizedWeight === null) {
+      throw new Error("Вес должен быть от 30 до 300 кг");
+    }
+    
     const response = await this.api.post('/api/v1/progress/weight', {
-      weight,
+      weight: sanitizedWeight,
       created_at: created_at || new Date().toISOString(),
     });
     dataCache.invalidateOnboarding();
@@ -788,8 +876,10 @@ class ApiService {
     weight: number;
     created_at: string;
   }>> {
+    const sanitizedLimit = Math.max(1, Math.min(1000, Math.floor(sanitizeNumber(limit, 1, 1000) ?? 100)));
+    
     const response = await this.api.get('/api/v1/progress/weight/history', {
-      params: { limit },
+      params: { limit: sanitizedLimit },
     });
     return response.data;
   }
@@ -820,12 +910,19 @@ class ApiService {
     url: string;
     created_at: string;
   }> {
+    if (typeof uri !== 'string' || !uri) {
+      throw new Error("Invalid file URI");
+    }
+    
     const formData = new FormData();
     const normalizedUri = Platform.OS === "ios" ? uri.replace("file://", "") : uri;
-    const ensuredFileName = fileName && fileName.includes(".")
-      ? fileName
-      : `${fileName || `photo_${Date.now()}`}.jpg`;
-    const ensuredMime = mimeType || "image/jpeg";
+    const sanitizedFileName = sanitizeFileName(fileName || `photo_${Date.now()}`);
+    const ensuredFileName = sanitizedFileName.includes(".")
+      ? sanitizedFileName
+      : `${sanitizedFileName}.jpg`;
+    const ensuredMime = (mimeType && /^image\/(jpeg|jpg|png|webp|heic|heif)$/i.test(mimeType))
+      ? mimeType
+      : "image/jpeg";
     
     formData.append("file", {
       uri: normalizedUri,
@@ -857,10 +954,18 @@ class ApiService {
   }
 
   getProgressPhotoUrl(photoId: number): string {
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
     return `${API_BASE_URL}/api/v1/progress/photos/${photoId}`;
   }
 
   async deleteProgressPhoto(photoId: number): Promise<void> {
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
     await this.api.delete(`/api/v1/progress/photos/${photoId}`);
   }
 
@@ -907,9 +1012,22 @@ class ApiService {
     photoId: number,
     ingredient: { name: string; calories: number }
   ): Promise<{ success: boolean; ingredients: Array<{ name: string; calories: number }> }> {
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
+    const sanitizedIngredient = {
+      name: sanitizeString(ingredient.name || "", 200),
+      calories: sanitizeNumber(ingredient.calories, 0, 100000) ?? 0,
+    };
+    
+    if (!sanitizedIngredient.name) {
+      throw new Error("Название ингредиента обязательно");
+    }
+    
     const response = await this.api.post(
       `${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/ingredients`,
-      ingredient
+      sanitizedIngredient
     );
     dataCache.invalidateDailyMeals(getLocalDateStr());
     return response.data;
@@ -928,9 +1046,18 @@ class ApiService {
     extra_macros?: { fiber: number; sugar: number; sodium: number };
     health_score?: number;
   }> {
+    if (!Number.isInteger(photoId) || photoId <= 0) {
+      throw new Error("Invalid photo ID");
+    }
+    
+    const sanitizedCorrection = sanitizeString(correction, 1000);
+    if (!sanitizedCorrection) {
+      throw new Error("Корректировка не может быть пустой");
+    }
+    
     const response = await this.api.post(
       `${API_ENDPOINTS.MEALS_PHOTO}/${photoId}/correct`,
-      { correction }
+      { correction: sanitizedCorrection }
     );
     dataCache.invalidateDailyMeals(getLocalDateStr());
     return response.data;

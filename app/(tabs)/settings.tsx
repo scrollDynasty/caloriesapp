@@ -180,7 +180,7 @@ export default function SettingsScreen() {
         });
         setOnboardingData(onboarding);
       } catch {
-        // Ignore errors
+
       } finally {
         setDailyLoading(false);
       }
@@ -452,7 +452,7 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="logo-instagram" title="Instagram" onPress={() => openLink("https://instagram.com")} />
           <MenuItem icon="logo-tiktok" title="TikTok" onPress={() => openLink("https://tiktok.com")} />
-          <MenuItem icon="logo-twitter" title="X" onPress={() => openLink("https://x.com")} isLast />
+          <MenuItem icon="logo-twitter" title="X" onPress={() => openLink("https://twitter.com")} />
         </View>
 
         <SectionHeader title="Действия с аккаунтом" />
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     textAlign: "center",
   },
-  // Macros
+
   widgetMacroIcon: {
     fontSize: 14,
   },

@@ -5,13 +5,14 @@ from fastapi_amis_admin.admin.settings import Settings as AdminSettings
 from fastapi_amis_admin.admin.site import AdminSite
 from fastapi_amis_admin.admin import admin
 from fastapi_amis_admin.utils.pydantic import model_fields as original_model_fields
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, field_serializer
+from typing import Optional, Any
+from datetime import datetime, date
 from sqlalchemy.inspection import inspect as sqlalchemy_inspect
 
 from app.core.config import settings
 from app.models.user import User
-from app.models.onboarding_data import OnboardingData
+from app.models.onboarding_data import OnboardingData, Gender, WorkoutFrequency, Goal, DietType
 from app.models.meal_photo import MealPhoto
 from app.models.water_log import WaterLog
 from app.models.weight_log import WeightLog
@@ -64,6 +65,35 @@ admin_settings = AdminSettings(
 site = AdminSite(settings=admin_settings)
 
 
+class UserReadSchema(BaseModel):
+    id: int
+    email: Optional[str] = None
+    apple_id: Optional[str] = None
+    google_id: Optional[str] = None
+    name: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    avatar_url: Optional[str] = None
+    streak_count: Optional[int] = None
+    last_streak_date: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    @field_serializer('last_streak_date', 'created_at', 'updated_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        """Сериализуем datetime в ISO формат для JSON"""
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    def dict(self, **kwargs) -> dict[str, Any]:
+        """Переопределяем dict() для совместимости со старым API библиотеки"""
+        return self.model_dump(mode='json', **kwargs)
+    
+    class Config:
+        from_attributes = True
+
 class UserUpdateSchema(BaseModel):
     email: Optional[str] = None
     name: Optional[str] = None
@@ -75,10 +105,64 @@ class UserUpdateSchema(BaseModel):
     last_streak_date: Optional[str] = None
 
 
+# Pydantic схемы для OnboardingData
+class OnboardingDataReadSchema(BaseModel):
+    id: int
+    user_id: int
+    gender: Optional[str] = None
+    workout_frequency: Optional[str] = None
+    height: Optional[float] = None
+    weight: Optional[float] = None
+    target_weight: Optional[float] = None
+    birth_date: Optional[date] = None
+    step_goal: Optional[int] = None
+    has_trainer: Optional[str] = None
+    goal: Optional[str] = None
+    barrier: Optional[str] = None
+    diet_type: Optional[str] = None
+    motivation: Optional[str] = None
+    bmr: Optional[float] = None
+    tdee: Optional[float] = None
+    target_calories: Optional[float] = None
+    protein_grams: Optional[float] = None
+    protein_calories: Optional[float] = None
+    protein_percentage: Optional[float] = None
+    carbs_grams: Optional[float] = None
+    carbs_calories: Optional[float] = None
+    carbs_percentage: Optional[float] = None
+    fats_grams: Optional[float] = None
+    fats_calories: Optional[float] = None
+    fats_percentage: Optional[float] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    @field_serializer('birth_date', when_used='json')
+    def serialize_date(self, value: Optional[date], _info) -> Optional[str]:
+        """Сериализуем date в ISO формат для JSON"""
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    @field_serializer('created_at', 'updated_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        """Сериализуем datetime в ISO формат для JSON"""
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    def dict(self, **kwargs) -> dict[str, Any]:
+        """Переопределяем dict() для совместимости со старым API библиотеки"""
+        return self.model_dump(mode='json', **kwargs)
+    
+    class Config:
+        from_attributes = True
+
+
 @site.register_admin
 class UserAdmin(admin.ModelAdmin):
     page_schema = "Users"
     model = User
+    schema_read = UserReadSchema
     update_schema = UserUpdateSchema
     
     list_display = [
@@ -142,6 +226,7 @@ class UserAdmin(admin.ModelAdmin):
 class OnboardingDataAdmin(admin.ModelAdmin):
     page_schema = "Profiles"
     model = OnboardingData
+    schema_read = OnboardingDataReadSchema
     
     list_display = [
         OnboardingData.id,

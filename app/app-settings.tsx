@@ -60,21 +60,21 @@ function ThemePreviewCard({
       ]}
     >
       <View style={[styles.themePreview, { backgroundColor: previewBg }]}>
-        {/* Moon icon for dark mode preview */}
+        {}
         {isDark && (
           <View style={styles.themeBadge}>
             <Ionicons name="moon" size={12} color="#FFFFFF" />
           </View>
         )}
         
-        {/* Sun icon for light mode preview */}
+        {}
         {!isDark && (
           <View style={[styles.themeBadge, { backgroundColor: "#FF9500" }]}>
             <Ionicons name="sunny" size={12} color="#FFFFFF" />
           </View>
         )}
         
-        {/* Preview cards with colored indicators */}
+        {}
         <View style={styles.themePreviewContent}>
           {[0, 1, 2].map((index) => (
             <View key={index} style={[styles.themePreviewRow, { backgroundColor: cardBg }]}>
@@ -169,7 +169,7 @@ export default function AppSettingsScreen() {
         setToggleSettings(JSON.parse(stored));
       }
     } catch {
-      // Ignore errors
+
     }
   };
 
@@ -182,13 +182,13 @@ export default function AppSettingsScreen() {
     try {
       await AsyncStorage.setItem(TOGGLE_SETTINGS_KEY, JSON.stringify(newSettings));
     } catch {
-      // Ignore errors
+
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: colors.card }]} 
@@ -201,7 +201,7 @@ export default function AppSettingsScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Appearance Section */}
+        {}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ВНЕШНИЙ ВИД</Text>
           <View style={[styles.section, { backgroundColor: colors.card }]}>
@@ -231,7 +231,7 @@ export default function AppSettingsScreen() {
           </View>
         </View>
 
-        {/* Features Section */}
+        {}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ФУНКЦИИ</Text>
           <View style={[styles.togglesSection, { backgroundColor: colors.card }]}>

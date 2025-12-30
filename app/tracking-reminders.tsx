@@ -145,7 +145,7 @@ export default function TrackingRemindersScreen() {
         setReminders(restored);
       }
     } catch {
-      // Ignore errors
+
     }
   };
 
@@ -153,7 +153,7 @@ export default function TrackingRemindersScreen() {
     try {
       await AsyncStorage.setItem(REMINDERS_STORAGE_KEY, JSON.stringify(newReminders));
     } catch {
-      // Ignore errors
+
     }
   };
 
@@ -212,7 +212,7 @@ export default function TrackingRemindersScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: colors.card }]} 
@@ -223,12 +223,12 @@ export default function TrackingRemindersScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Title */}
+        {}
         <Text style={[styles.title, { color: colors.text }]}>
           Напоминания об{"\n"}отслеживании
         </Text>
 
-        {/* Meal Reminders Section */}
+        {}
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <ReminderRow
             label={reminderLabels.breakfast}
@@ -269,7 +269,7 @@ export default function TrackingRemindersScreen() {
           />
         </View>
 
-        {/* End of Day Section */}
+        {}
         <View style={[styles.section, styles.endOfDaySection, { backgroundColor: colors.card }]}>
           <ReminderRow
             label={reminderLabels.endOfDay}
@@ -289,7 +289,7 @@ export default function TrackingRemindersScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {/* Time Picker Modal for iOS */}
+      {}
       {Platform.OS === "ios" && showTimePicker && (
         <Modal
           visible={showTimePicker}
@@ -331,7 +331,7 @@ export default function TrackingRemindersScreen() {
         </Modal>
       )}
 
-      {/* Time Picker for Android */}
+      {}
       {Platform.OS === "android" && showTimePicker && (
         <DateTimePicker
           value={tempTime}

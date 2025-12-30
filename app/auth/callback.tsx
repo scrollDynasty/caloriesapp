@@ -70,7 +70,7 @@ export default function CallbackScreen() {
             hasExistingData = true;
           }
         } catch {
-          // Ignore errors
+
         }
 
         if (!hasExistingData) {
