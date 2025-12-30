@@ -20,7 +20,7 @@ const testimonials: Testimonial[] = [
   {
     id: "2",
     username: "Ordinary Tony",
-    quote: "IVE BEEN BULKING FOR A YEAR STRAIGHT W APP FR 💪💪💪",
+    quote: "ТЮБА, ТЮБА, ТЮБА",
     avatar:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
   },
