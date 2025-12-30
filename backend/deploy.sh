@@ -87,8 +87,12 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
     if command -v pm2 &> /dev/null; then
         echo "🔄 Restarting backend with pm2 (name: \$PM2_NAME)..."
         cd $REMOTE_DIR
-        pm2 delete \$PM2_NAME 2>/dev/null || true
-        pm2 start run.py --name "\$PM2_NAME" --interpreter python3
+        
+        # Удаляем все процессы с неправильными именами и старые процессы
+        pm2 delete all 2>/dev/null || true
+        
+        # Запускаем новый процесс с правильным синтаксисом
+        pm2 start run.py --name \$PM2_NAME --interpreter python3
         pm2 save
         echo "✅ Backend restarted as \$PM2_NAME"
     else
