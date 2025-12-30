@@ -18,6 +18,7 @@ from app.models.water_log import WaterLog
 from app.models.weight_log import WeightLog
 from app.models.progress_photo import ProgressPhoto
 from app.models.recipe import Recipe
+from app.models.press_inquiry import PressInquiry, InquiryStatus
 
 
 def patched_model_fields(model):
@@ -491,3 +492,53 @@ class RecipeAdmin(admin.ModelAdmin):
                 return {k: v for k, v in data_dict.items() if v is not None}
         
         return {k: v for k, v in data_dict.items() if v is not None}
+
+
+@site.register_admin
+class PressInquiryAdmin(admin.ModelAdmin):
+    page_schema = "Press Inquiries"
+    model = PressInquiry
+    
+    list_display = [
+        PressInquiry.id,
+        PressInquiry.email,
+        PressInquiry.subject,
+        PressInquiry.message,
+        PressInquiry.status,
+        PressInquiry.ip_address,
+        PressInquiry.created_at,
+        PressInquiry.updated_at,
+    ]
+    
+    search_fields = [PressInquiry.email, PressInquiry.subject, PressInquiry.message]
+    list_filter = [PressInquiry.status, PressInquiry.created_at]
+    list_per_page = 50
+    
+    async def get_list_query(self, request):
+        query = await super().get_list_query(request)
+        return query.order_by(PressInquiry.created_at.desc())
+    
+    form_excluded = [PressInquiry.id, PressInquiry.created_at, PressInquiry.updated_at, PressInquiry.ip_address, PressInquiry.user_agent]
+    
+    async def get_form_item(self, request, modelfield, action: str = None):
+        if modelfield.name == "message":
+            return {
+                "type": "textarea",
+                "rows": 12,
+                "maxLength": 5000,
+                "readOnly": True,
+                "disabled": True,
+            }
+        if modelfield.name == "email" or modelfield.name == "subject":
+            return {
+                "type": "input-text",
+                "readOnly": True,
+                "disabled": True,
+            }
+        if modelfield.name == "admin_notes":
+            return {
+                "type": "textarea",
+                "rows": 6,
+                "maxLength": 2000,
+            }
+        return await super().get_form_item(request, modelfield, action)

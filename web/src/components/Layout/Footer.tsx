@@ -1,39 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import DownloadButton from "../Landing/DownloadButton";
-import { StarIcon } from "../ui/Icons";
 import styles from "./Footer.module.css";
 
 export default function Footer() {
   return (
     <footer className={styles.footer}>
-      <div className={styles.ratingsSection}>
-        <div className={styles.starsContainer}>
-          {[1, 2, 3, 4].map((starNum) => (
-            <StarIcon key={starNum} size={32} className={styles.star} />
-          ))}
-        </div>
-        <div className={styles.ratingsTextContainer}>
-          <span className={styles.laurel}>🌿</span>
-          <h2 className={styles.ratingsTitle}>Over 100k 5-star ratings</h2>
-          <span className={styles.laurel}>🌿</span>
-        </div>
-        <div className={styles.storeRatings}>
-          <div className={styles.storeRating}>
-            <span className={styles.storeIcon}>🍎</span>
-            <span className={styles.ratingText}>4.8/5</span>
-          </div>
-          <div className={styles.storeRating}>
-            <span className={styles.storeIcon}>▶</span>
-            <span className={styles.ratingText}>4.7/5</span>
-          </div>
-        </div>
-        <div className={styles.downloadButtons}>
-          <DownloadButton platform="appstore" size="large" />
-          <DownloadButton platform="googleplay" size="large" />
-        </div>
-      </div>
-      <div className={styles.divider}></div>
       <div className={styles.bottomSection}>
         <div className={styles.container}>
           <div className={styles.columns}>

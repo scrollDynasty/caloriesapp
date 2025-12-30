@@ -6,5 +6,6 @@ from app.models.water_log import WaterLog
 from app.models.weight_log import WeightLog
 from app.models.progress_photo import ProgressPhoto
 from app.models.recipe import Recipe
+from app.models.press_inquiry import PressInquiry
 
-__all__ = ["Base", "User", "OnboardingData", "MealPhoto", "WaterLog", "WeightLog", "ProgressPhoto", "Recipe"]
+__all__ = ["Base", "User", "OnboardingData", "MealPhoto", "WaterLog", "WeightLog", "ProgressPhoto", "Recipe", "PressInquiry"]
