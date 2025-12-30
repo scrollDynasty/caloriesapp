@@ -9,11 +9,11 @@ export default function Header() {
       <div className={styles.navLeft}>
         <Link href="/" className={styles.logoLink}>
           <div className={styles.logoContainer}>
-            <Image 
-              src="/logo.png" 
-              alt="Yeb-Ich logo" 
-              width={64} 
-              height={64} 
+            <Image
+              src="/logo.png"
+              alt="Yeb-Ich logo"
+              width={64}
+              height={64}
               className={styles.logoImage}
               priority
               unoptimized
@@ -47,4 +47,3 @@ export default function Header() {
     </nav>
   );
 }
-

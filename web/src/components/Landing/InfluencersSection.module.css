@@ -60,7 +60,12 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.95) 0%,
+    rgba(0, 0, 0, 0.8) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
   padding: 32px;
   display: flex;
   flex-direction: column;
@@ -102,7 +107,7 @@
   }
 
   .cardCenterRow {
-    transform: none !important;
+    transform: none;
   }
 }
 
@@ -130,7 +135,6 @@
   }
 
   .cardCenterRow {
-    transform: none !important;
+    transform: none;
   }
 }
-

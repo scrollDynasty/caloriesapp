@@ -27,7 +27,10 @@ export default function LightModeSection() {
                   alt="Light Mode"
                   fill
                   className={styles.phoneImage}
-                  style={{ objectFit: "contain", objectPosition: "center center" }}
+                  style={{
+                    objectFit: "contain",
+                    objectPosition: "center center",
+                  }}
                   unoptimized
                 />
               </div>
@@ -38,4 +41,3 @@ export default function LightModeSection() {
     </section>
   );
 }
-

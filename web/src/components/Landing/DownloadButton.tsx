@@ -15,12 +15,12 @@ export default function DownloadButton({
 
   return (
     <a
-      href="#"
+      href={isAppStore ? "https://apps.apple.com" : "https://play.google.com"}
+      target="_blank"
+      rel="noopener noreferrer"
       className={`${styles.button} ${styles[size]} ${isAppStore ? styles.appStore : styles.googlePlay}`}
       aria-label={
-        isAppStore
-          ? "Download on the App Store"
-          : "Get it on Google Play"
+        isAppStore ? "Download on the App Store" : "Get it on Google Play"
       }
     >
       <div className={styles.icon}>
@@ -41,4 +41,3 @@ export default function DownloadButton({
     </a>
   );
 }
-

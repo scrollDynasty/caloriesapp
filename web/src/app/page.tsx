@@ -16,7 +16,10 @@ export default function Home() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+      const scrollPosition =
+        window.scrollY ||
+        window.pageYOffset ||
+        document.documentElement.scrollTop;
       setIsScrolled(scrollPosition > 10);
     };
 
@@ -27,12 +30,16 @@ export default function Home() {
 
   return (
     <div className={styles.page}>
-      <div 
-        className={`${styles.headerWrapper} ${isScrolled ? styles.headerWrapperScrolled : ''}`}
-        style={isScrolled ? {
-          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-        } as React.CSSProperties : {}}
+      <div
+        className={`${styles.headerWrapper} ${isScrolled ? styles.headerWrapperScrolled : ""}`}
+        style={
+          isScrolled
+            ? ({
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+              } as React.CSSProperties)
+            : {}
+        }
       >
         <div className={styles.headerContent}>
           <Header />
