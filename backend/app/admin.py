@@ -35,11 +35,9 @@ def patched_model_fields(model):
             }
         return fields
     
-    # Fallback на оригинальную функцию
     return original_model_fields(model)
 
 
-# Применяем патч
 import fastapi_amis_admin.utils.pydantic as pydantic_utils
 pydantic_utils.model_fields = patched_model_fields
 
@@ -106,7 +104,6 @@ class UserUpdateSchema(BaseModel):
     last_streak_date: Optional[str] = None
 
 
-# Pydantic схемы для OnboardingData
 class OnboardingDataReadSchema(BaseModel):
     id: int
     user_id: int
@@ -139,20 +136,17 @@ class OnboardingDataReadSchema(BaseModel):
     
     @field_serializer('birth_date', when_used='json')
     def serialize_date(self, value: Optional[date], _info) -> Optional[str]:
-        """Сериализуем date в ISO формат для JSON"""
         if value is None:
             return None
         return value.isoformat()
     
     @field_serializer('created_at', 'updated_at', when_used='json')
     def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
-        """Сериализуем datetime в ISO формат для JSON"""
         if value is None:
             return None
         return value.isoformat()
     
     def dict(self, **kwargs) -> dict[str, Any]:
-        """Переопределяем dict() для совместимости со старым API библиотеки"""
         return self.model_dump(mode='json', **kwargs)
     
     class Config:
@@ -198,10 +192,8 @@ class UserAdmin(admin.ModelAdmin):
                     return validated.model_dump(exclude_unset=True)
                 return {}
             except Exception:
-                # Если валидация не прошла, возвращаем отфильтрованные данные
                 return {k: v for k, v in data_dict.items() if v is not None}
         
-        # Если схемы нет, просто фильтруем None
         return {k: v for k, v in data_dict.items() if v is not None}
     
     async def delete(self, request, item_id: int):
@@ -418,7 +410,7 @@ class RecipeUpdateSchema(BaseModel):
 
 @site.register_admin
 class RecipeAdmin(admin.ModelAdmin):
-    page_schema = "Recipes 🔥 (просмотры: 🔥≥5, ⭐≥3, 👀≥2)"
+    page_schema = "Recipes 🔥"
     model = Recipe
     schema_read = RecipeReadSchema
     update_schema = RecipeUpdateSchema
@@ -428,7 +420,7 @@ class RecipeAdmin(admin.ModelAdmin):
         Recipe.name,
         Recipe.meal_type,
         Recipe.difficulty,
-        Recipe.usage_count,  # ← ПРОСМОТРЫ (Views)
+        Recipe.usage_count,
         Recipe.calories,
         Recipe.protein,
         Recipe.fat,
@@ -447,48 +439,37 @@ class RecipeAdmin(admin.ModelAdmin):
         Recipe.meal_type, 
         Recipe.difficulty, 
         Recipe.is_ai_generated,
-        Recipe.usage_count,  # Фильтр по количеству просмотров
+        Recipe.usage_count,
     ]
     
     link_model_fields = [Recipe.created_by_user_id]
     list_per_page = 50
     pk_admin_field = Recipe.id
     
-    # Добавляем описание колонок
     @property
     def list_display_links(self):
         return [Recipe.name]
     
     async def get_list_query(self, request):
-        """Сортируем по популярности (usage_count) по умолчанию"""
         query = await super().get_list_query(request)
         
-        # Применяем быстрые фильтры по URL параметрам
         popularity_filter = request.query_params.get('popularity')
         if popularity_filter == "very_popular":
-            # Очень популярные (5+ просмотров)
             query = query.filter(Recipe.usage_count >= 5)
         elif popularity_filter == "popular":
-            # Популярные (3-4 просмотра)
             query = query.filter(Recipe.usage_count >= 3).filter(Recipe.usage_count < 5)
         elif popularity_filter == "rising":
-            # Набирающие (2 просмотра)
             query = query.filter(Recipe.usage_count == 2)
         elif popularity_filter == "new":
-            # Новые (1 просмотр)
             query = query.filter(Recipe.usage_count == 1)
         elif popularity_filter == "not_viewed":
-            # Не просмотренные
             from sqlalchemy import or_
             query = query.filter(or_(Recipe.usage_count == 0, Recipe.usage_count == None))
         elif popularity_filter == "top":
-            # ТОП популярных (5+)
             query = query.filter(Recipe.usage_count >= 5)
         elif popularity_filter == "bottom":
-            # Непопулярные (0-1)
             query = query.filter(Recipe.usage_count <= 1)
         
-        # Сортировка по умолчанию: сначала самые популярные
         return query.order_by(Recipe.usage_count.desc(), Recipe.created_at.desc())
     
     form_excluded = [Recipe.id, Recipe.created_at, Recipe.updated_at]
