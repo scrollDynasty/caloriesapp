@@ -8,6 +8,7 @@ import LightModeSection from "../components/Landing/LightModeSection";
 import PhoneMockups from "../components/Landing/PhoneMockups";
 import TestimonialsSection from "../components/Landing/TestimonialsSection";
 import WhyChooseSection from "../components/Landing/WhyChooseSection";
+import Footer from "../components/Layout/Footer";
 import Header from "../components/Layout/Header";
 import styles from "./page.module.css";
 
@@ -58,6 +59,7 @@ export default function Home() {
       <WhyChooseSection />
       <LightModeSection />
       <TestimonialsSection />
+      <Footer />
     </div>
   );
 }

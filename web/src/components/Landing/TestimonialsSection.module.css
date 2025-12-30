@@ -1,10 +1,13 @@
 .section {
   position: relative;
   width: 100%;
-  min-height: 100vh;
-  padding: 100px 0;
+  height: 100vh;
+  padding: 60px 0;
   background-color: #1a1a1a;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .container {
@@ -14,13 +17,13 @@
   padding: 0 40px;
   display: flex;
   flex-direction: column;
-  gap: 60px;
+  gap: 40px;
 }
 
 .heading {
-  font-size: 48px;
+  font-size: 42px;
   font-weight: 700;
-  line-height: 56px;
+  line-height: 50px;
   letter-spacing: -1px;
   color: #ffffff;
   text-align: center;
@@ -30,7 +33,7 @@
 .cardsGrid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 24px;
+  gap: 20px;
   width: 100%;
   align-items: start;
   max-width: 1200px;
@@ -50,7 +53,6 @@
   grid-column: 5 / 7;
 }
 
-/* Вторая строка: 2 карточки по центру (колонки 2-3 и 4-5) */
 .cardsGrid > :nth-child(4) {
   grid-column: 2 / 4;
 }
@@ -62,14 +64,14 @@
 .card {
   background-color: #2a2a2a;
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
-  min-height: 180px;
+  min-height: 160px;
   height: 100%;
 }
 
