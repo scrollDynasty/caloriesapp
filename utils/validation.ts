@@ -11,11 +11,9 @@ export function validateApiUrl(url: string): boolean {
       return parsed.protocol === 'http:';
     }
     
-    // Для локальных IP адресов (dev окружение) разрешаем HTTP
-    // 192.168.x.x, 10.x.x.x, 172.16-31.x.x
     const isLocalIP = /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(parsed.hostname);
     if (isLocalIP) {
-      return parsed.protocol === 'http:';
+      return parsed.protocol === 'https:';
     }
     
     // Для Android эмулятора (10.0.2.2)

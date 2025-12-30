@@ -89,6 +89,7 @@ backend/.mypy_cache/
 backend/.coverage
 backend/htmlcov/
 backend/.tox/
+backend/ssl/
 
 # IDE
 .vscode/
