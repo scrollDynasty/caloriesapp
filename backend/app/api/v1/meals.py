@@ -40,6 +40,28 @@ def format_health_score(score: Optional[int]) -> Optional[float]:
         score_float = score_float / 10.0
     return round(min(max(score_float, 0), 10), 1)
 
+async def _get_recipe_image(recipe_name: str, meal_type: str = "lunch") -> str:
+    default_images = {
+        "breakfast": "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600",
+        "lunch": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600",
+        "dinner": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600",
+        "snack": "https://images.unsplash.com/photo-1506802913710-40e2e66339c9?w=600",
+    }
+    
+    try:
+        search_query = f"{recipe_name} food dish"
+        
+        url = f"https://source.unsplash.com/600x400/?{search_query.replace(' ', ',')}"
+        
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.head(url, follow_redirects=True)
+            if response.status_code == 200:
+                return str(response.url)
+    except Exception as e:
+        logger.warning(f"Failed to fetch image from Unsplash for '{recipe_name}': {e}")
+    
+    return default_images.get(meal_type, default_images["lunch"])
+
 
 
 async def fetch_openfoodfacts_product(barcode: str) -> Optional[Dict[str, Any]]:
@@ -1049,13 +1071,8 @@ async def generate_recipe(
     }
     meal_type_en = meal_type_map.get(recipe_data.get("meal_type", "перекус"), "snack")
     
-    image_urls = {
-        "breakfast": "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=600",
-        "lunch": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600",
-        "dinner": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600",
-        "snack": "https://images.unsplash.com/photo-1506802913710-40e2e66339c9?w=600",
-    }
-    image_url = image_urls.get(meal_type_en, image_urls["snack"])
+    recipe_name = recipe_data.get("name", "")
+    image_url = await _get_recipe_image(recipe_name, meal_type_en)
     
     health_score_raw = recipe_data.get("health_score")
     health_score_int = None
@@ -1274,6 +1291,28 @@ def get_recipe(
         "instructions": json.loads(recipe.instructions_json) if recipe.instructions_json else [],
     }
 
+@router.post("/meals/recipes/{recipe_id}/view")
+def track_recipe_view(
+    recipe_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    
+    if not recipe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Рецепт не найден"
+        )
+    
+    recipe.usage_count = (recipe.usage_count or 0) + 1
+    db.commit()
+    
+    return {
+        "success": True,
+        "usage_count": recipe.usage_count
+    }
+
 @router.post("/meals/recipes/{recipe_id}/use")
 def use_recipe(
     recipe_id: int,
@@ -1289,7 +1328,8 @@ def use_recipe(
             detail="Рецепт не найден"
         )
     
-    recipe.usage_count += 1
+    # Увеличиваем счетчик использования
+    recipe.usage_count = (recipe.usage_count or 0) + 1
     
     meal_photo = MealPhoto(
         user_id=current_user.id,

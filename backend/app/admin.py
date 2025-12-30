@@ -17,6 +17,7 @@ from app.models.meal_photo import MealPhoto
 from app.models.water_log import WaterLog
 from app.models.weight_log import WeightLog
 from app.models.progress_photo import ProgressPhoto
+from app.models.recipe import Recipe
 
 
 def patched_model_fields(model):
@@ -261,12 +262,17 @@ class MealPhotoAdmin(admin.ModelAdmin):
         MealPhoto.protein,
         MealPhoto.fat,
         MealPhoto.carbs,
+        MealPhoto.fiber,
+        MealPhoto.sugar,
+        MealPhoto.sodium,
+        MealPhoto.health_score,
+        MealPhoto.recipe_id,
         MealPhoto.created_at,
     ]
     
     search_fields = [MealPhoto.user_id, MealPhoto.meal_name, MealPhoto.detected_meal_name, MealPhoto.barcode]
-    list_filter = [MealPhoto.user_id]
-    link_model_fields = [MealPhoto.user_id]
+    list_filter = [MealPhoto.user_id, MealPhoto.recipe_id]
+    link_model_fields = [MealPhoto.user_id, MealPhoto.recipe_id]
     list_per_page = 50
     pk_admin_field = MealPhoto.id
     
@@ -349,3 +355,160 @@ class ProgressPhotoAdmin(admin.ModelAdmin):
         return query.order_by(ProgressPhoto.created_at.desc())
     
     form_excluded = [ProgressPhoto.id, ProgressPhoto.created_at, ProgressPhoto.file_size, ProgressPhoto.mime_type]
+
+
+class RecipeReadSchema(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    calories: int
+    protein: int
+    fat: int
+    carbs: int
+    fiber: Optional[int] = None
+    sugar: Optional[int] = None
+    sodium: Optional[int] = None
+    health_score: Optional[int] = None
+    time_minutes: Optional[int] = None
+    difficulty: Optional[str] = None
+    meal_type: Optional[str] = None
+    ingredients_json: str
+    instructions_json: str
+    created_by_user_id: Optional[int] = None
+    is_ai_generated: Optional[int] = None
+    usage_count: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    @field_serializer('created_at', 'updated_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    def dict(self, **kwargs) -> dict[str, Any]:
+        return self.model_dump(mode='json', **kwargs)
+    
+    class Config:
+        from_attributes = True
+
+
+class RecipeUpdateSchema(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    image_url: Optional[str] = None
+    calories: Optional[int] = None
+    protein: Optional[int] = None
+    fat: Optional[int] = None
+    carbs: Optional[int] = None
+    fiber: Optional[int] = None
+    sugar: Optional[int] = None
+    sodium: Optional[int] = None
+    health_score: Optional[int] = None
+    time_minutes: Optional[int] = None
+    difficulty: Optional[str] = None
+    meal_type: Optional[str] = None
+    ingredients_json: Optional[str] = None
+    instructions_json: Optional[str] = None
+    created_by_user_id: Optional[int] = None
+    is_ai_generated: Optional[int] = None
+    usage_count: Optional[int] = None
+
+
+@site.register_admin
+class RecipeAdmin(admin.ModelAdmin):
+    page_schema = "Recipes 🔥 (просмотры: 🔥≥5, ⭐≥3, 👀≥2)"
+    model = Recipe
+    schema_read = RecipeReadSchema
+    update_schema = RecipeUpdateSchema
+    
+    list_display = [
+        Recipe.id,
+        Recipe.name,
+        Recipe.meal_type,
+        Recipe.difficulty,
+        Recipe.usage_count,  # ← ПРОСМОТРЫ (Views)
+        Recipe.calories,
+        Recipe.protein,
+        Recipe.fat,
+        Recipe.carbs,
+        Recipe.fiber,
+        Recipe.sugar,
+        Recipe.sodium,
+        Recipe.health_score,
+        Recipe.is_ai_generated,
+        Recipe.time_minutes,
+        Recipe.created_at,
+    ]
+    
+    search_fields = [Recipe.name, Recipe.meal_type, Recipe.difficulty]
+    list_filter = [
+        Recipe.meal_type, 
+        Recipe.difficulty, 
+        Recipe.is_ai_generated,
+        Recipe.usage_count,  # Фильтр по количеству просмотров
+    ]
+    
+    link_model_fields = [Recipe.created_by_user_id]
+    list_per_page = 50
+    pk_admin_field = Recipe.id
+    
+    # Добавляем описание колонок
+    @property
+    def list_display_links(self):
+        return [Recipe.name]
+    
+    async def get_list_query(self, request):
+        """Сортируем по популярности (usage_count) по умолчанию"""
+        query = await super().get_list_query(request)
+        
+        # Применяем быстрые фильтры по URL параметрам
+        popularity_filter = request.query_params.get('popularity')
+        if popularity_filter == "very_popular":
+            # Очень популярные (5+ просмотров)
+            query = query.filter(Recipe.usage_count >= 5)
+        elif popularity_filter == "popular":
+            # Популярные (3-4 просмотра)
+            query = query.filter(Recipe.usage_count >= 3).filter(Recipe.usage_count < 5)
+        elif popularity_filter == "rising":
+            # Набирающие (2 просмотра)
+            query = query.filter(Recipe.usage_count == 2)
+        elif popularity_filter == "new":
+            # Новые (1 просмотр)
+            query = query.filter(Recipe.usage_count == 1)
+        elif popularity_filter == "not_viewed":
+            # Не просмотренные
+            from sqlalchemy import or_
+            query = query.filter(or_(Recipe.usage_count == 0, Recipe.usage_count == None))
+        elif popularity_filter == "top":
+            # ТОП популярных (5+)
+            query = query.filter(Recipe.usage_count >= 5)
+        elif popularity_filter == "bottom":
+            # Непопулярные (0-1)
+            query = query.filter(Recipe.usage_count <= 1)
+        
+        # Сортировка по умолчанию: сначала самые популярные
+        return query.order_by(Recipe.usage_count.desc(), Recipe.created_at.desc())
+    
+    form_excluded = [Recipe.id, Recipe.created_at, Recipe.updated_at]
+    
+    async def on_update_pre(self, request, data, item_id: int = None):
+        if hasattr(data, 'model_dump'):
+            data_dict = data.model_dump(exclude_unset=True)
+        elif isinstance(data, dict):
+            data_dict = data
+        else:
+            data_dict = dict(data) if hasattr(data, '__dict__') else {}
+        
+        if hasattr(self, 'update_schema') and self.update_schema:
+            try:
+                filtered = {k: v for k, v in data_dict.items() if v is not None}
+                if filtered:
+                    validated = self.update_schema(**filtered)
+                    return validated.model_dump(exclude_unset=True)
+                return {}
+            except Exception:
+                return {k: v for k, v in data_dict.items() if v is not None}
+        
+        return {k: v for k, v in data_dict.items() if v is not None}

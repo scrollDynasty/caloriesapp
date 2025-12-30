@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Dimensions,
   FlatList,
   KeyboardAvoidingView,
@@ -39,6 +41,8 @@ interface Recipe {
   ingredients: string[];
   instructions: string[];
   description: string;
+  usageCount?: number;
+  isPopular?: boolean;
 }
 
 const UZBEK_RECIPES: Recipe[] = [
@@ -645,7 +649,7 @@ const UZBEK_RECIPES: Recipe[] = [
   },
 ];
 
-const CATEGORIES = ["Все", "Завтрак", "Обед", "Ужин"];
+const CATEGORIES = ["Все", "Популярные", "Завтрак", "Обед", "Ужин"];
 
 const mapMealType = (mealType?: string): string => {
   if (!mealType) return "Обед";
@@ -669,6 +673,8 @@ const getDifficultyColor = (difficulty: string) => {
   }
 };
 
+const getPopularColor = () => "#FF6B9D";
+
 export default function RecipesScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
@@ -687,6 +693,22 @@ export default function RecipesScreen() {
   const loadServerRecipes = useCallback(async () => {
     try {
       const recipes = await apiService.getPopularRecipes(50);
+      if (recipes.length === 0) {
+        setServerRecipes([]);
+        return;
+      }
+      
+      const usageCounts = recipes.map((r: any) => r.usage_count || 0).sort((a, b) => b - a);
+      const maxUsageCount = usageCounts[0] || 0;
+      
+      if (maxUsageCount <= 3) {
+        var popularThreshold = 2;
+      } else if (maxUsageCount <= 10) {
+        var popularThreshold = 3;
+      } else {
+        var popularThreshold = Math.max(5, Math.floor(maxUsageCount * 0.3));
+      }
+      
       const mapped: Recipe[] = recipes.map((r: any) => ({
         id: `server-${r.id}`,
         title: r.name,
@@ -698,9 +720,12 @@ export default function RecipesScreen() {
         ingredients: r.ingredients || [],
         instructions: r.instructions || [],
         description: r.description || "",
+        usageCount: r.usage_count || 0,
+        isPopular: (r.usage_count || 0) >= popularThreshold,
       }));
       setServerRecipes(mapped);
     } catch {
+      setServerRecipes([]);
     }
   }, []);
 
@@ -737,6 +762,22 @@ export default function RecipesScreen() {
     setIsSearching(true);
     try {
       const results = await apiService.searchRecipes(query.trim());
+      if (results.length === 0) {
+        setSearchResults([]);
+        return;
+      }
+      
+      const usageCounts = results.map((r: any) => r.usage_count || 0).sort((a, b) => b - a);
+      const maxUsageCount = usageCounts[0] || 0;
+      
+      if (maxUsageCount <= 3) {
+        var popularThreshold = 2;
+      } else if (maxUsageCount <= 10) {
+        var popularThreshold = 3;
+      } else {
+        var popularThreshold = Math.max(5, Math.floor(maxUsageCount * 0.3));
+      }
+      
       const mapped: Recipe[] = results.map((r: any) => ({
         id: `server-${r.id}`,
         title: r.name,
@@ -748,6 +789,8 @@ export default function RecipesScreen() {
         ingredients: r.ingredients || [],
         instructions: r.instructions || [],
         description: r.description || "",
+        usageCount: r.usage_count || 0,
+        isPopular: (r.usage_count || 0) >= popularThreshold,
       }));
       setSearchResults(mapped);
     } catch {
@@ -762,10 +805,14 @@ export default function RecipesScreen() {
       return searchResults;
     }
     if (selectedCategory === "Все") return allRecipes;
+    if (selectedCategory === "Популярные") {
+      return allRecipes.filter((recipe) => recipe.isPopular);
+    }
     return allRecipes.filter((recipe) => recipe.category === selectedCategory);
   }, [selectedCategory, allRecipes, searchQuery, searchResults]);
 
   const handleRecipePress = (recipe: Recipe) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: "/recipe-detail",
       params: {
@@ -781,6 +828,11 @@ export default function RecipesScreen() {
         instructions: JSON.stringify(recipe.instructions),
       },
     } as any);
+  };
+
+  const handleCategoryPress = (category: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedCategory(category);
   };
 
   const handleGenerateRecipe = async () => {
@@ -834,30 +886,116 @@ export default function RecipesScreen() {
     }
   };
 
-  const renderRecipeCard = ({ item }: { item: Recipe }) => (
-    <TouchableOpacity
-      style={[styles.recipeCard, { width: ADAPTIVE_CARD_WIDTH }]}
-      onPress={() => handleRecipePress(item)}
-      activeOpacity={0.8}
-    >
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.recipeImage} contentFit="cover" transition={200} />
-        <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
-          <Text style={styles.difficultyText}>{item.difficulty}</Text>
-        </View>
-      </View>
-      <View style={styles.cardContent}>
-        <Text style={styles.recipeTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-        <View style={styles.recipeInfo}>
-          <View style={styles.infoItem}>
-            <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-            <Text style={styles.infoText}>{item.time} мин</Text>
+  const AnimatedRecipeCard = ({ 
+    item, 
+    index, 
+    width 
+  }: { 
+    item: Recipe; 
+    index: number;
+    width?: number;
+  }) => {
+    const scaleAnim = useRef(new Animated.Value(0)).current;
+    const opacityAnim = useRef(new Animated.Value(0)).current;
+    const pressAnim = useRef(new Animated.Value(1)).current;
+
+    useEffect(() => {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          delay: index * 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 300,
+          delay: index * 50,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, []);
+
+    const handlePressIn = () => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Animated.spring(pressAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePressOut = () => {
+      Animated.spring(pressAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }).start();
+    };
+
+    const handlePress = () => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      handleRecipePress(item);
+    };
+
+    const cardWidth = width || ADAPTIVE_CARD_WIDTH;
+
+    return (
+      <Animated.View
+        style={[
+          { width: cardWidth },
+          {
+            opacity: opacityAnim,
+            transform: [
+              { scale: Animated.multiply(scaleAnim, pressAnim) },
+            ],
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.recipeCard}
+          onPress={handlePress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          activeOpacity={1}
+        >
+          <View style={styles.imageContainer}>
+            <Image 
+              source={{ uri: item.image }} 
+              style={styles.recipeImage} 
+              contentFit="cover" 
+              transition={300}
+              cachePolicy="memory-disk"
+            />
+            {item.isPopular ? (
+              <View style={[styles.difficultyBadge, { backgroundColor: getPopularColor() }]}>
+                <Ionicons name="flame" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Text style={styles.difficultyText}>Популярный</Text>
+              </View>
+            ) : (
+              <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(item.difficulty) }]}>
+                <Text style={styles.difficultyText}>{item.difficulty}</Text>
+              </View>
+            )}
+            <View style={styles.timeBadge}>
+              <Ionicons name="time-outline" size={12} color="#FFFFFF" />
+              <Text style={styles.timeBadgeText}>{item.time} мин</Text>
+            </View>
           </View>
-        </View>
-      </View>
-    </TouchableOpacity>
+          <View style={styles.cardContent}>
+            <Text style={styles.recipeTitle} numberOfLines={2}>
+              {item.title}
+            </Text>
+            <View style={styles.categoryTag}>
+              <Text style={styles.categoryTagText}>{item.category}</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
+    );
+  };
+
+  const renderRecipeCard = ({ item, index }: { item: Recipe; index: number }) => (
+    <AnimatedRecipeCard item={item} index={index} />
   );
 
   return (
@@ -869,7 +1007,10 @@ export default function RecipesScreen() {
         </View>
         <TouchableOpacity
           style={styles.generateButton}
-          onPress={() => setShowGenerateModal(true)}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setShowGenerateModal(true);
+          }}
           activeOpacity={0.8}
         >
           <Ionicons name="add" size={32} color="#FFFFFF" />
@@ -916,9 +1057,17 @@ export default function RecipesScreen() {
                   styles.categoryChip,
                   selectedCategory === category && styles.categoryChipActive,
                 ]}
-                onPress={() => setSelectedCategory(category)}
+                onPress={() => handleCategoryPress(category)}
                 activeOpacity={0.7}
               >
+                {category === "Популярные" && (
+                  <Ionicons 
+                    name="flame" 
+                    size={16} 
+                    color={selectedCategory === category ? "#FFFFFF" : getPopularColor()} 
+                    style={{ marginRight: 6 }}
+                  />
+                )}
                 <Text
                   style={[
                     styles.categoryText,
@@ -1117,19 +1266,25 @@ const createStyles = (colors: any, isDark: boolean) =>
       paddingVertical: 4,
     },
     categoryChip: {
-      paddingHorizontal: 24,
-      paddingVertical: 12,
-      borderRadius: 24,
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 20,
       backgroundColor: isDark ? "#2C2C2E" : "rgba(0, 0, 0, 0.06)",
-      borderWidth: 0,
+      borderWidth: 1,
+      borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "transparent",
+      marginRight: 8,
     },
     categoryChipActive: {
       backgroundColor: isDark ? "#3A3A3C" : colors.primary,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.3,
-      shadowRadius: 4,
-      elevation: 3,
+      borderColor: isDark ? colors.primary : colors.primary,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 5,
+      transform: [{ scale: 1.05 }],
     },
     categoryText: {
       fontSize: 15,
@@ -1150,22 +1305,23 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     recipeCard: {
       backgroundColor: colors.card,
-      borderRadius: 20,
+      borderRadius: 24,
       overflow: "hidden",
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.5 : 0.08,
-      shadowRadius: 12,
-      elevation: 5,
-      marginBottom: 16,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: isDark ? 0.4 : 0.12,
+      shadowRadius: 16,
+      elevation: 8,
+      marginBottom: 20,
       borderWidth: isDark ? 1 : 0,
-      borderColor: isDark ? "rgba(255, 255, 255, 0.05)" : "transparent",
+      borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "transparent",
     },
     imageContainer: {
       width: "100%",
-      height: 150,
+      height: 180,
       position: "relative",
       backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F5F5F5",
+      overflow: "hidden",
     },
     recipeImage: {
       width: "100%",
@@ -1173,33 +1329,73 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     difficultyBadge: {
       position: "absolute",
-      top: 10,
-      right: 10,
+      top: 12,
+      right: 12,
+      flexDirection: "row",
+      alignItems: "center",
       paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
       shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 3,
-      elevation: 2,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 5,
     },
     difficultyText: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_700Bold",
+      color: "#FFFFFF",
+      letterSpacing: 0.5,
+    },
+    timeBadge: {
+      position: "absolute",
+      bottom: 12,
+      left: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 14,
+      backgroundColor: "rgba(0, 0, 0, 0.65)",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    timeBadgeText: {
+      fontSize: 12,
+      fontFamily: "Inter_600SemiBold",
       color: "#FFFFFF",
     },
     cardContent: {
-      padding: 14,
+      padding: 16,
       backgroundColor: colors.card,
     },
     recipeTitle: {
-      fontSize: 15,
+      fontSize: 16,
       fontFamily: "Inter_700Bold",
       color: colors.text,
-      marginBottom: 10,
-      minHeight: 42,
-      lineHeight: 21,
+      marginBottom: 8,
+      minHeight: 44,
+      lineHeight: 22,
+      letterSpacing: -0.3,
+    },
+    categoryTag: {
+      alignSelf: "flex-start",
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+      backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
+    },
+    categoryTagText: {
+      fontSize: 11,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.textSecondary,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
     },
     recipeInfo: {
       flexDirection: "row",

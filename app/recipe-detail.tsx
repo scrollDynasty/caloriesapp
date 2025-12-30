@@ -1,16 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
+import { apiService } from "../services/api";
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
@@ -32,6 +33,23 @@ export default function RecipeDetailScreen() {
 
   const ingredients = params.ingredients ? JSON.parse(params.ingredients) : [];
   const instructions = params.instructions ? JSON.parse(params.instructions) : [];
+
+  useEffect(() => {
+    const trackView = async () => {
+      if (params.id && params.id.startsWith('server-')) {
+        try {
+          const recipeId = parseInt(params.id.replace('server-', ''));
+          if (!isNaN(recipeId)) {
+            await apiService.trackRecipeView(recipeId);
+          }
+        } catch (error) {
+          console.log('Failed to track recipe view:', error);
+        }
+      }
+    };
+    
+    trackView();
+  }, [params.id]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

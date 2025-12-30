@@ -1145,6 +1145,11 @@ class ApiService {
     });
     return response.data;
   }
+
+  async trackRecipeView(recipeId: number): Promise<{ success: boolean; usage_count: number }> {
+    const response = await this.api.post(`/api/v1/meals/recipes/${recipeId}/view`);
+    return response.data;
+  }
 }
 
 export const apiService = new ApiService();
