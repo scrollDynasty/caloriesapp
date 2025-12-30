@@ -118,6 +118,7 @@ function SettingToggle({
   onValueChange,
   isLast = false,
   colors,
+  isDark,
 }: {
   title: string;
   subtitle: string;
@@ -125,7 +126,10 @@ function SettingToggle({
   onValueChange: (value: boolean) => void;
   isLast?: boolean;
   colors: any;
+  isDark: boolean;
 }) {
+  const iosGreen = isDark ? "#34C759" : "#34C759"; 
+  
   return (
     <>
       <View style={styles.toggleRow}>
@@ -136,7 +140,7 @@ function SettingToggle({
         <Switch
           value={value}
           onValueChange={onValueChange}
-          trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
+          trackColor={{ false: colors.switchTrackOff, true: iosGreen }}
           thumbColor="#FFFFFF"
           ios_backgroundColor={colors.switchTrackOff}
         />
@@ -241,6 +245,7 @@ export default function AppSettingsScreen() {
               value={toggleSettings.badgeCelebrations}
               onValueChange={(value) => saveToggleSetting("badgeCelebrations", value)}
               colors={colors}
+              isDark={isDark}
             />
 
             <SettingToggle
@@ -249,6 +254,7 @@ export default function AppSettingsScreen() {
               value={toggleSettings.liveActivity}
               onValueChange={(value) => saveToggleSetting("liveActivity", value)}
               colors={colors}
+              isDark={isDark}
             />
 
             <SettingToggle
@@ -257,6 +263,7 @@ export default function AppSettingsScreen() {
               value={toggleSettings.burnedCalories}
               onValueChange={(value) => saveToggleSetting("burnedCalories", value)}
               colors={colors}
+              isDark={isDark}
             />
 
             <SettingToggle
@@ -265,6 +272,7 @@ export default function AppSettingsScreen() {
               value={toggleSettings.calorieRollover}
               onValueChange={(value) => saveToggleSetting("calorieRollover", value)}
               colors={colors}
+              isDark={isDark}
             />
 
             <SettingToggle
@@ -274,6 +282,7 @@ export default function AppSettingsScreen() {
               onValueChange={(value) => saveToggleSetting("autoMacroAdjust", value)}
               isLast
               colors={colors}
+              isDark={isDark}
             />
           </View>
         </View>

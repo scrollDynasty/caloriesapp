@@ -31,7 +31,7 @@ const CALORIE_PERIOD_LABELS: Record<CaloriePeriod, string> = {
 
 export default function ProgressScreen() {
   const router = useRouter();
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("90_days");
@@ -198,10 +198,17 @@ export default function ProgressScreen() {
               Динамика веса
             </Text>
             <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: themeColors.primary }]}
+              style={[
+                styles.addButton,
+                { backgroundColor: isDark ? themeColors.white : themeColors.primary },
+              ]}
               onPress={() => router.push("/add-weight" as any)}
             >
-              <Ionicons name="add" size={20} color="#000" />
+              <Ionicons
+                name="add"
+                size={20}
+                color={isDark ? themeColors.black : themeColors.white}
+              />
             </TouchableOpacity>
           </View>
 
@@ -228,6 +235,7 @@ export default function ProgressScreen() {
                 key={period}
                 style={[
                   styles.periodButton,
+                  { backgroundColor: themeColors.fillTertiary },
                   selectedPeriod === period && { backgroundColor: themeColors.primary },
                 ]}
                 onPress={() => setSelectedPeriod(period)}
@@ -235,7 +243,8 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
-                    selectedPeriod === period && { color: "#000000" },
+                    { color: themeColors.text },
+                    selectedPeriod === period && { color: themeColors.buttonPrimaryText },
                   ]}
                 >
                   {TIME_PERIOD_LABELS[period]}
@@ -358,6 +367,7 @@ export default function ProgressScreen() {
                 key={period}
                 style={[
                   styles.periodButton,
+                  { backgroundColor: themeColors.fillTertiary },
                   selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
                 ]}
                 onPress={() => setSelectedCaloriePeriod(period)}
@@ -365,7 +375,8 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
-                    selectedCaloriePeriod === period && { color: "#000000" },
+                    { color: themeColors.text },
+                    selectedCaloriePeriod === period && { color: themeColors.buttonPrimaryText },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -409,6 +420,7 @@ export default function ProgressScreen() {
                 key={period}
                 style={[
                   styles.periodButton,
+                  { backgroundColor: themeColors.fillTertiary },
                   selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
                 ]}
                 onPress={() => setSelectedCaloriePeriod(period)}
@@ -416,7 +428,8 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
-                    selectedCaloriePeriod === period && { color: "#000000" },
+                    { color: themeColors.text },
+                    selectedCaloriePeriod === period && { color: themeColors.buttonPrimaryText },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -647,12 +660,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 24,
-    backgroundColor: "#2D2D2D",
   },
   periodButtonText: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
   },
   weightProgress: {
     marginTop: 24,
