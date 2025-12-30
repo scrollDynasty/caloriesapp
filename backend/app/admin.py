@@ -18,6 +18,7 @@ from app.models.water_log import WaterLog
 from app.models.weight_log import WeightLog
 from app.models.progress_photo import ProgressPhoto
 from app.models.recipe import Recipe
+from app.models.press_inquiry import PressInquiry, InquiryStatus
 
 
 def patched_model_fields(model):
@@ -491,3 +492,57 @@ class RecipeAdmin(admin.ModelAdmin):
                 return {k: v for k, v in data_dict.items() if v is not None}
         
         return {k: v for k, v in data_dict.items() if v is not None}
+
+
+class PressInquiryReadSchema(BaseModel):
+    id: int
+    email: str
+    subject: str
+    message: str
+    status: InquiryStatus
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    admin_notes: Optional[str] = None
+    replied_at: Optional[datetime] = None
+    
+    @field_serializer('created_at', 'updated_at', 'replied_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    def dict(self, **kwargs) -> dict[str, Any]:
+        return self.model_dump(mode='json', **kwargs)
+    
+    class Config:
+        from_attributes = True
+
+
+@site.register_admin
+class PressInquiryAdmin(admin.ModelAdmin):
+    page_schema = "Press Inquiries"
+    model = PressInquiry
+    schema_read = PressInquiryReadSchema
+    
+    list_display = [
+        PressInquiry.id,
+        PressInquiry.email,
+        PressInquiry.subject,
+        PressInquiry.message,
+        PressInquiry.status,
+        PressInquiry.ip_address,
+        PressInquiry.created_at,
+        PressInquiry.updated_at,
+    ]
+    
+    search_fields = [PressInquiry.email, PressInquiry.subject, PressInquiry.message]
+    list_filter = [PressInquiry.status, PressInquiry.created_at]
+    list_per_page = 50
+    
+    async def get_list_query(self, request):
+        query = await super().get_list_query(request)
+        return query.order_by(PressInquiry.created_at.desc())
+    
+    form_excluded = [PressInquiry.id]
