@@ -72,12 +72,16 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
     fi
     
     # Перезапускаем backend через pm2
-    PM2_NAME="backend-$ENVIRONMENT"
+    if [ "$ENVIRONMENT" = "prod" ]; then
+        PM2_NAME="backend"
+    else
+        PM2_NAME="backend-dev"
+    fi
     if command -v pm2 &> /dev/null; then
         echo "🔄 Restarting backend with pm2 (name: $PM2_NAME)..."
         cd $REMOTE_DIR
         pm2 delete $PM2_NAME 2>/dev/null || true
-        pm2 start run.py --name $PM2_NAME --interpreter python3 --env production
+        pm2 start run.py --name $PM2_NAME --interpreter python3
         pm2 save
         echo "✅ Backend restarted as $PM2_NAME"
     else
