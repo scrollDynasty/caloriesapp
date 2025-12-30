@@ -31,7 +31,7 @@
   background-color: #ffffff;
   border: 8px solid #1a1a1a;
   border-radius: 40px;
-  padding: 8px;
+  padding: 0;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
   position: relative;
@@ -43,6 +43,7 @@
   border-radius: 32px;
   position: relative;
   overflow: hidden;
+  padding: 0;
 }
 
 .phoneImage {
@@ -53,6 +54,8 @@
   height: 100%;
   object-fit: cover;
   border-radius: 32px;
+  margin: 0;
+  padding: 0;
 }
 
 .scanArea {
@@ -169,6 +172,11 @@
   .phoneFrame {
     width: 240px;
     height: 500px;
+    padding: 0;
+  }
+
+  .phoneContent {
+    padding: 0;
   }
 
   .phoneLeft {
@@ -194,5 +202,10 @@
   .phoneFrame {
     width: 180px;
     height: 400px;
+    padding: 0;
+  }
+
+  .phoneContent {
+    padding: 0;
   }
 }

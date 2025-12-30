@@ -9,7 +9,7 @@ export default function SocialProof() {
         <div className={styles.userAvatar} />
         <div className={styles.userAvatar} />
       </div>
-      <div className={styles.text}>Loved by 5M users with</div>
+      <div className={styles.text}>Более тысячи человек с</div>
       <div className={styles.rating}>
         <StarIcon size={14} className={styles.starIcon} />
         <span className={styles.ratingText}>4.9 rating</span>

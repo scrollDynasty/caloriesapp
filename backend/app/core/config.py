@@ -99,10 +99,10 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"  
 
 settings = Settings()
 
-# Валидация при загрузке (только предупреждение в dev, ошибка в production)
 try:
     settings.validate_security()
 except ValueError as e:
