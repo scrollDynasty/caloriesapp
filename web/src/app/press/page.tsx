@@ -139,6 +139,7 @@ export default function PressPage() {
                 </span>
               </div>
               <button
+                type="button"
                 className={styles.notificationClose}
                 onClick={() => setNotification(null)}
                 aria-label="Close notification"
