@@ -1,8 +1,8 @@
-import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, Easing, StyleSheet, useColorScheme, View } from "react-native";
+import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 const { width, height } = Dimensions.get("window");
 
@@ -25,10 +25,10 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
 
   useEffect(() => {
     SplashScreen.hideAsync();
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
 
     const breathingInterval = setInterval(() => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      hapticLight();
     }, 1600); 
 
     Animated.parallel([
@@ -70,7 +70,7 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
 
     setTimeout(() => {
       clearInterval(breathingInterval);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      hapticMedium();
       
       Animated.parallel([
         Animated.timing(fadeAnim, {

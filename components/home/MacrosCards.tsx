@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
+import { hapticLight } from "../../utils/haptics";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -43,6 +44,7 @@ function MacroCard({ consumed, target, label, progress, color, icon, onPress }: 
   }, [progress]);
 
   const handlePressIn = () => {
+    hapticLight();
     Animated.spring(scaleAnim, {
       toValue: 0.95,
       useNativeDriver: true,

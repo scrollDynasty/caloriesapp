@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -23,6 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
+import { hapticLight, hapticMedium } from "../../utils/haptics";
 import { sanitizeString } from "../../utils/validation";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -812,7 +812,7 @@ export default function RecipesScreen() {
   }, [selectedCategory, allRecipes, searchQuery, searchResults]);
 
   const handleRecipePress = (recipe: Recipe) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    hapticMedium();
     router.push({
       pathname: "/recipe-detail",
       params: {
@@ -831,7 +831,7 @@ export default function RecipesScreen() {
   };
 
   const handleCategoryPress = (category: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
     setSelectedCategory(category);
   };
 
@@ -918,7 +918,7 @@ export default function RecipesScreen() {
     }, []);
 
     const handlePressIn = () => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      hapticLight();
       Animated.spring(pressAnim, {
         toValue: 0.95,
         useNativeDriver: true,
@@ -933,7 +933,7 @@ export default function RecipesScreen() {
     };
 
     const handlePress = () => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      hapticMedium();
       handleRecipePress(item);
     };
 
@@ -1014,7 +1014,7 @@ export default function RecipesScreen() {
         <TouchableOpacity
           style={styles.generateButton}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            hapticMedium();
             setShowGenerateModal(true);
           }}
           activeOpacity={0.8}

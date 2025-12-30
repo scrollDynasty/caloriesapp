@@ -7,6 +7,7 @@ import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { defaultColors, useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
+import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -43,7 +44,10 @@ const CustomTabButton = ({ children, onPress, accessibilityState, themeColors }:
 
   return (
     <TouchableOpacity
-      onPress={onPress}
+      onPress={() => {
+        hapticLight();
+        onPress?.();
+      }}
       activeOpacity={0.7}
       style={styles.tabButtonWrapper}
     >
@@ -91,6 +95,7 @@ export default function TabsLayout() {
   const tabBarWidth = SCREEN_WIDTH - MARGIN * 2 - FAB_SIZE - GAP_BETWEEN;
 
   const toggleFab = () => {
+    hapticMedium();
     const toValue = fabExpanded ? 0 : 1;
     setFabExpanded(!fabExpanded);
     Animated.spring(fabAnimation, {
@@ -102,6 +107,7 @@ export default function TabsLayout() {
   };
 
   const handleScanFood = () => {
+    hapticMedium();
     setFabExpanded(false);
     Animated.spring(fabAnimation, {
       toValue: 0,
@@ -111,6 +117,7 @@ export default function TabsLayout() {
   };
 
   const handleAddManually = () => {
+    hapticMedium();
     setFabExpanded(false);
     Animated.spring(fabAnimation, {
       toValue: 0,
@@ -120,6 +127,7 @@ export default function TabsLayout() {
   };
 
   const handleAddWater = () => {
+    hapticMedium();
     setFabExpanded(false);
     Animated.spring(fabAnimation, {
       toValue: 0,

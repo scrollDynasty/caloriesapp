@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
+import { hapticLight } from "../../utils/haptics";
 import { getTodayLocal } from "../../utils/timezone";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -143,7 +144,10 @@ function DayCircle({ date, dayName, isSelected, isToday, isAchieved, progress, o
   return (
     <TouchableOpacity
       style={[styles.calendarDay, isSelected && [styles.calendarDaySelected, { backgroundColor: isDark ? themeColors.card : "rgba(255, 255, 255, 0.9)" }]]}
-      onPress={() => onPress(date)}
+      onPress={() => {
+        hapticLight();
+        onPress(date);
+      }}
       activeOpacity={0.7}
     >
       <Text style={[styles.calendarDayName, { color: isSelected ? themeColors.text : themeColors.textSecondary }, isSelected && styles.calendarDayNameActive]}>{dayName}</Text>

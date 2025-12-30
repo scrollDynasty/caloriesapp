@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "../../constants/theme";
+import { hapticMedium } from "../../utils/haptics";
 
 interface AuthButtonProps {
   provider: "apple" | "google";
@@ -18,7 +19,12 @@ export function AuthButton({ provider, onPress, disabled = false }: AuthButtonPr
         isApple ? styles.appleButton : styles.googleButton,
         disabled && styles.buttonDisabled,
       ]}
-      onPress={onPress}
+      onPress={() => {
+        if (!disabled) {
+          hapticMedium();
+          onPress?.();
+        }
+      }}
       activeOpacity={0.8}
       disabled={disabled}
     >

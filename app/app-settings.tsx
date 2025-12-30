@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ThemeMode, useTheme } from "../context/ThemeContext";
+import { hapticLight } from "../utils/haptics";
 
 interface ToggleSettings {
   badgeCelebrations: boolean;
@@ -139,7 +140,10 @@ function SettingToggle({
         </View>
         <Switch
           value={value}
-          onValueChange={onValueChange}
+          onValueChange={(newValue) => {
+            hapticLight();
+            onValueChange(newValue);
+          }}
           trackColor={{ false: colors.switchTrackOff, true: iosGreen }}
           thumbColor="#FFFFFF"
           ios_backgroundColor={colors.switchTrackOff}
@@ -196,7 +200,10 @@ export default function AppSettingsScreen() {
       <View style={styles.header}>
         <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: colors.card }]} 
-          onPress={() => router.back()}
+          onPress={() => {
+            hapticLight();
+            router.back();
+          }}
         >
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>

@@ -10,6 +10,7 @@ import { WeightChangeItem } from "../../components/progress/WeightChangeItem";
 import { WeightChart } from "../../components/progress/WeightChart";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
+import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 type TimePeriod = "90_days" | "6_months" | "1_year" | "all";
 
@@ -202,7 +203,10 @@ export default function ProgressScreen() {
                 styles.addButton,
                 { backgroundColor: isDark ? themeColors.white : themeColors.primary },
               ]}
-              onPress={() => router.push("/add-weight" as any)}
+              onPress={() => {
+                hapticMedium();
+                router.push("/add-weight" as any);
+              }}
             >
               <Ionicons
                 name="add"
@@ -370,7 +374,10 @@ export default function ProgressScreen() {
                   { backgroundColor: themeColors.fillTertiary },
                   selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
                 ]}
-                onPress={() => setSelectedCaloriePeriod(period)}
+                onPress={() => {
+                  hapticLight();
+                  setSelectedCaloriePeriod(period);
+                }}
               >
                 <Text
                   style={[
@@ -423,7 +430,10 @@ export default function ProgressScreen() {
                   { backgroundColor: themeColors.fillTertiary },
                   selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
                 ]}
-                onPress={() => setSelectedCaloriePeriod(period)}
+                onPress={() => {
+                  hapticLight();
+                  setSelectedCaloriePeriod(period);
+                }}
               >
                 <Text
                   style={[

@@ -13,8 +13,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
+import { hapticLight, hapticMedium } from "../utils/haptics";
 
 interface ReminderSetting {
   enabled: boolean;
@@ -52,10 +58,9 @@ const reminderLabels: Record<ReminderKey, string> = {
 function formatTime(date: Date): string {
   const hours = date.getHours();
   const minutes = date.getMinutes();
-  const ampm = hours >= 12 ? "PM" : "AM";
-  const displayHours = hours % 12 || 12;
+  const displayHours = hours.toString().padStart(2, "0");
   const displayMinutes = minutes.toString().padStart(2, "0");
-  return `${displayHours}:${displayMinutes} ${ampm}`;
+  return `${displayHours}:${displayMinutes}`;
 }
 
 function ReminderRow({
@@ -84,15 +89,21 @@ function ReminderRow({
         <View style={styles.reminderRight}>
           <TouchableOpacity 
             style={[styles.timeButton, { backgroundColor: isDark ? colors.gray5 : "#F5F5F5" }]} 
-            onPress={onTimePress}
+            onPress={() => {
+              hapticLight();
+              onTimePress();
+            }}
             activeOpacity={0.7}
           >
             <Text style={[styles.timeText, { color: colors.text }]}>{formatTime(time)}</Text>
           </TouchableOpacity>
           <Switch
             value={enabled}
-            onValueChange={onToggle}
-            trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
+            onValueChange={(value) => {
+              hapticLight();
+              onToggle(value);
+            }}
+            trackColor={{ false: colors.switchTrackOff, true: "#34C759" }}
             thumbColor="#FFFFFF"
             ios_backgroundColor={colors.switchTrackOff}
           />
@@ -158,6 +169,7 @@ export default function TrackingRemindersScreen() {
   };
 
   const handleToggle = (key: ReminderKey, value: boolean) => {
+    hapticLight();
     const newReminders = {
       ...reminders,
       [key]: { ...reminders[key], enabled: value },
@@ -167,6 +179,7 @@ export default function TrackingRemindersScreen() {
   };
 
   const handleTimePress = (key: ReminderKey) => {
+    hapticLight();
     setEditingReminder(key);
     setTempTime(reminders[key].time);
     setShowTimePicker(true);
@@ -193,6 +206,7 @@ export default function TrackingRemindersScreen() {
   };
 
   const handleTimeConfirm = () => {
+    hapticMedium();
     if (editingReminder) {
       const newReminders = {
         ...reminders,
@@ -206,6 +220,7 @@ export default function TrackingRemindersScreen() {
   };
 
   const handleTimeCancel = () => {
+    hapticLight();
     setShowTimePicker(false);
     setEditingReminder(null);
   };
@@ -294,16 +309,30 @@ export default function TrackingRemindersScreen() {
         <Modal
           visible={showTimePicker}
           transparent
-          animationType="slide"
+          animationType="none"
           onRequestClose={handleTimeCancel}
         >
-          <View style={styles.modalOverlay}>
-            <TouchableOpacity 
-              style={styles.modalBackdrop} 
-              activeOpacity={1} 
-              onPress={handleTimeCancel}
-            />
-            <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(150)}
+            style={styles.modalOverlay}
+          >
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(150)}
+              style={styles.modalBackdrop}
+            >
+              <TouchableOpacity 
+                style={StyleSheet.absoluteFill} 
+                activeOpacity={1} 
+                onPress={handleTimeCancel}
+              />
+            </Animated.View>
+            <Animated.View
+              entering={FadeInDown.springify().damping(18).stiffness(280).mass(0.7)}
+              exiting={FadeOut.duration(200)}
+              style={[styles.modalContent, { backgroundColor: colors.card }]}
+            >
               <View style={styles.modalHeader}>
                 <TouchableOpacity onPress={handleTimeCancel} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                   <Text style={[styles.modalCancel, { color: colors.textSecondary }]}>Отмена</Text>
@@ -326,8 +355,8 @@ export default function TrackingRemindersScreen() {
                   locale="ru"
                 />
               </View>
-            </View>
-          </View>
+            </Animated.View>
+          </Animated.View>
         </Modal>
       )}
 
@@ -338,7 +367,7 @@ export default function TrackingRemindersScreen() {
           mode="time"
           display="spinner"
           onChange={handleTimeChange}
-          is24Hour={false}
+          is24Hour={true}
         />
       )}
     </SafeAreaView>

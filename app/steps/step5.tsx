@@ -1,4 +1,3 @@
-import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -10,6 +9,7 @@ import { ProgressBar } from "../../components/ui/ProgressBar";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
+import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 type WorkoutFrequency = "0-2" | "3-5" | "6+";
 
@@ -31,7 +31,7 @@ function WorkoutOption({ dots, title, subtitle, selected, onPress }: WorkoutOpti
 
   const handlePressIn = () => {
     scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
   };
 
   const handlePressOut = () => {
@@ -40,7 +40,7 @@ function WorkoutOption({ dots, title, subtitle, selected, onPress }: WorkoutOpti
 
   const handlePress = () => {
     if (!selected) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      hapticMedium();
     }
     onPress();
   };

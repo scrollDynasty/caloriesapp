@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import React, { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { colors } from "../../constants/theme";
+import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 interface GenderRadioButtonProps {
   label: string;
@@ -46,16 +46,14 @@ export function GenderRadioButton({
   });
 
   const handlePressIn = () => {
-    
     scale.value = withSpring(0.96, {
       damping: 15,
       stiffness: 300,
     });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
   };
 
   const handlePressOut = () => {
-    
     scale.value = withSpring(1, {
       damping: 15,
       stiffness: 300,
@@ -64,8 +62,7 @@ export function GenderRadioButton({
 
   const handlePress = () => {
     if (!selected) {
-      
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      hapticMedium();
 
       opacity.value = withSpring(1, {
         damping: 12,

@@ -1,18 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { memo, useCallback, useRef, useState } from "react";
 import {
-    Animated,
-    Dimensions,
-    FlatList,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    ViewToken,
+  Animated,
+  Dimensions,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewToken,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
-
+import { hapticLight } from "../../utils/haptics";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface CardsPagerProps {
@@ -130,6 +130,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
 
   const handleFlip = useCallback(() => {
     if (isAnimating.current) return;
+    hapticLight();
     isAnimating.current = true;
 
     const toValue = isFlipped ? 0 : 1;

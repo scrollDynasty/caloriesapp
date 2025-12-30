@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -30,6 +29,7 @@ import { useFonts } from "../hooks/use-fonts";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
 import { calculateCalories, UserData } from "../utils/calorieCalculator";
+import { hapticLight, hapticMedium, hapticSuccess } from "../utils/haptics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -142,7 +142,7 @@ function GoalCard({
 
   const handlePressIn = () => {
     scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
   };
 
   const handlePressOut = () => {
@@ -350,7 +350,7 @@ function AutoGenerateFlow({
   }, [step]);
 
   const handleNext = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    hapticMedium();
     const nextIndex = currentStepIndex + 1;
     if (nextIndex < steps.length) {
       setStep(steps[nextIndex]);
@@ -358,7 +358,7 @@ function AutoGenerateFlow({
   };
 
   const handleBack = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
     const prevIndex = currentStepIndex - 1;
     if (prevIndex >= 0) {
       setStep(steps[prevIndex]);
@@ -461,7 +461,7 @@ function AutoGenerateFlow({
 
   const handleComplete = () => {
     if (calculatedGoals) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticSuccess();
       onComplete(calculatedGoals);
     }
   };
@@ -943,12 +943,12 @@ export default function NutritionGoalsScreen() {
   };
 
   const toggleMicronutrients = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    hapticMedium();
     setShowMicronutrients(!showMicronutrients);
   };
 
   const handleEditGoal = (key: keyof NutritionGoals, label: string, unit: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
     setEditingGoal({ key, label, unit });
   };
 
@@ -976,7 +976,7 @@ export default function NutritionGoalsScreen() {
         sugar_grams: goals.sugar,
         sodium_mg: goals.sodium,
       });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticSuccess();
       dataCache.invalidateOnboarding();
       router.back();
     } catch {
@@ -1134,7 +1134,7 @@ export default function NutritionGoalsScreen() {
         <TouchableOpacity
           style={[styles.autoGenerateButtonFixed, { backgroundColor: colors.buttonPrimary }]}
           onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            hapticMedium();
             setShowAutoGenerate(true);
           }}
           activeOpacity={0.8}

@@ -21,6 +21,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
 import { dataCache } from "../../stores/dataCache";
+import { hapticLight } from "../../utils/haptics";
 import { getLocalDayRange, getLocalTimezoneOffset } from "../../utils/timezone";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -40,7 +41,10 @@ function SectionHeader({ title, rightText, onRightPress }: { title: string; righ
     <View style={styles.sectionHeader}>
       <Text style={[styles.sectionTitle, { color: themeColors.textTertiary }]}>{title}</Text>
       {rightText && (
-        <TouchableOpacity onPress={onRightPress}>
+        <TouchableOpacity onPress={() => {
+          hapticLight();
+          onRightPress?.();
+        }}>
           <Text style={[styles.sectionRight, { color: themeColors.text }]}>{rightText}</Text>
         </TouchableOpacity>
       )}
@@ -69,7 +73,10 @@ function MenuItem({
   return (
     <TouchableOpacity 
       style={[styles.menuItem, { borderColor: isDark ? themeColors.separator : "#F2F2F2" }, isLast && styles.menuItemLast]} 
-      onPress={onPress} 
+      onPress={() => {
+        hapticLight();
+        onPress?.();
+      }} 
       activeOpacity={0.7}
     >
       <View style={styles.menuLeft}>

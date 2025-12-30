@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { memo, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
+import { hapticLight } from "../../utils/haptics";
 import { RecentMealsSkeleton } from "../ui/Skeleton";
 
 interface Meal {
@@ -48,7 +49,10 @@ export const RecentMeals = memo(function RecentMeals({
       {loading ? (
         <RecentMealsSkeleton count={2} />
       ) : error ? (
-        <TouchableOpacity style={[styles.stateBox, styles.errorBox, { backgroundColor: isDark ? themeColors.card : "#FFF5F5" }]} onPress={onRetry}>
+        <TouchableOpacity style={[styles.stateBox, styles.errorBox, { backgroundColor: isDark ? themeColors.card : "#FFF5F5" }]} onPress={() => {
+          hapticLight();
+          onRetry?.();
+        }}>
           <Ionicons name="warning-outline" size={24} color="#C62828" />
           <Text style={[styles.stateText, styles.errorText]}>{error}</Text>
           {onRetry ? <Text style={[styles.linkText, { color: themeColors.primary }]}>Повторить</Text> : null}
@@ -121,7 +125,10 @@ export const RecentMeals = memo(function RecentMeals({
             Нажми +, чтобы добавить первый приём пищи{"\n"}за день
           </Text>
           {onAddPress ? (
-            <TouchableOpacity style={styles.hiddenAddArea} onPress={onAddPress} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.hiddenAddArea} onPress={() => {
+              hapticLight();
+              onAddPress?.();
+            }} activeOpacity={0.7}>
               <Text style={styles.hiddenAddAreaText}> </Text>
             </TouchableOpacity>
           ) : null}

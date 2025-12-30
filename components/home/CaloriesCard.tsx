@@ -3,6 +3,7 @@ import { memo, useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
+import { hapticLight } from "../../utils/haptics";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -56,6 +57,7 @@ export const CaloriesCard = memo(function CaloriesCard({ consumedCalories, targe
   }, [overConsumed]);
 
   const handlePressIn = () => {
+    hapticLight();
     Animated.spring(scaleAnim, {
       toValue: 0.97,
       useNativeDriver: true,

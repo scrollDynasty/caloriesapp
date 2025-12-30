@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
+import { hapticMedium } from "../../utils/haptics";
 
 interface PrimaryButtonProps {
   label: string;
@@ -20,7 +21,10 @@ export function PrimaryButton({
   return (
     <TouchableOpacity
       style={[styles.primaryButton, { backgroundColor: colors.buttonPrimary }]}
-      onPress={onPress}
+      onPress={() => {
+        hapticMedium();
+        onPress();
+      }}
       activeOpacity={0.8}
     >
       <Text style={[styles.primaryButtonText, { color: colors.buttonPrimaryText }]}>{label}</Text>
@@ -48,7 +52,10 @@ export function SecondaryButton({ label, onPress }: SecondaryButtonProps) {
     <View style={styles.secondaryButtonContainer}>
       <TouchableOpacity
         style={[styles.secondaryButton, { backgroundColor: colors.buttonSecondary }]}
-        onPress={onPress}
+        onPress={() => {
+          hapticMedium();
+          onPress?.();
+        }}
         activeOpacity={0.7}
       >
         <Text style={[styles.secondaryButtonText, { color: colors.buttonSecondaryText }]}>{label}</Text>

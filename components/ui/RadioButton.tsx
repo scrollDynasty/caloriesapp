@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -7,6 +6,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { useTheme } from "../../context/ThemeContext";
+import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 interface RadioButtonProps {
   label: string;
@@ -29,7 +29,7 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
       damping: 15,
       stiffness: 300,
     });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticLight();
   };
 
   const handlePressOut = () => {
@@ -41,7 +41,7 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
 
   const handlePress = () => {
     if (!selected) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      hapticMedium();
     }
     onPress();
   };
