@@ -39,8 +39,8 @@ deploy.bat
 npm run build
 cd out
 tar -czf /tmp/web.tar.gz .
-scp /tmp/web.tar.gz root@yeb-ich.com:/tmp/
-ssh root@yeb-ich.com "cd /var/www/yeb-ich.com/html && tar -xzf /tmp/web.tar.gz && systemctl reload nginx"
+scp /tmp/web.tar.gz scroll@yeb-ich.com:/tmp/
+ssh scroll@yeb-ich.com "cd /var/www/yeb-ich.com/html && tar -xzf /tmp/web.tar.gz && sudo systemctl reload nginx"
 ```
 
 ## Переменные окружения

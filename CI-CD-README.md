@@ -50,8 +50,10 @@ npm run build
 ### Настройка
 
 1. **Добавьте SSH ключ в GitHub Secrets:**
-   - Перейдите: Settings → Secrets and variables → Actions
+   - 📖 **Подробная инструкция**: См. файл `SETUP-SSH-KEYS.md`
+   - Кратко: Перейдите в Settings → Secrets and variables → Actions
    - Добавьте секрет `SSH_PRIVATE_KEY` с содержимым вашего приватного SSH ключа
+   - **Важно**: Нужен доступ к `scroll@api.yeb-ich.com` (backend) и `scroll@yeb-ich.com` (web)
 
 2. **Workflows автоматически запускаются:**
    - При push в `master` → деплой в **production**

@@ -100,8 +100,8 @@ jobs:
       
       - name: Deploy to production server
         run: |
-          scp /tmp/web.tar.gz root@yeb-ich.com:/tmp/web.tar.gz
-          ssh root@yeb-ich.com << 'ENDSSH'
+          scp /tmp/web.tar.gz scroll@yeb-ich.com:/tmp/web.tar.gz
+          ssh scroll@yeb-ich.com << 'ENDSSH'
             set -e
             REMOTE_DIR="/var/www/yeb-ich.com/html"
             mkdir -p $REMOTE_DIR
@@ -117,10 +117,10 @@ jobs:
             cd $REMOTE_DIR
             rm -rf *.html *.js *.json _next 2>/dev/null || true
             cp -r current/* .
-            chown -R www-data:www-data $REMOTE_DIR
-            chmod -R 755 $REMOTE_DIR
-            if nginx -t; then
-              systemctl reload nginx
+            sudo chown -R www-data:www-data $REMOTE_DIR
+            sudo chmod -R 755 $REMOTE_DIR
+            if sudo nginx -t; then
+              sudo systemctl reload nginx
               echo "[OK] Nginx reloaded successfully"
             else
               echo "[ERROR] Nginx configuration error!"
@@ -172,8 +172,8 @@ jobs:
       
       - name: Deploy to development server
         run: |
-          scp /tmp/web-dev.tar.gz root@yeb-ich.com:/tmp/web-dev.tar.gz
-          ssh root@yeb-ich.com << 'ENDSSH'
+          scp /tmp/web-dev.tar.gz scroll@yeb-ich.com:/tmp/web-dev.tar.gz
+          ssh scroll@yeb-ich.com << 'ENDSSH'
             set -e
             REMOTE_DIR="/var/www/yeb-ich.com/html-dev"
             mkdir -p $REMOTE_DIR
@@ -189,8 +189,8 @@ jobs:
             cd $REMOTE_DIR
             rm -rf *.html *.js *.json _next 2>/dev/null || true
             cp -r current/* .
-            chown -R www-data:www-data $REMOTE_DIR
-            chmod -R 755 $REMOTE_DIR
+            sudo chown -R www-data:www-data $REMOTE_DIR
+            sudo chmod -R 755 $REMOTE_DIR
             echo "[OK] Development files deployed successfully"
           ENDSSH
           rm /tmp/web-dev.tar.gz
