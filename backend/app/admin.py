@@ -281,6 +281,7 @@ class MealPhotoAdmin(admin.ModelAdmin):
     list_display = [
         MealPhoto.id,
         MealPhoto.user_id,
+        MealPhoto.file_path,
         MealPhoto.meal_name,
         MealPhoto.detected_meal_name,
         MealPhoto.calories,
@@ -357,14 +358,35 @@ class WeightLogAdmin(admin.ModelAdmin):
     form_excluded = [WeightLog.id, WeightLog.created_at]
 
 
+class ProgressPhotoReadSchema(BaseModel):
+    id: int
+    user_id: int
+    file_path: str
+    file_name: str
+    file_size: int
+    mime_type: str
+    created_at: Optional[datetime] = None
+    
+    @field_serializer('created_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    class Config:
+        from_attributes = True
+
+
 @site.register_admin
 class ProgressPhotoAdmin(admin.ModelAdmin):
     page_schema = "Progress Photos"
     model = ProgressPhoto
+    schema_read = ProgressPhotoReadSchema
     
     list_display = [
         ProgressPhoto.id,
         ProgressPhoto.user_id,
+        ProgressPhoto.file_path,
         ProgressPhoto.file_name,
         ProgressPhoto.file_size,
         ProgressPhoto.created_at,
