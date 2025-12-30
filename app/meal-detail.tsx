@@ -433,15 +433,15 @@ export default function MealDetailScreen() {
           <View style={[styles.headerOverlay, { paddingTop: insets.top + 8 }]}>
             <View style={styles.headerContent}>
               <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
-                <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+                <Ionicons name="chevron-back" size={24} color="#FFFFF0" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Питание</Text>
               <View style={styles.headerRight}>
                 <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-                  <Ionicons name="share-outline" size={22} color="#FFFFFF" />
+                  <Ionicons name="share-outline" size={22} color="#FFFFF0" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.headerButton} onPress={handleMore}>
-                  <Ionicons name="ellipsis-horizontal" size={22} color="#FFFFFF" />
+                  <Ionicons name="ellipsis-horizontal" size={22} color="#FFFFF0" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -597,7 +597,7 @@ export default function MealDetailScreen() {
               disabled={saving}
             >
               {saving ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="#FFFFF0" />
               ) : (
                 <Text style={styles.doneButtonText}>Сохранить</Text>
               )}
@@ -606,7 +606,7 @@ export default function MealDetailScreen() {
         ) : (
           <>
             <TouchableOpacity style={styles.reportButton} onPress={handleCorrectMeal}>
-              <Ionicons name="sparkles" size={18} color={isDark ? "#FFFFFF" : colors.primary} />
+              <Ionicons name="sparkles" size={18} color={isDark ? "#FFFFF0" : colors.primary} />
               <Text style={styles.reportButtonText}>Исправить</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
@@ -664,7 +664,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
+    color: "#FFFFF0",
   },
   headerRight: {
     flexDirection: "row",
@@ -1114,7 +1114,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   reportButtonText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: isDark ? "#FFFFFF" : colors.primary,
+    color: isDark ? "#FFFFF0" : colors.primary,
   },
   cancelButton: {
     flex: 1,
@@ -1145,7 +1145,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   doneButtonText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
+    color: "#FFFFF0",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

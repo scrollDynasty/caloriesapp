@@ -66,13 +66,13 @@ export interface ThemeColors {
 }
 
 const lightColors: ThemeColors = {
-  background: "#F9F7F5",
-  backgroundSecondary: "#F5F3F0",
-  backgroundTertiary: "#FFFFFF",
+  background: "#FFFFF0",
+  backgroundSecondary: "#FFFFF0",
+  backgroundTertiary: "#FFFFF0",
   
-  card: "#FFFFFF",
-  cardSecondary: "#F9F7F5",
-  cardElevated: "#FFFFFF",
+  card: "#FFFFF0",
+  cardSecondary: "#FFFFF0",
+  cardElevated: "#FFFFF0",
   
   text: "#2D2A26",
   textSecondary: "#8C867D",
@@ -83,8 +83,8 @@ const lightColors: ThemeColors = {
   accent: "#FF6B6B",
   accentSecondary: "#FF8585",
   
-  white: "#FFFFFF",
-  black: "#000000",
+  white: "#FFFFF0",
+  black: "#FFFFF0",
   
   border: "#E8E4DC",
   separator: "rgba(44, 42, 38, 0.2)",
@@ -100,23 +100,23 @@ const lightColors: ThemeColors = {
   gray3: "#C5C0B8",
   gray4: "#DAD4CA",
   gray5: "#E8E4DC",
-  gray6: "#F5F3F0",
+  gray6: "#FFFFF0",
   
   success: "#34C759",
   warning: "#FF9500",
   error: "#FF3B30",
   info: "#007AFF",
   
-  inputBackground: "#F9F7F5",
+  inputBackground: "#FFFFF0",
   buttonPrimary: "#2D2A26",
-  buttonPrimaryText: "#FFFFFF",
-  buttonSecondary: "#F5F3F0",
+  buttonPrimaryText: "#FFFFF0",
+  buttonSecondary: "#FFFFF0",
   buttonSecondaryText: "#2D2A26",
   
   switchTrackOff: "#E8E4DC",
   switchTrackOn: "#2D2A26",
   
-  groupedBackground: "#F9F7F5",
+  groupedBackground: "#FFFFF0",
   label: "#2D2A26",
   secondaryLabel: "rgba(44, 42, 38, 0.6)",
   tertiaryLabel: "rgba(44, 42, 38, 0.4)",
@@ -135,16 +135,16 @@ const darkColors: ThemeColors = {
   cardSecondary: "#2C2C2E",
   cardElevated: "#3A3A3C",
   
-  text: "#FFFFFF",
+  text: "#FFFFF0",
   textSecondary: "rgba(235, 235, 245, 0.6)",
   textTertiary: "rgba(235, 235, 245, 0.38)",
   textQuaternary: "rgba(235, 235, 245, 0.18)",
   
-  primary: "#FFFFFF",
+  primary: "#FFFFF0",
   accent: "#FF6B6B",
   accentSecondary: "#FF8585",
   
-  white: "#FFFFFF",
+  white: "#FFFFF0",
   black: "#000000",
   
   border: "#38383A",
@@ -169,16 +169,16 @@ const darkColors: ThemeColors = {
   info: "#0A84FF",
   
   inputBackground: "#1C1C1E",
-  buttonPrimary: "#FFFFFF",
+  buttonPrimary: "#FFFFF0",
   buttonPrimaryText: "#000000",
   buttonSecondary: "#2C2C2E",
-  buttonSecondaryText: "#FFFFFF",
+  buttonSecondaryText: "#FFFFF0",
   
   switchTrackOff: "#38383A",
-  switchTrackOn: "#FFFFFF",
+  switchTrackOn: "#FFFFF0",
   
   groupedBackground: "#000000",
-  label: "#FFFFFF",
+  label: "#FFFFF0",
   secondaryLabel: "rgba(235, 235, 245, 0.6)",
   tertiaryLabel: "rgba(235, 235, 245, 0.38)",
   quaternaryLabel: "rgba(235, 235, 245, 0.18)",

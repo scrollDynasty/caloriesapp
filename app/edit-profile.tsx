@@ -364,7 +364,7 @@ export default function EditProfileScreen() {
                     </View>
                   )}
                   <View style={styles.editBadge}>
-                    <Ionicons name="pencil" size={14} color="#FFFFFF" />
+                    <Ionicons name="pencil" size={14} color="#FFFFF0" />
                   </View>
                 </View>
                 <Text style={styles.changePhotoText}>Сменить фото</Text>
@@ -439,7 +439,7 @@ export default function EditProfileScreen() {
                 disabled={saving || (data.username.length > 0 && data.username.length < 3) || usernameError !== null}
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color="#FFFFF0" />
                 ) : (
                   <Text style={styles.saveButtonText}>Продолжить</Text>
                 )}

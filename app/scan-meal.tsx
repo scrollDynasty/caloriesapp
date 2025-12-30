@@ -405,7 +405,7 @@ export default function ScanMealScreen() {
                 <Ionicons
                   name="scan-outline"
                   size={20}
-                  color="#FFFFFF"
+                  color="#FFFFF0"
                   style={styles.instructionIcon}
                 />
                 <Text style={styles.instructionText}>Center your food</Text>
@@ -415,7 +415,7 @@ export default function ScanMealScreen() {
                 <Ionicons
                   name="barcode-outline"
                   size={20}
-                  color="#FFFFFF"
+                  color="#FFFFF0"
                   style={styles.instructionIcon}
                 />
                 <Text style={styles.instructionText}>Наведи на штрихкод</Text>
@@ -455,7 +455,7 @@ export default function ScanMealScreen() {
           >
             <View style={styles.shutterButtonOuter}>
               {uploading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color="#FFFFF0" />
               ) : (
                 <View style={styles.shutterButtonInner} />
               )}
@@ -586,7 +586,7 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       flex: 1,
       borderRadius: 18,
       overflow: "hidden",
-      backgroundColor: "#000",
+      backgroundColor: "#FFFFF0",
       position: "relative",
     },
     camera: {
@@ -604,7 +604,7 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       position: "absolute",
       width: 40,
       height: 40,
-      borderColor: "#FFFFFF",
+      borderColor: "#FFFFF0",
       borderWidth: 3,
     },
     cornerTopLeft: {
@@ -652,7 +652,7 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       marginRight: 4,
     },
     instructionText: {
-      color: "#FFFFFF",
+      color: "#FFFFF0",
       fontSize: 14,
       fontFamily: "Inter_500Medium",
     },

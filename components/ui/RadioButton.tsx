@@ -47,22 +47,22 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
   };
 
   const containerBg = selected 
-    ? (isDark ? "#FFFFFF" : "#000000") 
+    ? (isDark ? "#FFFFF0" : "#FFFFF0") 
     : colors.card;
   const textColor = selected 
-    ? (isDark ? "#000000" : "#FFFFFF") 
+    ? (isDark ? "#000000" : "#2D2A26") 
     : colors.text;
   const borderColor = selected 
     ? "transparent" 
     : colors.border;
   const checkBg = selected 
-    ? (isDark ? "#000000" : "#FFFFFF") 
+    ? (isDark ? "#000000" : "#FFFFF0") 
     : "transparent";
   const checkBorderColor = selected 
     ? "transparent" 
     : colors.textSecondary;
   const checkIconColor = selected 
-    ? (isDark ? "#FFFFFF" : "#000000") 
+    ? (isDark ? "#FFFFF0" : "#2D2A26") 
     : "transparent";
 
   return (

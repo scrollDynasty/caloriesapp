@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthButton } from "../components/ui/AuthButton";
-import { colors } from "../constants/theme";
 import { useOnboarding } from "../context/OnboardingContext";
+import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { authService } from "../services/auth";
 import { OnboardingData, saveOnboardingData } from "../services/onboarding";
@@ -16,9 +16,92 @@ const ONBOARDING_DATA_KEY = "@yebich:onboarding_data";
 export default function SaveProgress() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const { colors } = useTheme();
   const { data: onboardingData, clearData } = useOnboarding();
   const [loading, setLoading] = useState(false);
   
+  const styles = StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+      paddingBottom: 48,
+    },
+    contentContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 24,
+      paddingTop: 32,
+      paddingBottom: 32,
+    },
+    headerSection: {
+      alignItems: "center",
+      marginBottom: 48,
+      width: "100%",
+    },
+    iconContainer: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: colors.card,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 24,
+      
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: 4,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    mainTitle: {
+      color: colors.primary,
+      fontSize: 28,
+      fontWeight: "700",
+      lineHeight: 33.88,
+      textAlign: "center",
+      fontFamily: "Inter_700Bold",
+      marginBottom: 12,
+    },
+    subtitle: {
+      color: colors.secondary,
+      fontSize: 16,
+      fontWeight: "400",
+      lineHeight: 24,
+      textAlign: "center",
+      fontFamily: "Inter_400Regular",
+      paddingHorizontal: 24,
+    },
+    authButtonsContainer: {
+      width: "100%",
+      gap: 16,
+    },
+    buttonSpacing: {
+      height: 16,
+    },
+    footer: {
+      paddingHorizontal: 24,
+      paddingTop: 24,
+      paddingBottom: 16,
+    },
+    footerText: {
+      color: colors.secondary,
+      fontSize: 12,
+      fontWeight: "400",
+      lineHeight: 16,
+      textAlign: "center",
+      fontFamily: "Inter_400Regular",
+    },
+  });
 
   const cachedDataRef = useRef<Partial<OnboardingData> | null>(null);
 
@@ -180,86 +263,3 @@ export default function SaveProgress() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 48,
-  },
-  contentContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 32,
-  },
-  headerSection: {
-    alignItems: "center",
-    marginBottom: 48,
-    width: "100%",
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.white,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-    
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  mainTitle: {
-    color: colors.primary,
-    fontSize: 28,
-    fontWeight: "700",
-    lineHeight: 33.88,
-    textAlign: "center",
-    fontFamily: "Inter_700Bold",
-    marginBottom: 12,
-  },
-  subtitle: {
-    color: colors.secondary,
-    fontSize: 16,
-    fontWeight: "400",
-    lineHeight: 24,
-    textAlign: "center",
-    fontFamily: "Inter_400Regular",
-    paddingHorizontal: 24,
-  },
-  authButtonsContainer: {
-    width: "100%",
-    gap: 16,
-  },
-  buttonSpacing: {
-    height: 16,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
-  },
-  footerText: {
-    color: colors.secondary,
-    fontSize: 12,
-    fontWeight: "400",
-    lineHeight: 16,
-    textAlign: "center",
-    fontFamily: "Inter_400Regular",
-  },
-});

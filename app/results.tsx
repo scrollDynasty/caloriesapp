@@ -7,7 +7,7 @@ import Svg, { Circle } from "react-native-svg";
 import { useOnboarding } from "../context/OnboardingContext";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
-import { calculateCalories, UserData } from "../utils/calorieCalculator";
+import { UserData, calculateCalories } from "../utils/calorieCalculator";
 
 function CircularProgress({
   progress,
@@ -171,7 +171,7 @@ export default function Results() {
         {}
         <Animated.View entering={FadeIn.delay(100)} style={styles.headerSection}>
           <View style={[styles.checkIcon, { backgroundColor: colors.text }]}>
-            <Ionicons name="checkmark" size={28} color={isDark ? colors.black : colors.white} />
+            <Ionicons name="checkmark" size={28} color={isDark ? colors.black : colors.buttonPrimaryText} />
           </View>
           <Text style={[styles.mainTitle, { color: colors.text }]}>
             Поздравляем{"\n"}твой индивидуальный план готов!
@@ -180,7 +180,7 @@ export default function Results() {
             Тебе следует {goalText}:
           </Text>
           <View style={[styles.weightBadge, { backgroundColor: colors.text }]}>
-            <Text style={[styles.weightText, { color: isDark ? colors.black : colors.white }]}>
+            <Text style={[styles.weightText, { color: isDark ? colors.black : colors.buttonPrimaryText }]}>
               {onboardingData.weight} кг
             </Text>
           </View>
@@ -189,7 +189,7 @@ export default function Results() {
         {}
         <Animated.View 
           entering={FadeInUp.delay(300).springify()}
-          style={[styles.recommendationCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}
+          style={[styles.recommendationCard, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}
         >
           <Text style={[styles.cardTitle, { color: colors.text }]}>Ежедневная рекомендация</Text>
           <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
@@ -257,7 +257,7 @@ export default function Results() {
         {}
         <Animated.View 
           entering={FadeInUp.delay(900).springify()}
-          style={[styles.tipsCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}
+          style={[styles.tipsCard, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}
         >
           <Text style={[styles.tipsTitle, { color: colors.text }]}>Как достичь своих целей:</Text>
           

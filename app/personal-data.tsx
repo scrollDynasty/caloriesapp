@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
-import { calculateCalories, UserData } from "../utils/calorieCalculator";
+import { UserData, calculateCalories } from "../utils/calorieCalculator";
 
 interface OnboardingFullData {
   weight: number | null;
@@ -48,8 +48,8 @@ function calculateAge(birthDate: Date): number {
 
 export default function PersonalDataScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingFullData>({
@@ -300,10 +300,13 @@ export default function PersonalDataScreen() {
             <Text style={styles.targetValue}>{data.targetWeight || data.weight || "--"} кг</Text>
           </View>
           <TouchableOpacity 
-            style={styles.changeGoalButton}
+            style={[
+              styles.changeGoalButton,
+              { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFF0" }
+            ]}
             onPress={() => openEditModal("targetWeight")}
           >
-            <Text style={styles.changeGoalText}>Изменить цель</Text>
+            <Text style={[styles.changeGoalText, { color: colors.text }]}>Изменить цель</Text>
           </TouchableOpacity>
         </View>
 
@@ -553,7 +556,7 @@ export default function PersonalDataScreen() {
   );
 }
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -615,7 +618,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.text,
   },
   changeGoalButton: {
-    backgroundColor: "#000000",
     borderColor: colors.border,
     borderWidth: 1,
     paddingHorizontal: 18,
@@ -625,7 +627,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   changeGoalText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
   },
   section: {
     marginHorizontal: 16,

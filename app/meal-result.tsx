@@ -3,14 +3,14 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -89,7 +89,7 @@ export default function MealResultScreen() {
         />
         <SafeAreaView style={styles.header} edges={["top"]}>
           <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-            <Ionicons name="close" size={24} color="#FFFFFF" />
+            <Ionicons name="close" size={24} color="#FFFFF0" />
           </TouchableOpacity>
           <View style={styles.headerSpacer} />
         </SafeAreaView>
@@ -196,10 +196,10 @@ export default function MealResultScreen() {
               activeOpacity={0.85}
             >
               {saving ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color="#FFFFF0" />
               ) : (
                 <>
-                  <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+                  <Ionicons name="checkmark" size={20} color="#FFFFF0" />
                   <Text style={styles.addText}>Готово</Text>
                 </>
               )}
@@ -429,6 +429,6 @@ const createStyles = (colors: any, isDark: boolean) =>
     addText: {
       fontSize: 16,
       fontFamily: "Inter_600SemiBold",
-      color: "#FFFFFF",
+      color: "#FFFFF0",
     },
   });

@@ -303,7 +303,7 @@ export default function SettingsScreen() {
               value={isSnowEnabled} 
               onValueChange={setSnowEnabled}
               trackColor={{ false: isDark ? themeColors.gray4 : "#E0E0E0", true: "#4CAF50" }}
-              thumbColor="#FFFFFF"
+              thumbColor="#FFFFF0"
             />
           </View>
         </View>

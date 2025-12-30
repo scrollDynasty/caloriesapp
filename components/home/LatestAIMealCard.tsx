@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 const IVORY = "#F5F0E8";
 const IVORY_DARK = "#E6DED0";
-const TEXT_PRIMARY = "#000000";
+const TEXT_PRIMARY = "#2D2A26";
 const TEXT_SECONDARY = "#5A5247";
 
 export type LatestMealProps = {
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   kcalBadge: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFF0",
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pill: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFF0",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,

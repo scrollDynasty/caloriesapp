@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
-import { calculateCalories, UserData } from "../utils/calorieCalculator";
+import { UserData, calculateCalories } from "../utils/calorieCalculator";
 
 interface OnboardingFullData {
   weight: number | null;
@@ -416,7 +416,7 @@ export default function GoalsWeightScreen() {
                     disabled={saving}
                   >
                     {saving ? (
-                      <ActivityIndicator size="small" color="#FFF" />
+                      <ActivityIndicator size="small" color="#FFFFF0" />
                     ) : (
                       <Text style={styles.modalButtonSaveText}>Сохранить</Text>
                     )}
@@ -535,7 +535,7 @@ export default function GoalsWeightScreen() {
                       disabled={saving}
                     >
                       {saving ? (
-                        <ActivityIndicator size="small" color="#FFF" />
+                        <ActivityIndicator size="small" color="#FFFFF0" />
                       ) : (
                         <Text style={styles.modalButtonSaveText}>Сохранить</Text>
                       )}
@@ -612,7 +612,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     color: colors.text,
   },
   changeGoalButton: {
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFF0",
     borderColor: colors.border,
     borderWidth: 1,
     paddingHorizontal: 18,
@@ -622,7 +622,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   changeGoalText: {
     fontSize: 14,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
+    color: colors.text,
   },
   section: {
     marginHorizontal: 16,
@@ -745,7 +745,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   modalButtonSaveText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: colors.white,
+    color: colors.buttonPrimaryText,
   },
   genderOption: {
     flexDirection: "row",

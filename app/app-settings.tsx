@@ -40,7 +40,7 @@ function ThemePreviewCard({
   const isDark = mode === "dark";
   
   const previewBg = isDark ? "#1C1C1E" : "#F2F2F7";
-  const cardBg = isDark ? "#2C2C2E" : "#FFFFFF";
+  const cardBg = isDark ? "#2C2C2E" : "#FFFFF0";
   const dotColors = ["#FF6B6B", "#34C759", "#007AFF"];
   
   const getLabel = () => {
@@ -64,14 +64,14 @@ function ThemePreviewCard({
         {}
         {isDark && (
           <View style={styles.themeBadge}>
-            <Ionicons name="moon" size={12} color="#FFFFFF" />
+            <Ionicons name="moon" size={12} color="#FFFFF0" />
           </View>
         )}
         
         {}
         {!isDark && (
           <View style={[styles.themeBadge, { backgroundColor: "#FF9500" }]}>
-            <Ionicons name="sunny" size={12} color="#FFFFFF" />
+            <Ionicons name="sunny" size={12} color="#FFFFF0" />
           </View>
         )}
         
@@ -99,7 +99,7 @@ function ThemePreviewCard({
             backgroundColor: selected ? colors.info : "transparent",
           }
         ]}>
-          {selected && <Ionicons name="checkmark" size={12} color="#FFFFFF" />}
+          {selected && <Ionicons name="checkmark" size={12} color="#FFFFF0" />}
         </View>
         <Text style={[
           styles.themeLabel, 
@@ -145,7 +145,7 @@ function SettingToggle({
             onValueChange(newValue);
           }}
           trackColor={{ false: colors.switchTrackOff, true: iosGreen }}
-          thumbColor="#FFFFFF"
+          thumbColor="#FFFFF0"
           ios_backgroundColor={colors.switchTrackOff}
         />
       </View>

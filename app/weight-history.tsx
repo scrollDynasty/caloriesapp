@@ -108,7 +108,6 @@ function WeightEntryItem({
 export default function WeightHistoryScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
-  const addWeightIconColor = "#FFFFFF";
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<WeightStats | null>(null);
@@ -237,10 +236,13 @@ export default function WeightHistoryScreen() {
         Добавьте первую запись для отслеживания прогресса
       </Text>
       <TouchableOpacity 
-        style={[styles.addButton, { backgroundColor: colors.primary }]}
+        style={[
+          styles.addButton, 
+          { backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFF0" }
+        ]}
         onPress={() => router.push("/add-weight" as any)}
       >
-        <Text style={styles.addButtonText}>Добавить вес</Text>
+        <Text style={[styles.addButtonText, { color: colors.text }]}>Добавить вес</Text>
       </TouchableOpacity>
     </View>
   );
@@ -279,12 +281,16 @@ export default function WeightHistoryScreen() {
         <TouchableOpacity 
           style={[
             styles.addWeightButton,
-            { backgroundColor: "#000000", borderColor: colors.border, borderWidth: 1 },
+            { 
+              backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFF0", 
+              borderColor: colors.border, 
+              borderWidth: 1 
+            },
             isDark && styles.noShadow,
           ]}
           onPress={() => router.push("/add-weight" as any)}
         >
-          <Ionicons name="add" size={24} color={addWeightIconColor} />
+          <Ionicons name="add" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -506,7 +512,6 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
   },
   noShadow: {
     shadowOpacity: 0,

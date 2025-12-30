@@ -36,7 +36,7 @@ const CustomTabButton = ({ children, onPress, accessibilityState, themeColors }:
     }).start();
   }, [focused, animValue]);
 
-  const bgColor = themeColors?.card || "#FFFFFF";
+  const bgColor = themeColors?.card || "#FFFFF0";
   const backgroundColor = animValue.interpolate({
     inputRange: [0, 1],
     outputRange: ['transparent', bgColor],
@@ -371,7 +371,7 @@ export default function TabsLayout() {
           <Ionicons 
             name="add" 
             size={32} 
-            color="#FFFFFF" 
+            color="#FFFFF0" 
           />
         </Animated.View>
       </TouchableOpacity>
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   fabSubButtonTextContainer: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFF0",
     paddingHorizontal: 18,
     paddingVertical: 14,
     borderRadius: 28,
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFF0",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",

@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Dimensions, Easing, StyleSheet, useColorScheme, View } from "react-native";
+import { Animated, Dimensions, Easing, StyleSheet, View, useColorScheme } from "react-native";
 import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 const { width, height } = Dimensions.get("window");
@@ -98,7 +98,7 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
 
   if (!isVisible) return null;
 
-  const backgroundColor = isDark ? "#000000" : "#000000";
+  const backgroundColor = isDark ? "#000000" : "#FFFFF0";
   const logoSource = require("../../assets/images/bright_logo.png");
 
   const rotation = rotateAnim.interpolate({
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     height: 250,
     borderRadius: 125,
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    shadowColor: "#FFFFFF",
+    shadowColor: "#FFFFF0",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 40,

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import {
-    Animated,
-    Dimensions,
-    Easing,
-    StyleSheet,
-    View,
+  Animated,
+  Dimensions,
+  Easing,
+  StyleSheet,
+  View,
 } from "react-native";
 import { useSnow } from "../../context/SnowContext";
 
@@ -158,8 +158,8 @@ const styles = StyleSheet.create({
   snowflake: {
     position: "absolute",
     top: 0,
-    backgroundColor: "#FFFFFF",
-    shadowColor: "#FFFFFF",
+    backgroundColor: "#FFFFF0",
+    shadowColor: "#FFFFF0",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,

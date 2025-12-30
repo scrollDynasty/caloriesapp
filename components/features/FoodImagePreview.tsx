@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: colors.white,
+    borderColor: colors.buttonPrimaryText,
     borderRadius: 4,
   },
 });

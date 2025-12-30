@@ -28,7 +28,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
-import { calculateCalories, UserData } from "../utils/calorieCalculator";
+import { UserData, calculateCalories } from "../utils/calorieCalculator";
 import { hapticLight, hapticMedium, hapticSuccess } from "../utils/haptics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -159,7 +159,7 @@ function GoalCard({
       <Animated.View
         style={[
           styles.goalCard,
-          { backgroundColor: isDark ? colors.card : "#FFFFFF" },
+          { backgroundColor: isDark ? colors.card : "#FFFFF0" },
           animatedStyle,
         ]}
       >
@@ -213,7 +213,7 @@ function MicroCard({
       entering={FadeInDown.delay(100).springify()}
       style={[
         styles.microCard,
-        { backgroundColor: isDark ? colors.card : "#FFFFFF" },
+        { backgroundColor: isDark ? colors.card : "#FFFFF0" },
       ]}
     >
       <View style={[styles.microIconContainer, { backgroundColor: `${color}15` }]}>
@@ -283,7 +283,7 @@ function EditGoalModal({
       <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={onClose} />
       <Animated.View
         entering={FadeInDown.springify()}
-        style={[styles.modalContent, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}
+        style={[styles.modalContent, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}
       >
         <Text style={[styles.modalTitle, { color: colors.text }]}>{label}</Text>
         <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground }]}>
@@ -474,7 +474,7 @@ function AutoGenerateFlow({
     <Animated.View
       entering={FadeIn.duration(200)}
       exiting={FadeOut.duration(150)}
-      style={[styles.autoGenerateOverlay, { backgroundColor: isDark ? colors.background : "#FFFFFF" }]}
+      style={[styles.autoGenerateOverlay, { backgroundColor: isDark ? colors.background : "#FFFFF0" }]}
     >
       <SafeAreaView style={styles.autoGenerateContainer} edges={["top"]}>
         {}
@@ -614,7 +614,7 @@ function AutoGenerateFlow({
             <Animated.View entering={FadeInDown.delay(100)} style={styles.stepContainer}>
               <View style={styles.resultHeader}>
                 <View style={[styles.resultCheckIcon, { backgroundColor: colors.text }]}>
-                  <Ionicons name="checkmark" size={28} color={isDark ? colors.black : colors.white} />
+                  <Ionicons name="checkmark" size={28} color={isDark ? colors.black : colors.buttonPrimaryText} />
                 </View>
                 <Text style={[styles.resultTitle, { color: colors.text }]}>
                   Поздравляем{"\n"}твой индивидуальный план готов!
@@ -624,13 +624,13 @@ function AutoGenerateFlow({
                   {goal === "lose" ? "похудеть до" : goal === "gain" ? "набрать до" : "поддерживать"}:
                 </Text>
                 <View style={[styles.resultWeightBadge, { backgroundColor: colors.text }]}>
-                  <Text style={[styles.resultWeightText, { color: isDark ? colors.black : colors.white }]}>
+                  <Text style={[styles.resultWeightText, { color: isDark ? colors.black : colors.buttonPrimaryText }]}>
                     {weight} кг
                   </Text>
                 </View>
               </View>
 
-              <View style={[styles.resultCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}>
+              <View style={[styles.resultCard, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}>
                 <Text style={[styles.resultCardTitle, { color: colors.text }]}>Ежедневная рекомендация</Text>
                 <Text style={[styles.resultCardSubtitle, { color: colors.textSecondary }]}>
                   Ты можешь изменить это в любое время
@@ -687,7 +687,7 @@ function AutoGenerateFlow({
               </View>
 
               {}
-              <View style={[styles.consideredDataCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}>
+              <View style={[styles.consideredDataCard, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}>
                 <Text style={[styles.consideredDataTitle, { color: colors.text }]}>
                   Учтённые данные:
                 </Text>
@@ -731,7 +731,7 @@ function AutoGenerateFlow({
                 </View>
               </View>
 
-              <View style={[styles.tipsCard, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}>
+              <View style={[styles.tipsCard, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}>
                 <Text style={[styles.tipsTitle, { color: colors.text }]}>Как достичь своих целей:</Text>
                 
                 <TipItem
@@ -770,7 +770,7 @@ function AutoGenerateFlow({
         </ScrollView>
 
         {}
-        <View style={[styles.autoGenerateBottom, { backgroundColor: isDark ? colors.background : "#FFFFFF" }]}>
+        <View style={[styles.autoGenerateBottom, { backgroundColor: isDark ? colors.background : "#FFFFF0" }]}>
           <TouchableOpacity
             style={[styles.autoGenerateFlowButton, { backgroundColor: colors.buttonPrimary }]}
             onPress={step === "result" ? handleComplete : step === "measurements" ? calculateGoals : handleNext}
@@ -803,13 +803,13 @@ function WorkoutOption({
   colors: any;
 }) {
   const containerBg = selected 
-    ? (isDark ? "#FFFFFF" : "#000000") 
-    : (isDark ? colors.card : "#FFFFFF");
+    ? (isDark ? "#FFFFF0" : "#FFFFF0") 
+    : (isDark ? colors.card : "#FFFFF0");
   const contentColor = selected 
-    ? (isDark ? "#000000" : "#FFFFFF") 
+    ? (isDark ? "#000000" : "#2D2A26") 
     : colors.text;
   const subtitleTextColor = selected 
-    ? (isDark ? "#000000" : "#FFFFFF") 
+    ? (isDark ? "#000000" : "#2D2A26") 
     : colors.textSecondary;
 
   return (
@@ -1071,7 +1071,7 @@ export default function NutritionGoalsScreen() {
 
         {}
         <TouchableOpacity
-          style={[styles.micronutrientsToggle, { backgroundColor: isDark ? colors.card : "#FFFFFF" }]}
+          style={[styles.micronutrientsToggle, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}
           onPress={toggleMicronutrients}
           activeOpacity={0.7}
         >

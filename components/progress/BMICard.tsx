@@ -182,13 +182,13 @@ const styles = StyleSheet.create({
     top: -4,
     width: 2,
     height: 20,
-    backgroundColor: "#000",
+    backgroundColor: "#2D2A26",
     transform: [{ translateX: -1 }],
   },
   indicatorLine: {
     width: 2,
     height: "100%",
-    backgroundColor: "#000",
+    backgroundColor: "#2D2A26",
   },
   legend: {
     flexDirection: "row",

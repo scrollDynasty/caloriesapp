@@ -968,7 +968,7 @@ export default function RecipesScreen() {
             />
             {item.isPopular ? (
               <View style={[styles.difficultyBadge, { backgroundColor: getPopularColor() }]}>
-                <Ionicons name="flame" size={12} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Ionicons name="flame" size={12} color="#FFFFF0" style={{ marginRight: 4 }} />
                 <Text style={styles.difficultyText}>Популярный</Text>
               </View>
             ) : (
@@ -977,7 +977,7 @@ export default function RecipesScreen() {
               </View>
             )}
             <View style={styles.timeBadge}>
-              <Ionicons name="time-outline" size={12} color="#FFFFFF" />
+              <Ionicons name="time-outline" size={12} color="#FFFFF0" />
               <Text style={styles.timeBadgeText}>{item.time} мин</Text>
             </View>
           </View>
@@ -1019,7 +1019,7 @@ export default function RecipesScreen() {
           }}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={32} color="#FFFFFF" />
+          <Ionicons name="add" size={32} color="#FFFFF0" />
         </TouchableOpacity>
       </View>
 
@@ -1070,7 +1070,7 @@ export default function RecipesScreen() {
                   <Ionicons 
                     name="flame" 
                     size={16} 
-                    color={selectedCategory === category ? "#FFFFFF" : getPopularColor()} 
+                    color={selectedCategory === category ? "#FFFFF0" : getPopularColor()} 
                     style={{ marginRight: 6 }}
                   />
                 )}
@@ -1177,10 +1177,10 @@ export default function RecipesScreen() {
                 activeOpacity={0.8}
               >
                 {generating ? (
-                  <ActivityIndicator color="#FFFFFF" />
+                  <ActivityIndicator color="#FFFFF0" />
                 ) : (
                   <>
-                    <Ionicons name="sparkles" size={20} color="#FFFFFF" />
+                    <Ionicons name="sparkles" size={20} color="#FFFFF0" />
                     <Text style={styles.submitButtonText}>Создать рецепт</Text>
                   </>
                 )}
@@ -1299,7 +1299,7 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     categoryTextActive: {
       fontFamily: "Inter_700Bold",
-      color: "#FFFFFF",
+      color: "#FFFFF0",
     },
     listContent: {
       paddingHorizontal: 24,
@@ -1351,7 +1351,7 @@ const createStyles = (colors: any, isDark: boolean) =>
     difficultyText: {
       fontSize: 11,
       fontFamily: "Inter_700Bold",
-      color: "#FFFFFF",
+      color: "#FFFFF0",
       letterSpacing: 0.5,
     },
     timeBadge: {
@@ -1374,7 +1374,7 @@ const createStyles = (colors: any, isDark: boolean) =>
     timeBadgeText: {
       fontSize: 12,
       fontFamily: "Inter_600SemiBold",
-      color: "#FFFFFF",
+      color: "#FFFFF0",
     },
     cardContent: {
       padding: 16,
@@ -1517,6 +1517,6 @@ const createStyles = (colors: any, isDark: boolean) =>
     submitButtonText: {
       fontSize: 16,
       fontFamily: "Inter_700Bold",
-      color: "#FFFFFF",
+      color: "#FFFFF0",
     },
   });

@@ -235,7 +235,7 @@ const createStyles = (colors: any, isDark: boolean) =>
     difficultyText: {
       fontSize: 12,
       fontFamily: "Inter_600SemiBold",
-      color: "#FFFFFF",
+      color: "#FFFFF0",
     },
     content: {
       padding: 24,
@@ -351,7 +351,7 @@ const createStyles = (colors: any, isDark: boolean) =>
     instructionNumberText: {
       fontSize: 16,
       fontFamily: "Inter_700Bold",
-      color: isDark ? colors.primary : "#FFFFFF",
+      color: isDark ? colors.primary : "#FFFFF0",
     },
     instructionText: {
       fontSize: 16,

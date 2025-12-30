@@ -104,7 +104,7 @@ function ReminderRow({
               onToggle(value);
             }}
             trackColor={{ false: colors.switchTrackOff, true: "#34C759" }}
-            thumbColor="#FFFFFF"
+            thumbColor="#FFFFF0"
             ios_backgroundColor={colors.switchTrackOff}
           />
         </View>
@@ -351,7 +351,7 @@ export default function TrackingRemindersScreen() {
                   display="spinner"
                   onChange={handleTimeChange}
                   style={styles.timePicker}
-                  textColor={isDark ? "#FFFFFF" : "#000000"}
+                  textColor={isDark ? "#FFFFF0" : "#2D2A26"}
                   locale="ru"
                 />
               </View>

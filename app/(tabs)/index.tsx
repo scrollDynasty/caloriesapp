@@ -19,7 +19,7 @@ import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { NutritionCardSkeleton } from "../../components/ui/Skeleton";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
-import { apiService, MealPhoto } from "../../services/api";
+import { MealPhoto, apiService } from "../../services/api";
 import { dataCache } from "../../stores/dataCache";
 
 import { getLocalDayRange, getLocalTimezoneOffset, getLocalTimezoneOffsetMs } from "../../utils/timezone";
@@ -675,7 +675,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#FFFFF0",
     alignItems: "center",
     gap: 8,
     shadowColor: "#000",

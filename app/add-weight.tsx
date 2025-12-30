@@ -2,13 +2,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -16,7 +16,7 @@ import { apiService } from "../services/api";
 
 export default function AddWeightScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [weight, setWeight] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -97,13 +97,17 @@ export default function AddWeightScreen() {
           <TouchableOpacity
             style={[
               styles.saveButton,
-              { backgroundColor: "#000000", borderColor: colors.border, borderWidth: 1 },
+              { 
+                backgroundColor: isDark ? colors.backgroundSecondary : "#FFFFF0", 
+                borderColor: colors.border, 
+                borderWidth: 1 
+              },
               saving && { opacity: 0.6 },
             ]}
             onPress={handleSave}
             disabled={saving}
           >
-            <Text style={[styles.saveButtonText, { color: "#FFFFFF" }]}>
+            <Text style={[styles.saveButtonText, { color: colors.text }]}>
               {saving ? "Сохраняем..." : "Сохранить"}
             </Text>
           </TouchableOpacity>
