@@ -142,12 +142,17 @@ export default function RecipeDetailScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Приготовление</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Приготовление</Text>
+              {instructions.length > 0 && (
+                <Text style={styles.stepsCount}>{instructions.length} {instructions.length === 1 ? 'шаг' : instructions.length < 5 ? 'шага' : 'шагов'}</Text>
+              )}
+            </View>
             {instructions.length > 0 ? (
               <View style={styles.instructionsList}>
                 {instructions.map((instruction: string, index: number) => (
                   <View key={index} style={styles.instructionItem}>
-                    <View style={[styles.instructionNumber, { backgroundColor: colors.primary }]}>
+                    <View style={[styles.instructionNumber, { backgroundColor: isDark ? "#2C2C2E" : colors.primary }]}>
                       <Text style={styles.instructionNumberText}>{index + 1}</Text>
                     </View>
                     <Text style={styles.instructionText}>{instruction}</Text>
@@ -282,11 +287,25 @@ const createStyles = (colors: any, isDark: boolean) =>
     section: {
       marginBottom: 32,
     },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 16,
+    },
     sectionTitle: {
       fontSize: 22,
       fontFamily: "Inter_700Bold",
       color: colors.text,
-      marginBottom: 16,
+    },
+    stepsCount: {
+      fontSize: 14,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.textSecondary,
+      backgroundColor: isDark ? "#2C2C2E" : colors.backgroundSecondary,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 12,
     },
     ingredientsList: {
       gap: 12,
@@ -333,7 +352,7 @@ const createStyles = (colors: any, isDark: boolean) =>
     instructionNumberText: {
       fontSize: 16,
       fontFamily: "Inter_700Bold",
-      color: "#FFFFFF",
+      color: isDark ? colors.primary : "#FFFFFF",
     },
     instructionText: {
       fontSize: 16,

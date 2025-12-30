@@ -985,8 +985,14 @@ export default function RecipesScreen() {
             <Text style={styles.recipeTitle} numberOfLines={2}>
               {item.title}
             </Text>
-            <View style={styles.categoryTag}>
-              <Text style={styles.categoryTagText}>{item.category}</Text>
+            <View style={styles.recipeInfo}>
+              <View style={styles.infoItem}>
+                <Ionicons name="flame" size={14} color={colors.primary} />
+                <Text style={styles.infoText}>{item.calories} ккал</Text>
+              </View>
+              <View style={styles.categoryTag}>
+                <Text style={styles.categoryTagText}>{item.category}</Text>
+              </View>
             </View>
           </View>
         </TouchableOpacity>
@@ -1399,17 +1405,20 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     recipeInfo: {
       flexDirection: "row",
-      gap: 16,
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 8,
+      marginTop: 4,
     },
     infoItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 5,
+      gap: 4,
     },
     infoText: {
       fontSize: 13,
-      fontFamily: "Inter_500Medium",
-      color: colors.textSecondary,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.text,
     },
     emptyContainer: {
       flex: 1,
