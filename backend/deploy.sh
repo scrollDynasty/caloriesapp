@@ -79,7 +79,7 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
     export ENVIRONMENT=$ENVIRONMENT
     export DEBUG=$([ "$ENVIRONMENT" = "dev" ] && echo "true" || echo "false")
     
-    # Проверяем наличие .env файла
+    # Проверяем и обновляем .env файл
     if [ ! -f "$REMOTE_DIR/$ENV_FILE" ]; then
         echo "⚠️  Warning: $ENV_FILE not found. Creating from sample..."
         if [ -f "$REMOTE_DIR/env.$ENVIRONMENT.sample" ]; then
@@ -89,6 +89,23 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
             echo "❌ Error: env.$ENVIRONMENT.sample not found!"
             exit 1
         fi
+    else
+        echo "📝 Checking $ENV_FILE for errors..."
+        # Исправляем опечатки в .env файле
+        if grep -q "^kdb_host=" "$REMOTE_DIR/$ENV_FILE" 2>/dev/null; then
+            echo "🔧 Fixing typo: kdb_host -> db_host"
+            sed -i 's/^kdb_host=/db_host=/' "$REMOTE_DIR/$ENV_FILE"
+        fi
+        # Проверяем наличие обязательных полей
+        if ! grep -q "^ENVIRONMENT=" "$REMOTE_DIR/$ENV_FILE" 2>/dev/null; then
+            echo "⚠️  Adding missing ENVIRONMENT variable"
+            echo "ENVIRONMENT=$ENVIRONMENT" >> "$REMOTE_DIR/$ENV_FILE"
+        fi
+        if ! grep -q "^DEBUG=" "$REMOTE_DIR/$ENV_FILE" 2>/dev/null; then
+            echo "⚠️  Adding missing DEBUG variable"
+            echo "DEBUG=$([ "$ENVIRONMENT" = "dev" ] && echo "true" || echo "false")" >> "$REMOTE_DIR/$ENV_FILE"
+        fi
+        echo "✅ $ENV_FILE checked and fixed"
     fi
     
     # Обновляем nginx конфиг только для prod
