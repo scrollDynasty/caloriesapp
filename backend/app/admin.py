@@ -410,7 +410,7 @@ class RecipeUpdateSchema(BaseModel):
 
 @site.register_admin
 class RecipeAdmin(admin.ModelAdmin):
-    page_schema = "Recipes 🔥"
+    page_schema = "Recipes"
     model = Recipe
     schema_read = RecipeReadSchema
     update_schema = RecipeUpdateSchema
