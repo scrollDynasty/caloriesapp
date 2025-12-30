@@ -974,3 +974,97 @@ def get_water_daily(
         goal_ml=goal_ml,
         entries=entries,
     )
+
+@router.post("/recipes/generate")
+async def generate_recipe(
+    request: Dict[str, str] = Body(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Генерирует рецепт через AI и автоматически добавляет в рацион."""
+    user_request = request.get("prompt", "").strip()
+    
+    if not user_request:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Опишите желаемый рецепт"
+        )
+    
+    recipe = await ai_service.generate_recipe(user_request)
+    
+    if not recipe:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось сгенерировать рецепт"
+        )
+    
+    created_at = datetime.now(timezone.utc)
+    
+    meal_photo = MealPhoto(
+        user_id=current_user.id,
+        file_path="",
+        file_name="ai_recipe",
+        file_size=0,
+        mime_type="text/plain",
+        meal_name=recipe.get("name"),
+        detected_meal_name=recipe.get("name"),
+        calories=recipe.get("calories"),
+        protein=recipe.get("protein"),
+        fat=recipe.get("fat"),
+        carbs=recipe.get("carbs"),
+        created_at=created_at,
+    )
+    
+    db.add(meal_photo)
+    db.commit()
+    db.refresh(meal_photo)
+    
+    return {
+        "recipe": recipe,
+        "meal_id": meal_photo.id,
+        "added_to_diet": True,
+    }
+
+@router.get("/recipes/popular")
+def get_popular_recipes(
+    limit: int = Query(10, le=50),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Возвращает популярные рецепты на основе статистики всех пользователей."""
+    popular_meals = (
+        db.query(
+            MealPhoto.meal_name,
+            MealPhoto.detected_meal_name,
+            MealPhoto.calories,
+            MealPhoto.protein,
+            MealPhoto.fat,
+            MealPhoto.carbs,
+            func.count(MealPhoto.id).label("count"),
+            func.avg(MealPhoto.calories).label("avg_calories"),
+        )
+        .filter(
+            MealPhoto.meal_name.isnot(None),
+            MealPhoto.meal_name != "",
+            MealPhoto.calories.isnot(None),
+            MealPhoto.file_name != "ai_recipe",
+        )
+        .group_by(MealPhoto.meal_name)
+        .order_by(func.count(MealPhoto.id).desc())
+        .limit(limit)
+        .all()
+    )
+    
+    results = []
+    for meal in popular_meals:
+        meal_name = meal.meal_name or meal.detected_meal_name or "Блюдо"
+        results.append({
+            "name": meal_name,
+            "calories": int(meal.avg_calories) if meal.avg_calories else meal.calories,
+            "protein": meal.protein,
+            "fat": meal.fat,
+            "carbs": meal.carbs,
+            "count": meal.count,
+        })
+    
+    return results

@@ -281,6 +281,71 @@ class AIService:
         except Exception as e:
             return None
 
+    async def generate_recipe(
+        self,
+        user_request: str
+    ) -> Optional[Dict[str, Any]]:
+        if not self.is_configured:
+            return None
+        
+        try:
+            system_prompt = (
+                "You are an expert nutritionist and chef. Generate healthy, balanced recipes based on user's request. "
+                "Always respond with valid JSON only, no additional text or markdown."
+            )
+            
+            user_prompt = (
+                f"User request: {user_request}\n\n"
+                "Based on the user's request, create a recipe. Determine the meal type (завтрак/обед/ужин/перекус) automatically. "
+                "Respond with JSON in this exact format:\n"
+                '{"name": "recipe name in Russian", "description": "brief description in Russian", '
+                '"meal_type": "завтрак" | "обед" | "ужин" | "перекус", '
+                '"calories": int, "protein": int, "fat": int, "carbs": int, '
+                '"time": int, "difficulty": "Легко" | "Средне" | "Сложно", '
+                '"ingredients": ["ingredient1 in Russian", "ingredient2", ...], '
+                '"instructions": ["step1 in Russian", "step2", ...]}\n'
+                "Rules:\n"
+                "- All values per serving\n"
+                "- calories in kcal, protein/fat/carbs in grams\n"
+                "- time in minutes\n"
+                "- difficulty: Легко (up to 20 min), Средне (20-40 min), Сложно (40+ min)\n"
+                "- All text in Russian\n"
+                "- If user specifies calorie target, try to match it\n"
+                "- If user lists ingredients, use them in the recipe\n"
+                "- Make it healthy and balanced"
+            )
+            
+            response_text = await self._call_openai(
+                system_prompt,
+                user_prompt,
+                max_tokens=1024,
+                temperature=0.7
+            )
+            
+            if not response_text:
+                return None
+            
+            extracted = _extract_json(response_text)
+            if not extracted:
+                return None
+            
+            return {
+                "name": extracted.get("name", "Рецепт"),
+                "description": extracted.get("description", ""),
+                "meal_type": extracted.get("meal_type", "перекус"),
+                "calories": _parse_number(extracted.get("calories")),
+                "protein": _parse_number(extracted.get("protein")),
+                "fat": _parse_number(extracted.get("fat")),
+                "carbs": _parse_number(extracted.get("carbs")),
+                "time": _parse_number(extracted.get("time")),
+                "difficulty": extracted.get("difficulty", "Легко"),
+                "ingredients": extracted.get("ingredients", []),
+                "instructions": extracted.get("instructions", []),
+            }
+            
+        except Exception as e:
+            return None
+
 
 # Синглтон для использования во всём приложении
 ai_service = AIService()

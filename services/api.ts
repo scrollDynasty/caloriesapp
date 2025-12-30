@@ -1062,6 +1062,53 @@ class ApiService {
     dataCache.invalidateDailyMeals(getLocalDateStr());
     return response.data;
   }
+
+  async generateRecipe(
+    prompt: string
+  ): Promise<{
+    recipe: {
+      name: string;
+      description: string;
+      meal_type?: string;
+      calories: number;
+      protein: number;
+      fat: number;
+      carbs: number;
+      time: number;
+      difficulty: string;
+      ingredients: string[];
+      instructions: string[];
+    };
+    meal_id: number;
+    added_to_diet: boolean;
+  }> {
+    const sanitizedPrompt = sanitizeString(prompt, 500);
+    
+    if (!sanitizedPrompt) {
+      throw new Error("Опишите желаемый рецепт");
+    }
+    
+    const response = await this.api.post("/api/v1/meals/recipes/generate", {
+      prompt: sanitizedPrompt,
+    });
+    
+    dataCache.invalidateDailyMeals(getLocalDateStr());
+    return response.data;
+  }
+
+  async getPopularRecipes(limit: number = 10): Promise<Array<{
+    name: string;
+    calories: number;
+    protein: number;
+    fat: number;
+    carbs: number;
+    count: number;
+  }>> {
+    const response = await this.api.get('/api/v1/meals/recipes/popular', {
+      params: { limit: Math.min(limit, 50) },
+    });
+    return response.data;
+  }
 }
 
 export const apiService = new ApiService();
