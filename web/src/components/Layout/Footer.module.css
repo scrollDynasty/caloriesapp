@@ -1,45 +1,45 @@
 .footer {
   width: 100%;
-  background: linear-gradient(to bottom, #ffffff 0%, #fef9e7 100%);
+  background: transparent;
 }
 
 /* Top Section - Ratings */
 .ratingsSection {
-  padding: 80px 40px 60px;
+  padding: 100px 40px 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 32px;
 }
 
 .starsContainer {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
   justify-content: center;
 }
 
 .star {
   color: #eab308;
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
 }
 
 .ratingsTextContainer {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
   justify-content: center;
 }
 
 .laurel {
-  font-size: 28px;
+  font-size: 48px;
   line-height: 1;
   flex-shrink: 0;
 }
 
 .ratingsTitle {
-  font-size: 36px;
+  font-size: 56px;
   font-weight: 700;
   color: #1a1a1a;
   margin: 0;
@@ -48,7 +48,7 @@
 
 .storeRatings {
   display: flex;
-  gap: 32px;
+  gap: 48px;
   align-items: center;
   justify-content: center;
   margin-top: 8px;
@@ -57,15 +57,15 @@
 .storeRating {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .storeIcon {
-  font-size: 20px;
+  font-size: 32px;
 }
 
 .ratingText {
-  font-size: 16px;
+  font-size: 24px;
   font-weight: 600;
   color: #1a1a1a;
   font-family: var(--font-base);
@@ -73,10 +73,10 @@
 
 .downloadButtons {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   align-items: center;
   justify-content: center;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 /* Divider */
@@ -249,4 +249,3 @@
     align-items: flex-start;
   }
 }
-

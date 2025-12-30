@@ -1,13 +1,20 @@
 :root {
-  --background: #ffffff;
-  --foreground: #0b0b0b;
-  --text-secondary: #8a8a8f;
-  --border: rgba(0, 0, 0, 0.08);
-  --shadow-sm: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0px 8px 20px 0px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0px 20px 40px 0px rgba(0, 0, 0, 0.15);
-  --rating-yellow: #eab308;
-  --card-bg: #f4f4f5;
+  --background: #fffff0;
+  --ivory: #fffff0;
+  --ivory-light: #fffef8;
+  --ivory-dark: #fff8e7;
+  --cream: #fff5e1;
+  --peach: #ffe5d9;
+  --lavender: #f0e6ff;
+  --mint: #e8f5e9;
+  --foreground: #2c2416;
+  --text-secondary: #8a7f6f;
+  --border: rgba(44, 36, 22, 0.08);
+  --shadow-sm: 0px 1px 2px 0px rgba(44, 36, 22, 0.05);
+  --shadow-md: 0px 8px 20px 0px rgba(44, 36, 22, 0.08);
+  --shadow-lg: 0px 20px 40px 0px rgba(44, 36, 22, 0.12);
+  --rating-yellow: #f4c430;
+  --card-bg: #fffef8;
   --font-base: "Story Script", cursive;
 }
 
@@ -43,39 +50,12 @@ body {
 
 body {
   color: var(--foreground);
-  background: #ffffff;
+  background: var(--ivory);
   scrollbar-width: none;
   -ms-overflow-style: none;
   margin: 0;
   padding: 0;
-}
-
-@media (min-width: 769px) and (prefers-reduced-motion: no-preference) {
-  body {
-    background: linear-gradient(
-      135deg,
-      #ffffff 0%,
-      #fefefe 20%,
-      #fdfdfd 40%,
-      #fcfcfc 60%,
-      #fefefe 80%,
-      #ffffff 100%
-    );
-    background-size: 300% 300%;
-    animation: subtleGradient 60s ease infinite;
-  }
-}
-
-@keyframes subtleGradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  transition: background-color 2.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 body::-webkit-scrollbar {
