@@ -39,6 +39,13 @@ echo "📤 Uploading to server..."
 scp /tmp/backend.tar.gz $SERVER_USER@$SERVER_HOST:/tmp/
 
 echo "⚙️ Extracting on server..."
+# Определяем имя PM2 процесса
+if [ "$ENVIRONMENT" = "prod" ]; then
+    PM2_NAME="backend"
+else
+    PM2_NAME="backend-dev"
+fi
+
 ssh $SERVER_USER@$SERVER_HOST << ENDSSH
     set -e
     mkdir -p $REMOTE_DIR
@@ -78,20 +85,18 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
         PM2_NAME="backend-dev"
     fi
     if command -v pm2 &> /dev/null; then
-        echo "🔄 Restarting backend with pm2 (name: $PM2_NAME)..."
+        echo "🔄 Restarting backend with pm2 (name: \$PM2_NAME)..."
         cd $REMOTE_DIR
-        pm2 delete $PM2_NAME 2>/dev/null || true
-        pm2 start run.py --name $PM2_NAME --interpreter python3
+        pm2 delete \$PM2_NAME 2>/dev/null || true
+        pm2 start run.py --name "\$PM2_NAME" --interpreter python3
         pm2 save
-        echo "✅ Backend restarted as $PM2_NAME"
+        echo "✅ Backend restarted as \$PM2_NAME"
     else
         echo "⚠️ pm2 not found, skipping backend restart"
     fi
 ENDSSH
 
-rm /tmp/backend.tar.gz
-
-rm /tmp/backend.tar.gz
+rm -f /tmp/backend.tar.gz
 
 echo ""
 echo "✅ Deployment finished!"
