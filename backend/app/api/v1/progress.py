@@ -50,7 +50,6 @@ def add_weight(
     )
     db.add(entry)
     
-    # Обновляем текущий вес в onboarding_data
     onboarding = db.query(OnboardingData).filter(OnboardingData.user_id == current_user.id).first()
     if onboarding:
         onboarding.weight = payload.weight
@@ -111,7 +110,6 @@ def get_weight_stats(
     changes = []
     for period_name, days in periods:
         start_date = now - timedelta(days=days)
-        # Преобразуем created_at в UTC если необходимо для корректного сравнения
         period_weights = [
             w for w in all_weights 
             if (w.created_at.replace(tzinfo=timezone.utc) if w.created_at.tzinfo is None else w.created_at) >= start_date
@@ -141,7 +139,6 @@ def get_weight_stats(
                 status="insufficient_data"
             ))
     
-    # Добавляем "all_time"
     if len(all_weights) >= 2:
         first_weight = all_weights[0].weight
         last_weight = all_weights[-1].weight
@@ -166,7 +163,6 @@ def get_weight_stats(
             status="insufficient_data"
         ))
     
-    # Получаем последние 90 дней для графика
     ninety_days_ago = now - timedelta(days=90)
     recent_weights = [
         w for w in all_weights 
@@ -334,7 +330,7 @@ def get_progress_data(
             MealPhoto.meal_name.isnot(None)
         ).all()
         
-        if len(meals) >= 3:  # Минимум 3 приема пищи для статистики
+        if len(meals) >= 3:
             total_calories = sum(m.calories or 0 for m in meals)
             days_with_meals = len(set(m.created_at.date() for m in meals))
             average_calories = total_calories / days_with_meals if days_with_meals > 0 else 0
@@ -355,7 +351,6 @@ def get_progress_data(
                 status="insufficient_data"
             ))
     
-    # Изменения расхода энергии
     energy_changes = []
     periods = [("3_days", 3), ("7_days", 7), ("14_days", 14), ("30_days", 30), ("90_days", 90)]
     
@@ -380,13 +375,12 @@ def get_progress_data(
                 status="insufficient_data"
             ))
     
-    # Вычисляем BMI
     onboarding = db.query(OnboardingData).filter(OnboardingData.user_id == current_user.id).first()
     bmi = None
     bmi_category = None
     
     if onboarding and onboarding.weight and onboarding.height:
-        height_m = onboarding.height / 100  # см в метры
+        height_m = onboarding.height / 100
         bmi = onboarding.weight / (height_m ** 2)
         bmi = round(bmi, 1)
         

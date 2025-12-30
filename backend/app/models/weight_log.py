@@ -9,7 +9,7 @@ class WeightLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    weight = Column(Float, nullable=False)  # Вес в кг
+    weight = Column(Float, nullable=False)   
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
     user = relationship("User", backref=backref("weight_logs", cascade="all, delete-orphan"))

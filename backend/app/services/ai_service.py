@@ -180,7 +180,6 @@ class AIService:
         self,
         product_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        """Анализирует данные продукта по штрихкоду."""
         if not self.is_configured:
             return None
         
@@ -230,7 +229,6 @@ class AIService:
         current_data: Dict[str, Any],
         correction_text: str
     ) -> Optional[Dict[str, Any]]:
-        """Корректирует данные блюда на основе запроса пользователя."""
         if not self.is_configured:
             return None
         
@@ -353,6 +351,5 @@ class AIService:
             return None
 
 
-# Синглтон для использования во всём приложении
 ai_service = AIService()
 

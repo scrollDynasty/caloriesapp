@@ -1,6 +1,3 @@
-"""
-Модуль безопасности для защиты от OWASP Top 10 уязвимостей
-"""
 import secrets
 import hashlib
 import hmac
@@ -47,22 +44,17 @@ def validate_file_content(file_content: bytes, expected_mime_type: str) -> bool:
     return False
 
 def sanitize_filename(filename: str) -> str:
-    """Очистка имени файла от опасных символов"""
     import re
-    # Удаляем все кроме букв, цифр, точек, дефисов и подчеркиваний
     sanitized = re.sub(r'[^a-zA-Z0-9._-]', '', filename)
-    # Ограничиваем длину
     if len(sanitized) > 255:
         sanitized = sanitized[:255]
     return sanitized
 
 def validate_file_size(file_size: int, max_size_mb: int = 10) -> bool:
-    """Проверка размера файла"""
     max_size_bytes = max_size_mb * 1024 * 1024
     return file_size <= max_size_bytes
 
 def get_remote_address(request: Optional[Request]) -> str:
-    """Получение IP адреса клиента"""
     if not request:
         return "unknown"
     if request.client:
@@ -70,7 +62,6 @@ def get_remote_address(request: Optional[Request]) -> str:
     return "unknown"
 
 def log_security_event(event_type: str, details: dict, request: Optional[Request] = None):
-    """Логирование событий безопасности"""
     ip_address = get_remote_address(request) if request else "unknown"
     logger.warning(
         f"Security event: {event_type} | IP: {ip_address} | Details: {details}",
@@ -82,11 +73,9 @@ def log_security_event(event_type: str, details: dict, request: Optional[Request
     )
 
 def validate_cors_origin(origin: str, allowed_origins: list) -> bool:
-    """Валидация CORS origin"""
     if not origin:
         return False
     
-    # В production не разрешаем localhost
     from app.core.config import settings
     if settings.environment == "production":
         if "localhost" in origin.lower() or "127.0.0.1" in origin:
@@ -95,6 +84,5 @@ def validate_cors_origin(origin: str, allowed_origins: list) -> bool:
     return origin in allowed_origins
 
 def get_remote_address_for_middleware(request: Request) -> str:
-    """Получение IP адреса для middleware"""
     return get_remote_address(request)
 

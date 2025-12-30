@@ -34,14 +34,11 @@ async def auth_google_initiate(state: str = Query(default="caloriesapp://auth/ca
             detail="Google OAuth not configured. Set GOOGLE_CLIENT_ID in .env",
         )
 
-    # Используем API_DOMAIN для redirect URI (поддерживает ngrok и другие туннели)
     if settings.google_redirect_uri:
         redirect_uri = settings.google_redirect_uri
     elif settings.api_domain:
-        # Используем API_DOMAIN если он задан (может быть ngrok URL)
         redirect_uri = f"{settings.api_domain}/api/v1/auth/google/callback"
     else:
-        # Fallback на localhost
         if settings.host == "0.0.0.0":
             redirect_uri = f"http://localhost:{settings.port}/api/v1/auth/google/callback"
         else:

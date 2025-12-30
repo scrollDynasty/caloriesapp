@@ -37,35 +37,28 @@ except Exception as e:
     print(f"Warning: Admin panel could not be loaded: {e}")
     admin_enabled = False
 
-# Security middleware (должен быть первым)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RequestValidationMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
-    expose_headers=["Content-Type", "Authorization"],  # Не expose все заголовки
+    expose_headers=["Content-Type", "Authorization"],
     max_age=3600,
 )
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Middleware для логирования времени запросов."""
     start_time = time.time()
-    
-    # УДАЛЕНО: Прямой SQL DELETE без проверки прав - это уязвимость!
-    # Удаление пользователей должно происходить через правильный эндпоинт с проверкой прав
-    
+        
     response = await call_next(request)
     
-    # Логирование медленных запросов
     process_time = time.time() - start_time
-    if process_time > 1.0:  # Запросы дольше 1 секунды
+    if process_time > 1.0:
         logger.warning(
             f"Slow request: {request.method} {request.url.path} took {process_time:.2f}s",
             extra={

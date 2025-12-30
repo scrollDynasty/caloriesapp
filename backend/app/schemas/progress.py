@@ -56,16 +56,16 @@ class ProgressPhotoResponse(BaseModel):
 
 
 class CalorieStats(BaseModel):
-    period: str  # "this_week", "last_week", "2_weeks_ago", "3_weeks_ago"
+    period: str
     average_calories: Optional[float] = None
     average_consumed: Optional[float] = None
-    status: str  # "insufficient_data", "ok"
+    status: str
 
 
 class EnergyChange(BaseModel):
-    period: str  # "3_days", "7_days", "14_days", "30_days", "90_days"
+    period: str
     change_calories: Optional[float] = None
-    status: str  # "insufficient_data", "waiting", "ok"
+    status: str
 
 
 class ProgressData(BaseModel):
@@ -75,4 +75,4 @@ class ProgressData(BaseModel):
     calorie_stats: List[CalorieStats]
     energy_changes: List[EnergyChange]
     bmi: Optional[float] = None
-    bmi_category: Optional[str] = None  # "underweight", "normal", "overweight", "obese"
+    bmi_category: Optional[str] = None

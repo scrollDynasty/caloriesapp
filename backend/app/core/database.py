@@ -2,7 +2,6 @@ from sqlalchemy import create_engine, text, inspect
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
-# Оптимизированные настройки connection pool
 engine = create_engine(
     settings.database_url,
     pool_pre_ping=True,      

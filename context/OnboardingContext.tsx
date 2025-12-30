@@ -40,7 +40,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     try {
       await AsyncStorage.setItem(ONBOARDING_DATA_KEY, JSON.stringify(newData));
     } catch {
-      // Ignore storage errors
     }
   };
 
@@ -49,7 +48,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     try {
       await AsyncStorage.removeItem(ONBOARDING_DATA_KEY);
     } catch {
-      // Ignore storage errors
     }
   };
 

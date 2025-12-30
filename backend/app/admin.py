@@ -81,13 +81,11 @@ class UserReadSchema(BaseModel):
     
     @field_serializer('last_streak_date', 'created_at', 'updated_at', when_used='json')
     def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
-        """Сериализуем datetime в ISO формат для JSON"""
         if value is None:
             return None
         return value.isoformat()
     
     def dict(self, **kwargs) -> dict[str, Any]:
-        """Переопределяем dict() для совместимости со старым API библиотеки"""
         return self.model_dump(mode='json', **kwargs)
     
     class Config:

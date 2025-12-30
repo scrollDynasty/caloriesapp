@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
-    jwt_access_token_expire_minutes: int = 43200  # 30 дней 
+    jwt_access_token_expire_minutes: int = 43200   
 
     google_client_id: str = ""
     google_client_secret: str = ""
@@ -46,17 +46,14 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "19790102Ss.."
     
-    # Rate limiting
     rate_limit_per_minute: int = 60
     rate_limit_per_hour: int = 1000
     
-    # File upload limits
     max_file_size_mb: int = 10
     allowed_file_types: List[str] = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]
 
     @property
     def database_url(self) -> str:
-        # Используем URL encoding для пароля
         from urllib.parse import quote_plus
         encoded_password = quote_plus(self.db_password)
         return f"mysql+pymysql://{self.db_user}:{encoded_password}@{self.db_host}:{self.db_port}/{self.db_name}?charset=utf8mb4"
@@ -64,27 +61,22 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> List[str]:
         origins = [origin.strip() for origin in self.cors_origins.split(",")]
-        # В production фильтруем localhost
         if self.environment == "production":
             origins = [o for o in origins if "localhost" not in o.lower() and "127.0.0.1" not in o]
         return origins
     
     def validate_security(self):
-        """Валидация настроек безопасности"""
         errors = []
         
-        # Проверка JWT secret
         if not self.jwt_secret_key or len(self.jwt_secret_key) < 32:
             errors.append("JWT_SECRET_KEY должен быть минимум 32 символа")
         
         if self.jwt_secret_key == "replace_me_with_secure_random_string_64_chars":
             errors.append("JWT_SECRET_KEY не должен быть дефолтным значением")
         
-        # Проверка debug режима в production
         if self.environment == "production" and self.debug:
             errors.append("DEBUG не должен быть включен в production")
         
-        # Проверка admin credentials
         if self.admin_password == "admin123":
             errors.append("ADMIN_PASSWORD не должен быть дефолтным")
         

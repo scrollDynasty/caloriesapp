@@ -51,7 +51,7 @@ export default function FeaturesSection() {
 
   const handleFeatureClick = (featureId: string) => {
     setActiveFeature(featureId);
-    setImageKey((prev) => prev + 1); // Force image re-render for smooth transition
+    setImageKey((prev) => prev + 1);
   };
 
   return (

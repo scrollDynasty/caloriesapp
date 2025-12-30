@@ -125,24 +125,20 @@ async def upload_meal_photo(
         contents = await file.read()
         file_size = len(contents)
         
-        # Валидация размера файла
         if not validate_file_size(file_size, max_size_mb=settings.max_file_size_mb):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Файл слишком большой. Максимальный размер: {settings.max_file_size_mb}MB"
             )
         
-        # Валидация реального содержимого файла (magic bytes)
         if not validate_file_content(contents, file.content_type):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Файл не соответствует заявленному типу"
             )
         
-        # Явно закрываем UploadFile для освобождения ресурсов
         await file.close()
 
-        # Загружаем файл в Yandex Object Storage
         file_url = storage_service.upload_file(
             file_content=contents,
             object_name=s3_object_path,
@@ -185,7 +181,7 @@ async def upload_meal_photo(
 
         meal_photo = MealPhoto(
             user_id=current_user.id,
-            file_path=s3_object_path,  # Путь в S3
+            file_path=s3_object_path,
             file_name=file.filename or unique_filename,
             file_size=file_size,
             mime_type=file.content_type,
@@ -218,14 +214,12 @@ async def upload_meal_photo(
         raise
     except Exception as e:
         logger.error(f"Error uploading photo: {str(e)}", exc_info=True)
-        # При ошибке можно попытаться удалить файл из S3
         try:
             storage_service.delete_file(s3_object_path)
         except:
             pass
         
-        # Старый код удаления локального файла больше не нужен
-        if False:  # Отключено
+        if False:  
             try:
                 file_path.unlink()
             except:
@@ -470,7 +464,6 @@ async def lookup_barcode(
         except Exception:
             return None
 
-    # Получаем базовые данные из OpenFoodFacts
     base_data = {
         "barcode": code,
         "name": product.get("product_name") or product.get("generic_name") or "Продукт",
@@ -1044,7 +1037,6 @@ async def generate_recipe(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Генерирует рецепт через AI и автоматически добавляет в рацион."""
     user_request = request.get("prompt", "").strip()
     
     if not user_request:
@@ -1214,7 +1206,6 @@ def search_recipes(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Поиск рецептов по названию."""
     if not q or len(q) < 2:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -1261,7 +1252,6 @@ def get_recipe(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получение рецепта по ID."""
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
     
     if not recipe:
@@ -1319,7 +1309,6 @@ def use_recipe(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Добавляет существующий рецепт в рацион пользователя."""
     recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
     
     if not recipe:
@@ -1328,7 +1317,6 @@ def use_recipe(
             detail="Рецепт не найден"
         )
     
-    # Увеличиваем счетчик использования
     recipe.usage_count = (recipe.usage_count or 0) + 1
     
     meal_photo = MealPhoto(

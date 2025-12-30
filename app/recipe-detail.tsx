@@ -43,7 +43,6 @@ export default function RecipeDetailScreen() {
             await apiService.trackRecipeView(recipeId);
           }
         } catch (error) {
-          console.log('Failed to track recipe view:', error);
         }
       }
     };

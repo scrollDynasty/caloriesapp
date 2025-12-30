@@ -1,6 +1,3 @@
-"""
-Security middleware для защиты от различных атак
-"""
 import time
 import logging
 from fastapi import Request, HTTPException, status
@@ -12,7 +9,6 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Добавление security headers"""
     
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
@@ -48,20 +44,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
         
-        # Удаляем информацию о сервере
         if "server" in response.headers:
             del response.headers["server"]
         
         return response
 
 class RequestValidationMiddleware(BaseHTTPMiddleware):
-    """Валидация входящих запросов"""
     
-    MAX_REQUEST_SIZE = 20 * 1024 * 1024  # 20 MB
-    MAX_HEADER_SIZE = 8192  # 8 KB
+    MAX_REQUEST_SIZE = 20 * 1024 * 1024
+    MAX_HEADER_SIZE = 8192
     
     async def dispatch(self, request: Request, call_next):
-        # Проверка размера заголовков
         total_header_size = sum(len(k) + len(v) for k, v in request.headers.items())
         if total_header_size > self.MAX_HEADER_SIZE:
             log_security_event("oversized_headers", {
@@ -73,7 +66,6 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                 detail="Request headers too large"
             )
         
-        # Проверка пути на path traversal
         path = str(request.url.path)
         if ".." in path or "//" in path:
             log_security_event("path_traversal_attempt", {
@@ -88,12 +80,11 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
         return response
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Простой rate limiting (для production лучше использовать Redis)"""
     
     def __init__(self, app, requests_per_minute: int = 60):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
-        self.request_counts = {}  # В production использовать Redis
+        self.request_counts = {}
     
     async def dispatch(self, request: Request, call_next):
         if request.url.path in ["/health", "/"]:

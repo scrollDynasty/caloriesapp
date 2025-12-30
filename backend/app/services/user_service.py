@@ -33,7 +33,6 @@ def get_or_create_user_by_google(
     user = db.query(User).filter(User.google_id == google_id).first()
     
     if not user:
-        # Новый пользователь - создаём с данными из Google
         user = User(
             google_id=google_id, 
             email=email, 

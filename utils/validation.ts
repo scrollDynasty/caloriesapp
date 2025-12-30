@@ -6,7 +6,6 @@ export function validateApiUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     
-    // Для localhost разрешаем HTTP
     if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
       return parsed.protocol === 'http:';
     }
@@ -16,12 +15,10 @@ export function validateApiUrl(url: string): boolean {
       return parsed.protocol === 'https:';
     }
     
-    // Для Android эмулятора (10.0.2.2)
     if (parsed.hostname === '10.0.2.2') {
       return parsed.protocol === 'http:';
     }
     
-    // Для всех остальных требуется HTTPS
     return parsed.protocol === 'https:';
   } catch {
     return false;

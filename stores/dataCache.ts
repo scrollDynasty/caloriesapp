@@ -75,9 +75,9 @@ class DataCache {
   private static readonly USER_TTL = 7 * 24 * 60 * 60 * 1000;
   private static readonly ONBOARDING_TTL = 7 * 24 * 60 * 60 * 1000;
 
-  private static readonly MAX_DAILY_ENTRIES = 60; // ~2 месяца
+  private static readonly MAX_DAILY_ENTRIES = 60; 
   private static readonly MAX_WATER_ENTRIES = 60;
-  private static readonly MAX_WEEK_ENTRIES = 12; // ~3 месяца
+  private static readonly MAX_WEEK_ENTRIES = 12;
 
   private dailyMealsCache: Map<string, CacheEntry<DailyMealsData>> = new Map();
   private waterCache: Map<string, CacheEntry<WaterData>> = new Map();
