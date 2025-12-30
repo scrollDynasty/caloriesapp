@@ -239,10 +239,44 @@ class OnboardingDataAdmin(admin.ModelAdmin):
     form_excluded = [OnboardingData.id, OnboardingData.created_at, OnboardingData.updated_at]
 
 
+class MealPhotoReadSchema(BaseModel):
+    id: int
+    user_id: int
+    file_path: str
+    file_name: str
+    file_size: int
+    mime_type: str
+    barcode: Optional[str] = None
+    meal_name: Optional[str] = None
+    detected_meal_name: Optional[str] = None
+    calories: Optional[int] = None
+    protein: Optional[int] = None
+    fat: Optional[int] = None
+    carbs: Optional[int] = None
+    fiber: Optional[int] = None
+    sugar: Optional[int] = None
+    sodium: Optional[int] = None
+    health_score: Optional[int] = None
+    ingredients_json: Optional[str] = None
+    recipe_id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    @field_serializer('created_at', 'updated_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    class Config:
+        from_attributes = True
+
+
 @site.register_admin
 class MealPhotoAdmin(admin.ModelAdmin):
     page_schema = "Meals"
     model = MealPhoto
+    schema_read = MealPhotoReadSchema
     
     list_display = [
         MealPhoto.id,
