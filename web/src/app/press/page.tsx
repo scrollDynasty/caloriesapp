@@ -54,10 +54,12 @@ export default function PressPage() {
           const errorData = await response.json();
           if (errorData.detail) {
             if (Array.isArray(errorData.detail)) {
-              const errors = errorData.detail.map((err: any) => {
-                const field = err.loc ? err.loc.join(".") : "field";
-                return `${field}: ${err.msg}`;
-              });
+              const errors = errorData.detail.map(
+                (err: { loc?: string[]; msg?: string }) => {
+                  const field = err.loc ? err.loc.join(".") : "field";
+                  return `${field}: ${err.msg || "Validation error"}`;
+                },
+              );
               errorMessage = errors.join("\n");
             } else if (typeof errorData.detail === "string") {
               errorMessage = errorData.detail;
@@ -65,8 +67,7 @@ export default function PressPage() {
               errorMessage = JSON.stringify(errorData.detail);
             }
           }
-        } catch (e) {
-          // Если не удалось распарсить JSON, используем статус
+        } catch {
           errorMessage = `Server error: ${response.status} ${response.statusText}`;
         }
         throw new Error(errorMessage);
