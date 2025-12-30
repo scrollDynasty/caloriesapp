@@ -5,6 +5,9 @@ node_modules/
 # package-lock.json - оставляем в git для стабильности
 yarn.lock
 
+# Python virtual environment
+venv/
+
 # Expo
 .expo/
 dist/

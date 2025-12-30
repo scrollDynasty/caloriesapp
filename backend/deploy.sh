@@ -25,8 +25,16 @@ fi
 echo "📋 Environment: $ENVIRONMENT"
 echo "📁 Remote directory: $REMOTE_DIR"
 
-echo "📦 Creating archive..."
+echo "🔄 Switching to $ENVIRONMENT environment..."
 cd "$(dirname "$0")"
+if [ -f "scripts/switch-env.sh" ]; then
+    bash scripts/switch-env.sh $ENVIRONMENT
+    echo "✅ Environment switched to $ENVIRONMENT"
+else
+    echo "⚠️  Warning: switch-env.sh not found, skipping environment switch"
+fi
+
+echo "📦 Creating archive..."
 tar --exclude='__pycache__' \
     --exclude='*.pyc' \
     --exclude='venv' \

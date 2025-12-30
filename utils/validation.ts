@@ -5,15 +5,26 @@ export function validateApiUrl(url: string): boolean {
   
   try {
     const parsed = new URL(url);
-    if (parsed.protocol !== 'https:') {
-      return false;
-    }
     
+    // Для localhost разрешаем HTTP
     if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
       return parsed.protocol === 'http:';
     }
     
-    return true;
+    // Для локальных IP адресов (dev окружение) разрешаем HTTP
+    // 192.168.x.x, 10.x.x.x, 172.16-31.x.x
+    const isLocalIP = /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.)/.test(parsed.hostname);
+    if (isLocalIP) {
+      return parsed.protocol === 'http:';
+    }
+    
+    // Для Android эмулятора (10.0.2.2)
+    if (parsed.hostname === '10.0.2.2') {
+      return parsed.protocol === 'http:';
+    }
+    
+    // Для всех остальных требуется HTTPS
+    return parsed.protocol === 'https:';
   } catch {
     return false;
   }

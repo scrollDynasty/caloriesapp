@@ -4,6 +4,10 @@
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
+    "start:dev": "bash switch-rn-env.sh dev && expo start --clear",
+    "start:prod": "bash switch-rn-env.sh prod && expo start --clear",
+    "switch:dev": "bash switch-rn-env.sh dev",
+    "switch:prod": "bash switch-rn-env.sh prod",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
