@@ -25,35 +25,17 @@ fi
 echo "📋 Environment: $ENVIRONMENT"
 echo "📁 Remote directory: $REMOTE_DIR"
 
-echo "🔄 Preparing $ENVIRONMENT environment for packaging..."
+echo "📦 Preparing archive..."
 cd "$(dirname "$0")"
 
-# Локально используем .env.prod/.env.dev для подготовки архива
-# На сервере .env НЕ будет перезаписан - он останется как есть
-if [ "$ENVIRONMENT" = "prod" ] && [ -f ".env.prod" ]; then
-    echo "📋 Using .env.prod for local preparation"
-    cp .env.prod .env
-    echo "✅ Production .env prepared from .env.prod (will be packaged)"
-elif [ "$ENVIRONMENT" = "dev" ] && [ -f ".env.dev" ]; then
-    echo "📋 Using .env.dev for local preparation"
-    cp .env.dev .env
-    echo "✅ Development .env prepared from .env.dev (will be packaged)"
-elif [ -f "scripts/switch-env.sh" ]; then
-    # Fallback на switch-env.sh если реальных файлов нет
-    bash scripts/switch-env.sh $ENVIRONMENT
-    echo "✅ Environment switched to $ENVIRONMENT from sample"
-else
-    echo "⚠️  Warning: switch-env.sh not found, skipping environment switch"
-fi
-
 echo "📦 Creating archive..."
-# Исключаем .env.prod и .env.dev из архива (они только для локальной подготовки)
 tar --exclude='__pycache__' \
     --exclude='*.pyc' \
     --exclude='venv' \
     --exclude='.git' \
     --exclude='*.log' \
     --exclude='.pytest_cache' \
+    --exclude='.env' \
     --exclude='.env.prod' \
     --exclude='.env.dev' \
     -czf /tmp/backend.tar.gz .
@@ -62,7 +44,6 @@ echo "📤 Uploading to server..."
 scp /tmp/backend.tar.gz $SERVER_USER@$SERVER_HOST:/tmp/
 
 echo "⚙️ Extracting on server..."
-# Определяем имя PM2 процесса
 if [ "$ENVIRONMENT" = "prod" ]; then
     PM2_NAME="backend"
 else
@@ -94,27 +75,15 @@ ssh $SERVER_USER@$SERVER_HOST << ENDSSH
     export ENVIRONMENT=$ENVIRONMENT
     export DEBUG=$([ "$ENVIRONMENT" = "dev" ] && echo "true" || echo "false")
     
-    # ВАЖНО: .env файл на сервере НЕ перезаписывается!
-    # Он должен быть настроен вручную и оставаться нетронутым
+    # ВАЖНО: .env файл на сервере НЕ ТРОГАЕТСЯ ВООБЩЕ!
+    # Он должен быть настроен вручную один раз и оставаться нетронутым
     if [ ! -f "$REMOTE_DIR/$ENV_FILE" ]; then
-        echo "⚠️  Warning: $ENV_FILE not found on server!"
-        echo "   Creating from sample (you need to update it with real values!)"
-        if [ -f "$REMOTE_DIR/env.$ENVIRONMENT.sample" ]; then
-            cp "$REMOTE_DIR/env.$ENVIRONMENT.sample" "$REMOTE_DIR/$ENV_FILE"
-            echo "✅ Created $ENV_FILE from sample. ⚠️  UPDATE IT WITH REAL VALUES!"
-        else
-            echo "❌ Error: env.$ENVIRONMENT.sample not found!"
-            exit 1
-        fi
+        echo "❌ ERROR: $ENV_FILE not found on server!"
+        echo "   You must create it manually with real credentials!"
+        echo "   Use env.$ENVIRONMENT.sample as a template"
+        exit 1
     else
-        echo "✅ $ENV_FILE exists on server (preserved, not overwritten)"
-        echo "📝 Checking $ENV_FILE for critical errors only..."
-        # Исправляем только критические опечатки, не трогая остальное
-        if grep -q "^kdb_host=" "$REMOTE_DIR/$ENV_FILE" 2>/dev/null; then
-            echo "🔧 Fixing critical typo: kdb_host -> db_host"
-            sed -i 's/^kdb_host=/db_host=/' "$REMOTE_DIR/$ENV_FILE"
-        fi
-        echo "✅ $ENV_FILE checked (values preserved)"
+        echo "✅ $ENV_FILE exists on server (not touched, preserved as-is)"
     fi
     
     # Обновляем nginx конфиг только для prod
