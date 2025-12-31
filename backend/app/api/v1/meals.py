@@ -724,8 +724,12 @@ def get_daily_meals_batch(
     
     photos_by_date = {date_str: [] for date_str in date_ranges}
     for p in all_photos:
+        p_created_at = p.created_at
+        if p_created_at.tzinfo is None:
+            p_created_at = p_created_at.replace(tzinfo=timezone.utc)
+        
         for date_str, (start_utc, end_utc) in date_ranges.items():
-            if start_utc <= p.created_at < end_utc:
+            if start_utc <= p_created_at < end_utc:
                 photos_by_date[date_str].append(p)
                 break
     
