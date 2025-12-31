@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: caloriesapp
+  labels:
+    name: caloriesapp
+    environment: production
+

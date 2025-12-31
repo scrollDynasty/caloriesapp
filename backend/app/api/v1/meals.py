@@ -25,6 +25,7 @@ from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, M
 from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
 from app.services.storage import storage_service
 from app.services.ai_service import ai_service
+from app.services.cache import CacheService
 from app.utils.date_utils import get_day_range_utc
 
 logger = logging.getLogger(__name__)
@@ -202,7 +203,15 @@ async def upload_meal_photo(
         db.add(meal_photo)
         db.commit()
         db.refresh(meal_photo)
-
+        
+        # Инвалидация кэша для даты создания meal
+        if meal_photo.created_at:
+            meal_date = meal_photo.created_at.date().isoformat()
+            CacheService.delete(f"daily_meals:{current_user.id}:{meal_date}")
+            # Также инвалидируем кэш для сегодня, если meal создан сегодня
+            today = datetime.now(timezone.utc).date().isoformat()
+            if meal_date == today:
+                CacheService.delete(f"daily_meals:{current_user.id}:{today}")
 
         photo_url = f"{settings.api_domain}/api/v1/meals/photos/{meal_photo.id}"
 
@@ -299,6 +308,16 @@ def create_manual_meal(
     db.add(meal_photo)
     db.commit()
     db.refresh(meal_photo)
+    
+    # Инвалидация кэша для даты создания meal
+    if meal_photo.created_at:
+        meal_date = meal_photo.created_at.date().isoformat()
+        CacheService.delete(f"daily_meals:{current_user.id}:{meal_date}")
+        # Также инвалидируем кэш для сегодня, если meal создан сегодня
+        today = datetime.now(timezone.utc).date().isoformat()
+        if meal_date == today:
+            CacheService.delete(f"daily_meals:{current_user.id}:{today}")
+    
     return meal_photo
 
 @router.get("/meals/photos/{photo_id}", response_class=FileResponse)
@@ -553,6 +572,15 @@ def get_daily_meals(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неверный формат даты. Используйте YYYY-MM-DD"
         )
+    
+    # Попытка получить из кэша (кэш на 5 минут для текущего дня, 1 час для прошлых дней)
+    cache_key = f"daily_meals:{current_user.id}:{date}"
+    is_today = target_date == datetime.now(timezone.utc).date()
+    cache_expire = 300 if is_today else 3600  # 5 минут для сегодня, 1 час для прошлого
+    
+    cached_result = CacheService.get(cache_key)
+    if cached_result:
+        return cached_result
 
     photos = (
         db.query(MealPhoto)
@@ -654,7 +682,7 @@ def get_daily_meals(
     if health_scores:
         avg_health_score = round(sum(health_scores) / len(health_scores), 1)
 
-    return {
+    result = {
         "date": date,
         "total_calories": total_calories,
         "total_protein": total_protein,
@@ -667,6 +695,11 @@ def get_daily_meals(
         "streak_count": current_user.streak_count or 0,
         "meals": meals_data,
     }
+    
+    # Сохранение в кэш
+    CacheService.set(cache_key, result, expire=cache_expire)
+    
+    return result
 
 @router.post("/meals/daily/batch")
 def get_daily_meals_batch(
@@ -794,6 +827,11 @@ def delete_meal_photo(
             detail="Фотография не найдена"
         )
 
+    # Сохраняем дату перед удалением для инвалидации кэша
+    meal_date = None
+    if photo.created_at:
+        meal_date = photo.created_at.date().isoformat()
+    
     if photo.file_path and photo.file_path != "manual" and photo.mime_type != "manual":
         try:
             storage_service.delete_file(photo.file_path)
@@ -802,6 +840,14 @@ def delete_meal_photo(
 
     db.delete(photo)
     db.commit()
+    
+    # Инвалидация кэша для даты удаленного meal
+    if meal_date:
+        CacheService.delete(f"daily_meals:{current_user.id}:{meal_date}")
+        # Также инвалидируем кэш для сегодня, если meal был создан сегодня
+        today = datetime.now(timezone.utc).date().isoformat()
+        if meal_date == today:
+            CacheService.delete(f"daily_meals:{current_user.id}:{today}")
 
     return None
 

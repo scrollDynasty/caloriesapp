@@ -51,6 +51,12 @@ class Settings(BaseSettings):
     
     max_file_size_mb: int = 10
     allowed_file_types: List[str] = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]
+    
+    # Redis Configuration
+    redis_host: str = os.getenv("REDIS_HOST", "localhost")
+    redis_port: int = int(os.getenv("REDIS_PORT", "6379"))
+    redis_db: int = int(os.getenv("REDIS_DB", "0"))
+    redis_password: str = os.getenv("REDIS_PASSWORD", "")
 
     @property
     def database_url(self) -> str:
