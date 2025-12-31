@@ -102,15 +102,31 @@ jobs:
           ssh scroll@api.yeb-ich.com << 'ENDSSH'
             set -e
             
-            # Определяем правильный путь к backend
-            BACKEND_DIR="/home/scroll/backend"
-            if [ ! -d "$BACKEND_DIR" ]; then
-              echo "[ERROR] Backend directory not found at $BACKEND_DIR!"
-              exit 1
+            # Ищем директорию backend
+            echo "[INFO] Searching for backend directory..."
+            
+            # Проверяем возможные пути
+            if [ -d "/home/scroll/backend" ]; then
+              BACKEND_DIR="/home/scroll/backend"
+            elif [ -d "/home/scroll/prj/caloriesapp/backend" ]; then
+              BACKEND_DIR="/home/scroll/prj/caloriesapp/backend"
+            elif [ -d "/home/scroll/prj/backend" ]; then
+              BACKEND_DIR="/home/scroll/prj/backend"
+            else
+              # Ищем директорию с ecosystem.config.js
+              BACKEND_DIR=$(find /home/scroll -name "ecosystem.config.js" -type f 2>/dev/null | head -1 | xargs dirname)
+              if [ -z "$BACKEND_DIR" ] || [ ! -d "$BACKEND_DIR" ]; then
+                echo "[ERROR] Backend directory not found! Searched in:"
+                echo "  - /home/scroll/backend"
+                echo "  - /home/scroll/prj/caloriesapp/backend"
+                echo "  - /home/scroll/prj/backend"
+                echo "  - searched for ecosystem.config.js in /home/scroll"
+                exit 1
+              fi
             fi
             
             cd "$BACKEND_DIR"
-            echo "[INFO] Working directory: $(pwd)"
+            echo "[INFO] Found backend at: $(pwd)"
             
             echo "[INFO] Pulling latest code from master..."
             git fetch origin master
@@ -176,15 +192,31 @@ jobs:
           ssh scroll@api.yeb-ich.com << 'ENDSSH'
             set -e
             
-            # Определяем правильный путь к backend
-            BACKEND_DIR="/home/scroll/backend"
-            if [ ! -d "$BACKEND_DIR" ]; then
-              echo "[ERROR] Backend directory not found at $BACKEND_DIR!"
-              exit 1
+            # Ищем директорию backend
+            echo "[INFO] Searching for backend directory..."
+            
+            # Проверяем возможные пути
+            if [ -d "/home/scroll/backend" ]; then
+              BACKEND_DIR="/home/scroll/backend"
+            elif [ -d "/home/scroll/prj/caloriesapp/backend" ]; then
+              BACKEND_DIR="/home/scroll/prj/caloriesapp/backend"
+            elif [ -d "/home/scroll/prj/backend" ]; then
+              BACKEND_DIR="/home/scroll/prj/backend"
+            else
+              # Ищем директорию с ecosystem.config.js
+              BACKEND_DIR=$(find /home/scroll -name "ecosystem.config.js" -type f 2>/dev/null | head -1 | xargs dirname)
+              if [ -z "$BACKEND_DIR" ] || [ ! -d "$BACKEND_DIR" ]; then
+                echo "[ERROR] Backend directory not found! Searched in:"
+                echo "  - /home/scroll/backend"
+                echo "  - /home/scroll/prj/caloriesapp/backend"
+                echo "  - /home/scroll/prj/backend"
+                echo "  - searched for ecosystem.config.js in /home/scroll"
+                exit 1
+              fi
             fi
             
             cd "$BACKEND_DIR"
-            echo "[INFO] Working directory: $(pwd)"
+            echo "[INFO] Found backend at: $(pwd)"
             
             echo "[INFO] Pulling latest code from development..."
             git fetch origin development
