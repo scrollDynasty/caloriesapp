@@ -1,4 +1,3 @@
-
 import sys
 import os
 
@@ -8,7 +7,7 @@ try:
     from app.core.config import settings
     from app.core.database import engine
 
-    print("Проверка подключения к базе данных...")
+    print("Checking database connection...")
     print(f"Host: {settings.db_host}")
     print(f"Port: {settings.db_port}")
     print(f"Database: {settings.db_name}")
@@ -17,28 +16,28 @@ try:
     from sqlalchemy import text
     with engine.connect() as conn:
         result = conn.execute(text("SELECT 1"))
-        print("✓ Подключение к базе данных успешно!")
+        print("Database connection successful!")
 
         result = conn.execute(text("SELECT DATABASE()"))
         db_name = result.scalar()
         if db_name:
-            print(f"✓ Используется база данных: {db_name}")
+            print(f"Using database: {db_name}")
         else:
-            print("⚠ База данных не выбрана")
+            print("No database selected")
 
         result = conn.execute(text("SHOW TABLES"))
         tables = [row[0] for row in result]
         if tables:
-            print(f"✓ Найдено таблиц: {len(tables)}")
+            print(f"Found tables: {len(tables)}")
             for table in tables:
                 print(f"  - {table}")
         else:
-            print("⚠ Таблицы не найдены. Запустите приложение для их создания.")
+            print("No tables found. Run the application to create them.")
 
 except Exception as e:
-    print(f"✗ Ошибка подключения: {e}")
-    print("\nУбедитесь, что:")
-    print("1. MariaDB/MySQL запущен")
-    print("2. База данных создана")
-    print("3. Параметры в .env файле правильные")
+    print(f"Connection error: {e}")
+    print("\nMake sure:")
+    print("1. MariaDB/MySQL is running")
+    print("2. Database is created")
+    print("3. .env file parameters are correct")
     sys.exit(1)

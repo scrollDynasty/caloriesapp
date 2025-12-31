@@ -116,8 +116,8 @@ async def auth_google_callback(
                 if "redirect_uri_mismatch" in error_description.lower() or error_code == "redirect_uri_mismatch":
                     redirect_uri = state or "caloriesapp://auth/callback"
                     error_msg = (
-                        f"redirect_uri_mismatch: URI '{callback_redirect_uri}' не зарегистрирован. "
-                        f"Добавьте этот URI в Google Cloud Console → Credentials → Authorized redirect URIs"
+                        f"redirect_uri_mismatch: URI '{callback_redirect_uri}' is not registered. "
+                        f"Add this URI in Google Cloud Console → Credentials → Authorized redirect URIs"
                     )
 
                     error_encoded = quote(error_msg)
@@ -242,7 +242,7 @@ async def update_profile(
         if not re.match(r'^[a-z0-9_]+$', username):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username может содержать только латинские буквы, цифры и подчёркивания",
+                detail="Username can only contain letters, numbers and underscores",
             )
         
         existing_user = db.query(User).filter(
@@ -253,7 +253,7 @@ async def update_profile(
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Это имя пользователя уже занято",
+                detail="Username already taken",
             )
         
         current_user.username = username
@@ -287,14 +287,14 @@ async def check_username_availability(
         return UsernameCheckResponse(
             username=username,
             available=False,
-            message="Username может содержать только латинские буквы, цифры и подчёркивания",
+            message="Username can only contain letters, numbers and underscores",
         )
     
     if len(username) < 3:
         return UsernameCheckResponse(
             username=username,
             available=False,
-            message="Username должен быть минимум 3 символа",
+            message="Username must be at least 3 characters",
         )
     
     existing_user = db.query(User).filter(
@@ -306,13 +306,13 @@ async def check_username_availability(
         return UsernameCheckResponse(
             username=username,
             available=False,
-            message="Это имя пользователя уже занято",
+            message="Username already taken",
         )
     
     return UsernameCheckResponse(
         username=username,
         available=True,
-        message="Имя пользователя доступно",
+        message="Username available",
     )
 
 
@@ -331,7 +331,7 @@ async def upload_avatar(
     if not file.content_type or file.content_type not in allowed_mime_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неподдерживаемый тип файла"
+            detail="Unsupported file type"
         )
     
     original_filename = file.filename or "avatar"
@@ -348,13 +348,13 @@ async def upload_avatar(
         if not validate_file_size(file_size, max_size_mb=settings.max_file_size_mb):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Файл слишком большой. Максимальный размер: {settings.max_file_size_mb}MB"
+                detail=f"File too large. Maximum size: {settings.max_file_size_mb}MB"
             )
         
         if not validate_file_content(contents, file.content_type):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Файл не соответствует заявленному типу"
+                detail="File does not match declared type"
             )
         
         await file.close()
@@ -372,11 +372,11 @@ async def upload_avatar(
         
         return {
             "avatar_url": file_url,
-            "message": "Аватар успешно загружен"
+            "message": "Avatar uploaded successfully"
         }
         
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Ошибка при загрузке аватара"
+            detail="Error uploading avatar"
         )

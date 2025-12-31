@@ -108,7 +108,7 @@ async def upload_meal_photo(
     if not file.content_type or file.content_type not in allowed_mime_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неподдерживаемый тип файла"
+            detail="Unsupported file type"
         )
 
     barcode_value = barcode.strip() if barcode and barcode.strip() else None
@@ -128,13 +128,13 @@ async def upload_meal_photo(
         if not validate_file_size(file_size, max_size_mb=settings.max_file_size_mb):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Файл слишком большой. Максимальный размер: {settings.max_file_size_mb}MB"
+                detail=f"File too large. Maximum size: {settings.max_file_size_mb}MB"
             )
         
         if not validate_file_content(contents, file.content_type):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Файл не соответствует заявленному типу"
+                detail="File does not match declared type"
             )
         
         await file.close()
@@ -224,7 +224,7 @@ async def upload_meal_photo(
                 pass
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ошибка при сохранении файла: {str(e)}"
+            detail=f"Error saving file: {str(e)}"
         )
 
 @router.get("/meals/photos", response_model=List[MealPhotoResponse])
@@ -345,13 +345,13 @@ def get_meal_photo(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фотография не найдена"
+            detail="Photo not found"
         )
 
     if photo.mime_type == "manual" or photo.file_path in (None, "", "manual"):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Файл отсутствует для ручной записи"
+            detail="File missing for manual entry"
         )
 
     from fastapi.responses import RedirectResponse
@@ -373,7 +373,7 @@ def get_meal_photo_detail(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фотография не найдена"
+            detail="Photo not found"
         )
 
     photo_url = None
@@ -443,14 +443,14 @@ async def lookup_barcode(
     if not code:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Некорректный штрихкод",
+            detail="Invalid barcode",
         )
 
     product = await fetch_openfoodfacts_product(code)
     if not product:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Продукт не найден",
+            detail="Product not found",
         )
 
     nutriments = product.get("nutriments", {}) if isinstance(product, dict) else {}
@@ -464,8 +464,8 @@ async def lookup_barcode(
             return None
 
     base_data = {
-        "barcode": code,
-        "name": product.get("product_name") or product.get("generic_name") or "Продукт",
+        "barcode": code,    
+        "name": product.get("product_name") or product.get("generic_name") or "Product",
         "brand": product.get("brands"),
         "calories": _num(
             nutriments.get("energy-kcal_100g")
@@ -518,7 +518,7 @@ def confirm_meal_photo(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фотография не найдена"
+            detail="Photo not found"
         )
 
     if meal_name is not None:
@@ -539,8 +539,8 @@ def confirm_meal_photo(
 
 @router.get("/meals/daily")
 def get_daily_meals(
-    date: str = Query(..., description="Дата в формате YYYY-MM-DD"),
-    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
+    date: str = Query(..., description="Date in YYYY-MM-DD format"),
+    tz_offset_minutes: int = Query(0, description="Client timezone offset in minutes from UTC (getTimezoneOffset * -1)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -550,7 +550,7 @@ def get_daily_meals(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неверный формат даты. Используйте YYYY-MM-DD"
+            detail="Invalid date format. Use YYYY-MM-DD"
         )
     
     photos = (
@@ -646,7 +646,7 @@ def get_daily_meals(
         
         meals_data.append({
             "id": p.id,
-            "name": p.meal_name or p.detected_meal_name or "Блюдо",
+            "name": p.meal_name or p.detected_meal_name or "Meal",
             "time": p.created_at.astimezone(tz).strftime("%H:%M"),
             "calories": p.calories or 0,
             "protein": p.protein or 0,
@@ -682,7 +682,7 @@ def get_daily_meals(
 @router.post("/meals/daily/batch")
 def get_daily_meals_batch(
     payload: dict = Body(..., example={"dates": ["2025-12-10", "2025-12-11"]}),
-    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
+    tz_offset_minutes: int = Query(0, description="Client timezone offset in minutes from UTC (getTimezoneOffset * -1)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -765,7 +765,7 @@ def get_daily_meals_batch(
             
             meals_data.append({
                 "id": p.id,
-                "name": p.meal_name or p.detected_meal_name or "Блюдо",
+                "name": p.meal_name or p.detected_meal_name or "Meal",
                 "time": p.created_at.astimezone(tz).strftime("%H:%M"),
                 "calories": p.calories or 0,
                 "protein": p.protein or 0,
@@ -811,7 +811,7 @@ def update_meal_photo(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фотография не найдена"
+            detail="Photo not found"
         )
 
     if payload.meal_name is not None:
@@ -843,7 +843,7 @@ def delete_meal_photo(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фотография не найдена"
+            detail="Photo not found"
         )
 
     meal_date = None
@@ -877,7 +877,7 @@ async def add_meal_ingredient(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фотография не найдена"
+            detail="Photo not found"
         )
     
     current_ingredients = []
@@ -889,7 +889,7 @@ async def add_meal_ingredient(
             current_ingredients = []
     
     new_ingredient = {
-        "name": ingredient.get("name", "Ингредиент"),
+        "name": ingredient.get("name", "Ingredient"),
         "calories": ingredient.get("calories", 0)
     }
     current_ingredients.append(new_ingredient)
@@ -918,13 +918,13 @@ async def correct_meal_with_ai(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фотография не найдена"
+            detail="Photo not found"
         )
     
     if not ai_service.is_configured:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="AI сервис недоступен"
+            detail="AI service unavailable"
         )
 
     correction_text = correction_request.get("correction", "")
@@ -932,7 +932,7 @@ async def correct_meal_with_ai(
     if not correction_text:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Не указано, что нужно исправить"
+            detail="No correction specified"
         )
     
     current_data = {
@@ -953,7 +953,7 @@ async def correct_meal_with_ai(
         if not corrected:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Не удалось обработать коррекцию"
+                detail="Failed to process correction"
             )
 
         if corrected.get("name"):
@@ -1010,13 +1010,13 @@ async def correct_meal_with_ai(
         pass
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ошибка при исправлении: {str(e)}"
+            detail=f"Error correcting: {str(e)}"
         )
 
 @router.post("/water", response_model=WaterEntry, status_code=status.HTTP_201_CREATED)
 def add_water(
     payload: WaterCreate,
-    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC"),
+    tz_offset_minutes: int = Query(0, description="Client timezone offset in minutes from UTC"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1042,8 +1042,8 @@ def add_water(
 
 @router.get("/water/daily", response_model=WaterDailyResponse)
 def get_water_daily(
-    date: str = Query(..., description="Дата в формате YYYY-MM-DD"),
-    tz_offset_minutes: int = Query(0, description="Смещение клиента в минутах от UTC (getTimezoneOffset * -1)"),
+    date: str = Query(..., description="Date in YYYY-MM-DD format"),
+    tz_offset_minutes: int = Query(0, description="Client timezone offset in minutes from UTC (getTimezoneOffset * -1)"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -1054,7 +1054,7 @@ def get_water_daily(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неверный формат даты. Используйте YYYY-MM-DD"
+            detail="Invalid date format. Use YYYY-MM-DD"
         )
 
     offset = timedelta(minutes=tz_offset_minutes)
@@ -1098,7 +1098,7 @@ async def generate_recipe(
     if not user_request:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Опишите желаемый рецепт"
+            detail="Describe desired recipe"
         )
     
     recipe_data = await ai_service.generate_recipe(user_request)
@@ -1106,7 +1106,7 @@ async def generate_recipe(
     if not recipe_data:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Не удалось сгенерировать рецепт"
+            detail="Failed to generate recipe"
         )
     
     created_at = datetime.now(timezone.utc)
@@ -1135,7 +1135,7 @@ async def generate_recipe(
     
     try:
         recipe_db = Recipe(
-            name=recipe_data.get("name", "Рецепт"),
+            name=recipe_data.get("name", "Recipe"),
             description=recipe_data.get("description", ""),
             image_url=image_url,
             calories=recipe_data.get("calories", 0) or 0,
@@ -1147,8 +1147,8 @@ async def generate_recipe(
             sodium=recipe_data.get("sodium"),
             health_score=health_score_int,
             time_minutes=recipe_data.get("time"),
-            difficulty=recipe_data.get("difficulty", "Легко"),
-            meal_type=recipe_data.get("meal_type", "перекус"),
+            difficulty=recipe_data.get("difficulty", "Easy"),
+            meal_type=recipe_data.get("meal_type", "snack"),
             ingredients_json=json.dumps(recipe_data.get("ingredients", []), ensure_ascii=False),
             instructions_json=json.dumps(recipe_data.get("instructions", []), ensure_ascii=False),
             created_by_user_id=current_user.id,
@@ -1190,7 +1190,7 @@ async def generate_recipe(
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Ошибка при сохранении рецепта: {str(e)}"
+            detail=f"Error saving recipe: {str(e)}"
         )
     
     return {
@@ -1265,7 +1265,7 @@ def search_recipes(
     if not q or len(q) < 2:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Запрос должен содержать минимум 2 символа"
+            detail="Query must contain at least 2 characters"
         )
     
     search_pattern = f"%{q}%"
@@ -1313,7 +1313,7 @@ def get_recipe(
     if not recipe:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Рецепт не найден"
+            detail="Recipe not found"
         )
     
     return {
@@ -1348,7 +1348,7 @@ def track_recipe_view(
     if not recipe:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Рецепт не найден"
+            detail="Recipe not found"
         )
     
     recipe.usage_count = (recipe.usage_count or 0) + 1
@@ -1370,7 +1370,7 @@ def use_recipe(
     if not recipe:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Рецепт не найден"
+            detail="Recipe not found"
         )
     
     recipe.usage_count = (recipe.usage_count or 0) + 1

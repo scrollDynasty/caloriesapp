@@ -1,45 +1,20 @@
 #!/bin/bash
 
-# =============================================================================
-# Скрипт запуска backend через PM2
-# =============================================================================
-
 cd "$(dirname "$0")/.."
 
-echo "🚀 Запуск CaloriesApp Backend через PM2"
-echo "========================================="
-
-# 1. Проверка PM2
 if ! command -v pm2 &> /dev/null; then
-    echo "❌ PM2 не установлен!"
-    echo "   Установите: npm install -g pm2"
+    echo "PM2 not installed. Install: npm install -g pm2"
     exit 1
 fi
 
-# 2. Проверка .env
 if [ ! -f .env ]; then
-    echo "❌ Файл .env не найден!"
+    echo ".env file not found"
     exit 1
 fi
 
-# 3. Создаем директорию для логов
 mkdir -p logs
-
-# 4. Запуск через PM2
-echo ""
-echo "1️⃣ Запуск через PM2..."
 pm2 start ecosystem.config.js
-
-# 5. Сохраняем конфигурацию PM2
 pm2 save
 
-echo ""
-echo "✅ Backend запущен!"
-echo ""
-echo "📝 Полезные команды:"
-echo "   pm2 status                    # Статус"
-echo "   pm2 logs caloriesapp-backend # Логи"
-echo "   pm2 monit                     # Мониторинг"
-echo "   pm2 restart caloriesapp-backend # Перезапуск"
-echo "   pm2 stop caloriesapp-backend  # Остановка"
-
+echo "Backend started"
+echo "Commands: pm2 status, pm2 logs caloriesapp-backend, pm2 restart caloriesapp-backend"

@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     yandex_storage_region: str = "ru-central1"
 
     admin_username: str = "admin"
-    admin_password: str = "19790102Ss.."
+    admin_password: str = ""
     
     rate_limit_per_minute: int = 60
     rate_limit_per_hour: int = 1000
@@ -69,19 +69,19 @@ class Settings(BaseSettings):
         errors = []
         
         if not self.jwt_secret_key or len(self.jwt_secret_key) < 32:
-            errors.append("JWT_SECRET_KEY должен быть минимум 32 символа")
+            errors.append("JWT_SECRET_KEY must be at least 32 characters")
         
         if self.jwt_secret_key == "replace_me_with_secure_random_string_64_chars":
-            errors.append("JWT_SECRET_KEY не должен быть дефолтным значением")
+            errors.append("JWT_SECRET_KEY must not be default value")
         
         if self.environment == "production" and self.debug:
-            errors.append("DEBUG не должен быть включен в production")
+            errors.append("DEBUG must not be enabled in production")
         
-        if self.admin_password == "admin123":
-            errors.append("ADMIN_PASSWORD не должен быть дефолтным")
+        if not self.admin_password:
+            errors.append("ADMIN_PASSWORD must be set")
         
         if errors:
-            error_msg = "Ошибки конфигурации безопасности:\n" + "\n".join(f"  - {e}" for e in errors)
+            error_msg = "Security configuration errors:\n" + "\n".join(f"  - {e}" for e in errors)
             if self.environment == "production":
                 raise ValueError(error_msg)
             else:
@@ -99,7 +99,7 @@ try:
     settings.validate_security()
 except ValueError as e:
     if settings.environment == "production":
-        print(f"КРИТИЧЕСКАЯ ОШИБКА БЕЗОПАСНОСТИ: {e}", file=sys.stderr)
+        print(f"CRITICAL SECURITY ERROR: {e}", file=sys.stderr)
         sys.exit(1)
     else:
-        print(f"Предупреждение безопасности: {e}")
+        print(f"Security warning: {e}")

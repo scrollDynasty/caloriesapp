@@ -188,7 +188,7 @@ class AIService:
             product_name = (
                 product_data.get("product_name") or 
                 product_data.get("generic_name") or 
-                "Продукт"
+                "Product"
             )
             
             system_prompt = (
@@ -330,9 +330,9 @@ class AIService:
                 return None
             
             return {
-                "name": extracted.get("name", "Рецепт"),
+                "name": extracted.get("name", "Recipe"),
                 "description": extracted.get("description", ""),
-                "meal_type": extracted.get("meal_type", "перекус"),
+                "meal_type": extracted.get("meal_type", "snack"),
                 "calories": _parse_number(extracted.get("calories")),
                 "protein": _parse_number(extracted.get("protein")),
                 "fat": _parse_number(extracted.get("fat")),
@@ -342,7 +342,7 @@ class AIService:
                 "sodium": _parse_number(extracted.get("sodium")),
                 "health_score": _parse_number(extracted.get("health_score")),
                 "time": _parse_number(extracted.get("time")),
-                "difficulty": extracted.get("difficulty", "Легко"),
+                "difficulty": extracted.get("difficulty", "Easy"),
                 "ingredients": extracted.get("ingredients", []),
                 "instructions": extracted.get("instructions", []),
             }

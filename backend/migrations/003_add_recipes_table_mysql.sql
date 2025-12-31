@@ -1,4 +1,3 @@
--- Создание таблицы рецептов для MySQL/MariaDB
 CREATE TABLE IF NOT EXISTS recipes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -35,7 +34,6 @@ CREATE TABLE IF NOT EXISTS recipes (
     INDEX idx_recipes_created_by (created_by_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Добавление связи с рецептами в meal_photos (если колонка не существует)
 SET @dbname = DATABASE();
 SET @tablename = 'meal_photos';
 SET @columnname = 'recipe_id';
@@ -53,4 +51,3 @@ SET @preparedStatement = (SELECT IF(
 PREPARE alterIfNotExists FROM @preparedStatement;
 EXECUTE alterIfNotExists;
 DEALLOCATE PREPARE alterIfNotExists;
-

@@ -61,7 +61,7 @@ def add_weight(
 
 @router.get("/weight/history", response_model=List[WeightLogResponse])
 def get_weight_history(
-    limit: int = Query(100, description="Максимальное количество записей"),
+    limit: int = Query(100, description="Maximum number of records"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -194,7 +194,7 @@ async def upload_progress_photo(
     if not file.content_type or file.content_type not in allowed_mime_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неподдерживаемый тип файла"
+            detail="Unsupported file type"
         )
     
     original_filename = file.filename or "photo"
@@ -209,13 +209,13 @@ async def upload_progress_photo(
     if not validate_file_size(file_size, max_size_mb=settings.max_file_size_mb):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Файл слишком большой. Максимальный размер: {settings.max_file_size_mb}MB"
+            detail=f"File too large. Maximum size: {settings.max_file_size_mb}MB"
         )
     
     if not validate_file_content(content, file.content_type):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Файл не соответствует заявленному типу"
+            detail="File does not match declared type"
         )
     
     file_url = storage_service.upload_file(
@@ -271,7 +271,7 @@ def get_progress_photo(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фото не найдено"
+            detail="Photo not found"
         )
     
     from fastapi.responses import RedirectResponse
@@ -293,7 +293,7 @@ def delete_progress_photo(
     if not photo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Фото не найдено"
+            detail="Photo not found"
         )
     
     try:

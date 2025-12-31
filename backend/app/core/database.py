@@ -40,7 +40,7 @@ def init_db():
         tables = inspector.get_table_names()
         if "recipes" not in tables:
             Recipe.__table__.create(bind=engine, checkfirst=True)
-            print("Таблица recipes создана")
+            print("Recipes table created")
         
         columns = {col["name"] for col in inspector.get_columns("meal_photos")}
         alters = []

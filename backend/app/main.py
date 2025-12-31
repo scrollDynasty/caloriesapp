@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Calories App API",
-    description="API для приложения подсчета калорий",
+    description="Calories tracking application API",
     version="1.0.0",
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
@@ -98,9 +98,8 @@ async def startup_event():
     print(f"Database: {settings.db_name}@{settings.db_host}")
     if admin_enabled:
         print(f"Admin panel: http://{settings.host}:{settings.port}/admin/")
-        print(f"Admin credentials: username={settings.admin_username}, password={settings.admin_password}")
     else:
-        print("Admin panel: disabled (compatibility issue)")
+        print("Admin panel: disabled")
 
 
 @app.on_event("shutdown")
