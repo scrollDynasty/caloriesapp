@@ -1,10 +1,4 @@
--- Simple migration to add CASCADE delete to foreign keys
--- Run this migration to fix the issue with user deletion
 
--- First, find and drop existing foreign keys
--- Then recreate them with CASCADE
-
--- For meal_photos
 ALTER TABLE meal_photos DROP FOREIGN KEY IF EXISTS meal_photos_ibfk_1;
 ALTER TABLE meal_photos DROP FOREIGN KEY IF EXISTS meal_photos_user_id_fk;
 

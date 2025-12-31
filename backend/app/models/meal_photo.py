@@ -1,10 +1,15 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Index
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, backref
 from app.core.database import Base
 
 class MealPhoto(Base):
     __tablename__ = "meal_photos"
+    
+    __table_args__ = (
+        Index('ix_meal_photos_user_date', 'user_id', 'created_at'),
+        Index('ix_meal_photos_user_barcode', 'user_id', 'barcode'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)

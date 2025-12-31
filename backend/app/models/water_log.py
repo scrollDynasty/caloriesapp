@@ -1,10 +1,14 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, Index
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, backref
 from app.core.database import Base
 
 class WaterLog(Base):
     __tablename__ = "water_logs"
+    
+    __table_args__ = (
+        Index('ix_water_logs_user_date', 'user_id', 'created_at'),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)

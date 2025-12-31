@@ -25,7 +25,6 @@ from app.schemas.meal_photo import MealPhotoUploadResponse, MealPhotoResponse, M
 from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
 from app.services.storage import storage_service
 from app.services.ai_service import ai_service
-from app.services.cache import CacheService
 from app.utils.date_utils import get_day_range_utc
 
 logger = logging.getLogger(__name__)
@@ -203,16 +202,6 @@ async def upload_meal_photo(
         db.add(meal_photo)
         db.commit()
         db.refresh(meal_photo)
-        
-        # Инвалидация кэша для даты создания meal
-        if meal_photo.created_at:
-            meal_date = meal_photo.created_at.date().isoformat()
-            CacheService.delete(f"daily_meals:{current_user.id}:{meal_date}")
-            # Также инвалидируем кэш для сегодня, если meal создан сегодня
-            today = datetime.now(timezone.utc).date().isoformat()
-            if meal_date == today:
-                CacheService.delete(f"daily_meals:{current_user.id}:{today}")
-
         photo_url = f"{settings.api_domain}/api/v1/meals/photos/{meal_photo.id}"
 
         return MealPhotoUploadResponse(
@@ -308,15 +297,6 @@ def create_manual_meal(
     db.add(meal_photo)
     db.commit()
     db.refresh(meal_photo)
-    
-    # Инвалидация кэша для даты создания meal
-    if meal_photo.created_at:
-        meal_date = meal_photo.created_at.date().isoformat()
-        CacheService.delete(f"daily_meals:{current_user.id}:{meal_date}")
-        # Также инвалидируем кэш для сегодня, если meal создан сегодня
-        today = datetime.now(timezone.utc).date().isoformat()
-        if meal_date == today:
-            CacheService.delete(f"daily_meals:{current_user.id}:{today}")
     
     return meal_photo
 
@@ -573,15 +553,6 @@ def get_daily_meals(
             detail="Неверный формат даты. Используйте YYYY-MM-DD"
         )
     
-    # Попытка получить из кэша (кэш на 5 минут для текущего дня, 1 час для прошлых дней)
-    cache_key = f"daily_meals:{current_user.id}:{date}"
-    is_today = target_date == datetime.now(timezone.utc).date()
-    cache_expire = 300 if is_today else 3600  # 5 минут для сегодня, 1 час для прошлого
-    
-    cached_result = CacheService.get(cache_key)
-    if cached_result:
-        return cached_result
-
     photos = (
         db.query(MealPhoto)
         .filter(
@@ -593,23 +564,33 @@ def get_daily_meals(
         .all()
     )
 
-    total_calories = sum(p.calories or 0 for p in photos)
-    total_protein = sum(p.protein or 0 for p in photos)
-    total_fat = sum(p.fat or 0 for p in photos)
-    total_carbs = sum(p.carbs or 0 for p in photos)
-    total_fiber = sum(p.fiber or 0 for p in photos)
-    total_sugar = sum(p.sugar or 0 for p in photos)
-    total_sodium = sum(p.sodium or 0 for p in photos)
+    total_calories = 0
+    total_protein = 0
+    total_fat = 0
+    total_carbs = 0
+    total_fiber = 0
+    total_sugar = 0
+    total_sodium = 0
+    
+    for p in photos:
+        total_calories += p.calories or 0
+        total_protein += p.protein or 0
+        total_fat += p.fat or 0
+        total_carbs += p.carbs or 0
+        total_fiber += p.fiber or 0
+        total_sugar += p.sugar or 0
+        total_sodium += p.sodium or 0
 
-    target_calories = None
-    onboarding = (
-        db.query(OnboardingData)
-        .filter(OnboardingData.user_id == current_user.id, OnboardingData.target_calories != None)
+    target_calories = (
+        db.query(OnboardingData.target_calories)
+        .filter(
+            OnboardingData.user_id == current_user.id,
+            OnboardingData.target_calories.isnot(None)
+        )
         .order_by(OnboardingData.id.desc())
-        .first()
+        .limit(1)
+        .scalar()
     )
-    if onboarding:
-        target_calories = onboarding.target_calories
 
     streak_count = current_user.streak_count or 0
     last_streak_date = current_user.last_streak_date.date() if current_user.last_streak_date else None
@@ -696,9 +677,6 @@ def get_daily_meals(
         "meals": meals_data,
     }
     
-    # Сохранение в кэш
-    CacheService.set(cache_key, result, expire=cache_expire)
-    
     return result
 
 @router.post("/meals/daily/batch")
@@ -709,71 +687,108 @@ def get_daily_meals_batch(
     db: Session = Depends(get_db),
 ):
     dates: list = payload.get("dates") or []
-    results = []
-
+    if not dates:
+        return []
+    
+    dates = dates[:31] 
+    
+    date_ranges = {}
+    min_start = None
+    max_end = None
+    tz = None
+    
     for date_str in dates:
-      try:
-          start_utc, end_utc, tz = get_day_range_utc(date_str, tz_offset_minutes)
-      except ValueError:
-          continue
+        try:
+            start_utc, end_utc, tz = get_day_range_utc(date_str, tz_offset_minutes)
+            date_ranges[date_str] = (start_utc, end_utc)
+            if min_start is None or start_utc < min_start:
+                min_start = start_utc
+            if max_end is None or end_utc > max_end:
+                max_end = end_utc
+        except ValueError:
+            continue
+    
+    if not date_ranges:
+        return []
+    
+    all_photos = (
+        db.query(MealPhoto)
+        .filter(
+            MealPhoto.user_id == current_user.id,
+            MealPhoto.created_at >= min_start,
+            MealPhoto.created_at < max_end,
+        )
+        .order_by(MealPhoto.created_at.desc())
+        .all()
+    )
+    
+    photos_by_date = {date_str: [] for date_str in date_ranges}
+    for p in all_photos:
+        for date_str, (start_utc, end_utc) in date_ranges.items():
+            if start_utc <= p.created_at < end_utc:
+                photos_by_date[date_str].append(p)
+                break
+    
+    results = []
+    for date_str in dates:
+        if date_str not in date_ranges:
+            continue
+        
+        photos = photos_by_date.get(date_str, [])
+        
+        total_calories = 0
+        total_protein = 0
+        total_fat = 0
+        total_carbs = 0
+        total_fiber = 0
+        total_sugar = 0
+        total_sodium = 0
+        meals_data = []
+        health_scores = []
+        
+        for p in photos:
+            total_calories += p.calories or 0
+            total_protein += p.protein or 0
+            total_fat += p.fat or 0
+            total_carbs += p.carbs or 0
+            total_fiber += p.fiber or 0
+            total_sugar += p.sugar or 0
+            total_sodium += p.sodium or 0
+            
+            meal_score = p.health_score
+            if meal_score is not None:
+                health_scores.append(meal_score)
+            
+            meals_data.append({
+                "id": p.id,
+                "name": p.meal_name or p.detected_meal_name or "Блюдо",
+                "time": p.created_at.astimezone(tz).strftime("%H:%M"),
+                "calories": p.calories or 0,
+                "protein": p.protein or 0,
+                "carbs": p.carbs or 0,
+                "fats": p.fat or 0,
+                "fiber": p.fiber or 0,
+                "sugar": p.sugar or 0,
+                "sodium": p.sodium or 0,
+                "health_score": meal_score,
+            })
+        
+        avg_health_score = None
+        if health_scores:
+            avg_health_score = round(sum(health_scores) / len(health_scores), 1)
 
-      photos = (
-          db.query(MealPhoto)
-          .filter(
-              MealPhoto.user_id == current_user.id,
-              MealPhoto.created_at >= start_utc,
-              MealPhoto.created_at < end_utc,
-          )
-          .order_by(MealPhoto.created_at.desc())
-          .all()
-      )
-
-      total_calories = sum(p.calories or 0 for p in photos)
-      total_protein = sum(p.protein or 0 for p in photos)
-      total_fat = sum(p.fat or 0 for p in photos)
-      total_carbs = sum(p.carbs or 0 for p in photos)
-      total_fiber = sum(p.fiber or 0 for p in photos)
-      total_sugar = sum(p.sugar or 0 for p in photos)
-      total_sodium = sum(p.sodium or 0 for p in photos)
-
-      meals_data = []
-      health_scores = []
-      
-      for p in photos:
-          meal_score = p.health_score
-          if meal_score is not None:
-              health_scores.append(meal_score)
-          
-          meals_data.append({
-              "id": p.id,
-              "name": p.meal_name or p.detected_meal_name or "Блюдо",
-              "time": p.created_at.astimezone(tz).strftime("%H:%M"),
-              "calories": p.calories or 0,
-              "protein": p.protein or 0,
-              "carbs": p.carbs or 0,
-              "fats": p.fat or 0,
-              "fiber": p.fiber or 0,
-              "sugar": p.sugar or 0,
-              "sodium": p.sodium or 0,
-              "health_score": meal_score,
-          })
-      
-      avg_health_score = None
-      if health_scores:
-          avg_health_score = round(sum(health_scores) / len(health_scores), 1)
-
-      results.append({
-          "date": date_str,
-          "total_calories": total_calories,
-          "total_protein": total_protein,
-          "total_fat": total_fat,
-          "total_carbs": total_carbs,
-          "total_fiber": total_fiber,
-          "total_sugar": total_sugar,
-          "total_sodium": total_sodium,
-          "health_score": avg_health_score,
-          "meals": meals_data,
-      })
+        results.append({
+            "date": date_str,
+            "total_calories": total_calories,
+            "total_protein": total_protein,
+            "total_fat": total_fat,
+            "total_carbs": total_carbs,
+            "total_fiber": total_fiber,
+            "total_sugar": total_sugar,
+            "total_sodium": total_sodium,
+            "health_score": avg_health_score,
+            "meals": meals_data,
+        })
 
     return results
 
@@ -827,7 +842,6 @@ def delete_meal_photo(
             detail="Фотография не найдена"
         )
 
-    # Сохраняем дату перед удалением для инвалидации кэша
     meal_date = None
     if photo.created_at:
         meal_date = photo.created_at.date().isoformat()
@@ -841,14 +855,6 @@ def delete_meal_photo(
     db.delete(photo)
     db.commit()
     
-    # Инвалидация кэша для даты удаленного meal
-    if meal_date:
-        CacheService.delete(f"daily_meals:{current_user.id}:{meal_date}")
-        # Также инвалидируем кэш для сегодня, если meal был создан сегодня
-        today = datetime.now(timezone.utc).date().isoformat()
-        if meal_date == today:
-            CacheService.delete(f"daily_meals:{current_user.id}:{today}")
-
     return None
 
 @router.post("/meals/photos/{photo_id}/ingredients")

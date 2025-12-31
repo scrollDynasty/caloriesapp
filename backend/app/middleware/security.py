@@ -1,5 +1,7 @@
 import time
 import logging
+from collections import defaultdict
+from threading import Lock
 from fastapi import Request, HTTPException, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -7,6 +9,10 @@ from app.core.security import log_security_event, validate_cors_origin, get_remo
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+_rate_limit_lock = Lock()
+_rate_limit_data = defaultdict(list)  # {ip: [timestamp1, timestamp2, ...]}
+_last_cleanup = time.time()
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     
@@ -80,42 +86,57 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
         return response
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
+    EXEMPT_PATHS = frozenset(["/health", "/", "/docs", "/redoc", "/openapi.json"])
+    
+    CLEANUP_INTERVAL = 60
     
     def __init__(self, app, requests_per_minute: int = 60):
         super().__init__(app)
         self.requests_per_minute = requests_per_minute
-        self.request_counts = {}
+        self.window_size = 60 
+    
+    def _cleanup_old_entries(self, current_time: float):
+        global _last_cleanup, _rate_limit_data
+        
+        if current_time - _last_cleanup < self.CLEANUP_INTERVAL:
+            return
+        
+        with _rate_limit_lock:
+            cutoff = current_time - self.window_size
+            for ip in list(_rate_limit_data.keys()):
+                _rate_limit_data[ip] = [ts for ts in _rate_limit_data[ip] if ts > cutoff]
+                if not _rate_limit_data[ip]:
+                    del _rate_limit_data[ip]
+            _last_cleanup = current_time
     
     async def dispatch(self, request: Request, call_next):
-        if request.url.path in ["/health", "/"]:
+        if request.url.path in self.EXEMPT_PATHS:
             return await call_next(request)
         
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = get_remote_address(request) or "unknown"
         current_time = time.time()
-        minute_ago = current_time - 60
+        cutoff = current_time - self.window_size
         
-        self.request_counts = {
-            ip: (count, timestamp) for ip, (count, timestamp) in self.request_counts.items()
-            if timestamp > minute_ago
-        }
+        self._cleanup_old_entries(current_time)
         
-        if client_ip in self.request_counts:
-            count, timestamp = self.request_counts[client_ip]
-            if timestamp > minute_ago:
-                if count >= self.requests_per_minute:
-                    log_security_event("rate_limit_exceeded", {
-                        "ip": client_ip,
-                        "path": str(request.url.path)
-                    }, request)
-                    raise HTTPException(
-                        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                        detail="Too many requests"
-                    )
-                self.request_counts[client_ip] = (count + 1, timestamp)
-            else:
-                self.request_counts[client_ip] = (1, current_time)
-        else:
-            self.request_counts[client_ip] = (1, current_time)
+        with _rate_limit_lock:
+            _rate_limit_data[client_ip] = [
+                ts for ts in _rate_limit_data[client_ip] if ts > cutoff
+            ]
+            
+            if len(_rate_limit_data[client_ip]) >= self.requests_per_minute:
+                log_security_event("rate_limit_exceeded", {
+                    "ip": client_ip,
+                    "path": str(request.url.path),
+                    "count": len(_rate_limit_data[client_ip])
+                }, request)
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many requests. Please try again later.",
+                    headers={"Retry-After": "60"}
+                )
+            
+            _rate_limit_data[client_ip].append(current_time)
         
         response = await call_next(request)
         return response

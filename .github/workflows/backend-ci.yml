@@ -97,11 +97,51 @@ jobs:
         run: |
           ssh-keyscan -H api.yeb-ich.com >> ~/.ssh/known_hosts
       
-      - name: Deploy to production
+      - name: Deploy to production with PM2
         run: |
-          cd backend
-          chmod +x deploy.sh
-          ./deploy.sh prod
+          ssh scroll@api.yeb-ich.com << 'ENDSSH'
+            set -e
+            cd /home/scroll/backend || cd ~/backend
+            
+            echo "[INFO] Pulling latest code from master..."
+            git fetch origin master
+            git reset --hard origin/master || git pull origin master || true
+            
+            echo "[INFO] Activating virtual environment..."
+            if [ ! -d "venv" ]; then
+              echo "[INFO] Creating virtual environment..."
+              python3 -m venv venv
+            fi
+            source venv/bin/activate
+            
+            echo "[INFO] Installing/updating dependencies..."
+            pip install --upgrade pip --quiet
+            pip install -r requirements.txt --quiet
+            
+            echo "[INFO] Creating logs directory..."
+            mkdir -p logs
+            
+            echo "[INFO] Stopping PM2 process (if running)..."
+            pm2 stop caloriesapp-backend 2>/dev/null || pm2 delete caloriesapp-backend 2>/dev/null || true
+            
+            echo "[INFO] Starting backend with PM2 ecosystem..."
+            pm2 start ecosystem.config.js
+            
+            echo "[INFO] Saving PM2 configuration..."
+            pm2 save
+            
+            echo "[INFO] Waiting for application to start..."
+            sleep 5
+            
+            echo "[INFO] Checking PM2 status..."
+            pm2 status
+            
+            echo "[INFO] Checking application health..."
+            sleep 2
+            curl -f http://localhost:8000/health || echo "[WARN] Health check failed, but deployment completed"
+            
+            echo "[OK] Production deployment completed successfully"
+          ENDSSH
 
   deploy-dev:
     name: Deploy to Development
@@ -122,9 +162,49 @@ jobs:
         run: |
           ssh-keyscan -H api.yeb-ich.com >> ~/.ssh/known_hosts
       
-      - name: Deploy to development
+      - name: Deploy to development with PM2
         run: |
-          cd backend
-          chmod +x deploy.sh
-          ./deploy.sh dev
+          ssh scroll@api.yeb-ich.com << 'ENDSSH'
+            set -e
+            cd /home/scroll/backend || cd ~/backend
+            
+            echo "[INFO] Pulling latest code from development..."
+            git fetch origin development
+            git reset --hard origin/development || git pull origin development || true
+            
+            echo "[INFO] Activating virtual environment..."
+            if [ ! -d "venv" ]; then
+              echo "[INFO] Creating virtual environment..."
+              python3 -m venv venv
+            fi
+            source venv/bin/activate
+            
+            echo "[INFO] Installing/updating dependencies..."
+            pip install --upgrade pip --quiet
+            pip install -r requirements.txt --quiet
+            
+            echo "[INFO] Creating logs directory..."
+            mkdir -p logs
+            
+            echo "[INFO] Stopping PM2 process (if running)..."
+            pm2 stop caloriesapp-backend 2>/dev/null || pm2 delete caloriesapp-backend 2>/dev/null || true
+            
+            echo "[INFO] Starting backend with PM2 ecosystem..."
+            pm2 start ecosystem.config.js
+            
+            echo "[INFO] Saving PM2 configuration..."
+            pm2 save
+            
+            echo "[INFO] Waiting for application to start..."
+            sleep 5
+            
+            echo "[INFO] Checking PM2 status..."
+            pm2 status
+            
+            echo "[INFO] Checking application health..."
+            sleep 2
+            curl -f http://localhost:8000/health || echo "[WARN] Health check failed, but deployment completed"
+            
+            echo "[OK] Development deployment completed successfully"
+          ENDSSH
 

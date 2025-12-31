@@ -1,6 +1,0 @@
-# Secrets - НЕ коммитьте эти файлы!
-secrets.yaml
-secrets.env
-*.secret
-*.key
-
