@@ -149,15 +149,13 @@ jobs:
             pm2 stop all 2>/dev/null || true
             pm2 delete all 2>/dev/null || true
             
-            echo "[INFO] Checking and freeing ports 8000-8003..."
+            echo "[INFO] Checking and freeing port 8000..."
             if command -v lsof >/dev/null 2>&1; then
-              for port in 8000 8001 8002 8003; do
-                if lsof -ti:$port > /dev/null 2>&1; then
-                  echo "[WARN] Port $port is in use. Killing process..."
-                  lsof -ti:$port | xargs kill -9 2>/dev/null || true
-                fi
-              done
-              sleep 2
+              if lsof -ti:8000 > /dev/null 2>&1; then
+                echo "[WARN] Port 8000 is in use. Killing process..."
+                lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+                sleep 2
+              fi
             fi
             
             echo "[INFO] Starting backend with PM2 ecosystem..."
@@ -250,15 +248,13 @@ jobs:
             pm2 stop all 2>/dev/null || true
             pm2 delete all 2>/dev/null || true
             
-            echo "[INFO] Checking and freeing ports 8000-8003..."
+            echo "[INFO] Checking and freeing port 8000..."
             if command -v lsof >/dev/null 2>&1; then
-              for port in 8000 8001 8002 8003; do
-                if lsof -ti:$port > /dev/null 2>&1; then
-                  echo "[WARN] Port $port is in use. Killing process..."
-                  lsof -ti:$port | xargs kill -9 2>/dev/null || true
-                fi
-              done
-              sleep 2
+              if lsof -ti:8000 > /dev/null 2>&1; then
+                echo "[WARN] Port 8000 is in use. Killing process..."
+                lsof -ti:8000 | xargs kill -9 2>/dev/null || true
+                sleep 2
+              fi
             fi
             
             echo "[INFO] Starting backend with PM2 ecosystem..."
