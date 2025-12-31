@@ -2,6 +2,7 @@
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
 import { Platform } from "react-native";
+import { API_BASE_URL } from "../constants/api";
 import { apiService } from "./api";
 
 WebBrowser.maybeCompleteAuthSession();
@@ -15,8 +16,6 @@ export class AuthService {
     user?: any;
   }> {
     try {
-      const { API_BASE_URL } = await import("../constants/api");
-
       const redirectUri = AuthSession.makeRedirectUri({
         scheme: "yeb-ich",
         path: "auth/callback",

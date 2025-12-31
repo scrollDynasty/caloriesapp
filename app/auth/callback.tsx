@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text } from "react-native";
@@ -77,7 +78,6 @@ export default function CallbackScreen() {
           let dataToSave = onboardingData;
           
           try {
-            const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
             const storedData = await AsyncStorage.getItem("@yebich:onboarding_data");
             if (storedData) {
               const parsedData = JSON.parse(storedData);
@@ -93,7 +93,6 @@ export default function CallbackScreen() {
               const saveResult = await saveOnboardingData(dataToSave);
               if (saveResult.success) {
                 try {
-                  const AsyncStorage = (await import("@react-native-async-storage/async-storage")).default;
                   await AsyncStorage.removeItem("@yebich:onboarding_data");
                 } catch {
                 }
