@@ -101,7 +101,16 @@ jobs:
         run: |
           ssh scroll@api.yeb-ich.com << 'ENDSSH'
             set -e
-            cd /home/scroll/backend || cd ~/backend
+            
+            # Определяем правильный путь к backend
+            BACKEND_DIR="/home/scroll/backend"
+            if [ ! -d "$BACKEND_DIR" ]; then
+              echo "[ERROR] Backend directory not found at $BACKEND_DIR!"
+              exit 1
+            fi
+            
+            cd "$BACKEND_DIR"
+            echo "[INFO] Working directory: $(pwd)"
             
             echo "[INFO] Pulling latest code from master..."
             git fetch origin master
@@ -166,7 +175,16 @@ jobs:
         run: |
           ssh scroll@api.yeb-ich.com << 'ENDSSH'
             set -e
-            cd /home/scroll/backend || cd ~/backend
+            
+            # Определяем правильный путь к backend
+            BACKEND_DIR="/home/scroll/backend"
+            if [ ! -d "$BACKEND_DIR" ]; then
+              echo "[ERROR] Backend directory not found at $BACKEND_DIR!"
+              exit 1
+            fi
+            
+            cd "$BACKEND_DIR"
+            echo "[INFO] Working directory: $(pwd)"
             
             echo "[INFO] Pulling latest code from development..."
             git fetch origin development
