@@ -97,40 +97,39 @@ jobs:
         run: |
           ssh-keyscan -H api.yeb-ich.com >> ~/.ssh/known_hosts
       
+      - name: Create backend directory if needed
+        run: |
+          ssh scroll@api.yeb-ich.com << 'ENDSSH'
+            set -e
+            BACKEND_DIR="/home/scroll/backend"
+            if [ ! -d "$BACKEND_DIR" ]; then
+              echo "[INFO] Creating backend directory..."
+              mkdir -p "$BACKEND_DIR"
+            fi
+          ENDSSH
+      
+      - name: Copy backend files to server
+        run: |
+          cd backend
+          tar -czf /tmp/backend.tar.gz .
+          scp /tmp/backend.tar.gz scroll@api.yeb-ich.com:/tmp/backend.tar.gz
+          ssh scroll@api.yeb-ich.com << 'ENDSSH'
+            set -e
+            BACKEND_DIR="/home/scroll/backend"
+            cd "$BACKEND_DIR"
+            tar -xzf /tmp/backend.tar.gz
+            rm /tmp/backend.tar.gz
+            echo "[INFO] Backend files copied successfully"
+          ENDSSH
+          rm /tmp/backend.tar.gz
+      
       - name: Deploy to production with PM2
         run: |
           ssh scroll@api.yeb-ich.com << 'ENDSSH'
             set -e
-            
-            # Ищем директорию backend
-            echo "[INFO] Searching for backend directory..."
-            
-            # Проверяем возможные пути
-            if [ -d "/home/scroll/backend" ]; then
-              BACKEND_DIR="/home/scroll/backend"
-            elif [ -d "/home/scroll/prj/caloriesapp/backend" ]; then
-              BACKEND_DIR="/home/scroll/prj/caloriesapp/backend"
-            elif [ -d "/home/scroll/prj/backend" ]; then
-              BACKEND_DIR="/home/scroll/prj/backend"
-            else
-              # Ищем директорию с ecosystem.config.js
-              BACKEND_DIR=$(find /home/scroll -name "ecosystem.config.js" -type f 2>/dev/null | head -1 | xargs dirname)
-              if [ -z "$BACKEND_DIR" ] || [ ! -d "$BACKEND_DIR" ]; then
-                echo "[ERROR] Backend directory not found! Searched in:"
-                echo "  - /home/scroll/backend"
-                echo "  - /home/scroll/prj/caloriesapp/backend"
-                echo "  - /home/scroll/prj/backend"
-                echo "  - searched for ecosystem.config.js in /home/scroll"
-                exit 1
-              fi
-            fi
-            
+            BACKEND_DIR="/home/scroll/backend"
             cd "$BACKEND_DIR"
-            echo "[INFO] Found backend at: $(pwd)"
-            
-            echo "[INFO] Pulling latest code from master..."
-            git fetch origin master
-            git reset --hard origin/master || git pull origin master || true
+            echo "[INFO] Working directory: $(pwd)"
             
             echo "[INFO] Activating virtual environment..."
             if [ ! -d "venv" ]; then
@@ -187,40 +186,39 @@ jobs:
         run: |
           ssh-keyscan -H api.yeb-ich.com >> ~/.ssh/known_hosts
       
+      - name: Create backend directory if needed (dev)
+        run: |
+          ssh scroll@api.yeb-ich.com << 'ENDSSH'
+            set -e
+            BACKEND_DIR="/home/scroll/backend"
+            if [ ! -d "$BACKEND_DIR" ]; then
+              echo "[INFO] Creating backend directory..."
+              mkdir -p "$BACKEND_DIR"
+            fi
+          ENDSSH
+      
+      - name: Copy backend files to server (dev)
+        run: |
+          cd backend
+          tar -czf /tmp/backend-dev.tar.gz .
+          scp /tmp/backend-dev.tar.gz scroll@api.yeb-ich.com:/tmp/backend-dev.tar.gz
+          ssh scroll@api.yeb-ich.com << 'ENDSSH'
+            set -e
+            BACKEND_DIR="/home/scroll/backend"
+            cd "$BACKEND_DIR"
+            tar -xzf /tmp/backend-dev.tar.gz
+            rm /tmp/backend-dev.tar.gz
+            echo "[INFO] Backend files copied successfully"
+          ENDSSH
+          rm /tmp/backend-dev.tar.gz
+      
       - name: Deploy to development with PM2
         run: |
           ssh scroll@api.yeb-ich.com << 'ENDSSH'
             set -e
-            
-            # Ищем директорию backend
-            echo "[INFO] Searching for backend directory..."
-            
-            # Проверяем возможные пути
-            if [ -d "/home/scroll/backend" ]; then
-              BACKEND_DIR="/home/scroll/backend"
-            elif [ -d "/home/scroll/prj/caloriesapp/backend" ]; then
-              BACKEND_DIR="/home/scroll/prj/caloriesapp/backend"
-            elif [ -d "/home/scroll/prj/backend" ]; then
-              BACKEND_DIR="/home/scroll/prj/backend"
-            else
-              # Ищем директорию с ecosystem.config.js
-              BACKEND_DIR=$(find /home/scroll -name "ecosystem.config.js" -type f 2>/dev/null | head -1 | xargs dirname)
-              if [ -z "$BACKEND_DIR" ] || [ ! -d "$BACKEND_DIR" ]; then
-                echo "[ERROR] Backend directory not found! Searched in:"
-                echo "  - /home/scroll/backend"
-                echo "  - /home/scroll/prj/caloriesapp/backend"
-                echo "  - /home/scroll/prj/backend"
-                echo "  - searched for ecosystem.config.js in /home/scroll"
-                exit 1
-              fi
-            fi
-            
+            BACKEND_DIR="/home/scroll/backend"
             cd "$BACKEND_DIR"
-            echo "[INFO] Found backend at: $(pwd)"
-            
-            echo "[INFO] Pulling latest code from development..."
-            git fetch origin development
-            git reset --hard origin/development || git pull origin development || true
+            echo "[INFO] Working directory: $(pwd)"
             
             echo "[INFO] Activating virtual environment..."
             if [ ! -d "venv" ]; then
