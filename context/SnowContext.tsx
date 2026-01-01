@@ -1,11 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-    createContext,
-    ReactNode,
-    useCallback,
-    useContext,
-    useEffect,
-    useState,
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
 
 const SNOW_ENABLED_KEY = "@yebich:snow_enabled";
@@ -23,20 +23,26 @@ interface SnowProviderProps {
 }
 
 export function SnowProvider({ children }: SnowProviderProps) {
+  // ОПТИМИЗАЦИЯ: Снег отключён по умолчанию для экономии батареи
   const [isSnowEnabled, setIsSnowEnabled] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     loadSnowPreference();
   }, []);
 
+  // Не рендерим пока не загрузили настройку
   const loadSnowPreference = async () => {
     try {
       const stored = await AsyncStorage.getItem(SNOW_ENABLED_KEY);
+      // Снег включается только если явно включён пользователем
       if (stored !== null) {
-        setIsSnowEnabled(JSON.parse(stored));
+        setIsSnowEnabled(JSON.parse(stored) === true);
       }
+      setIsLoaded(true);
     } catch (error) {
       if (__DEV__) console.error("Error loading snow preference:", error);
+      setIsLoaded(true);
     }
   };
 

@@ -1,0 +1,11 @@
+{
+  "name": "health-integration",
+  "version": "1.0.0",
+  "description": "HealthKit and Health Connect integration module",
+  "main": "index.ts",
+  "scripts": {},
+  "keywords": ["health", "healthkit", "health-connect", "fitness"],
+  "author": "ScrollDynasty",
+  "license": "MIT"
+}
+

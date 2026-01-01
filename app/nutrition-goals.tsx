@@ -24,6 +24,7 @@ import Animated, {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { RadioButton } from "../components/ui/RadioButton";
+import { useAppSettings } from "../context/AppSettingsContext";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { apiService } from "../services/api";
@@ -901,6 +902,7 @@ export default function NutritionGoalsScreen() {
   const fontsLoaded = useFonts();
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { settings, calculateAdjustedMacros } = useAppSettings();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -954,7 +956,22 @@ export default function NutritionGoalsScreen() {
 
   const handleSaveGoal = (value: number) => {
     if (editingGoal) {
-      setGoals((prev) => ({ ...prev, [editingGoal.key]: value }));
+      // Если изменяются калории и включена авто-корректировка
+      if (editingGoal.key === "calories" && settings.autoMacroAdjust && onboardingData) {
+        const weight = onboardingData.weight || 70;
+        const goal = onboardingData.goal || "maintain";
+        const adjustedMacros = calculateAdjustedMacros(value, weight, goal);
+        
+        setGoals((prev) => ({
+          ...prev,
+          calories: value,
+          protein: adjustedMacros.protein,
+          carbs: adjustedMacros.carbs,
+          fats: adjustedMacros.fats,
+        }));
+      } else {
+        setGoals((prev) => ({ ...prev, [editingGoal.key]: value }));
+      }
     }
   };
 

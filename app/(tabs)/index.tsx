@@ -17,6 +17,7 @@ import { HomeHeader } from "../../components/home/HomeHeader";
 import { RecentMeals } from "../../components/home/RecentMeals";
 import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { NutritionCardSkeleton } from "../../components/ui/Skeleton";
+import { useAppSettings } from "../../context/AppSettingsContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 import { MealPhoto, apiService } from "../../services/api";
@@ -72,6 +73,14 @@ export default function HomeScreen() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { colors: themeColors, isDark } = useTheme();
+  const { 
+    settings, 
+    burnedCalories, 
+    refreshBurnedCalories,
+    rolloverCalories,
+    calculateRollover,
+    setPendingBadgeCelebration 
+  } = useAppSettings();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dailyLoading, setDailyLoading] = useState(false);
@@ -359,6 +368,35 @@ export default function HomeScreen() {
     }
   }, [params?.refresh, fetchLatestMeals, loadDailyData, recentLimit, selectedDateTimestamp]);
 
+  // Проверка на достижение цели и показ анимации
+  const prevGoalReachedRef = useRef(false);
+  useEffect(() => {
+    if (!settings.badgeCelebrations || !isTodaySelected) return;
+    
+    const targetCalories = onboardingData?.target_calories || 0;
+    const goalReached = dailyData.consumedCalories >= targetCalories && targetCalories > 0;
+    
+    // Показываем анимацию только при первом достижении цели
+    if (goalReached && !prevGoalReachedRef.current) {
+      setPendingBadgeCelebration("goal_reached");
+    }
+    
+    prevGoalReachedRef.current = goalReached;
+  }, [
+    dailyData.consumedCalories, 
+    onboardingData?.target_calories, 
+    settings.badgeCelebrations, 
+    isTodaySelected,
+    setPendingBadgeCelebration
+  ]);
+
+  // Обновление сожжённых калорий при загрузке
+  useEffect(() => {
+    if (settings.burnedCalories && isTodaySelected) {
+      refreshBurnedCalories();
+    }
+  }, [settings.burnedCalories, isTodaySelected, refreshBurnedCalories]);
+
   const handleDateSelect = useMemo(() => (date: Date) => {
     const utcMs = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
     const { startUtcMs } = getLocalDayRange(utcMs);
@@ -543,11 +581,25 @@ export default function HomeScreen() {
   };
 
   const stats = useMemo(() => {
-    const targetCalories = onboardingData?.target_calories || 0;
-    const remainingCalories = Math.max(0, targetCalories - dailyData.consumedCalories);
+    let targetCalories = onboardingData?.target_calories || 0;
+    
+    // Добавляем сожжённые калории к норме, если включено
+    const burnedCaloriesBonus = settings.burnedCalories && burnedCalories 
+      ? burnedCalories.activeCalories 
+      : 0;
+    
+    // Добавляем перенос калорий, если включено
+    const rolloverBonus = settings.calorieRollover && rolloverCalories 
+      ? rolloverCalories.amount 
+      : 0;
+    
+    // Итоговая норма = базовая + сожжённые + перенос
+    const adjustedTargetCalories = targetCalories + burnedCaloriesBonus + rolloverBonus;
+    
+    const remainingCalories = Math.max(0, adjustedTargetCalories - dailyData.consumedCalories);
 
     return {
-      targetCalories,
+      targetCalories: adjustedTargetCalories,
       consumedCalories: dailyData.consumedCalories,
       remainingCalories,
       protein: {
@@ -579,6 +631,9 @@ export default function HomeScreen() {
         consumed: dailyData.waterTotal,
         target: dailyData.waterGoal || 0,
       },
+      // Дополнительные данные для карточек
+      burnedCalories: burnedCaloriesBonus,
+      rolloverCalories: rolloverBonus,
     };
   }, [
     onboardingData?.target_calories,
@@ -595,6 +650,10 @@ export default function HomeScreen() {
     dailyData.healthScore,
     dailyData.waterTotal,
     dailyData.waterGoal,
+    settings.burnedCalories,
+    settings.calorieRollover,
+    burnedCalories,
+    rolloverCalories,
   ]);
 
   if (!fontsLoaded || loading) {

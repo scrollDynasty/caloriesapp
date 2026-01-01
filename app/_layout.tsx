@@ -2,7 +2,9 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { AnimatedSplash } from "../components/ui/AnimatedSplash";
+import { BadgeCelebration } from "../components/ui/BadgeCelebration";
 import { SnowOverlay } from "../components/ui/SnowOverlay";
+import { AppSettingsProvider, useAppSettings } from "../context/AppSettingsContext";
 import { OnboardingProvider } from "../context/OnboardingContext";
 import { SnowProvider } from "../context/SnowContext";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
@@ -92,6 +94,12 @@ function RootNavigator() {
         }}
       />
       <Stack.Screen
+        name="badges"
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
         name="auth/login"
         options={{
           gestureEnabled: false,
@@ -102,20 +110,35 @@ function RootNavigator() {
   );
 }
 
+function BadgeCelebrationWrapper() {
+  const { shouldShowBadgeCelebration, pendingBadgeCelebration, markBadgeCelebrationShown } = useAppSettings();
+  
+  return (
+    <BadgeCelebration
+      visible={shouldShowBadgeCelebration()}
+      badgeType={pendingBadgeCelebration || "goal_reached"}
+      onClose={markBadgeCelebrationShown}
+    />
+  );
+}
+
 export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
 
   return (
     <ThemeProvider>
-      <SnowProvider>
-        <OnboardingProvider>
-          <View style={{ flex: 1 }}>
-            <RootNavigator />
-            <SnowOverlay />
-            {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
-          </View>
-        </OnboardingProvider>
-      </SnowProvider>
+      <AppSettingsProvider>
+        <SnowProvider>
+          <OnboardingProvider>
+            <View style={{ flex: 1 }}>
+              <RootNavigator />
+              <SnowOverlay />
+              <BadgeCelebrationWrapper />
+              {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
+            </View>
+          </OnboardingProvider>
+        </SnowProvider>
+      </AppSettingsProvider>
     </ThemeProvider>
   );
 }

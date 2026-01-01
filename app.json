@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Yeb-Ich",
-    "slug": "yeb-ich",
+    "slug": "caloriesapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/dark_logo.png",
@@ -10,10 +10,22 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.scrolldynasty.yebich",
       "infoPlist": {
         "NSCameraUsageDescription": "Приложению необходим доступ к камере для сканирования еды и штрих-кодов",
         "NSMicrophoneUsageDescription": "Приложению необходим доступ к микрофону для записи видео",
-        "NSPhotoLibraryUsageDescription": "Приложению необходим доступ к галерее для выбора фотографий еды"
+        "NSPhotoLibraryUsageDescription": "Приложению необходим доступ к галерее для выбора фотографий еды",
+        "NSHealthShareUsageDescription": "Приложение использует данные о здоровье для отслеживания активности, шагов и сожжённых калорий",
+        "NSHealthUpdateUsageDescription": "Приложение использует данные о здоровье для отслеживания вашего прогресса",
+        "UIBackgroundModes": [
+          "fetch",
+          "fetch"
+        ],
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.access": []
       }
     },
     "android": {
@@ -31,7 +43,20 @@
         "READ_EXTERNAL_STORAGE",
         "READ_MEDIA_IMAGES",
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_DISTANCE",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_TOTAL_CALORIES_BURNED",
+        "android.permission.health.READ_FLOORS_CLIMBED"
+      ],
+      "intentFilters": [
+        {
+          "action": "androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE",
+          "category": [
+            "android.intent.category.DEFAULT"
+          ]
+        }
       ]
     },
     "web": {
@@ -69,4 +94,3 @@
     }
   }
 }
-

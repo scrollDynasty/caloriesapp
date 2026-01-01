@@ -11,6 +11,7 @@ import {
   ViewToken,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import { useAppSettings } from "../../context/AppSettingsContext";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticLight } from "../../utils/haptics";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -28,6 +29,8 @@ interface CardsPagerProps {
     sodium: { consumed: number; target: number };
     healthScore: number | null;
     water: { consumed: number; target: number };
+    burnedCalories?: number;    // Сожжённые калории (из настроек)
+    rolloverCalories?: number;  // Перенесённые калории (из настроек)
   };
   onAddWater?: () => void;
 }
@@ -390,32 +393,113 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
 
 function AppleHealthCard() {
   const { colors: themeColors, isDark } = useTheme();
+  const { settings, rolloverCalories, featureStatus, burnedCalories, requestHealthPermission } = useAppSettings();
+  
+  // Показываем перенос калорий, если включён и есть данные
+  if (settings.calorieRollover && rolloverCalories && rolloverCalories.amount > 0) {
+    return (
+      <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
+        <View style={styles.appleHealthContent}>
+          <View style={[styles.appleHealthIcon, { backgroundColor: isDark ? themeColors.gray5 : "#E8F5E9" }]}>
+            <Ionicons name="arrow-forward-circle" size={24} color="#4CAF50" />
+          </View>
+          <Text style={[styles.rolloverTitle, { color: themeColors.text }]}>Перенос калорий</Text>
+          <Text style={[styles.rolloverValue, { color: "#4CAF50" }]}>+{rolloverCalories.amount}</Text>
+          <Text style={[styles.appleHealthText, { color: themeColors.textSecondary }]}>
+            С {rolloverCalories.fromDate}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+  
+  // Показываем данные Health если подключено
+  if (featureStatus.healthAuthorized && burnedCalories) {
+    return (
+      <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
+        <View style={styles.appleHealthContent}>
+          <View style={[styles.appleHealthIcon, { backgroundColor: isDark ? themeColors.gray5 : "#E8F5E9" }]}>
+            <Ionicons name="checkmark-circle" size={24} color="#34C759" />
+          </View>
+          <View style={styles.healthConnectedInfo}>
+            <Text style={[styles.healthConnectedTitle, { color: themeColors.text }]}>Health подключён</Text>
+            <View style={styles.healthStatsRow}>
+              <View style={styles.healthStatItem}>
+                <Ionicons name="walk" size={14} color="#007AFF" />
+                <Text style={[styles.healthStatValue, { color: themeColors.text }]}>
+                  {burnedCalories.steps.toLocaleString()}
+                </Text>
+              </View>
+              <View style={styles.healthStatItem}>
+                <Ionicons name="flame" size={14} color="#FF9500" />
+                <Text style={[styles.healthStatValue, { color: themeColors.text }]}>
+                  {burnedCalories.activeCalories}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+  
+  // Показываем кнопку подключения
   return (
-    <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
+    <TouchableOpacity
+      style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}
+      onPress={() => {
+        hapticLight();
+        requestHealthPermission();
+      }}
+      activeOpacity={0.7}
+    >
       <View style={styles.appleHealthContent}>
         <View style={[styles.appleHealthIcon, { backgroundColor: isDark ? themeColors.gray5 : "#FFF0F0" }]}>
           <Ionicons name="heart" size={24} color="#FF6B6B" />
         </View>
-        <Text style={[styles.appleHealthText, { color: themeColors.textSecondary }]}>Connect Apple Health to track your steps.</Text>
+        <Text style={[styles.appleHealthText, { color: themeColors.textSecondary }]}>
+          Нажмите чтобы подключить Health
+        </Text>
+        <Ionicons name="chevron-forward" size={16} color={themeColors.textTertiary} style={styles.healthArrow} />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 function BurnedCaloriesCard() {
-  const { colors: themeColors } = useTheme();
+  const { colors: themeColors, isDark } = useTheme();
+  const { settings, burnedCalories } = useAppSettings();
+  
+  const activeCalories = settings.burnedCalories && burnedCalories 
+    ? burnedCalories.activeCalories 
+    : 0;
+  const steps = settings.burnedCalories && burnedCalories 
+    ? burnedCalories.steps 
+    : 0;
+  const stepsCalories = Math.round(steps * 0.04); // Примерно 0.04 кал на шаг
+  
   return (
     <View style={[styles.burnedCard, { backgroundColor: themeColors.card }]}>
       <Text style={[styles.burnedLabel, { color: themeColors.textSecondary }]}>Сожжённые калории</Text>
       <View style={styles.burnedRow}>
-        <Text style={[styles.burnedValue, { color: themeColors.text }]}>0</Text>
-        <Text style={[styles.burnedUnit, { color: themeColors.textSecondary }]}>cal</Text>
+        <Text style={[styles.burnedValue, { color: activeCalories > 0 ? themeColors.warning : themeColors.text }]}>
+          {activeCalories}
+        </Text>
+        <Text style={[styles.burnedUnit, { color: themeColors.textSecondary }]}>ккал</Text>
       </View>
       <View style={styles.stepsRow}>
         <Ionicons name="walk" size={18} color={themeColors.textSecondary} />
-        <Text style={[styles.stepsLabel, { color: themeColors.text }]}>Шаги</Text>
+        <Text style={[styles.stepsLabel, { color: themeColors.text }]}>{steps.toLocaleString()} шаги</Text>
       </View>
-      <Text style={[styles.stepsValue, { color: themeColors.textSecondary }]}>0 cal</Text>
+      <Text style={[styles.stepsValue, { color: themeColors.textSecondary }]}>~{stepsCalories} ккал</Text>
+      
+      {!settings.burnedCalories && (
+        <View style={[styles.burnedDisabledOverlay, { backgroundColor: isDark ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)" }]}>
+          <Text style={[styles.burnedDisabledText, { color: themeColors.textSecondary }]}>
+            Включите в настройках
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -757,6 +841,31 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     textAlign: "center",
   },
+  healthConnectedInfo: {
+    alignItems: "center",
+    gap: 4,
+  },
+  healthConnectedTitle: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+  },
+  healthStatsRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginTop: 4,
+  },
+  healthStatItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  healthStatValue: {
+    fontSize: 14,
+    fontFamily: "Inter_600SemiBold",
+  },
+  healthArrow: {
+    marginTop: 4,
+  },
   burnedCard: {
     flex: 1,
     padding: 16,
@@ -799,6 +908,26 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_500Medium",
     marginTop: 2,
+  },
+  burnedDisabledOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  burnedDisabledText: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    textAlign: "center",
+  },
+  rolloverTitle: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
+    marginTop: 4,
+  },
+  rolloverValue: {
+    fontSize: 28,
+    fontFamily: "Inter_700Bold",
   },
 
   waterCard: {

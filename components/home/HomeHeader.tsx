@@ -1,8 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import { memo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from "react-native-reanimated";
 import { useTheme } from "../../context/ThemeContext";
+import { hapticLight } from "../../utils/haptics";
 
 interface HomeHeaderProps {
   streak?: number;
@@ -10,6 +18,35 @@ interface HomeHeaderProps {
 
 export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderProps) {
   const { colors: themeColors, isDark } = useTheme();
+  const router = useRouter();
+  const scale = useSharedValue(1);
+  const rotate = useSharedValue(0);
+
+  const handleStreakPress = () => {
+    hapticLight();
+    
+    // Анимация при нажатии
+    scale.value = withSequence(
+      withSpring(1.2, { damping: 10, stiffness: 200 }),
+      withSpring(1, { damping: 10, stiffness: 200 })
+    );
+    rotate.value = withSequence(
+      withSpring(-10, { damping: 10 }),
+      withSpring(10, { damping: 10 }),
+      withSpring(0, { damping: 10 })
+    );
+
+    // Переход на экран значков
+    router.push("/badges" as any);
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: scale.value },
+      { rotate: `${rotate.value}deg` },
+    ],
+  }));
+
   return (
     <View style={styles.header}>
       <View style={styles.headerTitle}>
@@ -22,10 +59,16 @@ export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderPro
         </View>
         <Text style={[styles.appName, { color: themeColors.text }]}>Yeb Ich</Text>
       </View>
-      <View style={[styles.streakBadge, { backgroundColor: themeColors.card }]}>
-        <Ionicons name="flame" size={18} color="#FF9F43" />
-        <Text style={[styles.streakText, { color: themeColors.text }]}>{streak}</Text>
-      </View>
+      
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={handleStreakPress}
+      >
+        <Animated.View style={[styles.streakBadge, { backgroundColor: themeColors.card }, animatedStyle]}>
+          <Ionicons name="flame" size={18} color="#FF9F43" />
+          <Text style={[styles.streakText, { color: themeColors.text }]}>{streak}</Text>
+        </Animated.View>
+      </TouchableOpacity>
     </View>
   );
 });
