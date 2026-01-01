@@ -88,6 +88,9 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
 class RateLimitMiddleware(BaseHTTPMiddleware):
     EXEMPT_PATHS = frozenset(["/health", "/", "/docs", "/redoc", "/openapi.json"])
     
+    def _is_admin_path(self, path: str) -> bool:
+        return path.startswith("/admin")
+    
     CLEANUP_INTERVAL = 60
     
     def __init__(self, app, requests_per_minute: int = 60):
@@ -110,7 +113,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             _last_cleanup = current_time
     
     async def dispatch(self, request: Request, call_next):
-        if request.url.path in self.EXEMPT_PATHS:
+        path = request.url.path
+        if path in self.EXEMPT_PATHS or self._is_admin_path(path):
             return await call_next(request)
         
         client_ip = get_remote_address(request) or "unknown"
