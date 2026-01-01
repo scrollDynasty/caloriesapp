@@ -42,10 +42,15 @@ def check_badges(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    new_badges = check_and_award_badges(current_user, db)
+    check_and_award_badges(current_user, db)
+    
+    unseen_badges = db.query(UserBadge).filter(
+        UserBadge.user_id == current_user.id,
+        UserBadge.seen == False
+    ).all()
     
     new_badges_response = []
-    for badge in new_badges:
+    for badge in unseen_badges:
         config = get_badge_config(badge.badge_id)
         if config:
             new_badges_response.append(BadgeWithStatus(
@@ -57,7 +62,7 @@ def check_badges(
                 color=config["color"],
                 category=config["category"],
                 is_earned=True,
-                earned_at=badge.earned_at,
+                earned_at=badge.earned_at.isoformat() if badge.earned_at else None,
                 seen=False,
             ))
     

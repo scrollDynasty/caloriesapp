@@ -368,14 +368,45 @@ export default function HomeScreen() {
   }, [params?.refresh, loadDailyData, selectedDateTimestamp]);
 
   useEffect(() => {
-    setOnMealCompleted((completedMeal: ProcessingMeal) => {
+    setOnMealCompleted(async (completedMeal: ProcessingMeal) => {
         if (completedMeal.result) {
-          loadDailyData(selectedDateTimestamp, true);
+          await loadDailyData(selectedDateTimestamp, true);
+          
+          if (settings.badgeCelebrations) {
+            try {
+              await new Promise(resolve => setTimeout(resolve, 1500));
+              const checkResult = await apiService.checkBadges();
+              if (checkResult.new_badges && checkResult.new_badges.length > 0) {
+                const firstBadge = checkResult.new_badges[0];
+                setPendingBadgeCelebration(firstBadge.badge_id);
+                
+                if (checkResult.new_badges.length > 1) {
+                  const badgeQueue = checkResult.new_badges.slice(1).map(b => b.badge_id);
+                  let queueIndex = 0;
+                  
+                  const showNextBadge = () => {
+                    if (queueIndex < badgeQueue.length) {
+                      setTimeout(() => {
+                        setPendingBadgeCelebration(badgeQueue[queueIndex]);
+                        queueIndex++;
+                        if (queueIndex < badgeQueue.length) {
+                          showNextBadge();
+                        }
+                      }, 4000);
+                    }
+                  };
+                  
+                  setTimeout(() => showNextBadge(), 4000);
+                }
+              }
+            } catch {
+            }
+          }
         }
     });
     
     return () => setOnMealCompleted(undefined);
-  }, [setOnMealCompleted, loadDailyData, selectedDateTimestamp]);
+  }, [setOnMealCompleted, loadDailyData, selectedDateTimestamp, settings.badgeCelebrations, setPendingBadgeCelebration]);
 
   const prevGoalReachedRef = useRef(false);
   useEffect(() => {

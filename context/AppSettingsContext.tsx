@@ -486,18 +486,16 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     };
   }, [settings.autoMacroAdjust]);
 
-  /**
-   * Проверка, нужно ли показывать анимацию значка
-   */
   const shouldShowBadgeCelebration = useCallback((): boolean => {
     return settings.badgeCelebrations && pendingBadgeCelebration !== null && !badgeCelebrationShown;
   }, [settings.badgeCelebrations, pendingBadgeCelebration, badgeCelebrationShown]);
 
   const markBadgeCelebrationShown = () => {
-    setBadgeCelebrationShown(true);
     setPendingBadgeCelebration(null);
-    // Сбросим флаг через некоторое время
-    setTimeout(() => setBadgeCelebrationShown(false), 1000);
+    setBadgeCelebrationShown(true);
+    setTimeout(() => {
+      setBadgeCelebrationShown(false);
+    }, 500);
   };
 
   if (!isLoaded) {

@@ -1,5 +1,5 @@
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { AnimatedSplash } from "../components/ui/AnimatedSplash";
 import { BadgeCelebration } from "../components/ui/BadgeCelebration";
@@ -10,7 +10,7 @@ import { ProcessingMealsProvider } from "../context/ProcessingMealsContext";
 import { SnowProvider } from "../context/SnowContext";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
 import "../global.css";
-import { onAuthExpired } from "../services/api";
+import { apiService, onAuthExpired } from "../services/api";
 
 function RootNavigator() {
   const router = useRouter();
@@ -106,12 +106,30 @@ function RootNavigator() {
 
 function BadgeCelebrationWrapper() {
   const { shouldShowBadgeCelebration, pendingBadgeCelebration, markBadgeCelebrationShown } = useAppSettings();
+  const [currentBadgeId, setCurrentBadgeId] = React.useState<string | null>(null);
+  
+  React.useEffect(() => {
+    if (pendingBadgeCelebration && pendingBadgeCelebration !== currentBadgeId) {
+      setCurrentBadgeId(pendingBadgeCelebration);
+    }
+  }, [pendingBadgeCelebration, currentBadgeId]);
+  
+  const handleClose = React.useCallback(async () => {
+    if (currentBadgeId) {
+      try {
+        await apiService.markBadgesSeen([currentBadgeId]);
+      } catch {
+      }
+    }
+    markBadgeCelebrationShown();
+    setCurrentBadgeId(null);
+  }, [currentBadgeId, markBadgeCelebrationShown]);
   
   return (
     <BadgeCelebration
       visible={shouldShowBadgeCelebration()}
       badgeType={pendingBadgeCelebration || "goal_reached"}
-      onClose={markBadgeCelebrationShown}
+      onClose={handleClose}
     />
   );
 }
