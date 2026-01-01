@@ -152,15 +152,15 @@ const styles = StyleSheet.create({
   },
   radioContainerSelected: {
     backgroundColor: "#F4F2EF",
-    
-    shadowColor: "#000",
+    borderWidth: 2,
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
   },
   iconContainer: {
     width: 72,

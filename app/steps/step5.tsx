@@ -54,8 +54,9 @@ function WorkoutOption({ dots, title, subtitle, selected, onPress }: WorkoutOpti
     ? (isDark ? "#000000" : "#2D2A26") 
     : colors.textSecondary;
   const borderColor = selected 
-    ? "transparent" 
+    ? colors.primary 
     : colors.border;
+  const borderWidth = selected ? 2 : 1;
   const dotColor = selected 
     ? (isDark ? "#000000" : "#2D2A26") 
     : colors.text;
@@ -73,6 +74,11 @@ function WorkoutOption({ dots, title, subtitle, selected, onPress }: WorkoutOpti
           {
             backgroundColor: containerBg,
             borderColor: borderColor,
+            borderWidth: borderWidth,
+            shadowColor: selected ? colors.primary : "#000",
+            shadowOpacity: selected ? 0.15 : 0.06,
+            shadowRadius: selected ? 12 : 8,
+            elevation: selected ? 6 : 3,
           },
           animatedStyle,
         ]}
@@ -221,13 +227,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     borderRadius: 20,
-    borderWidth: 1,
     gap: 16,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
   },
   workoutDots: {
     width: 44,

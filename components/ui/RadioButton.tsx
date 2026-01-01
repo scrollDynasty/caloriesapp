@@ -53,16 +53,17 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
     ? (isDark ? "#000000" : "#2D2A26") 
     : colors.text;
   const borderColor = selected 
-    ? "transparent" 
+    ? colors.primary 
     : colors.border;
+  const borderWidth = selected ? 2 : 1;
   const checkBg = selected 
-    ? (isDark ? "#000000" : "#FFFFF0") 
+    ? colors.primary
     : "transparent";
   const checkBorderColor = selected 
-    ? "transparent" 
+    ? colors.primary
     : colors.textSecondary;
   const checkIconColor = selected 
-    ? (isDark ? "#FFFFF0" : "#2D2A26") 
+    ? (isDark ? "#FFFFF0" : "#FFFFFF") 
     : "transparent";
 
   return (
@@ -77,6 +78,11 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
           {
             backgroundColor: containerBg,
             borderColor: borderColor,
+            borderWidth: borderWidth,
+            shadowColor: selected ? colors.primary : "#000",
+            shadowOpacity: selected ? 0.15 : 0.06,
+            shadowRadius: selected ? 12 : 8,
+            elevation: selected ? 6 : 3,
           },
           animatedStyle,
         ]}
@@ -110,15 +116,10 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     padding: 20,
     borderRadius: 20,
-    borderWidth: 1,
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
   },
   radioText: {
     fontSize: 17,
