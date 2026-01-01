@@ -39,8 +39,8 @@ export default function ProgressScreen() {
   const [selectedCaloriePeriod, setSelectedCaloriePeriod] = useState<CaloriePeriod>("this_week");
   
   const [streakCount, setStreakCount] = useState(0);
-  const [badgesCount, setBadgesCount] = useState(0);
   const [weightStats, setWeightStats] = useState<any>(null);
+  const [lastWeightDate, setLastWeightDate] = useState<Date | null>(null);
   const [calorieStats, setCalorieStats] = useState<any[]>([]);
   const [energyChanges, setEnergyChanges] = useState<any[]>([]);
   const [bmi, setBmi] = useState<number | null>(null);
@@ -61,8 +61,15 @@ export default function ProgressScreen() {
       ]);
 
       setStreakCount(progressData.streak_count);
-      setBadgesCount(progressData.badges_count);
       setWeightStats(progressData.weight_stats);
+      
+      // Получаем дату последнего взвешивания из истории
+      if (progressData.weight_stats?.history?.length > 0) {
+        const sortedHistory = [...progressData.weight_stats.history].sort(
+          (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setLastWeightDate(new Date(sortedHistory[0].created_at));
+      }
       setCalorieStats(progressData.calorie_stats);
       setEnergyChanges(progressData.energy_changes);
       setBmi(progressData.bmi);
@@ -216,19 +223,45 @@ export default function ProgressScreen() {
             </TouchableOpacity>
           </View>
 
-          {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
+          {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight ? (
             <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 16 }]}>
               {(() => {
-                const diff = weightStats.start_weight - weightStats.target_weight;
-                if (Math.abs(diff) < 0.1) {
+                const start = weightStats.start_weight;
+                const current = weightStats.current_weight;
+                const target = weightStats.target_weight;
+                
+                // Если старт и цель одинаковые
+                if (Math.abs(start - target) < 0.1) {
                   return "🎯 Цель достигнута";
                 }
-                const progress = ((weightStats.current_weight - weightStats.target_weight) / diff) * 100;
-                if (!isFinite(progress)) {
+                
+                let progress = 0;
+                
+                // Если цель - похудеть (start > target)
+                if (start > target) {
+                  if (current <= target) {
+                    return "🎯 Цель достигнута!";
+                  }
+                  progress = ((start - current) / (start - target)) * 100;
+                } 
+                // Если цель - набрать вес (start < target)
+                else if (start < target) {
+                  if (current >= target) {
+                    return "🎯 Цель достигнута!";
+                  }
+                  progress = ((current - start) / (target - start)) * 100;
+                }
+                
+                if (!isFinite(progress) || progress < 0) {
                   return "📍 Установите целевой вес";
                 }
-                return `📍 ${Math.round(progress)}% от цели`;
+                
+                return `📍 ${Math.round(Math.min(100, Math.max(0, progress)))}% от цели`;
               })()}
+            </Text>
+          ) : (
+            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 16 }]}>
+              📍 Добавьте вес и установите цель для отслеживания прогресса
             </Text>
           )}
 
@@ -261,15 +294,28 @@ export default function ProgressScreen() {
           <WeightChart data={filteredWeightHistory} targetWeight={weightStats?.target_weight} />
 
           {}
-          {weightStats?.current_weight && weightStats?.target_weight && (
+          {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
             <View style={styles.weightProgress}>
               <View style={styles.weightProgressHeader}>
                 <Text style={[styles.weightProgressLabel, { color: themeColors.textSecondary }]}>
                   Текущий вес
                 </Text>
-                <Text style={[styles.weightProgressNext, { color: themeColors.textSecondary }]}>
-                  Следующее взвешивание: 6дн
-                </Text>
+                {lastWeightDate && (
+                  <Text style={[styles.weightProgressNext, { color: themeColors.textSecondary }]}>
+                    {(() => {
+                      const now = new Date();
+                      const daysSinceLastWeight = Math.floor(
+                        (now.getTime() - lastWeightDate.getTime()) / (1000 * 60 * 60 * 24)
+                      );
+                      // Рекомендуем взвешиваться раз в неделю
+                      const daysUntilNext = Math.max(0, 7 - daysSinceLastWeight);
+                      if (daysUntilNext === 0) {
+                        return "Пора взвеситься!";
+                      }
+                      return `Взвешивание через ${daysUntilNext} дн.`;
+                    })()}
+                  </Text>
+                )}
               </View>
               <Text style={[styles.currentWeight, { color: themeColors.text }]}>
                 {weightStats.current_weight} кг
@@ -283,17 +329,50 @@ export default function ProgressScreen() {
                       styles.progressBarFill,
                       {
                         backgroundColor: themeColors.primary,
-                        width: `${Math.min(100, ((weightStats.start_weight - weightStats.current_weight) / (weightStats.start_weight - weightStats.target_weight)) * 100)}%`,
+                        width: `${(() => {
+                          const start = weightStats.start_weight;
+                          const current = weightStats.current_weight;
+                          const target = weightStats.target_weight;
+                          
+                          // Проверка на валидность данных
+                          if (!start || !current || !target) return 0;
+                          
+                          // Если старт и цель одинаковые, прогресс 100%
+                          if (Math.abs(start - target) < 0.1) return 100;
+                          
+                          // Вычисляем прогресс
+                          const totalDistance = Math.abs(start - target);
+                          const traveledDistance = Math.abs(start - current);
+                          
+                          // Если цель - похудеть (start > target)
+                          if (start > target) {
+                            // Если уже достигли или перешли цель
+                            if (current <= target) return 100;
+                            // Иначе считаем прогресс
+                            const progress = ((start - current) / (start - target)) * 100;
+                            return Math.min(100, Math.max(0, progress));
+                          } 
+                          // Если цель - набрать вес (start < target)
+                          else if (start < target) {
+                            // Если уже достигли или перешли цель
+                            if (current >= target) return 100;
+                            // Иначе считаем прогресс
+                            const progress = ((current - start) / (target - start)) * 100;
+                            return Math.min(100, Math.max(0, progress));
+                          }
+                          
+                          return 0;
+                        })()}%`,
                       },
                     ]}
                   />
                 </View>
                 <View style={styles.progressLabels}>
                   <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
-                    Старт: {weightStats.start_weight} кг
+                    Старт: {weightStats.start_weight?.toFixed(1) || "--"} кг
                   </Text>
                   <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
-                    Цель: {weightStats.target_weight} кг
+                    Цель: {weightStats.target_weight?.toFixed(1) || "--"} кг
                   </Text>
                 </View>
               </View>
@@ -306,18 +385,26 @@ export default function ProgressScreen() {
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения веса
           </Text>
-          {weightStats?.changes?.map((change: any, index: number) => (
-            <View key={change.period}>
-              <WeightChangeItem
-                period={change.period}
-                changeKg={change.change_kg}
-                status={change.status}
-              />
-              {index < weightStats.changes.length - 1 && (
-                <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
-              )}
+          {weightStats?.changes && weightStats.changes.length > 0 ? (
+            weightStats.changes.map((change: any, index: number) => (
+              <View key={change.period}>
+                <WeightChangeItem
+                  period={change.period}
+                  changeKg={change.change_kg}
+                  status={change.status}
+                />
+                {index < weightStats.changes.length - 1 && (
+                  <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                )}
+              </View>
+            ))
+          ) : (
+            <View style={styles.emptyStateSmall}>
+              <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
+                Добавьте несколько записей веса для отслеживания изменений
+              </Text>
             </View>
-          ))}
+          )}
         </View>
 
         {}
@@ -465,7 +552,27 @@ export default function ProgressScreen() {
             }
 
             const avgCalories = currentStats.average_calories || 0;
-            const targetCalories = weightStats?.target_calories || 2000;
+            const targetCalories = weightStats?.target_calories;
+            
+            // Если нет цели калорий, показываем только среднее
+            if (!targetCalories) {
+              return (
+                <View style={styles.calorieStatsContainer}>
+                  <View style={styles.calorieMainStat}>
+                    <Text style={[styles.calorieValue, { color: themeColors.text }]}>
+                      {Math.round(avgCalories)}
+                    </Text>
+                    <Text style={[styles.calorieUnit, { color: themeColors.textSecondary }]}>
+                      ккал/день
+                    </Text>
+                  </View>
+                  <Text style={[styles.calorieLabel, { color: themeColors.textSecondary, textAlign: 'center' }]}>
+                    Установите целевые калории в настройках для отслеживания прогресса
+                  </Text>
+                </View>
+              );
+            }
+            
             const percentage = Math.round((avgCalories / targetCalories) * 100);
             const isOverTarget = avgCalories > targetCalories;
 

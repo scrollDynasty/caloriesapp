@@ -128,16 +128,16 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AppSettingsProvider>
-        <SnowProvider>
-          <OnboardingProvider>
-            <View style={{ flex: 1 }}>
-              <RootNavigator />
-              <SnowOverlay />
+      <SnowProvider>
+        <OnboardingProvider>
+          <View style={{ flex: 1 }}>
+            <RootNavigator />
+            <SnowOverlay />
               <BadgeCelebrationWrapper />
-              {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
-            </View>
-          </OnboardingProvider>
-        </SnowProvider>
+            {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
+          </View>
+        </OnboardingProvider>
+      </SnowProvider>
       </AppSettingsProvider>
     </ThemeProvider>
   );

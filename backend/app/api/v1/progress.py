@@ -358,14 +358,41 @@ def get_progress_data(
     periods = [("3_days", 3), ("7_days", 7), ("14_days", 14), ("30_days", 30), ("90_days", 90)]
     
     for period_name, days in periods:
-        start_date = now - timedelta(days=days)
-        meals = db.query(MealPhoto).filter(
+        # Текущий период
+        current_start = now - timedelta(days=days)
+        current_meals = db.query(MealPhoto).filter(
             MealPhoto.user_id == current_user.id,
-            MealPhoto.created_at >= start_date,
+            MealPhoto.created_at >= current_start,
             MealPhoto.meal_name.isnot(None)
         ).all()
         
-        if len(meals) >= 3:
+        # Предыдущий период (для сравнения)
+        prev_start = now - timedelta(days=days * 2)
+        prev_end = now - timedelta(days=days)
+        prev_meals = db.query(MealPhoto).filter(
+            MealPhoto.user_id == current_user.id,
+            MealPhoto.created_at >= prev_start,
+            MealPhoto.created_at < prev_end,
+            MealPhoto.meal_name.isnot(None)
+        ).all()
+        
+        if len(current_meals) >= 3 and len(prev_meals) >= 3:
+            # Считаем среднее за текущий и предыдущий период
+            current_days = len(set(m.created_at.date() for m in current_meals))
+            prev_days = len(set(m.created_at.date() for m in prev_meals))
+            
+            current_avg = sum(m.calories or 0 for m in current_meals) / current_days if current_days > 0 else 0
+            prev_avg = sum(m.calories or 0 for m in prev_meals) / prev_days if prev_days > 0 else 0
+            
+            change = current_avg - prev_avg
+            
+            energy_changes.append(EnergyChange(
+                period=period_name,
+                change_calories=round(change, 1) if abs(change) > 0.1 else 0,
+                status="ok"
+            ))
+        elif len(current_meals) >= 3:
+            # Есть данные только за текущий период
             energy_changes.append(EnergyChange(
                 period=period_name,
                 change_calories=None,

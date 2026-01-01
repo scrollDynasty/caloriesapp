@@ -65,8 +65,8 @@ export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderPro
         onPress={handleStreakPress}
       >
         <Animated.View style={[styles.streakBadge, { backgroundColor: themeColors.card }, animatedStyle]}>
-          <Ionicons name="flame" size={18} color="#FF9F43" />
-          <Text style={[styles.streakText, { color: themeColors.text }]}>{streak}</Text>
+        <Ionicons name="flame" size={18} color="#FF9F43" />
+        <Text style={[styles.streakText, { color: themeColors.text }]}>{streak}</Text>
         </Animated.View>
       </TouchableOpacity>
     </View>

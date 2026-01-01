@@ -1,15 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Dimensions,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Animated, {
   FadeInDown,
@@ -19,6 +18,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import BadgeCelebration from "../components/ui/BadgeCelebration";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { hapticLight, hapticMedium } from "../utils/haptics";
@@ -131,7 +131,7 @@ const CircleBadge = ({
   onPress: () => void;
 }) => {
   const scale = useSharedValue(0);
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   useEffect(() => {
     scale.value = withDelay(index * 80, withSpring(1, { damping: 15, stiffness: 150 }));
@@ -174,10 +174,10 @@ const CircleBadge = ({
         </View>
 
         <View style={styles.circleBadgeText}>
-          <Text style={[styles.circleBadgeTitle, { color: colors.text }]}>
+          <Text style={[styles.circleBadgeTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
             {badge.title}
           </Text>
-          <Text style={[styles.circleBadgeDesc, { color: colors.textSecondary }]}>
+          <Text style={[styles.circleBadgeDesc, { color: "#8E8E93" }]}>
             {badge.description}
           </Text>
         </View>
@@ -188,14 +188,25 @@ const CircleBadge = ({
 
 export default function BadgesScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [badges, setBadges] = useState<BadgeData[]>([]);
   const [totalEarned, setTotalEarned] = useState(0);
+  const [totalBadges, setTotalBadges] = useState(0);
   const [streakCount, setStreakCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [celebratingBadge, setCelebratingBadge] = useState<string | null>(null);
+  const celebrationQueue = useRef<string[]>([]);
 
   const loadBadges = useCallback(async () => {
     try {
+      const checkResult = await apiService.checkBadges();
+      
+      if (checkResult.new_badges && checkResult.new_badges.length > 0) {
+        celebrationQueue.current = checkResult.new_badges.map(b => b.badge_id);
+        setCelebratingBadge(celebrationQueue.current[0]);
+      }
+      
+      // Затем загружаем все значки
       const [badgesData, progressData] = await Promise.all([
         apiService.getBadges(),
         apiService.getProgressData(),
@@ -203,6 +214,7 @@ export default function BadgesScreen() {
 
       setBadges(badgesData.badges);
       setTotalEarned(badgesData.total_earned);
+      setTotalBadges(badgesData.total_badges);
       setStreakCount(progressData.streak_count);
     } catch (err) {
       console.error("Error loading badges:", err);
@@ -219,39 +231,62 @@ export default function BadgesScreen() {
     hapticMedium();
   }, []);
 
+  const handleCelebrationClose = useCallback(async () => {
+    const closedBadge = celebrationQueue.current.shift();
+    
+    if (closedBadge) {
+      try {
+        await apiService.markBadgesSeen([closedBadge]);
+      } catch (err) {
+        console.error("Error marking badge as seen:", err);
+      }
+    }
+    
+    if (celebrationQueue.current.length > 0) {
+      setTimeout(() => setCelebratingBadge(celebrationQueue.current[0]), 300);
+    } else {
+      setCelebratingBadge(null);
+    }
+  }, []);
+
   const streakBadges = badges.filter((b) => b.category === "streak");
   const activityBadges = badges.filter((b) => b.category === "activity");
   const nutritionBadges = badges.filter((b) => b.category === "nutrition");
   const specialBadges = badges.filter((b) => b.category === "special");
 
-  const totalBadges = badges.length;
   const progress = totalBadges > 0 ? totalEarned / totalBadges : 0;
   const progressPercent = Math.round(progress * 100);
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: "#FFFDF6" }]} edges={["top"]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: isDark ? "#000000" : "#FFFDF6" }]} edges={["top"]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FF8500" />
+          <Animated.View entering={FadeInDown.springify()}>
+            <Text style={[styles.loadingText, { color: isDark ? "#8E8E93" : "#1C1C1E" }]}>
+              Загрузка достижений
+            </Text>
+          </Animated.View>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: "#FFFDF6" }]} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDark ? "#000000" : "#FFFDF6" }]} edges={["top"]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: isDark ? "#1C1C1E" : "#F2F2F7" }]}
           onPress={() => {
             hapticLight();
             router.back();
           }}
         >
-          <Ionicons name="chevron-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color={isDark ? "#FFFFFF" : "#000000"} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Достижения</Text>
+        <Text style={[styles.headerTitle, { color: isDark ? "#FFFFFF" : "#1C1C1E" }]}>
+          Достижения
+        </Text>
       </View>
 
       <ScrollView
@@ -259,45 +294,60 @@ export default function BadgesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Большая оранжевая карточка - Серия дней */}
-        <Animated.View entering={FadeInDown.delay(100)} style={styles.streakCardContainer}>
+        {/* Большая темная карточка - Серия дней */}
+        <Animated.View 
+          entering={FadeInDown.delay(100).springify()} 
+          style={[
+            styles.streakCardContainer,
+            { backgroundColor: isDark ? "#1C1C1E" : "#FFFFFF" }
+          ]}
+        >
           <LinearGradient
-            colors={["#FFAF40", "#FF8500"]}
+            colors={isDark ? ["#2C2C2E", "#1C1C1E"] : ["#2C2C2E", "#1C1C1E"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.streakCard}
           >
             <View style={styles.streakContent}>
-              <Text style={styles.streakEmoji}>🔥</Text>
-              <Text style={styles.streakNumber}>{streakCount}</Text>
+              <Text style={[styles.streakNumber, { color: "#FFFFFF" }]}>{streakCount}</Text>
             </View>
-            <Text style={styles.streakLabel}>СЕРИЯ ДНЕЙ</Text>
+            <Text style={[styles.streakLabel, { color: "#FFFFFF" }]}>СЕРИЯ ДНЕЙ</Text>
           </LinearGradient>
 
           {/* Прогресс секция */}
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
-              <Text style={[styles.progressTitle, { color: colors.text }]}>Прогресс</Text>
-              <Text style={[styles.progressValue, { color: colors.text }]}>
+              <Text style={[styles.progressTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
+                Прогресс
+              </Text>
+              <Text style={[styles.progressValue, { color: isDark ? "#FFFFFF" : colors.text }]}>
                 {totalEarned}/{totalBadges}
               </Text>
             </View>
 
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${progressPercent}%` }]} />
+            <View style={[styles.progressBarBg, { backgroundColor: isDark ? "#2C2C2E" : "#F2F2F7" }]}>
+              <View style={[
+                styles.progressBarFill, 
+                { 
+                  width: `${progressPercent}%`,
+                  backgroundColor: isDark ? "#FFFFFF" : "#1C1C1E"
+                }
+              ]} />
             </View>
 
-            <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
+            <Text style={[styles.progressLabel, { color: isDark ? "#8E8E93" : colors.textSecondary }]}>
               {progressPercent}% выполнено
             </Text>
           </View>
         </Animated.View>
 
         {/* Стрик секция */}
-        <Animated.View entering={FadeInDown.delay(200)} style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Стрик 🔥</Text>
-            <Text style={[styles.sectionCount, { color: colors.textSecondary }]}>
+            <Text style={[styles.sectionTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
+              Стрик
+            </Text>
+            <Text style={[styles.sectionCount, { color: isDark ? "#8E8E93" : colors.textSecondary }]}>
               {streakBadges.filter((b) => b.is_earned).length}/{streakBadges.length}
             </Text>
           </View>
@@ -320,12 +370,12 @@ export default function BadgesScreen() {
 
         {/* Активность */}
         {activityBadges.length > 0 && (
-          <Animated.View entering={FadeInDown.delay(300)} style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              <Text style={[styles.sectionTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
                 Активность 🍽️
               </Text>
-              <Text style={[styles.sectionCount, { color: colors.textSecondary }]}>
+              <Text style={[styles.sectionCount, { color: isDark ? "#8E8E93" : colors.textSecondary }]}>
                 {activityBadges.filter((b) => b.is_earned).length}/{activityBadges.length}
               </Text>
             </View>
@@ -349,12 +399,12 @@ export default function BadgesScreen() {
 
         {/* Питание */}
         {nutritionBadges.length > 0 && (
-          <Animated.View entering={FadeInDown.delay(400)} style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Питание 💚
+              <Text style={[styles.sectionTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
+                Питание
               </Text>
-              <Text style={[styles.sectionCount, { color: colors.textSecondary }]}>
+              <Text style={[styles.sectionCount, { color: isDark ? "#8E8E93" : colors.textSecondary }]}>
                 {nutritionBadges.filter((b) => b.is_earned).length}/{nutritionBadges.length}
               </Text>
             </View>
@@ -380,10 +430,10 @@ export default function BadgesScreen() {
         {specialBadges.length > 0 && (
           <Animated.View entering={FadeInDown.delay(500)} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Особые ⭐
+              <Text style={[styles.sectionTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
+                Особые
               </Text>
-              <Text style={[styles.sectionCount, { color: colors.textSecondary }]}>
+              <Text style={[styles.sectionCount, { color: isDark ? "#8E8E93" : colors.textSecondary }]}>
                 {specialBadges.filter((b) => b.is_earned).length}/{specialBadges.length}
               </Text>
             </View>
@@ -407,13 +457,33 @@ export default function BadgesScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Анимация нового значка */}
+      {celebratingBadge && (
+        <BadgeCelebration
+          visible={celebratingBadge !== null}
+          badgeType={celebratingBadge}
+          onClose={handleCelebrationClose}
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center",
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: "Inter_500Medium",
+    textAlign: "center",
+    marginTop: 8,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -424,7 +494,6 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#F2F2F7",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -432,7 +501,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     fontFamily: "Inter_600SemiBold",
-    color: "#1C1C1E",
     textAlign: "center",
     marginRight: 40,
   },
@@ -442,7 +510,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 32,
     borderRadius: 24,
-    backgroundColor: "#FFFFFF",
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 20,
@@ -458,23 +525,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   streakContent: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-  },
-  streakEmoji: {
-    fontSize: 32,
+    justifyContent: "center",
   },
   streakNumber: {
     fontSize: 48,
     fontFamily: "Inter_700Bold",
-    color: "#FFFFFF",
     lineHeight: 48,
   },
   streakLabel: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: "#FFFFFF",
     opacity: 0.9,
     letterSpacing: 1,
     marginTop: 4,
@@ -499,13 +560,11 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     height: 8,
-    backgroundColor: "#F2F2F7",
     borderRadius: 4,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "#7F56D9",
     borderRadius: 4,
   },
   progressLabel: {

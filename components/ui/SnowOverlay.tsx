@@ -22,7 +22,7 @@ function generateConfig(id: number): SnowflakeConfig {
     startX: Math.random() * SCREEN_WIDTH,
     opacity: 0.5 + Math.random() * 0.4,
     duration: 10000 + Math.random() * 5000,
-    delay: Math.random() * 5000,
+    delay: Math.random() * 5000, 
     wobbleOffset: Math.random() * Math.PI * 2,
   };
 }

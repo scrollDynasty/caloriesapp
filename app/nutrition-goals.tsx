@@ -970,7 +970,7 @@ export default function NutritionGoalsScreen() {
           fats: adjustedMacros.fats,
         }));
       } else {
-        setGoals((prev) => ({ ...prev, [editingGoal.key]: value }));
+      setGoals((prev) => ({ ...prev, [editingGoal.key]: value }));
       }
     }
   };

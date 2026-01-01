@@ -26,26 +26,97 @@ interface BadgeCelebrationProps {
 }
 
 const BADGE_CONFIG: Record<string, { emoji: string; title: string; description: string; color: string; gradient: [string, string] }> = {
-  streak_3: { emoji: "🔥", title: "Новичок!", description: "3-дневная серия!", color: "#FF9500", gradient: ["#FF9500", "#FF6B00"] },
-  streak_10: { emoji: "🔥", title: "Серьёзно настроен(а)!", description: "10-дневная серия!", color: "#FF7F00", gradient: ["#FF7F00", "#FF5500"] },
-  streak_50: { emoji: "🔥", title: "В плену решения!", description: "50-дневная серия!", color: "#FF6B00", gradient: ["#FF6B00", "#FF4500"] },
-  streak_100: { emoji: "🔥", title: "Тройная угроза!", description: "100-дневная серия!", color: "#FF5500", gradient: ["#FF5500", "#FF3500"] },
-  streak_365: { emoji: "🔥", title: "Без выходных!", description: "Целый год подряд!", color: "#FF4500", gradient: ["#FF4500", "#FF2500"] },
-  streak_1000: { emoji: "🔥", title: "Бессмертный(ая)!", description: "1000 дней - легенда!", color: "#FF3500", gradient: ["#FF3500", "#FF1500"] },
-  meals_5: { emoji: "🥄", title: "Ковыряюсь вилкой!", description: "5 приёмов пищи записано!", color: "#FFA502", gradient: ["#FFA502", "#FF6348"] },
-  meals_50: { emoji: "🥗", title: "Миссия: Питание!", description: "50 приёмов пищи!", color: "#4CAF50", gradient: ["#4CAF50", "#2E7D32"] },
-  meals_500: { emoji: "🍽️", title: "Крёстный Лог!", description: "500 приёмов пищи!", color: "#607D8B", gradient: ["#607D8B", "#455A64"] },
-  goal_reached: { emoji: "✅", title: "Цель достигнута!", description: "Ты достиг дневной нормы!", color: "#34C759", gradient: ["#34C759", "#2E7D32"] },
-  goal_week: { emoji: "🎯", title: "Неделя в цели!", description: "7 дней нормы калорий!", color: "#4CAF50", gradient: ["#4CAF50", "#388E3C"] },
-  water_champion: { emoji: "💧", title: "Водный чемпион!", description: "Норма воды выполнена!", color: "#2196F3", gradient: ["#2196F3", "#1976D2"] },
-  water_week: { emoji: "🌊", title: "Водная неделя!", description: "7 дней нормы воды!", color: "#00BCD4", gradient: ["#00BCD4", "#0097A7"] },
-  macro_master: { emoji: "📊", title: "Мастер макросов!", description: "Идеальный баланс БЖУ!", color: "#AF52DE", gradient: ["#AF52DE", "#9C27B0"] },
-  healthy_meal: { emoji: "💚", title: "Здоровый выбор!", description: "Блюдо с оценкой 8+!", color: "#34C759", gradient: ["#34C759", "#27AE60"] },
-  weight_logged: { emoji: "⚖️", title: "На весах!", description: "Первое взвешивание!", color: "#607D8B", gradient: ["#607D8B", "#455A64"] },
-  weight_week: { emoji: "📈", title: "Контроль веса!", description: "Неделя взвешиваний!", color: "#795548", gradient: ["#795548", "#5D4037"] },
-  explorer: { emoji: "🗺️", title: "Исследователь!", description: "5 разных блюд попробовано!", color: "#FF5722", gradient: ["#FF5722", "#E64A19"] },
-  collector: { emoji: "🏅", title: "Коллекционер!", description: "У тебя уже 5 значков!", color: "#FFC107", gradient: ["#FFC107", "#FFA000"] },
-  achiever: { emoji: "🎖️", title: "Достигатор!", description: "10 значков - молодец!", color: "#FF9800", gradient: ["#FF9800", "#F57C00"] },
+  // Streak
+  streak_3: { emoji: "🔥", title: "Новичок", description: "3-дневная серия", color: "#FF453A", gradient: ["#FF453A", "#FF6B3B"] },
+  streak_7: { emoji: "🔥", title: "Неделя силы", description: "7-дневная серия", color: "#FF9F0A", gradient: ["#FF9F0A", "#FFB340"] },
+  streak_14: { emoji: "⚡", title: "Две недели", description: "14-дневная серия", color: "#FFD60A", gradient: ["#FFD60A", "#FFE340"] },
+  streak_30: { emoji: "🏆", title: "Месяц чемпиона", description: "30-дневная серия", color: "#32D74B", gradient: ["#32D74B", "#4AE464"] },
+  streak_50: { emoji: "🌟", title: "Полсотни", description: "50-дневная серия", color: "#30D158", gradient: ["#30D158", "#4AE371"] },
+  streak_100: { emoji: "💎", title: "Легенда", description: "100-дневная серия", color: "#00CED1", gradient: ["#00CED1", "#40E0D0"] },
+  streak_365: { emoji: "🗓️", title: "Год заботы", description: "365-дневная серия", color: "#5AC8FA", gradient: ["#5AC8FA", "#7AD5FB"] },
+  streak_1000: { emoji: "♾️", title: "Бессмертный", description: "1000-дневная серия", color: "#AF52DE", gradient: ["#AF52DE", "#BF72EE"] },
+  
+  // Meals
+  first_meal: { emoji: "🍽️", title: "Первое блюдо", description: "Начало пути", color: "#D1D1D6", gradient: ["#D1D1D6", "#E1E1E6"] },
+  meals_5: { emoji: "🥄", title: "Ковыряюсь вилкой", description: "5 приёмов пищи", color: "#AEAEB2", gradient: ["#AEAEB2", "#BEBEC2"] },
+  meals_10: { emoji: "🥗", title: "Гурман", description: "10 блюд", color: "#3A3A3C", gradient: ["#3A3A3C", "#4A4A4C"] },
+  meals_25: { emoji: "🍲", title: "Поварёнок", description: "25 блюд", color: "#D1D1D6", gradient: ["#D1D1D6", "#E1E1E6"] },
+  meals_50: { emoji: "👨‍🍳", title: "Шеф-повар", description: "50 блюд", color: "#AEAEB2", gradient: ["#AEAEB2", "#BEBEC2"] },
+  meals_100: { emoji: "🌟", title: "Мастер кухни", description: "100 блюд", color: "#3A3A3C", gradient: ["#3A3A3C", "#4A4A4C"] },
+  meals_250: { emoji: "✨", title: "Кулинарный эксперт", description: "250 блюд", color: "#D1D1D6", gradient: ["#D1D1D6", "#E1E1E6"] },
+  meals_500: { emoji: "👑", title: "Король/Королева кухни", description: "500 блюд", color: "#AEAEB2", gradient: ["#AEAEB2", "#BEBEC2"] },
+  meals_1000: { emoji: "🏰", title: "Кулинарная империя", description: "1000 блюд", color: "#3A3A3C", gradient: ["#3A3A3C", "#4A4A4C"] },
+  meals_5000: { emoji: "🌌", title: "Гастрономический бог", description: "5000 блюд", color: "#D1D1D6", gradient: ["#D1D1D6", "#E1E1E6"] },
+  
+  // Water
+  water_champion: { emoji: "💧", title: "Водный чемпион", description: "Норма воды", color: "#007AFF", gradient: ["#007AFF", "#2090FF"] },
+  water_3_days: { emoji: "💦", title: "Три дня воды", description: "3 дня нормы воды", color: "#5AC8FA", gradient: ["#5AC8FA", "#7AD5FB"] },
+  water_week: { emoji: "🌊", title: "Водная неделя", description: "7 дней нормы воды", color: "#00BCD4", gradient: ["#00BCD4", "#40E0D0"] },
+  water_month: { emoji: "🧊", title: "Месяц гидратации", description: "30 дней нормы воды", color: "#0097A7", gradient: ["#0097A7", "#30B7C7"] },
+  water_100_days: { emoji: "🚰", title: "Источник жизни", description: "100 дней нормы воды", color: "#00796B", gradient: ["#00796B", "#30998B"] },
+  water_year: { emoji: "🏞️", title: "Океан здоровья", description: "Год нормы воды", color: "#4CAF50", gradient: ["#4CAF50", "#6CBF70"] },
+  
+  // Goals
+  goal_reached: { emoji: "✅", title: "Цель достигнута", description: "Дневная норма", color: "#34C759", gradient: ["#34C759", "#54D779"] },
+  goal_3_days: { emoji: "📈", title: "Три дня в цели", description: "3 дня нормы калорий", color: "#30D158", gradient: ["#30D158", "#50E178"] },
+  goal_week: { emoji: "🎯", title: "Неделя в цели", description: "7 дней нормы калорий", color: "#4CAF50", gradient: ["#4CAF50", "#6CBF70"] },
+  goal_month: { emoji: "🏆", title: "Месяц в цели", description: "30 дней нормы калорий", color: "#388E3C", gradient: ["#388E3C", "#58AE5C"] },
+  goal_100_days: { emoji: "🏅", title: "Мастер цели", description: "100 дней нормы калорий", color: "#2E7D32", gradient: ["#2E7D32", "#4E9D52"] },
+  goal_perfectionist: { emoji: "💯", title: "Перфекционист", description: "Идеальная норма калорий", color: "#1B5E20", gradient: ["#1B5E20", "#3B7E40"] },
+  
+  // Macro
+  macro_master: { emoji: "📊", title: "Мастер макросов", description: "Идеальный баланс БЖУ", color: "#AF52DE", gradient: ["#AF52DE", "#BF72EE"] },
+  macro_week: { emoji: "⚖️", title: "Неделя баланса", description: "7 дней баланса БЖУ", color: "#9C27B0", gradient: ["#9C27B0", "#BC47D0"] },
+  protein_power: { emoji: "💪", title: "Сила белка", description: "Норма белка", color: "#FF6B6B", gradient: ["#FF6B6B", "#FF8B8B"] },
+  fiber_friend: { emoji: "🌾", title: "Друг клетчатки", description: "Норма клетчатки", color: "#795548", gradient: ["#795548", "#997568"] },
+  keto_king: { emoji: "🥑", title: "Кето-король", description: "7 дней кето", color: "#FFC107", gradient: ["#FFC107", "#FFD137"] },
+  
+  // Healthy Eating
+  healthy_meal: { emoji: "💚", title: "Здоровый выбор", description: "Блюдо с оценкой 8+", color: "#34C759", gradient: ["#34C759", "#54D779"] },
+  healthy_week: { emoji: "🌿", title: "Здоровая неделя", description: "7 дней здоровья", color: "#27AE60", gradient: ["#27AE60", "#47CE80"] },
+  veggie_lover: { emoji: "🥕", title: "Любитель овощей", description: "5 порций овощей", color: "#FF9800", gradient: ["#FF9800", "#FFB830"] },
+  fruit_fanatic: { emoji: "🍎", title: "Фруктовый фанат", description: "3 порции фруктов", color: "#FF2D55", gradient: ["#FF2D55", "#FF4D75"] },
+  sugar_free: { emoji: "🚫", title: "Без сахара", description: "День без сахара", color: "#607D8B", gradient: ["#607D8B", "#809DAB"] },
+  whole_grains: { emoji: "🍞", title: "Цельнозерновой", description: "7 дней цельнозерновых", color: "#795548", gradient: ["#795548", "#997568"] },
+  
+  // Weight
+  weight_logged: { emoji: "⚖️", title: "На весах", description: "Первое взвешивание", color: "#607D8B", gradient: ["#607D8B", "#809DAB"] },
+  weight_week: { emoji: "📈", title: "Контроль веса", description: "Неделя взвешиваний", color: "#795548", gradient: ["#795548", "#997568"] },
+  weight_month: { emoji: "📉", title: "Месяц контроля", description: "30 дней взвешиваний", color: "#455A64", gradient: ["#455A64", "#657A84"] },
+  weight_loss_5kg: { emoji: "⬇️", title: "Минус 5 кг", description: "Потеря 5 кг", color: "#34C759", gradient: ["#34C759", "#54D779"] },
+  weight_loss_10kg: { emoji: "💪", title: "Минус 10 кг", description: "Потеря 10 кг", color: "#2E7D32", gradient: ["#2E7D32", "#4E9D52"] },
+  
+  // Time-based
+  early_bird: { emoji: "🌅", title: "Ранняя пташка", description: "Завтрак до 9 утра", color: "#FFD60A", gradient: ["#FFD60A", "#FFE640"] },
+  night_owl: { emoji: "🦉", title: "Сова", description: "Поздний ужин", color: "#5856D6", gradient: ["#5856D6", "#7876E6"] },
+  regular_eater: { emoji: "⏰", title: "Регулярное питание", description: "3 приёма в одно время", color: "#007AFF", gradient: ["#007AFF", "#309AFF"] },
+  breakfast_club: { emoji: "🍳", title: "Клуб завтраков", description: "7 завтраков", color: "#FFC107", gradient: ["#FFC107", "#FFD137"] },
+  
+  // Scanner
+  scanner_1: { emoji: "📸", title: "Первый скан", description: "1 сканирование", color: "#D1D1D6", gradient: ["#D1D1D6", "#E1E1E6"] },
+  scanner_10: { emoji: "🔍", title: "Сканер-любитель", description: "10 сканирований", color: "#AEAEB2", gradient: ["#AEAEB2", "#BEBEC2"] },
+  scanner_50: { emoji: "📱", title: "Сканер-про", description: "50 сканирований", color: "#3A3A3C", gradient: ["#3A3A3C", "#5A5A5C"] },
+  scanner_100: { emoji: "⚡", title: "Мастер сканирования", description: "100 сканирований", color: "#D1D1D6", gradient: ["#D1D1D6", "#E1E1E6"] },
+  scanner_500: { emoji: "🤖", title: "Киборг-сканер", description: "500 сканирований", color: "#AEAEB2", gradient: ["#AEAEB2", "#BEBEC2"] },
+  
+  // Variety
+  variety_10_meals: { emoji: "🌈", title: "Разнообразие", description: "10 разных блюд", color: "#FF5722", gradient: ["#FF5722", "#FF7742"] },
+  variety_25_meals: { emoji: "🎨", title: "Палитра вкусов", description: "25 разных блюд", color: "#E64A19", gradient: ["#E64A19", "#F66A39"] },
+  variety_50_meals: { emoji: "🌍", title: "Мировой гурман", description: "50 разных блюд", color: "#D32F2F", gradient: ["#D32F2F", "#E34F4F"] },
+  cuisine_5: { emoji: "🍜", title: "5 Кухонь", description: "5 разных кухонь", color: "#FFC107", gradient: ["#FFC107", "#FFD137"] },
+  cuisine_10: { emoji: "✈️", title: "10 Кухонь", description: "10 разных кухонь", color: "#FFA000", gradient: ["#FFA000", "#FFB030"] },
+  
+  // Recipe
+  recipe_1: { emoji: "📖", title: "Первый рецепт", description: "1 рецепт", color: "#FF2D55", gradient: ["#FF2D55", "#FF4D75"] },
+  recipe_5: { emoji: "🧑‍🍳", title: "5 Рецептов", description: "5 рецептов", color: "#E64A19", gradient: ["#E64A19", "#F66A39"] },
+  recipe_10: { emoji: "📚", title: "10 Рецептов", description: "10 рецептов", color: "#D32F2F", gradient: ["#D32F2F", "#E34F4F"] },
+  recipe_25: { emoji: "🧪", title: "25 Рецептов", description: "25 рецептов", color: "#C2185B", gradient: ["#C2185B", "#D2387B"] },
+  
+  // Collector
+  collector_5: { emoji: "🏅", title: "Коллекционер", description: "5 значков", color: "#FFC107", gradient: ["#FFC107", "#FFD137"] },
+  collector_10: { emoji: "🎖️", title: "Достигатор", description: "10 значков", color: "#FF9800", gradient: ["#FF9800", "#FFB830"] },
+  collector_25: { emoji: "🏆", title: "Мастер коллекции", description: "25 значков", color: "#F57C00", gradient: ["#F57C00", "#FF9C30"] },
+  collector_50: { emoji: "👑", title: "Легенда коллекции", description: "50 значков", color: "#E64A19", gradient: ["#E64A19", "#F66A39"] },
 };
 
 const BadgeIcon = ({ 

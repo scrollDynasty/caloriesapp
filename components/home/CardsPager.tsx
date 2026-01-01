@@ -397,8 +397,8 @@ function AppleHealthCard() {
   
   // Показываем перенос калорий, если включён и есть данные
   if (settings.calorieRollover && rolloverCalories && rolloverCalories.amount > 0) {
-    return (
-      <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
+  return (
+    <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
         <View style={styles.appleHealthContent}>
           <View style={[styles.appleHealthIcon, { backgroundColor: isDark ? themeColors.gray5 : "#E8F5E9" }]}>
             <Ionicons name="arrow-forward-circle" size={24} color="#4CAF50" />
