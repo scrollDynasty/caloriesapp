@@ -7,7 +7,7 @@
     "icon": "./assets/images/dark_logo.png",
     "scheme": "yeb-ich",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.scrolldynasty.yebich",
@@ -41,14 +41,7 @@
         "CAMERA",
         "RECORD_AUDIO",
         "READ_EXTERNAL_STORAGE",
-        "READ_MEDIA_IMAGES",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
-        "android.permission.health.READ_STEPS",
-        "android.permission.health.READ_DISTANCE",
-        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
-        "android.permission.health.READ_TOTAL_CALORIES_BURNED",
-        "android.permission.health.READ_FLOORS_CLIMBED"
+        "READ_MEDIA_IMAGES"
       ],
       "intentFilters": [
         {
@@ -78,6 +71,18 @@
         "expo-camera",
         {
           "cameraPermission": "Разрешите доступ к камере для сканирования еды и штрих-кодов"
+        }
+      ],
+      [
+        "react-native-health-connect",
+        {
+          "healthConnectPermissions": [
+            "android.permission.health.READ_STEPS",
+            "android.permission.health.READ_DISTANCE",
+            "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+            "android.permission.health.READ_TOTAL_CALORIES_BURNED",
+            "android.permission.health.READ_FLOORS_CLIMBED"
+          ]
         }
       ]
     ],
