@@ -13,6 +13,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useProcessingMeals } from "../context/ProcessingMealsContext";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import type { BarcodeLookup } from "../services/api";
@@ -23,16 +24,15 @@ export default function ScanMealScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { addProcessingMeal } = useProcessingMeals();
   const [permission, requestPermission] = useCameraPermissions();
   const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
   const cameraRef = useRef<CameraView>(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [scanned, setScanned] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(true);
   const [cameraMode, setCameraMode] = useState<"photo" | "barcode">("photo");
-  const [isProcessingPhoto, setIsProcessingPhoto] = useState(false);
   const [barcodeResult, setBarcodeResult] = useState<BarcodeLookup | null>(null);
   const [barcodeLoading, setBarcodeLoading] = useState(false);
   const [barcodeError, setBarcodeError] = useState<string | null>(null);
@@ -87,13 +87,11 @@ export default function ScanMealScreen() {
   };
 
   const handleTakePicture = async () => {
-    if (!cameraRef.current || uploading || isProcessingPhoto) {
+    if (!cameraRef.current) {
       return;
     }
 
     try {
-      setIsProcessingPhoto(true);
-      setUploading(true);
       setCameraActive(false);
       
       const photo = await cameraRef.current.takePictureAsync({
@@ -102,16 +100,21 @@ export default function ScanMealScreen() {
       });
 
       if (photo?.uri) {
-        await uploadPhoto(photo.uri, scannedBarcode || undefined);
+        const { fileName, mimeType } = getFileInfoFromUri(photo.uri);
+        
+        addProcessingMeal(photo.uri, fileName, mimeType, scannedBarcode || undefined);
+        
+        router.replace({ 
+          pathname: "/(tabs)", 
+          params: { refresh: Date.now().toString() } 
+        } as any);
       } else {
-        setUploading(false);
-        setIsProcessingPhoto(false);
         Alert.alert("Ошибка", "Не удалось сделать фотографию");
+        setCameraActive(true);
       }
     } catch (error: any) {
-      setUploading(false);
-      setIsProcessingPhoto(false);
       Alert.alert("Ошибка", error.message || "Не удалось сделать фотографию");
+      setCameraActive(true);
     }
   };
 
@@ -144,7 +147,14 @@ export default function ScanMealScreen() {
       });
 
       if (!result.canceled && result.assets[0]) {
-        await uploadPhoto(result.assets[0].uri, scannedBarcode || undefined);
+        const { fileName, mimeType } = getFileInfoFromUri(result.assets[0].uri);
+        
+        addProcessingMeal(result.assets[0].uri, fileName, mimeType, scannedBarcode || undefined);
+        
+        router.replace({ 
+          pathname: "/(tabs)", 
+          params: { refresh: Date.now().toString() } 
+        } as any);
       }
     } catch {
       Alert.alert("Ошибка", "Не удалось выбрать фотографию");
@@ -227,58 +237,6 @@ export default function ScanMealScreen() {
   const exitBarcodeMode = () => {
     setCameraMode("photo");
     handleResetBarcode();
-  };
-
-  const uploadPhoto = async (uri: string, barcode?: string) => {
-    try {
-      setUploading(true);
-      setCameraActive(false);
-
-      const { fileName, mimeType } = getFileInfoFromUri(uri);
-
-      const response = await apiService.uploadMealPhoto(
-        uri,
-        fileName,
-        mimeType,
-        barcode
-      );
-      
-      const imageUrl = apiService.getMealPhotoUrl(
-        response.photo.id,
-        apiService.getCachedToken() || undefined
-      );
-
-      router.replace({
-        pathname: "/meal-result",
-        params: {
-          photoId: response.photo.id.toString(),
-          mealName: response.photo.detected_meal_name || response.photo.meal_name || "Блюдо",
-          calories: (response.photo.calories || 0).toString(),
-          protein: (response.photo.protein || 0).toString(),
-          fat: (response.photo.fat || 0).toString(),
-          carbs: (response.photo.carbs || 0).toString(),
-              fiber: (response.photo.fiber || 0).toString(),
-              sugar: (response.photo.sugar || 0).toString(),
-              sodium: (response.photo.sodium || 0).toString(),
-              healthScore: response.photo.health_score != null ? response.photo.health_score.toString() : "",
-          imageUrl: imageUrl,
-        },
-      } as any);
-    } catch (error: any) {
-      setIsProcessingPhoto(false);
-      
-      const errorMessage = 
-        error.response?.data?.detail || 
-        error.response?.data?.message ||
-        (error.response?.status === 422 ? "Некорректные данные для загрузки. Проверьте формат файла." : null) ||
-        error.message || 
-        "Не удалось загрузить фотографию";
-      
-      Alert.alert("Ошибка", errorMessage);
-      setCameraActive(true);
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleBarcodePress = () => {
@@ -425,17 +383,6 @@ export default function ScanMealScreen() {
         </View>
       </View>
 
-      {uploading && (
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingCard}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingTitle}>Анализируем блюдо...</Text>
-            <Text style={styles.loadingSubtitle}>
-              AI распознает еду и считает КБЖУ
-            </Text>
-          </View>
-        </View>
-      )}
       <View style={styles.controls}>
         <TouchableOpacity
           style={[styles.controlButton, cameraMode === "barcode" && styles.controlDisabled]}
@@ -451,14 +398,9 @@ export default function ScanMealScreen() {
           <TouchableOpacity
             style={styles.shutterButton}
             onPress={handleTakePicture}
-            disabled={uploading || isProcessingPhoto}
           >
             <View style={styles.shutterButtonOuter}>
-              {uploading ? (
-                <ActivityIndicator size="small" color="#FFFFF0" />
-              ) : (
-                <View style={styles.shutterButtonInner} />
-              )}
+              <View style={styles.shutterButtonInner} />
             </View>
           </TouchableOpacity>
         ) : (
@@ -522,9 +464,9 @@ export default function ScanMealScreen() {
               <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Углев.</Text><Text style={styles.macroPillValue}>{barcodeResult.carbs ?? 0}</Text></View>
             </View>
             <TouchableOpacity
-              style={[styles.saveBarcodeButton, (savingBarcodeMeal || uploading) && { opacity: 0.7 }]}
+              style={[styles.saveBarcodeButton, savingBarcodeMeal && { opacity: 0.7 }]}
               onPress={handleCreateMealFromBarcode}
-              disabled={savingBarcodeMeal || uploading}
+              disabled={savingBarcodeMeal}
             >
               {savingBarcodeMeal ? (
                 <ActivityIndicator color={colors.buttonPrimaryText} />
@@ -762,39 +704,6 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       fontSize: 16,
       fontFamily: "Inter_400Regular",
       color: colors.text,
-    },
-    loadingOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: "rgba(0, 0, 0, 0.7)",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 100,
-    },
-    loadingCard: {
-      backgroundColor: colors.card,
-      borderRadius: 20,
-      padding: 32,
-      alignItems: "center",
-      marginHorizontal: 32,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: isDark ? 0.2 : 0.3,
-      shadowRadius: 16,
-      elevation: isDark ? 6 : 10,
-    },
-    loadingTitle: {
-      marginTop: 20,
-      fontSize: 18,
-      fontFamily: "Inter_600SemiBold",
-      color: colors.text,
-      textAlign: "center",
-    },
-    loadingSubtitle: {
-      marginTop: 8,
-      fontSize: 14,
-      fontFamily: "Inter_400Regular",
-      color: colors.textSecondary,
-      textAlign: "center",
     },
     barcodePanel: {
       paddingHorizontal: 20,

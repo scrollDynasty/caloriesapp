@@ -18,9 +18,10 @@ import { RecentMeals } from "../../components/home/RecentMeals";
 import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { NutritionCardSkeleton } from "../../components/ui/Skeleton";
 import { useAppSettings } from "../../context/AppSettingsContext";
+import { ProcessingMeal, useProcessingMeals } from "../../context/ProcessingMealsContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
-import { MealPhoto, apiService } from "../../services/api";
+import { apiService } from "../../services/api";
 import { dataCache } from "../../stores/dataCache";
 
 import { getLocalDayRange, getLocalTimezoneOffset, getLocalTimezoneOffsetMs } from "../../utils/timezone";
@@ -81,6 +82,7 @@ export default function HomeScreen() {
     calculateRollover,
     setPendingBadgeCelebration 
   } = useAppSettings();
+  const { setOnMealCompleted, processingMeals } = useProcessingMeals();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dailyLoading, setDailyLoading] = useState(false);
@@ -101,11 +103,6 @@ export default function HomeScreen() {
       imageUrl?: string;
     }>
   >([]);
-  const [recentLoading, setRecentLoading] = useState(false);
-  const [recentError, setRecentError] = useState<string | null>(null);
-  const [recentLimit, setRecentLimit] = useState(10);
-  const [recentHasMore, setRecentHasMore] = useState(true);
-  const [recentSkip, setRecentSkip] = useState(0);
   const [selectedDateTimestamp, setSelectedDateTimestamp] = useState<number>(getLocalDayRange().startUtcMs);
   const [weekAchievements, setWeekAchievements] = useState<Record<string, boolean>>({});
   const [dailyProgress, setDailyProgress] = useState<Record<string, number>>({});
@@ -143,73 +140,8 @@ export default function HomeScreen() {
   const hasLoadedRef = useRef(false); 
   const lastLoadedDateRef = useRef<number | null>(null);
   const hasInitializedRecentRef = useRef(false);
-  const [latestMeal, setLatestMeal] = useState<MealPhoto | null>(null);
   const lastFocusRefreshAtRef = useRef(0);
 
-  const fetchLatestMeals = useCallback(async (opts?: { append?: boolean; limit?: number; force?: boolean }) => {
-    try {
-    if (!opts?.force && recentLoading) return;
-      const limit = opts?.limit ?? recentLimit;
-      const skip = opts?.append ? recentSkip : 0;
-      setRecentLoading(true);
-      setRecentError(null);
-      const ttlMs = opts?.force ? 0 : 60000;
-      const meals = await apiService.getMealPhotosCached(skip, limit, ttlMs);
-      if (!isMountedRef.current) return;
-
-      const { startUtcMs, endUtcMs } = getLocalDayRange(selectedDateTimestamp);
-
-      const mealsForSelectedDay = meals.filter((m) => {
-        const created = parseMealDate((m as any).created_at);
-        if (!created) return false;
-        const createdMs = created.getTime();
-        return createdMs >= startUtcMs && createdMs < endUtcMs;
-      });
-
-      setLatestMeal((opts?.append ? mealsForSelectedDay : mealsForSelectedDay)[0] || null);
-      const token = apiService.getCachedToken() || undefined;
-      const mappedMeals = mealsForSelectedDay.map((m) => {
-        const created = parseMealDate((m as any).created_at);
-        const time = created
-          ? created.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-          : "";
-        let imageUrl: string | undefined = undefined;
-        if (m.file_path) {
-          if (m.file_path.startsWith('http://') || m.file_path.startsWith('https://')) {
-            imageUrl = m.file_path;
-          } else if (m.mime_type !== "manual") {
-            imageUrl = apiService.getMealPhotoUrl(m.id, token);
-          }
-        }
-        return {
-          id: m.id,
-          name: m.detected_meal_name || m.meal_name || "Блюдо",
-          time,
-          calories: m.calories ?? 0,
-          protein: m.protein ?? 0,
-          carbs: m.carbs ?? 0,
-          fats: m.fat ?? 0,
-          isManual: m.mime_type === "manual",
-          imageUrl,
-        };
-      });
-      const filtered = mappedMeals.filter(
-        (meal) =>
-          (meal.calories ?? 0) > 0 ||
-          (meal.protein ?? 0) > 0 ||
-          (meal.carbs ?? 0) > 0 ||
-          (meal.fats ?? 0) > 0
-      );
-      setRecentMeals(filtered);
-      setRecentHasMore(mealsForSelectedDay.length >= limit);
-      setRecentSkip(skip + limit);
-    } catch {
-      setRecentError("Не удалось загрузить последние блюда");
-    }
-    finally {
-      setRecentLoading(false);
-    }
-  }, [recentLimit, selectedDateTimestamp]);
 
   const loadUserData = useCallback(async () => {
     const cachedUser = dataCache.getUser();
@@ -220,8 +152,6 @@ export default function HomeScreen() {
       setOnboardingData(cachedOnboarding);
       setLoading(false);
       hasLoadedRef.current = true;
-      
-      fetchLatestMeals().catch(() => null);
       return;
     }
     
@@ -239,9 +169,8 @@ export default function HomeScreen() {
     try {
       const userPromise = apiService.getCurrentUser();
       const onboardingPromise = apiService.getOnboardingData().catch(() => null);
-      const mealsPromise = fetchLatestMeals().catch(() => null);
 
-      const [user, onboarding] = await Promise.all([userPromise, onboardingPromise, mealsPromise]);
+      const [user, onboarding] = await Promise.all([userPromise, onboardingPromise]);
       if (!isMountedRef.current) return;
       setUserData(user);
       if (onboarding) {
@@ -277,6 +206,39 @@ export default function HomeScreen() {
     const cachedWater = dataCache.getWater(dateStr);
     
     if (cachedDaily && cachedWater && !force) {
+      const token = apiService.getCachedToken() || undefined;
+      const mappedCachedMeals = (cachedDaily.meals || []).map((m: any) => {
+        let imageUrl: string | undefined = undefined;
+        if (m.image_url) {
+          if (m.image_url.startsWith('http://') || m.image_url.startsWith('https://')) {
+            imageUrl = m.image_url;
+          } else if (m.image_url.includes('/api/v1/meals/photos/')) {
+            const photoId = m.image_url.split('/').pop();
+            imageUrl = apiService.getMealPhotoUrl(Number(photoId), token);
+          }
+        }
+        
+        return {
+          id: m.id,
+          name: m.name || "Блюдо",
+          time: m.time || "",
+          calories: m.calories ?? 0,
+          protein: m.protein ?? 0,
+          carbs: m.carbs ?? 0,
+          fats: m.fats ?? 0,
+          isManual: false,
+          imageUrl,
+        };
+      });
+      
+      const filteredCachedMeals = mappedCachedMeals.filter(
+        (meal) =>
+          (meal.calories ?? 0) > 0 ||
+          (meal.protein ?? 0) > 0 ||
+          (meal.carbs ?? 0) > 0 ||
+          (meal.fats ?? 0) > 0
+      );
+      
       setDailyData({
         consumedCalories: cachedDaily.total_calories,
         consumedProtein: cachedDaily.total_protein,
@@ -290,6 +252,8 @@ export default function HomeScreen() {
         waterGoal: cachedWater.goal_ml || 0,
         meals: cachedDaily.meals,
       });
+      
+      setRecentMeals(filteredCachedMeals);
       
       const isAchieved = cachedDaily.total_calories >= (onboardingData?.target_calories || 0);
       const caloriesProgress = onboardingData?.target_calories > 0 
@@ -321,6 +285,40 @@ export default function HomeScreen() {
       ]);
 
       if (!isMountedRef.current) return;
+      
+      const token = apiService.getCachedToken() || undefined;
+      const mappedMeals = (data.meals || []).map((m: any) => {
+        let imageUrl: string | undefined = undefined;
+        if (m.image_url) {
+          if (m.image_url.startsWith('http://') || m.image_url.startsWith('https://')) {
+            imageUrl = m.image_url;
+          } else if (m.image_url.includes('/api/v1/meals/photos/')) {
+            const photoId = m.image_url.split('/').pop();
+            imageUrl = apiService.getMealPhotoUrl(Number(photoId), token);
+          }
+        }
+        
+        return {
+          id: m.id,
+          name: m.name || "Блюдо",
+          time: m.time || "",
+          calories: m.calories ?? 0,
+          protein: m.protein ?? 0,
+          carbs: m.carbs ?? 0,
+          fats: m.fats ?? 0,
+          isManual: false,
+          imageUrl,
+        };
+      });
+      
+      const filteredMeals = mappedMeals.filter(
+        (meal) =>
+          (meal.calories ?? 0) > 0 ||
+          (meal.protein ?? 0) > 0 ||
+          (meal.carbs ?? 0) > 0 ||
+          (meal.fats ?? 0) > 0
+      );
+      
       setDailyData({
         consumedCalories: data.total_calories,
         consumedProtein: data.total_protein,
@@ -334,6 +332,8 @@ export default function HomeScreen() {
         waterGoal: water.goal_ml || 0,
         meals: data.meals,
       });
+      
+      setRecentMeals(filteredMeals);
       const isAchieved = data.total_calories >= (onboardingData?.target_calories || 0);
       const caloriesProgress = onboardingData?.target_calories > 0 
         ? Math.min(1, data.total_calories / onboardingData.target_calories) 
@@ -364,11 +364,19 @@ export default function HomeScreen() {
   useEffect(() => {
     if (params?.refresh) {
       loadDailyData(selectedDateTimestamp, true);
-      fetchLatestMeals({ append: false, limit: recentLimit });
     }
-  }, [params?.refresh, fetchLatestMeals, loadDailyData, recentLimit, selectedDateTimestamp]);
+  }, [params?.refresh, loadDailyData, selectedDateTimestamp]);
 
-  // Проверка на достижение цели и показ анимации
+  useEffect(() => {
+    setOnMealCompleted((completedMeal: ProcessingMeal) => {
+        if (completedMeal.result) {
+          loadDailyData(selectedDateTimestamp, true);
+        }
+    });
+    
+    return () => setOnMealCompleted(undefined);
+  }, [setOnMealCompleted, loadDailyData, selectedDateTimestamp]);
+
   const prevGoalReachedRef = useRef(false);
   useEffect(() => {
     if (!settings.badgeCelebrations || !isTodaySelected) return;
@@ -376,7 +384,6 @@ export default function HomeScreen() {
     const targetCalories = onboardingData?.target_calories || 0;
     const goalReached = dailyData.consumedCalories >= targetCalories && targetCalories > 0;
     
-    // Показываем анимацию только при первом достижении цели
     if (goalReached && !prevGoalReachedRef.current) {
       setPendingBadgeCelebration("goal_reached");
     }
@@ -390,7 +397,6 @@ export default function HomeScreen() {
     setPendingBadgeCelebration
   ]);
 
-  // Обновление сожжённых калорий при загрузке
   useEffect(() => {
     if (settings.burnedCalories && isTodaySelected) {
       refreshBurnedCalories();
@@ -543,16 +549,15 @@ export default function HomeScreen() {
   );
 
 
-  useEffect(() => {
-    const loadData = async () => {
-      await Promise.all([
-        loadDailyData(selectedDateTimestamp),
-        loadWeekAchievements(new Date(selectedDateTimestamp)),
-        fetchLatestMeals({ append: false, limit: recentLimit })
-      ]);
-    };
-    loadData();
-  }, [selectedDateTimestamp, loadDailyData, loadWeekAchievements, fetchLatestMeals, recentLimit]);
+          useEffect(() => {
+            const loadData = async () => {
+              await Promise.all([
+                loadDailyData(selectedDateTimestamp),
+                loadWeekAchievements(new Date(selectedDateTimestamp))
+              ]);
+            };
+            loadData();
+          }, [selectedDateTimestamp, loadDailyData, loadWeekAchievements]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -564,9 +569,8 @@ export default function HomeScreen() {
     dataCache.invalidateWater(dateStr);
     
     try {
-      await loadUserData();
-      await loadDailyData(selectedDateTimestamp, true); 
-      await fetchLatestMeals({ append: false, limit: recentLimit, force: true });
+            await loadUserData();
+            await loadDailyData(selectedDateTimestamp, true);
     } catch {
 
     } finally {
@@ -575,25 +579,19 @@ export default function HomeScreen() {
   };
 
   const handleLoadMore = async () => {
-    const pageSize = 10;
-    setRecentLimit(pageSize);
-    await fetchLatestMeals({ append: true, limit: pageSize });
   };
 
   const stats = useMemo(() => {
     let targetCalories = onboardingData?.target_calories || 0;
     
-    // Добавляем сожжённые калории к норме, если включено
     const burnedCaloriesBonus = settings.burnedCalories && burnedCalories 
       ? burnedCalories.activeCalories 
       : 0;
     
-    // Добавляем перенос калорий, если включено
     const rolloverBonus = settings.calorieRollover && rolloverCalories 
       ? rolloverCalories.amount 
       : 0;
     
-    // Итоговая норма = базовая + сожжённые + перенос
     const adjustedTargetCalories = targetCalories + burnedCaloriesBonus + rolloverBonus;
     
     const remainingCalories = Math.max(0, adjustedTargetCalories - dailyData.consumedCalories);
@@ -631,7 +629,6 @@ export default function HomeScreen() {
         consumed: dailyData.waterTotal,
         target: dailyData.waterGoal || 0,
       },
-      // Дополнительные данные для карточек
       burnedCalories: burnedCaloriesBonus,
       rolloverCalories: rolloverBonus,
     };
@@ -702,11 +699,11 @@ export default function HomeScreen() {
 
         <RecentMeals
           meals={recentMeals}
-          loading={recentLoading && recentMeals.length === 0}
-          error={recentError}
-          onRetry={() => fetchLatestMeals({ append: false, limit: recentLimit })}
+          loading={dailyLoading && recentMeals.length === 0}
+          error={dailyError}
+          onRetry={() => loadDailyData(selectedDateTimestamp, true)}
           onAddPress={isTodaySelected ? handleScanFood : undefined}
-          onLoadMore={recentHasMore ? handleLoadMore : undefined}
+          onLoadMore={undefined}
           onMealPress={handleMealPress}
         />
       </ScrollView>

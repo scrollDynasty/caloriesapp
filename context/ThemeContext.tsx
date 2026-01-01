@@ -219,7 +219,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         setThemeModeState(saved);
       }
     } catch (error) {
-      if (__DEV__) console.error("Error loading theme:", error);
     } finally {
       setIsLoaded(true);
     }
@@ -230,7 +229,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.setItem(THEME_KEY, mode);
       setThemeModeState(mode);
     } catch (error) {
-      if (__DEV__) console.error("Error saving theme:", error);
     }
   };
 

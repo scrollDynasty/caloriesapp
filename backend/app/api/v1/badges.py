@@ -1,4 +1,3 @@
-import logging
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -20,7 +19,6 @@ from app.services.badge_service import (
     get_badge_config,
 )
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 

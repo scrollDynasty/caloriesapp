@@ -24,13 +24,11 @@ function loadHealthLibraries() {
       const healthKitModule = require("@kingstinct/react-native-healthkit");
       AppleHealthKit = healthKitModule.default || healthKitModule;
     } catch (e) {
-      console.warn("AppleHealthKit not available:", e instanceof Error ? e.message : String(e));
     }
   } else if (Platform.OS === "android") {
     try {
       HealthConnect = require("react-native-health-connect");
     } catch (e) {
-      console.warn("HealthConnect not available:", e instanceof Error ? e.message : String(e));
     }
   }
 }

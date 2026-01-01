@@ -41,7 +41,6 @@ export function SnowProvider({ children }: SnowProviderProps) {
       }
       setIsLoaded(true);
     } catch (error) {
-      if (__DEV__) console.error("Error loading snow preference:", error);
       setIsLoaded(true);
     }
   };
@@ -50,7 +49,6 @@ export function SnowProvider({ children }: SnowProviderProps) {
     try {
       await AsyncStorage.setItem(SNOW_ENABLED_KEY, JSON.stringify(enabled));
     } catch (error) {
-      if (__DEV__) console.error("Error saving snow preference:", error);
     }
   };
 

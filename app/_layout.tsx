@@ -6,6 +6,7 @@ import { BadgeCelebration } from "../components/ui/BadgeCelebration";
 import { SnowOverlay } from "../components/ui/SnowOverlay";
 import { AppSettingsProvider, useAppSettings } from "../context/AppSettingsContext";
 import { OnboardingProvider } from "../context/OnboardingContext";
+import { ProcessingMealsProvider } from "../context/ProcessingMealsContext";
 import { SnowProvider } from "../context/SnowContext";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
 import "../global.css";
@@ -80,13 +81,6 @@ function RootNavigator() {
         }}
       />
       <Stack.Screen
-        name="meal-result"
-        options={{
-          presentation: "fullScreenModal",
-          animation: "slide_from_bottom",
-        }}
-      />
-      <Stack.Screen
         name="meal-detail"
         options={{
           presentation: "fullScreenModal",
@@ -128,16 +122,18 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <AppSettingsProvider>
-      <SnowProvider>
-        <OnboardingProvider>
-          <View style={{ flex: 1 }}>
-            <RootNavigator />
-            <SnowOverlay />
-              <BadgeCelebrationWrapper />
-            {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
-          </View>
-        </OnboardingProvider>
-      </SnowProvider>
+        <ProcessingMealsProvider>
+          <SnowProvider>
+            <OnboardingProvider>
+              <View style={{ flex: 1 }}>
+                <RootNavigator />
+                <SnowOverlay />
+                <BadgeCelebrationWrapper />
+                {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
+              </View>
+            </OnboardingProvider>
+          </SnowProvider>
+        </ProcessingMealsProvider>
       </AppSettingsProvider>
     </ThemeProvider>
   );

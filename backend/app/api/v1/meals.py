@@ -1,5 +1,4 @@
 import uuid
-import logging
 import json
 import re
 import tempfile
@@ -28,7 +27,6 @@ from app.services.ai_service import ai_service
 from app.utils.date_utils import get_day_range_utc
 from app.services.badge_service import check_and_award_badges
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 def format_health_score(score: Optional[int]) -> Optional[float]:
@@ -58,12 +56,10 @@ async def _get_recipe_image(recipe_name: str, meal_type: str = "lunch") -> str:
             response = await client.head(url, follow_redirects=True)
             if response.status_code == 200:
                 return str(response.url)
-    except Exception as e:
-        logger.warning(f"Failed to fetch image from Unsplash for '{recipe_name}': {e}")
+    except Exception:
+        pass
     
     return default_images.get(meal_type, default_images["lunch"])
-
-
 
 async def fetch_openfoodfacts_product(barcode: str) -> Optional[Dict[str, Any]]:
     hosts = [
@@ -207,8 +203,8 @@ async def upload_meal_photo(
         
         try:
             check_and_award_badges(current_user, db)
-        except Exception as e:
-            logger.warning(f"Badge check failed: {e}")
+        except Exception:
+            pass
 
         return MealPhotoUploadResponse(
             photo=MealPhotoResponse.model_validate(meal_photo),
@@ -216,21 +212,14 @@ async def upload_meal_photo(
         )
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Error uploading photo: {str(e)}", exc_info=True)
+    except Exception:
         try:
             storage_service.delete_file(s3_object_path)
         except:
             pass
-        
-        if False:  
-            try:
-                file_path.unlink()
-            except:
-                pass
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error saving file: {str(e)}"
+            detail="Error saving file"
         )
 
 @router.get("/meals/photos", response_model=List[MealPhotoResponse])
@@ -306,8 +295,8 @@ def create_manual_meal(
     
     try:
         check_and_award_badges(current_user, db)
-    except Exception as e:
-        logger.warning(f"Badge check failed: {e}")
+    except Exception:
+        pass
     
     return meal_photo
 
@@ -653,7 +642,7 @@ def get_daily_meals(
             if p.file_path.startswith('http'):
                 photo_url = p.file_path
             else:
-                photo_url = f"/api/v1/meals/photos/{p.id}"
+                photo_url = f"{settings.api_domain}/api/v1/meals/photos/{p.id}"
         
         meals_data.append({
             "id": p.id,
@@ -1170,7 +1159,6 @@ async def generate_recipe(
         
         db.add(recipe_db)
         db.flush()
-        logger.info(f"Recipe created: {recipe_db.id} - {recipe_db.name}")
         
         meal_photo = MealPhoto(
             user_id=current_user.id,

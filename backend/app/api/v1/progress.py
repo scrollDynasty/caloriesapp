@@ -1,5 +1,4 @@
 import uuid
-import logging
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
@@ -29,7 +28,6 @@ from app.schemas.progress import (
 )
 from app.services.storage import storage_service
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.post("/weight", response_model=WeightLogResponse, status_code=status.HTTP_201_CREATED)
@@ -358,7 +356,6 @@ def get_progress_data(
     periods = [("3_days", 3), ("7_days", 7), ("14_days", 14), ("30_days", 30), ("90_days", 90)]
     
     for period_name, days in periods:
-        # Текущий период
         current_start = now - timedelta(days=days)
         current_meals = db.query(MealPhoto).filter(
             MealPhoto.user_id == current_user.id,
@@ -366,7 +363,6 @@ def get_progress_data(
             MealPhoto.meal_name.isnot(None)
         ).all()
         
-        # Предыдущий период (для сравнения)
         prev_start = now - timedelta(days=days * 2)
         prev_end = now - timedelta(days=days)
         prev_meals = db.query(MealPhoto).filter(
@@ -377,7 +373,6 @@ def get_progress_data(
         ).all()
         
         if len(current_meals) >= 3 and len(prev_meals) >= 3:
-            # Считаем среднее за текущий и предыдущий период
             current_days = len(set(m.created_at.date() for m in current_meals))
             prev_days = len(set(m.created_at.date() for m in prev_meals))
             
@@ -392,7 +387,6 @@ def get_progress_data(
                 status="ok"
             ))
         elif len(current_meals) >= 3:
-            # Есть данные только за текущий период
             energy_changes.append(EnergyChange(
                 period=period_name,
                 change_calories=None,

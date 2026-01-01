@@ -29,8 +29,8 @@ interface CardsPagerProps {
     sodium: { consumed: number; target: number };
     healthScore: number | null;
     water: { consumed: number; target: number };
-    burnedCalories?: number;    // Сожжённые калории (из настроек)
-    rolloverCalories?: number;  // Перенесённые калории (из настроек)
+    burnedCalories?: number;
+    rolloverCalories?: number;
   };
   onAddWater?: () => void;
 }
@@ -40,8 +40,8 @@ const STROKE_WIDTH = 6;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-const SMALL_CIRCLE_SIZE = 52;
-const SMALL_STROKE_WIDTH = 4;
+const SMALL_CIRCLE_SIZE = 44;
+const SMALL_STROKE_WIDTH = 3;
 const SMALL_RADIUS = (SMALL_CIRCLE_SIZE - SMALL_STROKE_WIDTH) / 2;
 const SMALL_CIRCUMFERENCE = 2 * Math.PI * SMALL_RADIUS;
 
@@ -184,7 +184,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
 
   return (
     <View style={styles.flippableContainer}>
-      {/* Primary Content (Calories + Macros) */}
       <Animated.View
         style={[
           styles.flipContent,
@@ -198,7 +197,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         ]}
         pointerEvents={isFlipped ? "none" : "auto"}
       >
-        {/* Calories Card */}
         <TouchableOpacity activeOpacity={0.9} onPress={handleFlip}>
           <View style={[styles.caloriesCard, { backgroundColor: themeColors.card }]}>
             <View style={styles.caloriesLeft}>
@@ -239,7 +237,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
           </View>
         </TouchableOpacity>
 
-        {/* Macros Row */}
         <View style={styles.macrosRow}>
           {primaryData.macros.map((macro, idx) => (
             <TouchableOpacity key={idx} style={styles.macroCardWrapper} activeOpacity={0.9} onPress={handleFlip}>
@@ -283,7 +280,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         </View>
       </Animated.View>
 
-      {/* Secondary Content (Fiber, Sugar, Sodium + Health Score) */}
       <Animated.View
         style={[
           styles.flipContent,
@@ -298,7 +294,6 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         ]}
         pointerEvents={isFlipped ? "auto" : "none"}
       >
-        {/* Extra Macros Row */}
         <View style={styles.extraMacrosRow}>
           {secondaryData.macros.map((macro, idx) => {
             const progressColor = macro.isInverted 
@@ -395,7 +390,6 @@ function AppleHealthCard() {
   const { colors: themeColors, isDark } = useTheme();
   const { settings, rolloverCalories, featureStatus, burnedCalories, requestHealthPermission } = useAppSettings();
   
-  // Показываем перенос калорий, если включён и есть данные
   if (settings.calorieRollover && rolloverCalories && rolloverCalories.amount > 0) {
   return (
     <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
@@ -413,7 +407,6 @@ function AppleHealthCard() {
     );
   }
   
-  // Показываем данные Health если подключено
   if (featureStatus.healthAuthorized && burnedCalories) {
     return (
       <View style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}>
@@ -443,7 +436,6 @@ function AppleHealthCard() {
     );
   }
   
-  // Показываем кнопку подключения
   return (
     <TouchableOpacity
       style={[styles.appleHealthCard, { backgroundColor: themeColors.card }]}
@@ -476,7 +468,7 @@ function BurnedCaloriesCard() {
   const steps = settings.burnedCalories && burnedCalories 
     ? burnedCalories.steps 
     : 0;
-  const stepsCalories = Math.round(steps * 0.04); // Примерно 0.04 кал на шаг
+    const stepsCalories = Math.round(steps * 0.04);
   
   return (
     <View style={[styles.burnedCard, { backgroundColor: themeColors.card }]}>
@@ -721,33 +713,33 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   macroCard: {
-    padding: 14,
-    borderRadius: 18,
+    padding: 12,
+    borderRadius: 16,
     alignItems: "flex-start",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    elevation: 1,
   },
   macroValueRow: {
     flexDirection: "row",
     alignItems: "baseline",
   },
   macroValue: {
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   macroTarget: {
-    fontSize: 13,
+    fontSize: 11,
     fontFamily: "Inter_500Medium",
   },
   macroLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_500Medium",
     marginTop: 2,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   macroCircleContainer: {
     width: SMALL_CIRCLE_SIZE,
@@ -763,7 +755,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   macroIcon: {
-    fontSize: 16,
+    fontSize: 14,
   },
 
   healthScoreCard: {

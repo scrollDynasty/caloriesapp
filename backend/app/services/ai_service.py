@@ -2,14 +2,11 @@
 import json
 import re
 import base64
-import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from openai import AsyncOpenAI
 from app.core.config import settings
-
-logger = logging.getLogger(__name__)
 
 
 def _parse_number(val: Any) -> Optional[int]:

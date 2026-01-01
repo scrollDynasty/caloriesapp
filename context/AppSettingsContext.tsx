@@ -180,7 +180,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       // Автоматически отключаем функции, которые недоступны
       await validateAndDisableUnavailableFeatures(storedSettings ? JSON.parse(storedSettings) : defaultSettings, newFeatureStatus);
     } catch (error) {
-      console.error("Error initializing app settings:", error);
     } finally {
       setIsLoaded(true);
     }
@@ -235,7 +234,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       // Валидируем текущие настройки
       await validateAndDisableUnavailableFeatures(settings, newFeatureStatus);
     } catch (error) {
-      console.error("Error checking feature availability:", error);
     }
   };
 
@@ -265,7 +263,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       
       return false;
     } catch (error) {
-      console.error("Error requesting health permission:", error);
       return false;
     }
   };
@@ -292,7 +289,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         await updateSetting("burnedCalories", false);
       }
     } catch (error) {
-      console.error("Error disconnecting health:", error);
     }
   };
 
@@ -333,7 +329,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     try {
       await AsyncStorage.setItem(APP_SETTINGS_KEY, JSON.stringify(newSettings));
     } catch (error) {
-      console.error("Error saving app settings:", error);
     }
   };
 
@@ -378,7 +373,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         );
       }
     } catch (error) {
-      console.error("Error refreshing burned calories:", error);
       
       // Если произошла ошибка, возможно разрешения были отозваны
       await checkFeatureAvailability();
@@ -412,7 +406,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         setRolloverCalories(JSON.parse(cached));
       }
     } catch (error) {
-      console.error("Error loading rollover data:", error);
     }
   };
 

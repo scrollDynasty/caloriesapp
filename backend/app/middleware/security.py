@@ -1,5 +1,4 @@
 import time
-import logging
 from collections import defaultdict
 from threading import Lock
 from fastapi import Request, HTTPException, status
@@ -7,8 +6,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from app.core.security import log_security_event, validate_cors_origin, get_remote_address
 from app.core.config import settings
-
-logger = logging.getLogger(__name__)
 
 _rate_limit_lock = Lock()
 _rate_limit_data = defaultdict(list)  # {ip: [timestamp1, timestamp2, ...]}

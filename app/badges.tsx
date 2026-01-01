@@ -216,9 +216,8 @@ export default function BadgesScreen() {
       setTotalEarned(badgesData.total_earned);
       setTotalBadges(badgesData.total_badges);
       setStreakCount(progressData.streak_count);
-    } catch (err) {
-      console.error("Error loading badges:", err);
-    } finally {
+        } catch (err) {
+        } finally {
       setLoading(false);
     }
   }, []);
@@ -235,11 +234,10 @@ export default function BadgesScreen() {
     const closedBadge = celebrationQueue.current.shift();
     
     if (closedBadge) {
-      try {
-        await apiService.markBadgesSeen([closedBadge]);
-      } catch (err) {
-        console.error("Error marking badge as seen:", err);
-      }
+          try {
+            await apiService.markBadgesSeen([closedBadge]);
+          } catch (err) {
+          }
     }
     
     if (celebrationQueue.current.length > 0) {

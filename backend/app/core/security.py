@@ -3,9 +3,6 @@ import hashlib
 import hmac
 from typing import Optional
 from fastapi import HTTPException, status, Request
-import logging
-
-logger = logging.getLogger(__name__)
 
 def validate_jwt_secret(secret_key: str) -> bool:
     if not secret_key or len(secret_key) < 32:
@@ -62,15 +59,7 @@ def get_remote_address(request: Optional[Request]) -> str:
     return "unknown"
 
 def log_security_event(event_type: str, details: dict, request: Optional[Request] = None):
-    ip_address = get_remote_address(request) if request else "unknown"
-    logger.warning(
-        f"Security event: {event_type} | IP: {ip_address} | Details: {details}",
-        extra={
-            "event_type": event_type,
-            "ip_address": ip_address,
-            "details": details
-        }
-    )
+    pass
 
 def validate_cors_origin(origin: str, allowed_origins: list) -> bool:
     if not origin:

@@ -1,6 +1,5 @@
 import httpx
 import json
-import logging
 import time
 import uuid
 from pathlib import Path
@@ -19,8 +18,6 @@ from app.utils.auth import create_access_token
 from app.utils.oauth import verify_google_token, verify_apple_token
 from app.services.user_service import get_or_create_user_by_google, get_or_create_user_by_apple
 from app.services.storage import storage_service
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 _processed_codes: dict[str, float] = {}

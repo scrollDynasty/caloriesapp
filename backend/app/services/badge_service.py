@@ -744,17 +744,14 @@ def check_badge_eligibility(badge_id: str, stats: Dict) -> bool:
     elif badge_id.startswith("goal_"):
         return stats["calorie_days_goal_met"] >= 1
     
-    # Macro badges
     elif badge_id.startswith("macro_") or badge_id.startswith("protein_") or badge_id.startswith("fiber_") or badge_id.startswith("lowcarb_"):
-        return False  # TODO: implement macro tracking
+        return False
     
-    # Healthy eating badges
     elif badge_id == "healthy_first":
         return stats["healthy_meals_count"] >= 1
     elif badge_id.startswith("healthy_") or badge_id.startswith("veggies_") or badge_id.startswith("fruits_"):
-        return False  # TODO: implement detailed nutrition tracking
+        return False
     
-    # Weight badges
     elif badge_id == "weight_first":
         return stats["weight_logs_count"] >= 1
     elif badge_id == "weight_week":
@@ -762,17 +759,14 @@ def check_badge_eligibility(badge_id: str, stats: Dict) -> bool:
     elif badge_id == "weight_month":
         return stats["weight_logs_count"] >= 30
     elif badge_id.startswith("weight_loss_"):
-        return False  # TODO: implement weight loss tracking
+        return False
     
-    # Time-based badges
     elif badge_id.startswith("early_") or badge_id.startswith("night_") or badge_id.startswith("regular_") or badge_id.startswith("breakfast_"):
-        return False  # TODO: implement time-based meal tracking
+        return False
     
-    # Scanner badges
     elif badge_id.startswith("scanner_"):
-        return False  # TODO: implement scanner tracking
+        return False
     
-    # Variety badges
     elif badge_id.startswith("variety_"):
         if "10" in badge_id:
             return stats["unique_meals_count"] >= 10
@@ -782,11 +776,10 @@ def check_badge_eligibility(badge_id: str, stats: Dict) -> bool:
             return stats["unique_meals_count"] >= 50
         return False
     elif badge_id.startswith("cuisines_"):
-        return False  # TODO: implement cuisine tracking
+        return False
     
-    # Recipe badges
     elif badge_id.startswith("recipe_"):
-        return False  # TODO: implement recipe tracking
+        return False
     
     # Collector badges
     elif badge_id == "collector_5":

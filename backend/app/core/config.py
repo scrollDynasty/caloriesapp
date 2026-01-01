@@ -99,7 +99,4 @@ try:
     settings.validate_security()
 except ValueError as e:
     if settings.environment == "production":
-        print(f"CRITICAL SECURITY ERROR: {e}", file=sys.stderr)
         sys.exit(1)
-    else:
-        print(f"Security warning: {e}")

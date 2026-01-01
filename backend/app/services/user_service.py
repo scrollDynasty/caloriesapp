@@ -2,9 +2,6 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app.models.user import User
 from app.core.config import settings
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 def _is_custom_avatar(avatar_url: Optional[str]) -> bool:

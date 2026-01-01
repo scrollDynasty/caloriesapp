@@ -57,6 +57,7 @@ export default function MealDetailScreen() {
   const [editFats, setEditFats] = useState(fats.toString());
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
   const [loadingDetail, setLoadingDetail] = useState(true);
   const [ingredients, setIngredients] = useState<Array<{ name: string; calories: number }>>([]);
@@ -270,111 +271,113 @@ export default function MealDetailScreen() {
     );
   };
 
+  const displayCalories = Math.round(calories * quantity);
+  const displayProtein = Math.round(protein * quantity);
+  const displayCarbs = Math.round(carbs * quantity);
+  const displayFats = Math.round(fats * quantity);
+
   const renderPage1 = () => (
     <View style={styles.carouselPage}>
-      <View style={styles.caloriesCard}>
-        <View style={styles.caloriesIconContainer}>
-          <Ionicons name="flame" size={24} color={colors.primary} />
-        </View>
-        <View style={styles.caloriesInfo}>
-          <Text style={styles.caloriesLabel}>Калории</Text>
+      <View style={styles.nutritionGrid}>
+        <View style={[styles.nutritionBlock, { backgroundColor: colors.card }]}>
+          <Ionicons name="flame" size={20} color="#FF6B6B" />
+          <Text style={styles.nutritionBlockLabel}>Калории</Text>
           {isEditing ? (
             <TextInput
-              style={styles.caloriesValueInput}
+              style={styles.nutritionBlockValueInput}
               value={editCalories}
               onChangeText={setEditCalories}
               keyboardType="numeric"
             />
           ) : (
-            <Text style={styles.caloriesValue}>{calories}</Text>
+            <Text style={styles.nutritionBlockValue}>{displayCalories}</Text>
           )}
         </View>
-      </View>
-
-      <View style={styles.macrosRow}>
-        <View style={styles.macroCard}>
-          <Text style={styles.macroIcon}>🍖</Text>
-          <Text style={styles.macroLabel}>Белки</Text>
+        
+        <View style={[styles.nutritionBlock, { backgroundColor: colors.card }]}>
+          <Text style={styles.nutritionBlockIcon}>🌾</Text>
+          <Text style={styles.nutritionBlockLabel}>Углеводы</Text>
           {isEditing ? (
             <TextInput
-              style={styles.macroValueInput}
-              value={editProtein}
-              onChangeText={setEditProtein}
-              keyboardType="numeric"
-            />
-          ) : (
-            <Text style={styles.macroValue}>{protein}g</Text>
-          )}
-        </View>
-        <View style={styles.macroDivider} />
-        <View style={styles.macroCard}>
-          <Text style={styles.macroIcon}>🌾</Text>
-          <Text style={styles.macroLabel}>Углеводы</Text>
-          {isEditing ? (
-            <TextInput
-              style={styles.macroValueInput}
+              style={styles.nutritionBlockValueInput}
               value={editCarbs}
               onChangeText={setEditCarbs}
               keyboardType="numeric"
             />
           ) : (
-            <Text style={styles.macroValue}>{carbs}g</Text>
+            <Text style={styles.nutritionBlockValue}>{displayCarbs}g</Text>
           )}
         </View>
-        <View style={styles.macroDivider} />
-        <View style={styles.macroCard}>
-          <Text style={styles.macroIcon}>🫒</Text>
-          <Text style={styles.macroLabel}>Жиры</Text>
+        
+        <View style={[styles.nutritionBlock, { backgroundColor: colors.card }]}>
+          <Text style={styles.nutritionBlockIcon}>🍖</Text>
+          <Text style={styles.nutritionBlockLabel}>Белки</Text>
           {isEditing ? (
             <TextInput
-              style={styles.macroValueInput}
+              style={styles.nutritionBlockValueInput}
+              value={editProtein}
+              onChangeText={setEditProtein}
+              keyboardType="numeric"
+            />
+          ) : (
+            <Text style={styles.nutritionBlockValue}>{displayProtein}g</Text>
+          )}
+        </View>
+        
+        <View style={[styles.nutritionBlock, { backgroundColor: colors.card }]}>
+          <Text style={styles.nutritionBlockIcon}>🫒</Text>
+          <Text style={styles.nutritionBlockLabel}>Жиры</Text>
+          {isEditing ? (
+            <TextInput
+              style={styles.nutritionBlockValueInput}
               value={editFats}
               onChangeText={setEditFats}
               keyboardType="numeric"
             />
           ) : (
-            <Text style={styles.macroValue}>{fats}g</Text>
+            <Text style={styles.nutritionBlockValue}>{displayFats}g</Text>
           )}
         </View>
       </View>
 
-      {}
-      <View style={styles.healthScoreCard}>
-        <View style={styles.healthScoreIcon}>
-          <Ionicons name="flash" size={22} color="#FF6B9D" />
-        </View>
-        <View style={styles.healthScoreInfo}>
-          <Text style={styles.healthScoreLabel}>Оценка здоровья</Text>
-          {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 6 }} />
-          ) : healthScore !== null ? (
-            <View style={styles.healthScoreBar}>
-              <View style={[
-                styles.healthScoreBarFill, 
-                { 
-                  width: `${healthScore * 10}%`,
-                  backgroundColor: healthScore >= 7 ? "#4CAF50" 
-                                 : healthScore >= 4 ? "#FF9800" 
-                                 : "#E91E63"
-                }
-              ]} />
-            </View>
-          ) : (
-            <Text style={styles.healthScorePlaceholder}>Н/д</Text>
+      <View style={[styles.healthScoreCard, { backgroundColor: colors.card }]}>
+        <View style={styles.healthScoreRow}>
+          <View style={[styles.healthScoreIcon, { backgroundColor: isDark ? colors.backgroundSecondary : "#FFF0F5" }]}>
+            <Ionicons name="heart" size={22} color="#FF6B9D" />
+          </View>
+          <View style={styles.healthScoreInfo}>
+            <Text style={styles.healthScoreLabel}>Health Score</Text>
+            {loadingDetail ? (
+              <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 6 }} />
+            ) : healthScore !== null ? (
+              <View style={styles.healthScoreBar}>
+                <View style={[
+                  styles.healthScoreBarFill, 
+                  { 
+                    width: `${healthScore * 10}%`,
+                    backgroundColor: healthScore >= 7 ? "#4CAF50" 
+                                   : healthScore >= 4 ? "#FF9800" 
+                                   : "#E91E63"
+                  }
+                ]} />
+              </View>
+            ) : (
+              <Text style={styles.healthScorePlaceholder}>—</Text>
+            )}
+          </View>
+          {!loadingDetail && (
+            <Text style={[
+              styles.healthScoreValueBig,
+              healthScore !== null && {
+                color: healthScore >= 7 ? "#4CAF50" 
+                     : healthScore >= 4 ? "#FF9800" 
+                     : "#E91E63"
+              }
+            ]}>
+              {healthScore !== null ? `${healthScore}/10` : "—"}
+            </Text>
           )}
         </View>
-        {!loadingDetail && (
-          <Text style={[
-            styles.healthScoreValue,
-            healthScore !== null && {
-              color: healthScore >= 7 ? "#4CAF50" 
-                   : healthScore >= 4 ? "#FF9800" 
-                   : "#E91E63"
-            }
-          ]}>
-            {healthScore !== null ? `${healthScore}/10` : "Н/д"}
-          </Text>
-        )}
       </View>
     </View>
   );
@@ -421,7 +424,6 @@ export default function MealDetailScreen() {
   return (
     <View style={styles.container}>
       <SnowOverlay />
-      {}
       {imageUrl ? (
         <View style={styles.imageContainer}>
           <Image
@@ -429,7 +431,6 @@ export default function MealDetailScreen() {
             style={styles.image}
             contentFit="cover"
           />
-          {}
           <View style={[styles.headerOverlay, { paddingTop: insets.top + 8 }]}>
             <View style={styles.headerContent}>
               <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
@@ -466,13 +467,11 @@ export default function MealDetailScreen() {
         </View>
       )}
 
-      {}
       <View style={[styles.contentCard, !imageUrl && styles.contentCardNoImage]}>
         <ScrollView 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
         >
-          {}
           <View style={styles.metaRow}>
             <TouchableOpacity style={styles.bookmarkButton}>
               <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
@@ -480,7 +479,6 @@ export default function MealDetailScreen() {
             <Text style={styles.timeText}>{mealTime}</Text>
           </View>
 
-          {}
           <View style={styles.titleRow}>
             {isEditing ? (
               <TextInput
@@ -492,13 +490,25 @@ export default function MealDetailScreen() {
             ) : (
               <Text style={styles.mealTitle} numberOfLines={2}>{mealName}</Text>
             )}
-            <TouchableOpacity style={styles.portionButton}>
-              <Text style={styles.portionText}>1</Text>
-              <Ionicons name="pencil" size={14} color={colors.primary} />
-            </TouchableOpacity>
+            
+            <View style={styles.quantityStepper}>
+              <TouchableOpacity 
+                style={[styles.stepperButton, quantity <= 1 && styles.stepperButtonDisabled]}
+                onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+              >
+                <Ionicons name="remove" size={18} color={quantity <= 1 ? colors.textTertiary : colors.text} />
+              </TouchableOpacity>
+              <Text style={styles.quantityValue}>{quantity}</Text>
+              <TouchableOpacity 
+                style={styles.stepperButton}
+                onPress={() => setQuantity(quantity + 1)}
+              >
+                <Ionicons name="add" size={18} color={colors.text} />
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {}
           <View style={styles.carouselContainer}>
             <FlatList
               ref={flatListRef}
@@ -520,7 +530,6 @@ export default function MealDetailScreen() {
                 index,
               })}
             />
-            {}
             <View style={styles.paginationDots}>
               {carouselPages.map((_, index) => (
                 <View
@@ -531,7 +540,6 @@ export default function MealDetailScreen() {
             </View>
           </View>
 
-          {}
           <View style={styles.ingredientsSection}>
             <View style={styles.ingredientsHeader}>
               <Text style={styles.ingredientsTitle}>Ингредиенты</Text>
@@ -560,7 +568,6 @@ export default function MealDetailScreen() {
             )}
           </View>
 
-          {}
           <View style={styles.feedbackSection}>
             <View style={styles.feedbackContent}>
               <Text style={styles.feedbackIcon}>-:-</Text>
@@ -576,12 +583,10 @@ export default function MealDetailScreen() {
             </View>
           </View>
 
-          {}
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>
 
-      {}
       <View style={[styles.bottomButtons, { paddingBottom: insets.bottom + 16 }]}>
         {isEditing ? (
           <>
@@ -616,7 +621,6 @@ export default function MealDetailScreen() {
         )}
       </View>
 
-      {}
       {deleting && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
@@ -753,21 +757,32 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  portionButton: {
+  quantityStepper: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
     backgroundColor: colors.card,
-    borderRadius: 24,
+    borderRadius: 28,
+    padding: 4,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  portionText: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+  stepperButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.backgroundSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepperButtonDisabled: {
+    opacity: 0.4,
+  },
+  quantityValue: {
+    fontSize: 18,
+    fontFamily: "Inter_700Bold",
     color: colors.text,
+    minWidth: 40,
+    textAlign: "center",
   },
 
   carouselContainer: {
@@ -781,98 +796,51 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     gap: 12,
   },
 
-  caloriesCard: {
+  nutritionGrid: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 12,
+  },
+  nutritionBlock: {
+    width: (SCREEN_WIDTH - 40 - 10) / 2 - 5,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     alignItems: "center",
-    gap: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: colors.card,
-    borderRadius: 16,
+    gap: 5,
     shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
-  caloriesIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.backgroundSecondary,
-    alignItems: "center",
-    justifyContent: "center",
+  nutritionBlockIcon: {
+    fontSize: 18,
   },
-  caloriesInfo: {
-    flex: 1,
-  },
-  caloriesLabel: {
-    fontSize: 13,
+  nutritionBlockLabel: {
+    fontSize: 11,
     fontFamily: "Inter_500Medium",
     color: colors.textSecondary,
-    marginBottom: 2,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
   },
-  caloriesValue: {
-    fontSize: 32,
+  nutritionBlockValue: {
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
     color: colors.text,
-    letterSpacing: -1,
+    letterSpacing: -0.3,
   },
-  caloriesValueInput: {
-    fontSize: 32,
-    fontFamily: "Inter_700Bold",
-    color: colors.text,
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-
-  macrosRow: {
-    flexDirection: "row",
-    backgroundColor: colors.card,
-    borderRadius: 16,
-    paddingVertical: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  macroCard: {
-    flex: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-  macroDivider: {
-    width: 1,
-    height: "80%",
-    backgroundColor: colors.border,
-    alignSelf: "center",
-  },
-  macroIcon: {
-    fontSize: 18,
-  },
-  macroLabel: {
-    fontSize: 12,
-    fontFamily: "Inter_500Medium",
-    color: colors.textSecondary,
-  },
-  macroValue: {
-    fontSize: 18,
-    fontFamily: "Inter_700Bold",
-    color: colors.text,
-  },
-  macroValueInput: {
-    fontSize: 18,
+  nutritionBlockValueInput: {
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
     color: colors.text,
     backgroundColor: colors.backgroundSecondary,
     borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     textAlign: "center",
-    minWidth: 50,
+    minWidth: 70,
   },
 
   extraMacrosRow: {
@@ -906,12 +874,8 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   healthScoreCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: colors.card,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
     borderRadius: 16,
     shadowColor: "#000",
     shadowOpacity: 0.04,
@@ -919,11 +883,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
+  healthScoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
   healthScoreIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.backgroundSecondary,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -946,6 +914,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     height: "100%",
     backgroundColor: "#FF6B9D",
     borderRadius: 3,
+  },
+  healthScoreValueBig: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
+    color: colors.text,
   },
   healthScoreValue: {
     fontSize: 16,
