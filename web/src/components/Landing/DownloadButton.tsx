@@ -11,7 +11,7 @@ export default function DownloadButton({
   size = "large",
 }: DownloadButtonProps) {
   const isAppStore = platform === "appstore";
-  const iconSize = size === "small" ? 22 : isAppStore ? 32 : 28;
+  const iconSize = size === "small" ? 18 : 22;
 
   return (
     <a
@@ -30,7 +30,7 @@ export default function DownloadButton({
       </div>
       <div className={styles.text}>
         <div className={styles.topText}>
-          {isAppStore ? "Скачать в" : "ДОСТУПНО В"}
+          {isAppStore ? "Download on the" : "GET IT ON"}
         </div>
         <div className={styles.bottomText}>
           {isAppStore ? "App Store" : "Google Play"}

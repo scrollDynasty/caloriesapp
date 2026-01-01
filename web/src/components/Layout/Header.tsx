@@ -26,8 +26,8 @@ export default function Header() {
               <Image
                 src="/logo.png"
                 alt="Логотип Yeb-Ich"
-                width={64}
-                height={64}
+                width={48}
+                height={48}
                 className={styles.logoImage}
                 priority
                 unoptimized

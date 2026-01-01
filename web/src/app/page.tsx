@@ -14,13 +14,13 @@ import { useScrollColorTransition } from "../hooks/useScrollColorTransition";
 import styles from "./page.module.css";
 
 const SECTION_COLORS = [
-  { id: "hero", color: "#FFFFF0" }, // Ivory
-  { id: "influencers", color: "#FFFEF8" }, // Очень светлый айвори
-  { id: "features", color: "#FFFDF5" }, // Светлый айвори
-  { id: "why", color: "#FFFCF2" }, // Нежный кремовый
-  { id: "light", color: "#FFFBEF" }, // Мягкий персиковый
-  { id: "testimonials", color: "#FFF9EB" }, // Тёплый айвори
-  { id: "footer", color: "#FFF9EB" }, // Такой же как testimonials
+  { id: "hero", color: "#FFFFFF" }, // White
+  { id: "influencers", color: "#FFFFF0" }, // Ivory
+  { id: "features", color: "#FFFFF0" }, // Ivory
+  { id: "why", color: "#FFFFF0" }, // Ivory
+  { id: "light", color: "#FFFFF0" }, // Ivory
+  { id: "testimonials", color: "#1E1A24" }, // Dark (Bastille)
+  { id: "footer", color: "#FFFFF0" }, // Ivory
 ];
 
 export default function Home() {
@@ -49,15 +49,6 @@ export default function Home() {
     <div className={styles.page}>
       <div
         className={`${styles.headerWrapper} ${isScrolled ? styles.headerWrapperScrolled : ""}`}
-        style={
-          isScrolled
-            ? ({
-                backgroundColor: "rgba(255, 255, 240, 0.95)",
-                backdropFilter: "blur(10px)",
-                boxShadow: "0 1px 3px rgba(44, 36, 22, 0.1)",
-              } as React.CSSProperties)
-            : {}
-        }
       >
         <div className={styles.headerContent}>
           <Header />

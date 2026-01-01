@@ -8,14 +8,14 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.bottomSection}>
         <div className={styles.container}>
-          <div className={styles.columns}>
-            <div className={styles.column}>
+          <div className={styles.mainContent}>
+            <div className={styles.leftSection}>
               <div className={styles.logoContainer}>
                 <Image
                   src="/logo.png"
                   alt="Логотип Yeb-Ich"
-                  width={40}
-                  height={40}
+                  width={32}
+                  height={32}
                   className={styles.logoImage}
                   unoptimized
                 />
@@ -28,27 +28,27 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className={styles.column}>
-              <h3 className={styles.columnTitle}>Правовая информация</h3>
+            <div className={styles.middleSection}>
+              <h3 className={styles.sectionTitle}>Legal</h3>
               <Link href="/privacy" className={styles.link}>
-                Политика конфиденциальности
+                Privacy Policy
               </Link>
               <Link href="/terms" className={styles.link}>
-                Условия использования
+                Terms of use
               </Link>
             </div>
 
-            <div className={styles.column}>
-              <h3 className={styles.columnTitle}>Компания</h3>
+            <div className={styles.rightSection}>
+              <h3 className={styles.sectionTitle}>Company</h3>
               <Link href="/contact" className={styles.link}>
-                Контакты
+                Contact
               </Link>
             </div>
           </div>
 
-          <div className={styles.bottomBar}>
+          <div className={styles.copyrightBar}>
             <p className={styles.copyright}>
-              © Авторские права 2025, Все права защищены
+              © Copyright 2026, All rights reserved
             </p>
             <div className={styles.socialIcons}>
               <a

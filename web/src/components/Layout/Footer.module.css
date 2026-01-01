@@ -3,241 +3,120 @@
   background: transparent;
 }
 
-.ratingsSection {
-  padding: 100px 40px 80px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-}
-
-@media (max-width: 768px) {
-  .ratingsSection {
-    padding: 60px 20px 40px;
-    gap: 24px;
-  }
-
-  .starsContainer {
-    gap: 8px;
-  }
-
-  .star {
-    width: 36px;
-    height: 36px;
-  }
-
-  .ratingsTextContainer {
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .laurel {
-    font-size: 36px;
-  }
-
-  .ratingsTitle {
-    font-size: 32px;
-    line-height: 1.2;
-  }
-
-  .storeRatings {
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 16px;
-  }
-
-  .storeRating {
-    gap: 10px;
-  }
-
-  .storeIcon {
-    font-size: 24px;
-  }
-
-  .ratingText {
-    font-size: 18px;
-  }
-
-  .downloadButtons {
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    max-width: 280px;
-    margin-top: 24px;
-  }
-
-  .downloadButtons > * {
-    width: 100%;
-  }
-}
-
-.starsContainer {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: center;
-}
-
-.star {
-  color: #eab308;
-  width: 48px;
-  height: 48px;
-}
-
-.ratingsTextContainer {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  justify-content: center;
-}
-
-.laurel {
-  font-size: 48px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.ratingsTitle {
-  font-size: 56px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0;
-  font-family: var(--font-base);
-}
-
-.storeRatings {
-  display: flex;
-  gap: 48px;
-  align-items: center;
-  justify-content: center;
-  margin-top: 8px;
-}
-
-.storeRating {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.storeIcon {
-  font-size: 32px;
-}
-
-.ratingText {
-  font-size: 24px;
-  font-weight: 600;
-  color: #1a1a1a;
-  font-family: var(--font-base);
-}
-
-.downloadButtons {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-/* Divider */
-.divider {
-  width: 100%;
-  height: 1px;
-  background-color: rgba(0, 0, 0, 0.1);
-  margin: 0;
-}
-
-/* Bottom Section */
 .bottomSection {
   background: transparent;
-  padding: 60px 40px 40px;
+  padding: 28px 320px 0;
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
 }
 
-.columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 60px;
-  margin-bottom: 40px;
+.mainContent {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 0 16px;
+  margin-bottom: 8px;
 }
 
-.column {
+.leftSection {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1;
 }
 
 .logoContainer {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 0;
 }
 
 .logoImage {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   object-fit: contain;
 }
 
 .logoText {
-  font-size: 24px;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 20px;
   font-weight: 700;
-  color: #1a1a1a;
-  font-family: var(--font-base);
+  color: #000000;
+  letter-spacing: -0.3px;
 }
 
 .downloadText {
-  font-size: 16px;
-  color: #1a1a1a;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #4B5563;
   margin: 0;
-  font-family: var(--font-base);
+  padding-top: 8px;
 }
 
 .footerDownloadButtons {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 8px;
+  flex-direction: row;
+  gap: 8px;
+  margin-top: 0;
 }
 
-.columnTitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-  font-family: var(--font-base);
+.middleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.rightSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.sectionTitle {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #000000;
+  margin: 0;
 }
 
 .link {
-  font-size: 16px;
-  color: #8a8a8f;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.43;
+  color: #4B5563;
   text-decoration: none;
   transition: color 0.2s;
-  font-family: var(--font-base);
 }
 
 .link:hover {
-  color: #1a1a1a;
+  color: #000000;
 }
 
-/* Bottom Bar */
-.bottomBar {
+.copyrightBar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 40px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 8px 16px;
+  border-top: 1px solid #E5E7EB;
 }
 
 .copyright {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
-  color: #8a8a8f;
+  line-height: 1.43;
+  color: #6B7280;
   margin: 0;
-  font-family: var(--font-base);
 }
 
 .socialIcons {
@@ -247,122 +126,78 @@
 }
 
 .socialIcon {
-  color: #1a1a1a;
+  color: #000000;
   transition: opacity 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
 .socialIcon:hover {
   opacity: 0.7;
 }
 
+@media (max-width: 1400px) {
+  .bottomSection {
+    padding: 28px 40px 0;
+  }
+}
+
 @media (max-width: 1024px) {
-  .columns {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-
-  .ratingsTitle {
-    font-size: 28px;
-  }
-
-  .downloadButtons {
+  .mainContent {
     flex-direction: column;
-    width: 100%;
-    max-width: 300px;
+    gap: 32px;
+  }
+
+  .footerDownloadButtons {
+    flex-direction: column;
+    gap: 10px;
   }
 }
 
 @media (max-width: 768px) {
-  .ratingsSection {
-    padding: 60px 20px 40px;
-    gap: 24px;
-  }
-
   .bottomSection {
-    padding: 40px 20px 30px;
+    padding: 28px 20px 0;
   }
 
-  .starsContainer {
-    gap: 8px;
-  }
-
-  .star {
-    width: 36px;
-    height: 36px;
-  }
-
-  .ratingsTextContainer {
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .laurel {
-    font-size: 36px;
-  }
-
-  .ratingsTitle {
-    font-size: 32px;
-    line-height: 1.2;
-  }
-
-  .storeRatings {
+  .mainContent {
     flex-direction: column;
-    gap: 16px;
-    margin-top: 16px;
+    gap: 24px;
+    margin-bottom: 24px;
   }
 
-  .storeRating {
-    gap: 10px;
-  }
-
-  .storeIcon {
-    font-size: 24px;
-  }
-
-  .ratingText {
-    font-size: 18px;
-  }
-
-  .downloadButtons {
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-    max-width: 280px;
-    margin-top: 24px;
-  }
-
-  .downloadButtons > * {
-    width: 100%;
-  }
-
-  .columns {
-    gap: 32px;
-  }
-
-  .column {
+  .leftSection {
     gap: 12px;
   }
 
   .logoText {
-    font-size: 20px;
+    font-size: 18px;
   }
 
-  .columnTitle {
-    font-size: 16px;
+  .downloadText {
+    font-size: 13px;
+  }
+
+  .middleSection,
+  .rightSection {
+    gap: 12px;
+  }
+
+  .sectionTitle {
+    font-size: 15px;
   }
 
   .link {
-    font-size: 14px;
+    font-size: 13px;
   }
 
-  .bottomBar {
+  .copyrightBar {
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     align-items: flex-start;
-    padding-top: 32px;
+    padding: 16px;
   }
 
   .copyright {
