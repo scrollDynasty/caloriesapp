@@ -19,9 +19,7 @@ export default function DownloadButton({
       target="_blank"
       rel="noopener noreferrer"
       className={`${styles.button} ${styles[size]} ${isAppStore ? styles.appStore : styles.googlePlay}`}
-      aria-label={
-        isAppStore ? "Скачать в App Store" : "Получить в Google Play"
-      }
+      aria-label={isAppStore ? "Скачать в App Store" : "Получить в Google Play"}
     >
       <div className={styles.icon}>
         {isAppStore ? (

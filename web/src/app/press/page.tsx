@@ -62,7 +62,8 @@ export default function PressPage() {
       });
 
       if (!response.ok) {
-        let errorMessage = "Не удалось отправить запрос. Пожалуйста, попробуйте снова.";
+        let errorMessage =
+          "Не удалось отправить запрос. Пожалуйста, попробуйте снова.";
         try {
           const errorData = await response.json();
           if (errorData.detail) {
@@ -131,8 +132,8 @@ export default function PressPage() {
           <div className={styles.headerSection}>
             <h1 className={styles.title}>Пресса</h1>
             <p className={styles.description}>
-              Свяжитесь с нашей пресс-службой для медиа-запросов, интервью
-              и пресс-релизов.
+              Свяжитесь с нашей пресс-службой для медиа-запросов, интервью и
+              пресс-релизов.
             </p>
           </div>
 
@@ -218,7 +219,9 @@ export default function PressPage() {
                 className={styles.submitButton}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Отправка..." : "Отправить запрос в пресс-службу"}
+                {isSubmitting
+                  ? "Отправка..."
+                  : "Отправить запрос в пресс-службу"}
               </button>
             </form>
           </div>
