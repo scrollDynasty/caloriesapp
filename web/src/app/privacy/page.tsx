@@ -127,7 +127,7 @@ export default function PrivacyPage() {
 
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>
-                4. Локализация и место хранения данных (Важно!)
+                4. Локализация и место хранения данныx
               </h2>
               <p className={styles.paragraph}>
                 В целях соблюдения ст. 27-1 Закона РУз «О персональных данных»,
@@ -135,7 +135,7 @@ export default function PrivacyPage() {
               </p>
 
               <h3 className={styles.subsectionTitle}>
-                4.1. Персональные данные (База данных):
+                4.1. Персональные данные:
               </h3>
               <p className={styles.paragraph}>
                 Сбор, систематизация и хранение баз данных, содержащих
@@ -146,7 +146,7 @@ export default function PrivacyPage() {
               </p>
 
               <h3 className={styles.subsectionTitle}>
-                4.2. Медиа-контент (Файловое хранилище):
+                4.2. Медиа-контент:
               </h3>
               <p className={styles.paragraph}>
                 Для ускорения работы Приложения и обработки изображений
