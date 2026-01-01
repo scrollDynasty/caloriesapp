@@ -42,7 +42,13 @@
 }
 
 .logoText {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: #000000;
@@ -50,10 +56,16 @@
 }
 
 .downloadText {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   font-size: 14px;
   line-height: 1.43;
-  color: #4B5563;
+  color: #4b5563;
   margin: 0;
   padding-top: 8px;
 }
@@ -82,7 +94,13 @@
 }
 
 .sectionTitle {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   font-size: 16px;
   font-weight: 600;
   line-height: 1.5;
@@ -91,10 +109,16 @@
 }
 
 .link {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   font-size: 14px;
   line-height: 1.43;
-  color: #4B5563;
+  color: #4b5563;
   text-decoration: none;
   transition: color 0.2s;
 }
@@ -108,14 +132,20 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid #e5e7eb;
 }
 
 .copyright {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   font-size: 14px;
   line-height: 1.43;
-  color: #6B7280;
+  color: #6b7280;
   margin: 0;
 }
 

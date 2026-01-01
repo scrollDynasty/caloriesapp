@@ -16,7 +16,12 @@ export default function PrivacyPage() {
           <div className={styles.headerSection}>
             <h1 className={styles.title}>Политика конфиденциальности</h1>
             <p className={styles.lastUpdated}>
-              Последнее обновление: {new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })}
+              Последнее обновление:{" "}
+              {new Date().toLocaleDateString("ru-RU", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
             </p>
             <p className={styles.intro}>
               Политика разработана в соответствии с Конституцией Республики
@@ -32,8 +37,7 @@ export default function PrivacyPage() {
                 <div className={styles.definition}>
                   <strong>Персональные данные (ПД)</strong> — любая информация,
                   относящаяся к прямо или косвенно определенному или
-                  определяемому физическому лицу (субъекту персональных
-                  данных).
+                  определяемому физическому лицу (субъекту персональных данных).
                 </div>
                 <div className={styles.definition}>
                   <strong>Обработка ПД</strong> — любое действие с персональными
@@ -100,9 +104,7 @@ export default function PrivacyPage() {
             </section>
 
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>
-                3. Цели обработки данных
-              </h2>
+              <h2 className={styles.sectionTitle}>3. Цели обработки данных</h2>
               <p className={styles.paragraph}>Мы обрабатываем данные для:</p>
               <ul className={styles.list}>
                 <li>
@@ -176,8 +178,8 @@ export default function PrivacyPage() {
                 </p>
                 <p className={styles.paragraph}>
                   <strong>5.2.</strong> Загружая фото еды, Пользователь
-                  предоставляет Оператору неисключительное право использовать эти
-                  изображения в обезличенном виде для дообучения и улучшения
+                  предоставляет Оператору неисключительное право использовать
+                  эти изображения в обезличенном виде для дообучения и улучшения
                   моделей AI.
                 </p>
                 <p className={styles.paragraph}>
@@ -216,8 +218,8 @@ export default function PrivacyPage() {
               <ul className={styles.list}>
                 <li>Получать информацию о своих хранящихся данных.</li>
                 <li>
-                  Требовать уточнения, блокирования или уничтожения своих данных,
-                  если они являются неполными или неточными.
+                  Требовать уточнения, блокирования или уничтожения своих
+                  данных, если они являются неполными или неточными.
                 </li>
                 <li>Отозвать согласие на обработку данных.</li>
                 <li>
@@ -233,8 +235,8 @@ export default function PrivacyPage() {
               <p className={styles.paragraph}>
                 Мы принимаем правовые, организационные и технические меры для
                 защиты данных от неправомерного доступа, включая шифрование
-                передаваемых данных (SSL/TLS) и ограничение доступа сотрудников к
-                базе данных.
+                передаваемых данных (SSL/TLS) и ограничение доступа сотрудников
+                к базе данных.
               </p>
             </section>
 
@@ -245,7 +247,8 @@ export default function PrivacyPage() {
               <div className={styles.orderedList}>
                 <p className={styles.paragraph}>
                   <strong>9.1.</strong> Настоящая Политика может быть изменена
-                  Оператором. Новая редакция вступает в силу с момента размещения.
+                  Оператором. Новая редакция вступает в силу с момента
+                  размещения.
                 </p>
                 <p className={styles.paragraph}>
                   <strong>9.2.</strong> К настоящей Политике применяется право
@@ -283,4 +286,3 @@ export default function PrivacyPage() {
     </div>
   );
 }
-
