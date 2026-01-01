@@ -26,6 +26,7 @@ from app.schemas.water import WaterCreate, WaterDailyResponse, WaterEntry
 from app.services.storage import storage_service
 from app.services.ai_service import ai_service
 from app.utils.date_utils import get_day_range_utc
+from app.services.badge_service import check_and_award_badges
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -203,6 +204,11 @@ async def upload_meal_photo(
         db.commit()
         db.refresh(meal_photo)
         photo_url = f"{settings.api_domain}/api/v1/meals/photos/{meal_photo.id}"
+        
+        try:
+            check_and_award_badges(current_user, db)
+        except Exception as e:
+            logger.warning(f"Badge check failed: {e}")
 
         return MealPhotoUploadResponse(
             photo=MealPhotoResponse.model_validate(meal_photo),
@@ -297,6 +303,11 @@ def create_manual_meal(
     db.add(meal_photo)
     db.commit()
     db.refresh(meal_photo)
+    
+    try:
+        check_and_award_badges(current_user, db)
+    except Exception as e:
+        logger.warning(f"Badge check failed: {e}")
     
     return meal_photo
 

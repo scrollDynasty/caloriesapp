@@ -34,6 +34,11 @@ export const API_ENDPOINTS = {
   MEALS_MANUAL: "/api/v1/meals/manual",
   WATER: "/api/v1/water",
   WATER_DAILY: "/api/v1/water/daily",
+  
+  BADGES: "/api/v1/badges",
+  BADGES_CHECK: "/api/v1/badges/check",
+  BADGES_SEEN: "/api/v1/badges/seen",
+  BADGES_NEW: "/api/v1/badges/new",
 
   HEALTH: "/health",
 } as const;

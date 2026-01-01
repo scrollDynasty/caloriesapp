@@ -19,6 +19,7 @@ from app.models.weight_log import WeightLog
 from app.models.progress_photo import ProgressPhoto
 from app.models.recipe import Recipe
 from app.models.press_inquiry import PressInquiry, InquiryStatus
+from app.models.user_badge import UserBadge
 
 
 def patched_model_fields(model):
@@ -602,3 +603,56 @@ class PressInquiryAdmin(admin.ModelAdmin):
         return query.order_by(PressInquiry.created_at.desc())
     
     form_excluded = [PressInquiry.id]
+
+
+class UserBadgeReadSchema(BaseModel):
+    id: int
+    user_id: int
+    badge_id: str
+    category: str
+    earned_at: Optional[datetime] = None
+    seen: bool
+    notified: bool
+    
+    @field_serializer('earned_at', when_used='json')
+    def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
+        if value is None:
+            return None
+        return value.isoformat()
+    
+    class Config:
+        from_attributes = True
+
+
+class UserBadgeUpdateSchema(BaseModel):
+    seen: Optional[bool] = None
+    notified: Optional[bool] = None
+
+
+@site.register_admin
+class UserBadgeAdmin(admin.ModelAdmin):
+    page_schema = "User Badges"
+    model = UserBadge
+    schema_read = UserBadgeReadSchema
+    update_schema = UserBadgeUpdateSchema
+    
+    list_display = [
+        UserBadge.id,
+        UserBadge.user_id,
+        UserBadge.badge_id,
+        UserBadge.category,
+        UserBadge.earned_at,
+        UserBadge.seen,
+        UserBadge.notified,
+    ]
+    
+    search_fields = [UserBadge.user_id, UserBadge.badge_id, UserBadge.category]
+    list_filter = [UserBadge.category, UserBadge.seen, UserBadge.notified]
+    link_model_fields = [UserBadge.user_id]
+    list_per_page = 50
+    
+    async def get_list_query(self, request):
+        query = await super().get_list_query(request)
+        return query.order_by(UserBadge.earned_at.desc())
+    
+    form_excluded = [UserBadge.id, UserBadge.earned_at]

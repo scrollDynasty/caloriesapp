@@ -15,6 +15,7 @@ from app.models.weight_log import WeightLog
 from app.models.progress_photo import ProgressPhoto
 from app.models.meal_photo import MealPhoto
 from app.models.onboarding_data import OnboardingData
+from app.models.user_badge import UserBadge
 from app.schemas.progress import (
     WeightLogCreate,
     WeightLogResponse,
@@ -312,7 +313,9 @@ def get_progress_data(
 ):
     streak_count = current_user.streak_count or 0
     
-    badges_count = 0
+    badges_count = db.query(func.count(UserBadge.id)).filter(
+        UserBadge.user_id == current_user.id
+    ).scalar() or 0
     
     weight_stats = get_weight_stats(current_user, db)
     

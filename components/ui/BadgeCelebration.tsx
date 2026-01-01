@@ -16,16 +16,33 @@ interface BadgeCelebrationProps {
 }
 
 const BADGE_CONFIG: Record<string, { emoji: string; title: string; description: string; color: string }> = {
-  first_meal: { emoji: "🍽️", title: "Первый приём пищи", description: "Ты записал своё первое блюдо!", color: "#FF6B6B" },
-  streak_3: { emoji: "🔥", title: "3 дня подряд", description: "Отличное начало!", color: "#FF9500" },
-  streak_7: { emoji: "🔥", title: "Неделя подряд", description: "Неделя отслеживания!", color: "#FF6B00" },
-  streak_30: { emoji: "🏆", title: "30 дней подряд", description: "Целый месяц!", color: "#FFD700" },
-  goal_reached: { emoji: "✅", title: "Цель достигнута", description: "Ты достиг дневной нормы!", color: "#34C759" },
-  weight_milestone: { emoji: "⚖️", title: "Веховой результат", description: "Важная отметка в весе!", color: "#007AFF" },
-  healthy_week: { emoji: "💚", title: "Здоровая неделя", description: "Отличные показатели!", color: "#34C759" },
-  macro_master: { emoji: "📊", title: "Мастер макросов", description: "Идеальный баланс БЖУ!", color: "#AF52DE" },
-  water_champion: { emoji: "💧", title: "Водный чемпион", description: "Достаточно воды!", color: "#5AC8FA" },
-  early_bird: { emoji: "🌅", title: "Ранняя пташка", description: "Завтрак до 9 утра!", color: "#FFD60A" },
+  first_meal: { emoji: "🍽️", title: "Первое блюдо!", description: "Ты записал своё первое блюдо!", color: "#FF6B6B" },
+  meals_10: { emoji: "🥗", title: "Гурман!", description: "Ты добавил уже 10 блюд!", color: "#4CAF50" },
+  meals_50: { emoji: "👨‍🍳", title: "Шеф-повар!", description: "50 блюд - впечатляет!", color: "#FF9800" },
+  meals_100: { emoji: "🌟", title: "Мастер кухни!", description: "100 блюд - ты профи!", color: "#9C27B0" },
+  streak_3: { emoji: "🔥", title: "Первые шаги!", description: "3 дня подряд!", color: "#FF9500" },
+  streak_7: { emoji: "🔥", title: "Неделя силы!", description: "Целая неделя отслеживания!", color: "#FF6B00" },
+  streak_14: { emoji: "⚡", title: "Две недели!", description: "14 дней - отличная работа!", color: "#FFD700" },
+  streak_30: { emoji: "🏆", title: "Месяц чемпиона!", description: "Целый месяц подряд!", color: "#FFD700" },
+  streak_100: { emoji: "💎", title: "Легенда!", description: "100 дней - невероятно!", color: "#00CED1" },
+  goal_reached: { emoji: "✅", title: "Цель достигнута!", description: "Ты достиг дневной нормы!", color: "#34C759" },
+  goal_week: { emoji: "🎯", title: "Неделя в цели!", description: "7 дней нормы калорий!", color: "#4CAF50" },
+  water_champion: { emoji: "💧", title: "Водный чемпион!", description: "Норма воды выполнена!", color: "#2196F3" },
+  water_week: { emoji: "🌊", title: "Водная неделя!", description: "7 дней нормы воды!", color: "#00BCD4" },
+  macro_master: { emoji: "📊", title: "Мастер макросов!", description: "Идеальный баланс БЖУ!", color: "#AF52DE" },
+  healthy_meal: { emoji: "💚", title: "Здоровый выбор!", description: "Блюдо с оценкой 8+!", color: "#34C759" },
+  weight_logged: { emoji: "⚖️", title: "На весах!", description: "Первое взвешивание!", color: "#607D8B" },
+  weight_week: { emoji: "📈", title: "Контроль веса!", description: "Неделя взвешиваний!", color: "#795548" },
+  explorer: { emoji: "🗺️", title: "Исследователь!", description: "5 разных блюд попробовано!", color: "#FF5722" },
+  collector: { emoji: "🏅", title: "Коллекционер!", description: "У тебя уже 5 значков!", color: "#FFC107" },
+  achiever: { emoji: "🎖️", title: "Достигатор!", description: "10 значков - молодец!", color: "#FF9800" },
+};
+
+const DEFAULT_BADGE_CONFIG = { 
+  emoji: "🏆", 
+  title: "Новое достижение!", 
+  description: "Ты заработал новый значок!", 
+  color: "#FFD700" 
 };
 
 const Confetti = React.memo(function Confetti({ index, color }: { index: number; color: string }) {
@@ -75,7 +92,7 @@ export function BadgeCelebration({ visible, badgeType, onClose }: BadgeCelebrati
   const glowOpacity = useSharedValue(0);
   const ringScale = useSharedValue(0);
 
-  const config = BADGE_CONFIG[badgeType] || BADGE_CONFIG.goal_reached;
+  const config = BADGE_CONFIG[badgeType] || DEFAULT_BADGE_CONFIG;
   const confettiColors = [config.color, "#FFD700", "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4"];
 
   useEffect(() => {

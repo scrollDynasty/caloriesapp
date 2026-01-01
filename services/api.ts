@@ -8,7 +8,7 @@ import axios, {
 } from "axios";
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
-import { DailyMealsData, dataCache, OnboardingData, UserData } from "../stores/dataCache";
+import { DailyMealsData, OnboardingData, UserData, dataCache } from "../stores/dataCache";
 import { getLocalDateStr, getLocalISOString, getLocalTimezoneOffset } from "../utils/timezone";
 import { sanitizeBarcode, sanitizeFileName, sanitizeNumber, sanitizeString, sanitizeUrl } from "../utils/validation";
 
@@ -1148,6 +1148,69 @@ class ApiService {
 
   async trackRecipeView(recipeId: number): Promise<{ success: boolean; usage_count: number }> {
     const response = await this.api.post(`/api/v1/meals/recipes/${recipeId}/view`);
+    return response.data;
+  }
+
+  async getBadges(): Promise<{
+    badges: Array<{
+      badge_id: string;
+      emoji: string;
+      title: string;
+      description: string;
+      requirement: string;
+      color: string;
+      category: string;
+      is_earned: boolean;
+      earned_at: string | null;
+      seen: boolean;
+    }>;
+    total_earned: number;
+    total_badges: number;
+    new_badges: string[];
+  }> {
+    return this.dedupRequest("badges", async () => {
+      const response = await this.api.get(API_ENDPOINTS.BADGES);
+      return response.data;
+    });
+  }
+
+  async checkBadges(): Promise<{
+    new_badges: Array<{
+      badge_id: string;
+      emoji: string;
+      title: string;
+      description: string;
+      requirement: string;
+      color: string;
+      category: string;
+      is_earned: boolean;
+      earned_at: string | null;
+      seen: boolean;
+    }>;
+    total_earned: number;
+  }> {
+    const response = await this.api.post(API_ENDPOINTS.BADGES_CHECK);
+    return response.data;
+  }
+
+  async markBadgesSeen(badgeIds: string[]): Promise<{ success: boolean; marked_count: number }> {
+    const response = await this.api.post(API_ENDPOINTS.BADGES_SEEN, { badge_ids: badgeIds });
+    return response.data;
+  }
+
+  async getNewBadges(): Promise<Array<{
+    badge_id: string;
+    emoji: string;
+    title: string;
+    description: string;
+    requirement: string;
+    color: string;
+    category: string;
+    is_earned: boolean;
+    earned_at: string | null;
+    seen: boolean;
+  }>> {
+    const response = await this.api.get(API_ENDPOINTS.BADGES_NEW);
     return response.data;
   }
 }
