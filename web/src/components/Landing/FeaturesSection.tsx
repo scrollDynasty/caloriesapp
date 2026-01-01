@@ -14,30 +14,30 @@ interface Feature {
 const features: Feature[] = [
   {
     id: "track-food",
-    title: "Track Your Food With Just a Picture",
+    title: "Отслеживайте еду одним снимком",
     description:
-      "Snap a photo with Yeb-Ich, and your phone's depth sensor calculates food volume. Our AI then analyzes and breaks down your meal to determine calories, protein, carbs, and fat.",
+      "Сделайте фото с помощью Yeb-Ich, и датчик глубины вашего телефона рассчитает объём пищи. Наш искусственный интеллект анализирует и разбирает ваше блюдо, определяя калории, белки, углеводы и жиры.",
     image: "/photo1.jpg",
   },
   {
     id: "search-database",
-    title: "AI Goals and Nutrition",
+    title: "Цели и питание на базе ИИ",
     description:
-      "Set personalized nutrition goals powered by AI. Get intelligent recommendations for your daily intake, track your progress, and optimize your diet based on your health objectives.",
+      "Установите персональные цели по питанию с помощью искусственного интеллекта. Получайте интеллектуальные рекомендации по ежедневному потреблению, отслеживайте прогресс и оптимизируйте рацион в соответствии с вашими целями в области здоровья.",
     image: "/photo4.jpg",
   },
   {
     id: "progress-tracking",
-    title: "Complete Progress Tracking and AI suggestions",
+    title: "Полное отслеживание прогресса и рекомендации ИИ",
     description:
-      "Monitor your weight, measurements, and nutrition goals. Get personalized AI suggestions to stay on track and optimize your diet.",
+      "Отслеживайте вес, измерения и цели по питанию. Получайте персонализированные рекомендации от искусственного интеллекта, чтобы оставаться на правильном пути и оптимизировать свой рацион.",
     image: "/photo2.png",
   },
   {
     id: "water-exercise",
-    title: "Hydration & Fitness Tracking",
+    title: "Отслеживание гидратации и фитнеса",
     description:
-      "Stay on top of your wellness journey. Track your daily water intake, log workouts, and monitor your activity levels. Yeb-Ich seamlessly integrates with your fitness routine to help you achieve your health goals.",
+      "Будьте в курсе своего пути к здоровью. Отслеживайте ежедневное потребление воды, записывайте тренировки и контролируйте уровень активности. Yeb-Ich органично интегрируется с вашим фитнес-режимом, помогая достичь целей в области здоровья.",
     image: "/photo3.jpg",
   },
 ];
@@ -57,7 +57,7 @@ export default function FeaturesSection() {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <h2 className={styles.heading}>What does Yeb-Ich include?</h2>
+        <h2 className={styles.heading}>Что включает Yeb-Ich?</h2>
 
         <div className={styles.content}>
           <div className={styles.phoneWrapper}>

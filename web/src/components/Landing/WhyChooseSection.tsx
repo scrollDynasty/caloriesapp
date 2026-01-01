@@ -11,23 +11,23 @@ const features: FeatureCard[] = [
   {
     id: "time",
     icon: "🎯",
-    title: "Free up your time",
+    title: "Освободите своё время",
     description:
-      "Yeb-Ich automatically calculates your calories, protein, carbs, and fat. You can also add your own foods and recipes. So no need to calculate calories manually.",
+      "Yeb-Ich автоматически рассчитывает калории, белки, углеводы и жиры. Вы также можете добавлять свои продукты и рецепты. Больше не нужно считать калории вручную.",
   },
   {
     id: "integrate",
     icon: "❤️",
-    title: "Integrate with your favorite fitness products",
+    title: "Интеграция с вашими любимыми фитнес-продуктами",
     description:
-      "Yeb-Ich integrates with your favorite fitness products. So you can track your calories, protein, carbs, fat AND exercises.",
+      "Yeb-Ich интегрируется с вашими любимыми фитнес-продуктами. Таким образом, вы можете отслеживать калории, белки, углеводы, жиры и тренировки.",
   },
   {
     id: "weight",
     icon: "📈",
-    title: "Lose weight effortlessly",
+    title: "Сбрасывайте вес без усилий",
     description:
-      "Snap a photo with Yeb-Ich, and your phone's depth sensor calculates food volume. Our AI then analyzes and breaks down your meal to determine calories, protein, carbs, and fat.",
+      "Сделайте фото с помощью Yeb-Ich, и датчик глубины вашего телефона рассчитает объём пищи. Наш искусственный интеллект анализирует и разбирает ваше блюдо, определяя калории, белки, углеводы и жиры.",
   },
 ];
 
@@ -35,9 +35,9 @@ export default function WhyChooseSection() {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <h2 className={styles.heading}>Why choose Yeb-Ich?</h2>
+        <h2 className={styles.heading}>Почему стоит выбрать Yeb-Ich?</h2>
         <p className={styles.subtitle}>
-          Yeb-Ich is the most advanced calorie tracker.
+          Yeb-Ich — самый продвинутый трекер калорий.
         </p>
 
         <div className={styles.cards}>

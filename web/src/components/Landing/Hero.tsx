@@ -8,17 +8,17 @@ export default function Hero() {
       <SocialProof />
 
       <h1 className={styles.headline}>
-        Meet Yeb-Ich
+        Знакомьтесь, Yeb-Ich
         <br />
-        Track your calories
+        Отслеживайте калории
         <br />
-        with just a picture
+        одним снимком
       </h1>
 
       <p className={styles.description}>
-        Meet Yeb-Ich, the AI-powered app for easy calorie tracking. Snap a
-        photo, scan a barcode, or describe your meal and get instant calorie and
-        nutrient info.
+        Yeb-Ich — приложение на базе искусственного интеллекта для простого подсчёта калорий. Сделайте
+        фото, отсканируйте штрихкод или опишите блюдо и получите мгновенную информацию о калориях и
+        питательных веществах.
       </p>
 
       <div className={styles.actions}>

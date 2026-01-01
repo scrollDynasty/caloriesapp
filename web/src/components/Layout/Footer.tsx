@@ -13,7 +13,7 @@ export default function Footer() {
               <div className={styles.logoContainer}>
                 <Image
                   src="/logo.png"
-                  alt="Yeb-Ich logo"
+                  alt="Логотип Yeb-Ich"
                   width={40}
                   height={40}
                   className={styles.logoImage}
@@ -21,7 +21,7 @@ export default function Footer() {
                 />
                 <span className={styles.logoText}>Yeb-Ich</span>
               </div>
-              <p className={styles.downloadText}>Download Yeb-Ich</p>
+              <p className={styles.downloadText}>Скачать Yeb-Ich</p>
               <div className={styles.footerDownloadButtons}>
                 <DownloadButton platform="appstore" size="small" />
                 <DownloadButton platform="googleplay" size="small" />
@@ -29,26 +29,26 @@ export default function Footer() {
             </div>
 
             <div className={styles.column}>
-              <h3 className={styles.columnTitle}>Legal</h3>
+              <h3 className={styles.columnTitle}>Правовая информация</h3>
               <Link href="/privacy" className={styles.link}>
-                Privacy Policy
+                Политика конфиденциальности
               </Link>
               <Link href="/terms" className={styles.link}>
-                Terms of use
+                Условия использования
               </Link>
             </div>
 
             <div className={styles.column}>
-              <h3 className={styles.columnTitle}>Company</h3>
+              <h3 className={styles.columnTitle}>Компания</h3>
               <Link href="/contact" className={styles.link}>
-                Contact
+                Контакты
               </Link>
             </div>
           </div>
 
           <div className={styles.bottomBar}>
             <p className={styles.copyright}>
-              © Copyright 2025, All rights reserved
+              © Авторские права 2025, Все права защищены
             </p>
             <div className={styles.socialIcons}>
               <a

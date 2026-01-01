@@ -12,7 +12,7 @@ export default function SocialProof() {
       <div className={styles.text}>Более тысячи человек с</div>
       <div className={styles.rating}>
         <StarIcon size={14} className={styles.starIcon} />
-        <span className={styles.ratingText}>4.9 rating</span>
+        <span className={styles.ratingText}>4.9 рейтинг</span>
       </div>
     </div>
   );

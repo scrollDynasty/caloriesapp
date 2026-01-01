@@ -51,42 +51,42 @@ export default function InfluencersSection() {
     {
       name: "Jeremiah Jones",
       quote:
-        "Make a healthier choice for your latenight snack and use the Yeb-Ich app to track your calories",
+        "Делайте более здоровый выбор для позднего перекуса и используйте приложение Yeb-Ich для отслеживания калорий",
       imageUrl:
         "https://www.figma.com/api/mcp/asset/13970ff3-5871-45b9-bb91-511eed34e08d",
     },
     {
       name: "Dawson Gibbs",
       quote:
-        "Track with Yeb-Ich app, if you're not tracking your calories while going for your goals then you're doing it all wrong.",
+        "Отслеживайте с приложением Yeb-Ich — если вы не отслеживаете калории, стремясь к своим целям, то делаете всё неправильно.",
       imageUrl:
         "https://www.figma.com/api/mcp/asset/b28b1c09-63fd-4c08-aeee-758f93c43459",
     },
     {
       name: "Hussein Farhat",
       quote:
-        "If you're tracking your calories and macros correctly with Yeb-Ich, you can get away with eating almost anything and still get in shape as long as it matches your daily goals.",
+        "Если вы правильно отслеживаете калории и макроэлементы с помощью Yeb-Ich, вы можете есть почти что угодно и всё равно оставаться в форме, пока это соответствует вашим ежедневным целям.",
       imageUrl:
         "https://www.figma.com/api/mcp/asset/dfd8883c-42e6-4763-9af7-bd70a4739a2d",
     },
     {
       name: "Marcus Johnson",
       quote:
-        "Yeb-Ich has completely changed how I track my nutrition. It's so simple and accurate, I can't imagine going back to manual logging.",
+        "Yeb-Ich полностью изменил то, как я отслеживаю своё питание. Это так просто и точно, что я не могу представить возврат к ручному учёту.",
       imageUrl:
         "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&h=1200&fit=crop",
     },
     {
       name: "Alex Rivera",
       quote:
-        "The AI recognition in Yeb-Ich is incredible. Just snap a photo and get instant macro breakdowns. It's a game changer for meal prep.",
+        "Распознавание с помощью ИИ в Yeb-Ich невероятно. Просто сделайте фото и получите мгновенный анализ макроэлементов. Это меняет правила игры для подготовки еды.",
       imageUrl:
         "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&h=1200&fit=crop",
     },
     {
       name: "Jordan Taylor",
       quote:
-        "As a personal trainer, I recommend Yeb-Ich to all my clients. It makes calorie tracking effortless and helps them stay consistent.",
+        "Как персональный тренер, я рекомендую Yeb-Ich всем своим клиентам. Это делает отслеживание калорий лёгким и помогает им оставаться последовательными.",
       imageUrl:
         "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=1200&fit=crop",
     },
@@ -95,7 +95,7 @@ export default function InfluencersSection() {
   return (
     <section className={styles.section}>
       <h2 className={styles.heading}>
-        Used by your favorite fitness influencers 👀
+        Используется вашими любимыми фитнес-инфлюенсерами 👀
       </h2>
       <div className={styles.cards}>
         {influencers.map((influencer, index) => (

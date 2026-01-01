@@ -7,16 +7,16 @@ export default function LightModeSection() {
       <div className={styles.container}>
         <div className={styles.content}>
           <div className={styles.textContent}>
-            <div className={styles.badge}>NEW FEATURE</div>
+            <div className={styles.badge}>НОВАЯ ФУНКЦИЯ</div>
             <h2 className={styles.heading}>
-              Light Mode for a sleek tracking experience!
+              Светлая тема для элегантного опыта отслеживания!
             </h2>
             <div className={styles.emojiRow}>
               <span className={styles.emoji}>☀️</span>
               <span className={styles.emoji}>✨</span>
               <span className={styles.emoji}>✨</span>
             </div>
-            <p className={styles.subtitle}>New features weekly :)</p>
+            <p className={styles.subtitle}>Новые функции каждую неделю :)</p>
           </div>
 
           <div className={styles.phoneWrapper}>
@@ -24,7 +24,7 @@ export default function LightModeSection() {
               <div className={styles.phoneContent}>
                 <Image
                   src="/light.jpg"
-                  alt="Light Mode"
+                  alt="Светлая тема"
                   fill
                   className={styles.phoneImage}
                   style={{

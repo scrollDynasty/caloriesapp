@@ -62,15 +62,15 @@ export default function PressPage() {
       });
 
       if (!response.ok) {
-        let errorMessage = "Failed to submit inquiry. Please try again.";
+        let errorMessage = "Не удалось отправить запрос. Пожалуйста, попробуйте снова.";
         try {
           const errorData = await response.json();
           if (errorData.detail) {
             if (Array.isArray(errorData.detail)) {
               const errors = errorData.detail.map(
                 (err: { loc?: string[]; msg?: string }) => {
-                  const field = err.loc ? err.loc.join(".") : "field";
-                  return `${field}: ${err.msg || "Validation error"}`;
+                  const field = err.loc ? err.loc.join(".") : "поле";
+                  return `${field}: ${err.msg || "Ошибка валидации"}`;
                 },
               );
               errorMessage = errors.join("\n");
@@ -81,7 +81,7 @@ export default function PressPage() {
             }
           }
         } catch {
-          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+          errorMessage = `Ошибка сервера: ${response.status} ${response.statusText}`;
         }
         throw new Error(errorMessage);
       }
@@ -90,7 +90,7 @@ export default function PressPage() {
       setFormData({ email: "", subject: "", message: "" });
       setNotification({
         type: "success",
-        message: "Thank you for your inquiry! We'll get back to you soon.",
+        message: "Спасибо за ваш запрос! Мы свяжемся с вами в ближайшее время.",
       });
 
       // Автоматически скрываем уведомление через 5 секунд
@@ -102,7 +102,7 @@ export default function PressPage() {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : "Failed to submit inquiry. Please try again later.";
+          : "Не удалось отправить запрос. Пожалуйста, попробуйте позже.";
 
       setNotification({
         type: "error",
@@ -129,10 +129,10 @@ export default function PressPage() {
       <main className={styles.main}>
         <div className={styles.container}>
           <div className={styles.headerSection}>
-            <h1 className={styles.title}>Press</h1>
+            <h1 className={styles.title}>Пресса</h1>
             <p className={styles.description}>
-              Get in touch with our press team for media inquiries, interviews,
-              and press releases.
+              Свяжитесь с нашей пресс-службой для медиа-запросов, интервью
+              и пресс-релизов.
             </p>
           </div>
 
@@ -156,7 +156,7 @@ export default function PressPage() {
                 type="button"
                 className={styles.notificationClose}
                 onClick={() => setNotification(null)}
-                aria-label="Close notification"
+                aria-label="Закрыть уведомление"
               >
                 ×
               </button>
@@ -167,7 +167,7 @@ export default function PressPage() {
             <form onSubmit={handleSubmit} className={styles.form}>
               <div className={styles.formGroup}>
                 <label htmlFor="email" className={styles.label}>
-                  Email Address *
+                  Адрес электронной почты *
                 </label>
                 <input
                   type="email"
@@ -175,7 +175,7 @@ export default function PressPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="your.email@example.com"
+                  placeholder="ваш.email@example.com"
                   className={styles.input}
                   required
                 />
@@ -183,7 +183,7 @@ export default function PressPage() {
 
               <div className={styles.formGroup}>
                 <label htmlFor="subject" className={styles.label}>
-                  Subject *
+                  Тема *
                 </label>
                 <input
                   type="text"
@@ -191,7 +191,7 @@ export default function PressPage() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
-                  placeholder="Media inquiry subject"
+                  placeholder="Тема медиа-запроса"
                   className={styles.input}
                   required
                 />
@@ -199,14 +199,14 @@ export default function PressPage() {
 
               <div className={styles.formGroup}>
                 <label htmlFor="message" className={styles.label}>
-                  Message *
+                  Сообщение *
                 </label>
                 <textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  placeholder="Please provide details about your media inquiry, including deadline, outlet information, and specific questions you'd like answered..."
+                  placeholder="Пожалуйста, укажите детали вашего медиа-запроса, включая сроки, информацию об издании и конкретные вопросы, на которые вы хотели бы получить ответы..."
                   className={styles.textarea}
                   rows={8}
                   required
@@ -218,7 +218,7 @@ export default function PressPage() {
                 className={styles.submitButton}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Sending..." : "Send Press Inquiry"}
+                {isSubmitting ? "Отправка..." : "Отправить запрос в пресс-службу"}
               </button>
             </form>
           </div>

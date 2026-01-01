@@ -25,7 +25,7 @@ export default function Header() {
             <div className={styles.logoContainer}>
               <Image
                 src="/logo.png"
-                alt="Yeb-Ich logo"
+                alt="Логотип Yeb-Ich"
                 width={64}
                 height={64}
                 className={styles.logoImage}
@@ -41,16 +41,16 @@ export default function Header() {
 
         <div className={styles.navLinks}>
           <Link href="/" className={styles.navLink}>
-            Home
+            Главная
           </Link>
           <Link href="/jobs" className={styles.navLink}>
-            Jobs
+            Вакансии
           </Link>
           <Link href="/press" className={styles.navLink}>
-            Press
+            Пресса
           </Link>
           <Link href="/subscription" className={styles.navLink}>
-            Manage Subscription
+            Управление подпиской
           </Link>
         </div>
 
@@ -64,7 +64,7 @@ export default function Header() {
           type="button"
           className={styles.mobileMenuButton}
           onClick={toggleMenu}
-          aria-label="Toggle menu"
+          aria-label="Переключить меню"
           aria-expanded={isMenuOpen}
         >
           <span
@@ -85,28 +85,28 @@ export default function Header() {
       >
         <div className={styles.mobileMenuContent}>
           <Link href="/" className={styles.mobileNavLink} onClick={closeMenu}>
-            Home
+            Главная
           </Link>
           <Link
             href="/jobs"
             className={styles.mobileNavLink}
             onClick={closeMenu}
           >
-            Jobs
+            Вакансии
           </Link>
           <Link
             href="/press"
             className={styles.mobileNavLink}
             onClick={closeMenu}
           >
-            Press
+            Пресса
           </Link>
           <Link
             href="/subscription"
             className={styles.mobileNavLink}
             onClick={closeMenu}
           >
-            Manage Subscription
+            Управление подпиской
           </Link>
           <div className={styles.mobileMenuActions}>
             <DownloadButton platform="appstore" size="large" />

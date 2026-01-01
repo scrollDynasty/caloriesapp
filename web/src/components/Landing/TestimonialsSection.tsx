@@ -93,7 +93,7 @@ export default function TestimonialsSection() {
   return (
     <section className={styles.section}>
       <div className={styles.container}>
-        <h2 className={styles.heading}>Thousands of users talk about us</h2>
+        <h2 className={styles.heading}>Тысячи пользователей говорят о нас</h2>
 
         <div className={styles.cardsGrid}>
           {testimonials.map((testimonial) => (

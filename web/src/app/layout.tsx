@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Yeb-Ich - Track your calories with just a picture",
+  title: "Yeb-Ich - Отслеживайте калории одним снимком",
   description:
-    "Meet Yeb-Ich, the AI-powered app for easy calorie tracking. Snap a photo, scan a barcode, or describe your meal and get instant calorie and nutrient info.",
+    "Знакомьтесь с Yeb-Ich — приложением на базе искусственного интеллекта для простого подсчёта калорий. Сделайте фото, отсканируйте штрихкод или опишите блюдо и получите мгновенную информацию о калориях и питательных веществах.",
   icons: {
     icon: [
       { url: "/favicon.png", sizes: "any" },
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ru">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
