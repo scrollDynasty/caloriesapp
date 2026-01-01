@@ -7,10 +7,11 @@
     "icon": "./assets/images/dark_logo.png",
     "scheme": "yeb-ich",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.scrolldynasty.yebich",
+      "displayName": "Yeb-Ich",
       "infoPlist": {
         "NSCameraUsageDescription": "Приложению необходим доступ к камере для сканирования еды и штрих-кодов",
         "NSMicrophoneUsageDescription": "Приложению необходим доступ к микрофону для записи видео",
@@ -31,9 +32,10 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#FFFFF0",
-        "foregroundImage": "./assets/images/dark_logo.png",
-        "monochromeImage": "./assets/images/dark_logo.png"
+        "foregroundImage": "./assets/images/android-adaptive-icon.png",
+        "monochromeImage": "./assets/images/android-adaptive-icon.png"
       },
+      "minSdkVersion": 26,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.scrolldynasty.yebich",
