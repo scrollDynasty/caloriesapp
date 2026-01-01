@@ -210,11 +210,11 @@ export default function HomeScreen() {
       const mappedCachedMeals = (cachedDaily.meals || []).map((m: any) => {
         let imageUrl: string | undefined = undefined;
         if (m.image_url) {
-          if (m.image_url.startsWith('http://') || m.image_url.startsWith('https://')) {
+          const photoIdMatch = m.image_url.match(/\/api\/v1\/meals\/photos\/(\d+)/);
+          if (photoIdMatch && photoIdMatch[1]) {
+            imageUrl = apiService.getMealPhotoUrl(Number(photoIdMatch[1]), token);
+          } else if (m.image_url.startsWith('http://') || m.image_url.startsWith('https://')) {
             imageUrl = m.image_url;
-          } else if (m.image_url.includes('/api/v1/meals/photos/')) {
-            const photoId = m.image_url.split('/').pop();
-            imageUrl = apiService.getMealPhotoUrl(Number(photoId), token);
           }
         }
         
@@ -290,11 +290,11 @@ export default function HomeScreen() {
       const mappedMeals = (data.meals || []).map((m: any) => {
         let imageUrl: string | undefined = undefined;
         if (m.image_url) {
-          if (m.image_url.startsWith('http://') || m.image_url.startsWith('https://')) {
+          const photoIdMatch = m.image_url.match(/\/api\/v1\/meals\/photos\/(\d+)/);
+          if (photoIdMatch && photoIdMatch[1]) {
+            imageUrl = apiService.getMealPhotoUrl(Number(photoIdMatch[1]), token);
+          } else if (m.image_url.startsWith('http://') || m.image_url.startsWith('https://')) {
             imageUrl = m.image_url;
-          } else if (m.image_url.includes('/api/v1/meals/photos/')) {
-            const photoId = m.image_url.split('/').pop();
-            imageUrl = apiService.getMealPhotoUrl(Number(photoId), token);
           }
         }
         
