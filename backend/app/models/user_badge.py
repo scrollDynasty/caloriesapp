@@ -1,5 +1,5 @@
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
+from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 import enum
@@ -19,9 +19,9 @@ class UserBadge(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     badge_id = Column(String(50), nullable=False, index=True)
     category = Column(String(20), nullable=False)
-    earned_at = Column(DateTime, default=datetime.utcnow)
-    seen = Column(Boolean, default=False)
-    notified = Column(Boolean, default=False)
+    earned_at = Column(DateTime(timezone=True), server_default=func.now())
+    seen = Column(Boolean, server_default="0", default=False)
+    notified = Column(Boolean, server_default="0", default=False)
     
     user = relationship("User", back_populates="badges")
 

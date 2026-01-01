@@ -629,11 +629,20 @@ class UserBadgeUpdateSchema(BaseModel):
     notified: Optional[bool] = None
 
 
+class UserBadgeCreateSchema(BaseModel):
+    user_id: int
+    badge_id: str
+    category: str = "activity"
+    seen: bool = False
+    notified: bool = False
+
+
 @site.register_admin
 class UserBadgeAdmin(admin.ModelAdmin):
     page_schema = "User Badges"
     model = UserBadge
     schema_read = UserBadgeReadSchema
+    schema_create = UserBadgeCreateSchema
     update_schema = UserBadgeUpdateSchema
     
     list_display = [
@@ -646,7 +655,7 @@ class UserBadgeAdmin(admin.ModelAdmin):
         UserBadge.notified,
     ]
     
-    search_fields = [UserBadge.user_id, UserBadge.badge_id, UserBadge.category]
+    search_fields = [UserBadge.badge_id, UserBadge.category]
     list_filter = [UserBadge.category, UserBadge.seen, UserBadge.notified]
     link_model_fields = [UserBadge.user_id]
     list_per_page = 50
