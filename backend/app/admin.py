@@ -262,24 +262,7 @@ class MealPhotoReadSchema(BaseModel):
     recipe_id: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
-    
-    @property
-    def file_url(self) -> str:
-        """Преобразует локальный путь в полный URL Yandex Cloud Storage"""
-        if not self.file_path or self.file_path in ("manual", ""):
-            return ""
-        if self.file_path.startswith("http://") or self.file_path.startswith("https://"):
-            return self.file_path
-        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{self.file_path}"
-    
-    @field_serializer('file_path', when_used='json')
-    def serialize_file_path(self, value: str, _info) -> str:
-        """Преобразует локальный путь в полный URL при сериализации"""
-        if not value or value in ("manual", ""):
-            return value
-        if value.startswith("http://") or value.startswith("https://"):
-            return value
-        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{value}"
+    file_url: Optional[str] = None
     
     @field_serializer('created_at', 'updated_at', when_used='json')
     def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
@@ -289,12 +272,13 @@ class MealPhotoReadSchema(BaseModel):
     
     def model_dump(self, **kwargs) -> dict[str, Any]:
         data = super().model_dump(**kwargs)
-        data['file_url'] = self.file_url
-        # Преобразуем file_path в полный URL
-        if 'file_path' in data and data['file_path']:
+        # Вычисляем file_url из file_path
+        if data.get('file_path') and data['file_path'] not in ("manual", ""):
             file_path = data['file_path']
-            if file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
-                data['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+            if not (file_path.startswith("http://") or file_path.startswith("https://")):
+                data['file_url'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+            else:
+                data['file_url'] = file_path
         return data
     
     class Config:
@@ -311,6 +295,7 @@ class MealPhotoAdmin(admin.ModelAdmin):
         MealPhoto.id,
         MealPhoto.user_id,
         MealPhoto.file_path,
+        "file_url",
         MealPhoto.meal_name,
         MealPhoto.detected_meal_name,
         MealPhoto.calories,
@@ -336,13 +321,18 @@ class MealPhotoAdmin(admin.ModelAdmin):
         return query.order_by(MealPhoto.created_at.desc())
     
     async def get_list_data(self, request, data: list) -> list:
-        """Преобразует file_path в полный URL для отображения"""
+        """Добавляет file_url для каждого элемента"""
         result = await super().get_list_data(request, data)
         for item in result:
             if isinstance(item, dict) and 'file_path' in item:
-                file_path = item['file_path']
-                if file_path and file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
-                    item['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+                file_path = item.get('file_path', '')
+                if file_path and file_path not in ("manual", ""):
+                    if not (file_path.startswith("http://") or file_path.startswith("https://")):
+                        item['file_url'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+                    else:
+                        item['file_url'] = file_path
+                else:
+                    item['file_url'] = ""
         return result
     
     form_excluded = [MealPhoto.id, MealPhoto.created_at, MealPhoto.updated_at, MealPhoto.file_size, MealPhoto.mime_type]
@@ -405,24 +395,7 @@ class ProgressPhotoReadSchema(BaseModel):
     file_size: int
     mime_type: str
     created_at: Optional[datetime] = None
-    
-    @property
-    def file_url(self) -> str:
-        """Преобразует локальный путь в полный URL Yandex Cloud Storage"""
-        if not self.file_path or self.file_path in ("manual", ""):
-            return ""
-        if self.file_path.startswith("http://") or self.file_path.startswith("https://"):
-            return self.file_path
-        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{self.file_path}"
-    
-    @field_serializer('file_path', when_used='json')
-    def serialize_file_path(self, value: str, _info) -> str:
-        """Преобразует локальный путь в полный URL при сериализации"""
-        if not value or value in ("manual", ""):
-            return value
-        if value.startswith("http://") or value.startswith("https://"):
-            return value
-        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{value}"
+    file_url: Optional[str] = None
     
     @field_serializer('created_at', when_used='json')
     def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
@@ -432,12 +405,13 @@ class ProgressPhotoReadSchema(BaseModel):
     
     def model_dump(self, **kwargs) -> dict[str, Any]:
         data = super().model_dump(**kwargs)
-        data['file_url'] = self.file_url
-        # Преобразуем file_path в полный URL
-        if 'file_path' in data and data['file_path']:
+        # Вычисляем file_url из file_path
+        if data.get('file_path') and data['file_path'] not in ("manual", ""):
             file_path = data['file_path']
-            if file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
-                data['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+            if not (file_path.startswith("http://") or file_path.startswith("https://")):
+                data['file_url'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+            else:
+                data['file_url'] = file_path
         return data
     
     class Config:
@@ -454,6 +428,7 @@ class ProgressPhotoAdmin(admin.ModelAdmin):
         ProgressPhoto.id,
         ProgressPhoto.user_id,
         ProgressPhoto.file_path,
+        "file_url",
         ProgressPhoto.file_name,
         ProgressPhoto.file_size,
         ProgressPhoto.created_at,
@@ -469,13 +444,18 @@ class ProgressPhotoAdmin(admin.ModelAdmin):
         return query.order_by(ProgressPhoto.created_at.desc())
     
     async def get_list_data(self, request, data: list) -> list:
-        """Преобразует file_path в полный URL для отображения"""
+        """Добавляет file_url для каждого элемента"""
         result = await super().get_list_data(request, data)
         for item in result:
             if isinstance(item, dict) and 'file_path' in item:
-                file_path = item['file_path']
-                if file_path and file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
-                    item['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+                file_path = item.get('file_path', '')
+                if file_path and file_path not in ("manual", ""):
+                    if not (file_path.startswith("http://") or file_path.startswith("https://")):
+                        item['file_url'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+                    else:
+                        item['file_url'] = file_path
+                else:
+                    item['file_url'] = ""
         return result
     
     form_excluded = [ProgressPhoto.id, ProgressPhoto.created_at, ProgressPhoto.file_size, ProgressPhoto.mime_type]
