@@ -119,6 +119,43 @@ const BADGE_CONFIG: Record<string, { emoji: string; title: string; description: 
   collector_50: { emoji: "👑", title: "Легенда коллекции", description: "50 значков", color: "#E64A19", gradient: ["#E64A19", "#F66A39"] },
 };
 
+// Компонент для отдельной частицы
+const Particle = ({ 
+  particle, 
+  index, 
+  gradient 
+}: { 
+  particle: { x: { value: number }; y: { value: number }; scale: { value: number }; opacity: { value: number } };
+  index: number;
+  gradient: [string, string];
+}) => {
+  const particleStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: particle.x.value },
+      { translateY: particle.y.value },
+      { scale: particle.scale.value },
+    ],
+    opacity: particle.opacity.value,
+  }));
+
+  const isSpecial = index % 5 === 0;
+
+  return (
+    <Animated.View
+      style={[
+        styles.particle,
+        particleStyle,
+        {
+          backgroundColor: isSpecial ? "#FFD700" : gradient[index % 2],
+          width: isSpecial ? 12 : 8,
+          height: isSpecial ? 12 : 8,
+          borderRadius: isSpecial ? 6 : 4,
+        },
+      ]}
+    />
+  );
+};
+
 const BadgeIcon = ({ 
   emoji, 
   gradient,
@@ -290,34 +327,9 @@ export function BadgeCelebration({ visible, badgeType, onClose }: BadgeCelebrati
 
   return (
     <Animated.View entering={FadeIn.duration(300)} exiting={FadeOut.duration(200)} style={styles.overlay}>
-      {particles.map((p, i) => {
-        const particleStyle = useAnimatedStyle(() => ({
-          transform: [
-            { translateX: p.x.value },
-            { translateY: p.y.value },
-            { scale: p.scale.value },
-          ],
-          opacity: p.opacity.value,
-        }));
-
-        const isSpecial = i % 5 === 0;
-
-        return (
-          <Animated.View
-            key={i}
-            style={[
-              styles.particle,
-              particleStyle,
-              {
-                backgroundColor: isSpecial ? "#FFD700" : config.gradient[i % 2],
-                width: isSpecial ? 12 : 8,
-                height: isSpecial ? 12 : 8,
-                borderRadius: isSpecial ? 6 : 4,
-              },
-            ]}
-          />
-        );
-      })}
+      {particles.map((p, i) => (
+        <Particle key={i} particle={p} index={i} gradient={config.gradient} />
+      ))}
 
       <View style={styles.content}>
         <Animated.View style={[styles.rays, raysStyle]}>

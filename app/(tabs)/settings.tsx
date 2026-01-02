@@ -60,6 +60,7 @@ function MenuItem({
   rightText,
   isLast = false,
   danger = false,
+  badge,
 }: { 
   icon: any; 
   title: string; 
@@ -68,6 +69,7 @@ function MenuItem({
   rightText?: string;
   isLast?: boolean;
   danger?: boolean;
+  badge?: string;
 }) {
   const { colors: themeColors, isDark } = useTheme();
   return (
@@ -83,8 +85,15 @@ function MenuItem({
         <View style={[styles.menuIconBox, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }, danger && { backgroundColor: isDark ? themeColors.gray5 : "#FFEEEE" }]}>
           <Ionicons name={icon} size={18} color={danger ? "#FF4444" : themeColors.text} />
         </View>
-        <View>
-          <Text style={[styles.menuText, { color: danger ? "#FF4444" : themeColors.text }]}>{title}</Text>
+        <View style={styles.menuTextContainer}>
+          <View style={styles.menuTitleRow}>
+            <Text style={[styles.menuText, { color: danger ? "#FF4444" : themeColors.text }]}>{title}</Text>
+            {badge && (
+              <View style={styles.badgeContainer}>
+                <Text style={styles.badgeText}>{badge}</Text>
+              </View>
+            )}
+          </View>
           {subtitle && <Text style={[styles.menuSubtitle, { color: themeColors.textSecondary }]}>{subtitle}</Text>}
         </View>
       </View>
@@ -328,6 +337,7 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="person-outline" title="Личные данные" onPress={() => router.push("/personal-data" as any)} />
           <MenuItem icon="settings-outline" title="Настройки" onPress={() => router.push("/app-settings" as any)} />
+          <MenuItem icon="diamond-outline" title="Подписка и тарифы" onPress={() => router.push("/subscription" as any)} badge="Premium" />
           <MenuItem icon="language-outline" title="Язык" />
           <MenuItem icon="people-outline" title="Обновиться до семейного плана" isLast />
         </View>
@@ -656,9 +666,30 @@ const styles = StyleSheet.create({
   },
   menuIconBoxDanger: {
   },
+  menuTextContainer: {
+    flex: 1,
+  },
+  menuTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   menuText: {
     fontSize: 15,
     fontFamily: "Inter_500Medium",
+  },
+  badgeContainer: {
+    backgroundColor: "#FF6B35",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   menuTextDanger: {
   },

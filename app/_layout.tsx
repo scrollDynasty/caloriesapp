@@ -94,6 +94,13 @@ function RootNavigator() {
         }}
       />
       <Stack.Screen
+        name="subscription"
+        options={{
+          animation: "slide_from_bottom",
+          presentation: "modal",
+        }}
+      />
+      <Stack.Screen
         name="auth/login"
         options={{
           gestureEnabled: false,
