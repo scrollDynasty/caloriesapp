@@ -263,11 +263,39 @@ class MealPhotoReadSchema(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     
+    @property
+    def file_url(self) -> str:
+        """Преобразует локальный путь в полный URL Yandex Cloud Storage"""
+        if not self.file_path or self.file_path in ("manual", ""):
+            return ""
+        if self.file_path.startswith("http://") or self.file_path.startswith("https://"):
+            return self.file_path
+        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{self.file_path}"
+    
+    @field_serializer('file_path', when_used='json')
+    def serialize_file_path(self, value: str, _info) -> str:
+        """Преобразует локальный путь в полный URL при сериализации"""
+        if not value or value in ("manual", ""):
+            return value
+        if value.startswith("http://") or value.startswith("https://"):
+            return value
+        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{value}"
+    
     @field_serializer('created_at', 'updated_at', when_used='json')
     def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
         if value is None:
             return None
         return value.isoformat()
+    
+    def model_dump(self, **kwargs) -> dict[str, Any]:
+        data = super().model_dump(**kwargs)
+        data['file_url'] = self.file_url
+        # Преобразуем file_path в полный URL
+        if 'file_path' in data and data['file_path']:
+            file_path = data['file_path']
+            if file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
+                data['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+        return data
     
     class Config:
         from_attributes = True
@@ -306,6 +334,16 @@ class MealPhotoAdmin(admin.ModelAdmin):
     async def get_list_query(self, request):
         query = await super().get_list_query(request)
         return query.order_by(MealPhoto.created_at.desc())
+    
+    async def get_list_data(self, request, data: list) -> list:
+        """Преобразует file_path в полный URL для отображения"""
+        result = await super().get_list_data(request, data)
+        for item in result:
+            if isinstance(item, dict) and 'file_path' in item:
+                file_path = item['file_path']
+                if file_path and file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
+                    item['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+        return result
     
     form_excluded = [MealPhoto.id, MealPhoto.created_at, MealPhoto.updated_at, MealPhoto.file_size, MealPhoto.mime_type]
 
@@ -368,11 +406,39 @@ class ProgressPhotoReadSchema(BaseModel):
     mime_type: str
     created_at: Optional[datetime] = None
     
+    @property
+    def file_url(self) -> str:
+        """Преобразует локальный путь в полный URL Yandex Cloud Storage"""
+        if not self.file_path or self.file_path in ("manual", ""):
+            return ""
+        if self.file_path.startswith("http://") or self.file_path.startswith("https://"):
+            return self.file_path
+        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{self.file_path}"
+    
+    @field_serializer('file_path', when_used='json')
+    def serialize_file_path(self, value: str, _info) -> str:
+        """Преобразует локальный путь в полный URL при сериализации"""
+        if not value or value in ("manual", ""):
+            return value
+        if value.startswith("http://") or value.startswith("https://"):
+            return value
+        return f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{value}"
+    
     @field_serializer('created_at', when_used='json')
     def serialize_datetime(self, value: Optional[datetime], _info) -> Optional[str]:
         if value is None:
             return None
         return value.isoformat()
+    
+    def model_dump(self, **kwargs) -> dict[str, Any]:
+        data = super().model_dump(**kwargs)
+        data['file_url'] = self.file_url
+        # Преобразуем file_path в полный URL
+        if 'file_path' in data and data['file_path']:
+            file_path = data['file_path']
+            if file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
+                data['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+        return data
     
     class Config:
         from_attributes = True
@@ -401,6 +467,16 @@ class ProgressPhotoAdmin(admin.ModelAdmin):
     async def get_list_query(self, request):
         query = await super().get_list_query(request)
         return query.order_by(ProgressPhoto.created_at.desc())
+    
+    async def get_list_data(self, request, data: list) -> list:
+        """Преобразует file_path в полный URL для отображения"""
+        result = await super().get_list_data(request, data)
+        for item in result:
+            if isinstance(item, dict) and 'file_path' in item:
+                file_path = item['file_path']
+                if file_path and file_path not in ("manual", "") and not (file_path.startswith("http://") or file_path.startswith("https://")):
+                    item['file_path'] = f"{settings.yandex_storage_endpoint}/{settings.yandex_storage_bucket_name}/{file_path}"
+        return result
     
     form_excluded = [ProgressPhoto.id, ProgressPhoto.created_at, ProgressPhoto.file_size, ProgressPhoto.mime_type]
 
