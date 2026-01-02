@@ -39,3 +39,39 @@
   color: #000000;
   white-space: nowrap;
 }
+
+@media (max-width: 768px) {
+  .badge {
+    padding: 4px 8px 4px 4px;
+    height: auto;
+    min-height: 36px;
+    gap: 6px;
+  }
+
+  .userAvatar {
+    width: 28px;
+    height: 28px;
+    margin-left: -8px;
+    border-width: 1.5px;
+  }
+
+  .text {
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 480px) {
+  .badge {
+    padding: 4px 6px 4px 4px;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .text {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+}

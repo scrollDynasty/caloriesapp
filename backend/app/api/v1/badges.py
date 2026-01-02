@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
+from app.models.user_badge import UserBadge
 from app.schemas.badge import (
     BadgesResponse,
     CheckBadgesResponse,
