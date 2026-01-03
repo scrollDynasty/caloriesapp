@@ -1,11 +1,32 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Footer from "../../components/Layout/Footer";
 import Header from "../../components/Layout/Header";
 import styles from "./page.module.css";
 
 export default function PrivacyPage() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition =
+        window.scrollY ||
+        window.pageYOffset ||
+        document.documentElement.scrollTop;
+      setIsScrolled(scrollPosition > 10);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className={styles.page}>
-      <div className={styles.headerWrapper}>
+      <div
+        className={`${styles.headerWrapper} ${isScrolled ? styles.headerWrapperScrolled : ""}`}
+      >
         <div className={styles.headerContent}>
           <Header />
         </div>

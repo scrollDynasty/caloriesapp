@@ -29,19 +29,19 @@ export default function Footer() {
             </div>
 
             <div className={styles.middleSection}>
-              <h3 className={styles.sectionTitle}>Legal</h3>
+              <h3 className={styles.sectionTitle}>Юридическая информация</h3>
               <Link href="/privacy" className={styles.link}>
-                Privacy Policy
+                Политика конфиденциальности
               </Link>
               <Link href="/terms" className={styles.link}>
-                Terms of use
+                Условия обслуживания
               </Link>
             </div>
 
             <div className={styles.rightSection}>
-              <h3 className={styles.sectionTitle}>Company</h3>
+              <h3 className={styles.sectionTitle}>Компания</h3>
               <Link href="/contact" className={styles.link}>
-                Contact
+                Контакты
               </Link>
             </div>
           </div>
