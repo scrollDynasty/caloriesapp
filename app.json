@@ -75,7 +75,7 @@
           "image": "./assets/images/dark_logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFF0"
+          "backgroundColor": "#000000"
         }
       ],
       [

@@ -1,21 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    ActivityIndicator,
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -353,10 +353,11 @@ export default function EditProfileScreen() {
               <TouchableOpacity style={styles.avatarContainer} onPress={handlePickAvatar}>
                 <View style={styles.avatarWrapper}>
                   {avatarDisplay ? (
-                    <FastImage 
-                      source={{ uri: avatarDisplay, priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }} 
+                    <Image 
+                      source={{ uri: avatarDisplay }} 
                       style={styles.avatar} 
-                      resizeMode={FastImage.resizeMode.cover}
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
                     />
                   ) : (
                     <View style={styles.avatarPlaceholder}>

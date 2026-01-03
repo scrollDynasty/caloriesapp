@@ -1,10 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import { Tabs, useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSplash } from "../../context/SplashContext";
 import { defaultColors, useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { hapticLight, hapticMedium } from "../../utils/haptics";
@@ -73,6 +74,7 @@ export default function TabsLayout() {
   const [fabExpanded, setFabExpanded] = useState(false);
   const fabAnimation = useRef(new Animated.Value(0)).current;
   const tabBarBottom = Math.max(insets.bottom, 12);
+  const { showSplash } = useSplash();
 
   const loadAvatar = useCallback(async () => {
     try {
@@ -192,6 +194,7 @@ export default function TabsLayout() {
             paddingHorizontal: 6,
             paddingTop: 0,
             paddingBottom: 0,
+            display: showSplash ? "none" : "flex",
           },
           sceneStyle: {
             backgroundColor: colors.background,
@@ -248,7 +251,7 @@ export default function TabsLayout() {
                     opacity: focused ? 1 : 0.7,
                   }}
                 >
-                  <FastImage source={{ uri: avatarUri }} style={{ width: "100%", height: "100%", priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }} resizeMode={FastImage.resizeMode.cover} />
+                  <Image source={{ uri: avatarUri }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" />
                 </View>
               ) : (
                 <Ionicons

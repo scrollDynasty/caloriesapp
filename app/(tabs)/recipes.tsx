@@ -1,30 +1,30 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  InteractionManager,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    InteractionManager,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import FastImage from "react-native-fast-image";
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSpring,
-  withTiming,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withSpring,
+    withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
@@ -1022,14 +1022,13 @@ function RecipesScreen() {
           activeOpacity={1}
         >
           <View style={styles.imageContainer}>
-            <FastImage
+            <Image
               source={{
                 uri: item.image,
-                priority: FastImage.priority.normal,
-                cache: FastImage.cacheControl.immutable,
               }}
               style={styles.recipeImage}
-              resizeMode={FastImage.resizeMode.cover}
+              contentFit="cover"
+              cachePolicy="memory-disk"
             />
             {item.isPopular ? (
               <View style={[styles.difficultyBadge, { backgroundColor: difficultyColor }]}>

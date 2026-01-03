@@ -1,4 +1,4 @@
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, Easing, StyleSheet, View, useColorScheme } from "react-native";
@@ -24,10 +24,12 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    SplashScreen.hideAsync();
     hapticLight();
 
-    const breathingInterval = setInterval(() => {
+    let breathingInterval: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout;
+
+    breathingInterval = setInterval(() => {
       hapticLight();
     }, 1600); 
 
@@ -68,7 +70,7 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
       ),
     ]).start();
 
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       clearInterval(breathingInterval);
       hapticMedium();
       
@@ -85,7 +87,9 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
           easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
         }),
-      ]).start(() => {
+      ]).start(async () => {
+        // Скрываем SplashScreen ПОСЛЕ анимации, а не до
+        await SplashScreen.hideAsync();
         setIsVisible(false);
         onFinish();
       });
@@ -93,6 +97,7 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
 
     return () => {
       clearInterval(breathingInterval);
+      clearTimeout(timeoutId);
     };
   }, []);
 
@@ -118,7 +123,7 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      {/* Эффект свечения */}
+      {/* Полный экран для покрытия нижней панели */}
       <Animated.View
         style={[
           styles.glowContainer,
@@ -147,7 +152,7 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
           },
         ]}
       >
-        <FastImage source={logoSource} style={styles.logo} resizeMode={FastImage.resizeMode.contain} />
+        <Image source={logoSource} style={styles.logo} contentFit="contain" />
       </Animated.View>
     </View>
   );
@@ -160,11 +165,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    width,
-    height,
+    width: "100%",
+    height: "100%",
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 9999,
+    zIndex: 99999,
+    elevation: 99999,
   },
   glowContainer: {
     position: "absolute",

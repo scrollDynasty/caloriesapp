@@ -1,4 +1,4 @@
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -55,10 +55,10 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.logoContainer}>
-          <FastImage
+          <Image
             source={isDark ? require("../../assets/images/bright_logo.png") : require("../../assets/images/dark_logo.png")}
             style={styles.logo}
-            resizeMode={FastImage.resizeMode.contain}
+            contentFit="contain"
           />
         </View>
         

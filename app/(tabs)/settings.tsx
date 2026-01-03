@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import FastImage from "react-native-fast-image";
+import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -284,7 +284,7 @@ export default function SettingsScreen() {
         >
           <View style={[styles.avatar, { backgroundColor: isDark ? themeColors.gray5 : "#EFEFEF" }]}>
             {avatarUri ? (
-              <FastImage source={{ uri: avatarUri, priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }} style={styles.avatarImage} resizeMode={FastImage.resizeMode.cover} />
+              <Image source={{ uri: avatarUri }} style={styles.avatarImage} contentFit="cover" cachePolicy="memory-disk" />
             ) : (
               <Text style={[styles.avatarText, { color: themeColors.text }]}>{(displayName).slice(0, 1).toUpperCase()}</Text>
             )}

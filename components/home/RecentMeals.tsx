@@ -1,17 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { memo, useEffect, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import FastImage from "react-native-fast-image";
 import Animated, {
-  Easing,
-  FadeIn,
-  FadeOut,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
+    Easing,
+    FadeIn,
+    FadeOut,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withSpring,
+    withTiming,
 } from "react-native-reanimated";
 import { ProcessingMeal, useProcessingMeals } from "../../context/ProcessingMealsContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -99,17 +99,16 @@ const ProcessingMealCard = memo(function ProcessingMealCard({
     >
       <View style={styles.processingImageContainer}>
         {meal.uri ? (
-          <FastImage
+          <Image
             source={{
               uri: meal.uri,
-              priority: FastImage.priority.normal,
-              cache: FastImage.cacheControl.immutable,
             }}
             style={[
               styles.processingImage,
               !isCompleted && { opacity: 0.5 },
             ]}
-            resizeMode={FastImage.resizeMode.cover}
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
         ) : (
           <View
@@ -268,14 +267,13 @@ export const RecentMeals = memo(function RecentMeals({
             >
               <View style={styles.mealImage}>
                 {meal.imageUrl ? (
-                  <FastImage
+                  <Image
                     source={{
                       uri: meal.imageUrl,
-                      priority: FastImage.priority.normal,
-                      cache: FastImage.cacheControl.immutable,
                     }}
                     style={styles.image}
-                    resizeMode={FastImage.resizeMode.cover}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
                   />
                 ) : (
                   <View

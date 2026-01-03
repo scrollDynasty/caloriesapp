@@ -1,5 +1,5 @@
 import { Stack, useRouter, useSegments } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { View } from "react-native";
 import { AnimatedSplash } from "../components/ui/AnimatedSplash";
 import { BadgeCelebration } from "../components/ui/BadgeCelebration";
@@ -8,6 +8,7 @@ import { AppSettingsProvider, useAppSettings } from "../context/AppSettingsConte
 import { OnboardingProvider } from "../context/OnboardingContext";
 import { ProcessingMealsProvider } from "../context/ProcessingMealsContext";
 import { SnowProvider } from "../context/SnowContext";
+import { SplashProvider, useSplash } from "../context/SplashContext";
 import { ThemeProvider, useTheme } from "../context/ThemeContext";
 import "../global.css";
 import { apiService, onAuthExpired } from "../services/api";
@@ -142,24 +143,32 @@ function BadgeCelebrationWrapper() {
 }
 
 export default function RootLayout() {
-  const [showSplash, setShowSplash] = useState(true);
-
   return (
     <ThemeProvider>
       <AppSettingsProvider>
         <ProcessingMealsProvider>
           <SnowProvider>
-            <OnboardingProvider>
-              <View style={{ flex: 1 }}>
-                <RootNavigator />
-                <SnowOverlay />
-                <BadgeCelebrationWrapper />
-                {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
-              </View>
-            </OnboardingProvider>
+            <SplashProvider>
+              <OnboardingProvider>
+                <RootLayoutContent />
+              </OnboardingProvider>
+            </SplashProvider>
           </SnowProvider>
         </ProcessingMealsProvider>
       </AppSettingsProvider>
     </ThemeProvider>
+  );
+}
+
+function RootLayoutContent() {
+  const { showSplash, setShowSplash } = useSplash();
+
+  return (
+    <View style={{ flex: 1 }}>
+      <RootNavigator />
+      <SnowOverlay />
+      <BadgeCelebrationWrapper />
+      {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
+    </View>
   );
 }

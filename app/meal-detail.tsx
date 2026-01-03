@@ -1,21 +1,21 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
+import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  InteractionManager,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ViewToken
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    InteractionManager,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+    ViewToken
 } from "react-native";
-import FastImage from "react-native-fast-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SnowOverlay from "../components/ui/SnowOverlay";
 import { useTheme } from "../context/ThemeContext";
@@ -440,14 +440,13 @@ function MealDetailScreen() {
       <SnowOverlay />
       {imageUrl ? (
         <View style={styles.imageContainer}>
-          <FastImage
+          <Image
             source={{
               uri: imageUrl,
-              priority: FastImage.priority.normal,
-              cache: FastImage.cacheControl.immutable,
             }}
             style={styles.image}
-            resizeMode={FastImage.resizeMode.cover}
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
           <View style={[styles.headerOverlay, { paddingTop: insets.top + 8 }]}>
             <View style={styles.headerContent}>
