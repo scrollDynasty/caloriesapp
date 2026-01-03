@@ -2,14 +2,14 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -64,7 +64,7 @@ const PLANS: { free: PlanType; premium: PlanType } = {
       "Поддержка сообщества",
       "Приоритетная поддержка",
     ],
-    gradient: ["#FF6B35", "#FFB84D"],
+    gradient: ["#FFFFF0", "#F5F5DC"],
     buttonText: "Попробовать Premium",
     popular: true,
   },
@@ -86,7 +86,7 @@ export default function SubscriptionScreen() {
   // Определяем цвета в зависимости от темы
   const premiumGradient = isDark 
     ? [colors.card || "#1C1C1E", colors.card || "#2C2C2E"] as [string, string]
-    : ["#FF6B35", "#FFB84D"] as [string, string];
+    : ["#FFFFF0", "#F5F5DC"] as [string, string];
   
   const cardBackground = isDark ? colors.card : "#FFFFFF";
   const textColor = isDark ? "#FFFFFF" : colors.text;
@@ -250,9 +250,9 @@ const styles = StyleSheet.create({
     marginBottom: isSmallScreen ? 10 : 12,
   },
   planCardSelected: {
-    shadowColor: "#FF6B35",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 8,
     borderWidth: 0,

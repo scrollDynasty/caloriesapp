@@ -15,7 +15,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle } from "react-native-svg";
 import { useSnow } from "../../context/SnowContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
@@ -83,7 +82,7 @@ function MenuItem({
     >
       <View style={styles.menuLeft}>
         <View style={[styles.menuIconBox, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }, danger && { backgroundColor: isDark ? themeColors.gray5 : "#FFEEEE" }]}>
-          <Ionicons name={icon} size={18} color={danger ? "#FF4444" : themeColors.text} />
+          <Ionicons name={icon} size={16} color={danger ? "#FF4444" : themeColors.text} />
         </View>
         <View style={styles.menuTextContainer}>
           <View style={styles.menuTitleRow}>
@@ -297,16 +296,17 @@ export default function SettingsScreen() {
             <Text style={[styles.name, { color: themeColors.text }]}>{displayName}</Text>
             <Text style={[styles.username, { color: themeColors.textSecondary }]}>@{displayUsername}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color={themeColors.textTertiary} />
+          <Ionicons name="chevron-forward" size={18} color={themeColors.textTertiary} />
         </TouchableOpacity>
 
-        <SectionHeader title="App Theme" />
+        <SectionHeader title="Тема приложения" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <View style={styles.themeItem}>
-            <Text style={styles.themeIcon}>🎄</Text>
+            <View style={[styles.themeIconBox, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }]}>
+              <Text style={styles.themeIcon}>🎄</Text>
+            </View>
             <View style={styles.themeInfo}>
-              <Text style={[styles.themeTitle, { color: themeColors.text }]}>Feel the Holiday Magic</Text>
-              <Text style={[styles.themeSubtitle, { color: themeColors.textSecondary }]}>Let your app sparkle with snow and Christmas cheer.</Text>
+              <Text style={[styles.themeTitle, { color: themeColors.text }]}>Почувствуй праздничное настроение</Text>
             </View>
             <Switch 
               value={isSnowEnabled} 
@@ -321,15 +321,12 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <TouchableOpacity style={styles.referralCard} activeOpacity={0.7}>
             <View style={[styles.referralIcon, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }]}>
-              <Ionicons name="person-add-outline" size={24} color={themeColors.text} />
+              <Ionicons name="person-add-outline" size={18} color={themeColors.text} />
             </View>
             <View style={styles.referralInfo}>
               <Text style={[styles.referralTitle, { color: themeColors.text }]}>Пригласи друга и получи $10</Text>
-              <Text style={[styles.referralSubtitle, { color: themeColors.textSecondary }]}>
-                Заработай $10 за каждого друга, который зарегистрируется с твоим промокодом.
-              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={themeColors.textTertiary} />
+            <Ionicons name="chevron-forward" size={16} color={themeColors.textTertiary} />
           </TouchableOpacity>
         </View>
 
@@ -337,7 +334,7 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="person-outline" title="Личные данные" onPress={() => router.push("/personal-data" as any)} />
           <MenuItem icon="settings-outline" title="Настройки" onPress={() => router.push("/app-settings" as any)} />
-          <MenuItem icon="diamond-outline" title="Подписка и тарифы" onPress={() => router.push("/subscription" as any)} badge="Premium" />
+          <MenuItem icon="diamond-outline" title="Подписка и тарифы" onPress={() => router.push("/subscription" as any)} />
           <MenuItem icon="language-outline" title="Язык" />
           <MenuItem icon="people-outline" title="Обновиться до семейного плана" isLast />
         </View>
@@ -350,119 +347,11 @@ export default function SettingsScreen() {
           <MenuItem icon="time-outline" title="История веса" onPress={() => router.push("/weight-history" as any)} isLast />
         </View>
 
-        <View style={styles.widgetsSection}>
-          <View style={styles.widgetsHeader}>
-            <Text style={[styles.widgetsTitle, { color: themeColors.textTertiary }]}>Виджеты</Text>
-            <TouchableOpacity onPress={() => {}}>
-              <Text style={[styles.widgetsHowToAdd, { color: themeColors.text }]}>Как добавить?</Text>
-            </TouchableOpacity>
-          </View>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.widgetsScrollContent}
-          >
-            <View style={[styles.widgetStreakCard, { backgroundColor: themeColors.card }]}>
-              <View style={styles.widgetStreakStar}>
-                <Text style={styles.widgetStarIcon}>✨</Text>
-              </View>
-              <Text style={styles.widgetStreakFire}>🔥</Text>
-              <Text style={styles.widgetStreakValue}>{dailyData.streakCount}</Text>
-            </View>
-            
-            <View style={[styles.widgetCombinedCard, { backgroundColor: themeColors.card }]}>
-              <View style={styles.widgetCaloriesSection}>
-                {(() => {
-                  const targetCalories = onboardingData?.target_calories || 0;
-                  const remaining = Math.max(0, targetCalories - dailyData.consumedCalories);
-                  const progress = targetCalories > 0 ? Math.min(1, dailyData.consumedCalories / targetCalories) : 0;
-                  const CIRCUMFERENCE = 2 * Math.PI * 38;
-                  const strokeDashoffset = CIRCUMFERENCE * (1 - progress);
-                  
-                  return (
-                    <View style={styles.widgetCaloriesCircleContainer}>
-                      <Svg width={85} height={85} style={styles.widgetCaloriesSvg}>
-                        <Circle
-                          cx={42.5}
-                          cy={42.5}
-                          r={38}
-                          stroke={isDark ? themeColors.gray4 : "#E8E4DC"}
-                          strokeWidth={6}
-                          fill="none"
-                        />
-                        {progress > 0 && (
-                          <Circle
-                            cx={42.5}
-                            cy={42.5}
-                            r={38}
-                            stroke={themeColors.primary}
-                            strokeWidth={6}
-                            fill="none"
-                            strokeDasharray={CIRCUMFERENCE}
-                            strokeDashoffset={strokeDashoffset}
-                            strokeLinecap="round"
-                            transform="rotate(-90 42.5 42.5)"
-                          />
-                        )}
-                      </Svg>
-                      <View style={styles.widgetCaloriesTextContainer}>
-                        <Text style={[styles.widgetCaloriesValue, { color: themeColors.text }]}>{remaining}</Text>
-                        <Text style={[styles.widgetCaloriesLabel, { color: themeColors.textSecondary }]}>Осталось ка...</Text>
-                      </View>
-                    </View>
-                  );
-                })()}
-              </View>
-              <View style={styles.widgetMacrosSection}>
-                {(() => {
-                  const targetProtein = onboardingData?.protein_grams || 0;
-                  const targetCarbs = onboardingData?.carbs_grams || 0;
-                  const targetFats = onboardingData?.fats_grams || 0;
-                  const remainingProtein = Math.max(0, targetProtein - dailyData.consumedProtein);
-                  const remainingCarbs = Math.max(0, targetCarbs - dailyData.consumedCarbs);
-                  const remainingFats = Math.max(0, targetFats - dailyData.consumedFats);
-                  
-                  return (
-                    <>
-                      <View style={styles.widgetMacroRow}>
-                        <Ionicons name="flash" size={14} color="#FF6B6B" />
-                        <Text style={[styles.widgetMacroValue, { color: themeColors.text }]}>{Math.round(remainingProtein)}g</Text>
-                        <Text style={[styles.widgetMacroLabel, { color: themeColors.textSecondary }]}>Белки left</Text>
-                      </View>
-                      <View style={styles.widgetMacroRow}>
-                        <Text style={styles.widgetMacroIcon}>🌾</Text>
-                        <Text style={[styles.widgetMacroValue, { color: themeColors.text }]}>{Math.round(remainingCarbs)}g</Text>
-                        <Text style={[styles.widgetMacroLabel, { color: themeColors.textSecondary }]}>Углеводы left</Text>
-                      </View>
-                      <View style={styles.widgetMacroRow}>
-                        <Ionicons name="water" size={14} color="#4D96FF" />
-                        <Text style={[styles.widgetMacroValue, { color: themeColors.text }]}>{Math.round(remainingFats)}g</Text>
-                        <Text style={[styles.widgetMacroLabel, { color: themeColors.textSecondary }]}>Жиры left</Text>
-                      </View>
-                    </>
-                  );
-                })()}
-              </View>
-            </View>
-            
-            <View style={styles.widgetActionsColumn}>
-              <TouchableOpacity style={[styles.widgetActionBtn, { backgroundColor: themeColors.card }]} activeOpacity={0.7} onPress={() => {}}>
-                <Ionicons name="scan-outline" size={18} color={themeColors.text} />
-                <Text style={[styles.widgetActionBtnText, { color: themeColors.text }]}>Сканиров...</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={[styles.widgetActionBtn, { backgroundColor: themeColors.card }]} activeOpacity={0.7} onPress={() => {}}>
-                <Ionicons name="barcode-outline" size={18} color={themeColors.text} />
-                <Text style={[styles.widgetActionBtnText, { color: themeColors.text }]}>Штрих-код</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </View>
-
         <SectionHeader title="Поддержка и юридическая информация" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <MenuItem icon="mail-outline" title="Написать в поддержку" />
-          <MenuItem icon="document-text-outline" title="Условия использования" />
-          <MenuItem icon="shield-checkmark-outline" title="Политика конфиденциальности" isLast />
+          <MenuItem icon="document-text-outline" title="Условия использования" onPress={() => openLink("https://yeb-ich.com/terms/")} />
+          <MenuItem icon="shield-checkmark-outline" title="Политика конфиденциальности" onPress={() => openLink("https://yeb-ich.com/privacy/")} isLast />
         </View>
 
         <SectionHeader title="Следи за нами" />
@@ -505,16 +394,16 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 22,
     fontFamily: "Inter_700Bold",
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingTop: 12,
+    paddingBottom: 16,
   },
   profileCard: {
     marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 16,
+    padding: 10,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
@@ -524,9 +413,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -536,12 +425,12 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   avatarText: {
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
   },
   profileInfo: {
     flex: 1,
-    marginLeft: 14,
+    marginLeft: 10,
   },
   premiumBadge: {
     flexDirection: "row",
@@ -550,18 +439,18 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   premiumIcon: {
-    fontSize: 12,
+    fontSize: 11,
   },
   premiumText: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Inter_600SemiBold",
   },
   name: {
-    fontSize: 18,
+    fontSize: 14,
     fontFamily: "Inter_700Bold",
   },
   username: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
     marginTop: 1,
   },
@@ -570,17 +459,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    marginTop: 24,
-    marginBottom: 10,
+    marginTop: 20,
+    marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   sectionRight: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_500Medium",
   },
   section: {
@@ -596,34 +485,36 @@ const styles = StyleSheet.create({
   themeItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: 12,
     gap: 12,
   },
+  themeIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   themeIcon: {
-    fontSize: 28,
+    fontSize: 20,
   },
   themeInfo: {
     flex: 1,
   },
   themeTitle: {
-    fontSize: 15,
-    fontFamily: "Inter_600SemiBold",
-  },
-  themeSubtitle: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    marginTop: 2,
+    fontFamily: "Inter_600SemiBold",
   },
   referralCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    padding: 12,
     gap: 12,
   },
   referralIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -631,21 +522,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   referralTitle: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
   referralSubtitle: {
-    fontSize: 13,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
-    marginTop: 4,
-    lineHeight: 18,
+    marginTop: 3,
+    lineHeight: 16,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
     borderBottomWidth: 1,
   },
   menuItemLast: {
@@ -654,13 +545,13 @@ const styles = StyleSheet.create({
   menuLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     flex: 1,
   },
   menuIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 7,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -675,7 +566,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   menuText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_500Medium",
   },
   badgeContainer: {
@@ -694,152 +585,13 @@ const styles = StyleSheet.create({
   menuTextDanger: {
   },
   menuSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
     marginTop: 2,
   },
   menuRightText: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-  },
-  widgetsSection: {
-    marginTop: 24,
-  },
-  widgetsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  widgetsTitle: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  widgetsHowToAdd: {
     fontSize: 13,
     fontFamily: "Inter_500Medium",
-  },
-  widgetsScrollContent: {
-    paddingHorizontal: 20,
-    gap: 10,
-  },
-  widgetStreakCard: {
-    borderRadius: 18,
-    padding: 14,
-    width: 90,
-    height: 120,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  widgetCombinedCard: {
-    borderRadius: 18,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-    height: 120,
-  },
-  widgetCaloriesSection: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  widgetMacrosSection: {
-    gap: 8,
-  },
-  widgetMacroRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  widgetActionsColumn: {
-    gap: 8,
-    justifyContent: "center",
-  },
-  widgetActionBtn: {
-    borderRadius: 12,
-    padding: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    width: 75,
-    height: 56,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  widgetActionBtnText: {
-    fontSize: 9,
-    fontFamily: "Inter_500Medium",
-    textAlign: "center",
-  },
-  widgetStreakStar: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-  },
-  widgetStarIcon: {
-    fontSize: 16,
-  },
-  widgetStreakFire: {
-    fontSize: 52,
-  },
-  widgetStreakValue: {
-    fontSize: 28,
-    fontFamily: "Inter_700Bold",
-    color: "#FF8C42",
-    marginTop: -10,
-  },
-  widgetCaloriesCircleContainer: {
-    width: 85,
-    height: 85,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  widgetCaloriesSvg: {
-    position: "absolute",
-  },
-  widgetCaloriesTextContainer: {
-    position: "absolute",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  widgetCaloriesValue: {
-    fontSize: 22,
-    fontFamily: "Inter_700Bold",
-  },
-  widgetCaloriesLabel: {
-    fontSize: 9,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-  },
-
-  widgetMacroIcon: {
-    fontSize: 14,
-  },
-  widgetMacroValue: {
-    fontSize: 15,
-    fontFamily: "Inter_700Bold",
-  },
-  widgetMacroLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
   },
   bottomSpacer: {
     height: 20,
