@@ -452,15 +452,15 @@ function MealDetailScreen() {
           <View style={[styles.headerOverlay, { paddingTop: insets.top + 8 }]}>
             <View style={styles.headerContent}>
               <TouchableOpacity style={styles.headerButton} onPress={handleBack}>
-                <Ionicons name="chevron-back" size={24} color="#FFFFF0" />
+                <Ionicons name="chevron-back" size={20} color="#FFFFF0" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Питание</Text>
               <View style={styles.headerRight}>
                 <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-                  <Ionicons name="share-outline" size={22} color="#FFFFF0" />
+                  <Ionicons name="share-outline" size={18} color="#FFFFF0" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.headerButton} onPress={handleMore}>
-                  <Ionicons name="ellipsis-horizontal" size={22} color="#FFFFF0" />
+                  <Ionicons name="ellipsis-horizontal" size={18} color="#FFFFF0" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -470,15 +470,15 @@ function MealDetailScreen() {
         <View style={[styles.noImageHeader, { paddingTop: insets.top + 8 }]}>
           <View style={styles.headerContent}>
             <TouchableOpacity style={styles.headerButtonDark} onPress={handleBack}>
-              <Ionicons name="chevron-back" size={24} color={colors.primary} />
+              <Ionicons name="chevron-back" size={20} color={colors.primary} />
             </TouchableOpacity>
             <Text style={styles.headerTitleDark}>Питание</Text>
             <View style={styles.headerRight}>
               <TouchableOpacity style={styles.headerButtonDark} onPress={handleShare}>
-                <Ionicons name="share-outline" size={22} color={colors.primary} />
+                <Ionicons name="share-outline" size={18} color={colors.primary} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.headerButtonDark} onPress={handleMore}>
-                <Ionicons name="ellipsis-horizontal" size={22} color={colors.primary} />
+                <Ionicons name="ellipsis-horizontal" size={18} color={colors.primary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -492,7 +492,7 @@ function MealDetailScreen() {
         >
           <View style={styles.metaRow}>
             <TouchableOpacity style={styles.bookmarkButton}>
-              <Ionicons name="bookmark-outline" size={20} color={colors.primary} />
+              <Ionicons name="bookmark-outline" size={18} color={colors.primary} />
             </TouchableOpacity>
             <Text style={styles.timeText}>{mealTime}</Text>
           </View>
@@ -515,14 +515,14 @@ function MealDetailScreen() {
                 onPress={() => setQuantity(Math.max(1, quantity - 1))}
                 disabled={quantity <= 1}
               >
-                <Ionicons name="remove" size={18} color={quantity <= 1 ? colors.textTertiary : colors.text} />
+                <Ionicons name="remove" size={16} color={quantity <= 1 ? colors.textTertiary : colors.text} />
               </TouchableOpacity>
               <Text style={styles.quantityValue}>{quantity}</Text>
               <TouchableOpacity 
                 style={styles.stepperButton}
                 onPress={() => setQuantity(quantity + 1)}
               >
-                <Ionicons name="add" size={18} color={colors.text} />
+                <Ionicons name="add" size={16} color={colors.text} />
               </TouchableOpacity>
             </View>
           </View>
@@ -586,10 +586,10 @@ function MealDetailScreen() {
             </View>
             <View style={styles.feedbackButtons}>
               <TouchableOpacity style={styles.feedbackButton}>
-                <Ionicons name="thumbs-down-outline" size={22} color={colors.secondary} />
+                <Ionicons name="thumbs-down-outline" size={18} color={colors.secondary} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.feedbackButton}>
-                <Ionicons name="thumbs-up-outline" size={22} color={colors.secondary} />
+                <Ionicons name="thumbs-up-outline" size={18} color={colors.secondary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -622,7 +622,7 @@ function MealDetailScreen() {
         ) : (
           <>
             <TouchableOpacity style={styles.reportButton} onPress={handleCorrectMeal}>
-              <Ionicons name="sparkles" size={18} color={isDark ? "#FFFFF0" : colors.primary} />
+              <Ionicons name="sparkles" size={16} color={isDark ? "#FFFFF0" : colors.primary} />
               <Text style={styles.reportButtonText}>Исправить</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
@@ -669,9 +669,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     minHeight: 44,
   },
   headerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "rgba(0,0,0,0.3)",
     alignItems: "center",
     justifyContent: "center",
@@ -690,9 +690,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     paddingBottom: 8,
   },
   headerButtonDark: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
@@ -723,17 +723,12 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     paddingHorizontal: 20,
   },
   bookmarkButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     backgroundColor: colors.card,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
   timeText: {
     fontSize: 14,
@@ -772,15 +767,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.card,
-    borderRadius: 28,
-    padding: 4,
+    borderRadius: 20,
+    padding: 3,
     borderWidth: 1,
     borderColor: colors.border,
   },
   stepperButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
@@ -789,10 +784,10 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     opacity: 0.4,
   },
   quantityValue: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: "Inter_700Bold",
     color: colors.text,
-    minWidth: 40,
+    minWidth: 36,
     textAlign: "center",
   },
 
@@ -1062,9 +1057,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     gap: 8,
   },
   feedbackButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
@@ -1076,9 +1071,9 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     left: 0,
     right: 0,
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 12,
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -1088,15 +1083,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 16,
+    gap: 6,
+    paddingVertical: 12,
     backgroundColor: isDark ? "#2D2D2D" : colors.backgroundSecondary,
-    borderRadius: 28,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: isDark ? "#2D2D2D" : colors.primary,
   },
   reportButtonText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     color: isDark ? "#FFFFF0" : colors.primary,
   },
@@ -1104,14 +1099,14 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: colors.backgroundSecondary,
-    borderRadius: 28,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: colors.border,
   },
   cancelButtonText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
   },
@@ -1119,15 +1114,15 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: isDark ? "#2D2D2D" : colors.primary,
-    borderRadius: 28,
+    borderRadius: 20,
   },
   doneButtonDisabled: {
     opacity: 0.7,
   },
   doneButtonText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_600SemiBold",
     color: "#FFFFF0",
   },

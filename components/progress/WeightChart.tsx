@@ -9,7 +9,7 @@ interface WeightChartProps {
 
 export function WeightChart({ data, targetWeight }: WeightChartProps) {
   const { colors } = useTheme();
-  const screenWidth = Dimensions.get("window").width - 48;
+  const screenWidth = Dimensions.get("window").width - 64;
 
   if (!data || data.length === 0) {
     return (
@@ -54,7 +54,7 @@ export function WeightChart({ data, targetWeight }: WeightChartProps) {
           ],
         }}
         width={screenWidth}
-        height={240}
+        height={200}
         chartConfig={{
           backgroundColor: "transparent",
           backgroundGradientFrom: colors.card,
@@ -68,8 +68,8 @@ export function WeightChart({ data, targetWeight }: WeightChartProps) {
             borderRadius: 16,
           },
           propsForDots: {
-            r: "6",
-            strokeWidth: "3",
+            r: "5",
+            strokeWidth: "2",
             stroke: "#5271FF",
             fill: "#fff",
           },
@@ -101,18 +101,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   chart: {
-    marginVertical: 8,
-    borderRadius: 16,
+    marginVertical: 6,
+    borderRadius: 12,
   },
   emptyContainer: {
-    height: 220,
-    borderRadius: 16,
+    height: 180,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
+    padding: 16,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
   },

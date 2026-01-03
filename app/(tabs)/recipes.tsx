@@ -35,7 +35,7 @@ import { sanitizeString } from "../../utils/validation";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const isTablet = SCREEN_WIDTH > 768;
 const ADAPTIVE_COLUMNS = isTablet ? 3 : 2;
-const ADAPTIVE_CARD_WIDTH = (SCREEN_WIDTH - 24 * (ADAPTIVE_COLUMNS + 1)) / ADAPTIVE_COLUMNS;
+const ADAPTIVE_CARD_WIDTH = (SCREEN_WIDTH - 20 * (ADAPTIVE_COLUMNS + 1)) / ADAPTIVE_COLUMNS;
 
 interface Recipe {
   id: string;
@@ -711,7 +711,7 @@ const CategoryChip = memo(function CategoryChip({
       {category === "Популярные" && (
         <Ionicons
           name="flame"
-          size={16}
+          size={14}
           color={iconColor}
           style={iconStyle}
         />
@@ -1033,7 +1033,7 @@ function RecipesScreen() {
             />
             {item.isPopular ? (
               <View style={[styles.difficultyBadge, { backgroundColor: difficultyColor }]}>
-                <Ionicons name="flame" size={12} color="#FFFFF0" style={badgeIconStyle} />
+                <Ionicons name="flame" size={10} color="#FFFFF0" style={badgeIconStyle} />
                 <Text style={styles.difficultyText}>Популярный</Text>
               </View>
             ) : (
@@ -1042,7 +1042,7 @@ function RecipesScreen() {
               </View>
             )}
             <View style={styles.timeBadge}>
-              <Ionicons name="time-outline" size={12} color="#FFFFF0" />
+              <Ionicons name="time-outline" size={11} color="#FFFFF0" />
               <Text style={styles.timeBadgeText}>{item.time} мин</Text>
             </View>
           </View>
@@ -1052,7 +1052,7 @@ function RecipesScreen() {
             </Text>
             <View style={styles.recipeInfo}>
               <View style={styles.infoItem}>
-                <Ionicons name="flame" size={14} color={colors.primary} />
+                <Ionicons name="flame" size={12} color={colors.primary} />
                 <Text style={styles.infoText}>{item.calories} ккал</Text>
               </View>
               <View style={styles.categoryTag}>
@@ -1119,7 +1119,7 @@ function RecipesScreen() {
           onPress={handleGenerateButtonPress}
           activeOpacity={0.8}
         >
-          <Ionicons name="add" size={32} color="#FFFFF0" />
+          <Ionicons name="add" size={24} color="#FFFFF0" />
         </TouchableOpacity>
       </View>
 
@@ -1246,7 +1246,7 @@ function RecipesScreen() {
                   <ActivityIndicator color="#FFFFF0" />
                 ) : (
                   <>
-                    <Ionicons name="sparkles" size={20} color="#FFFFF0" />
+                    <Ionicons name="sparkles" size={18} color="#FFFFF0" />
                     <Text style={styles.submitButtonText}>Создать рецепт</Text>
                   </>
                 )}
@@ -1271,62 +1271,62 @@ const createStyles = (colors: any, isDark: boolean) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: 24,
-      paddingTop: 16,
-      paddingBottom: 20,
+      paddingHorizontal: 20,
+      paddingTop: 12,
+      paddingBottom: 12,
       backgroundColor: colors.background,
     },
     headerTitle: {
-      fontSize: 34,
+      fontSize: 28,
       fontFamily: "Inter_800ExtraBold",
       color: colors.text,
-      marginBottom: 4,
-      letterSpacing: -0.5,
+      marginBottom: 2,
+      letterSpacing: -0.3,
     },
     headerSubtitle: {
-      fontSize: 15,
+      fontSize: 14,
       fontFamily: "Inter_400Regular",
       color: colors.textSecondary,
       opacity: 0.7,
     },
     generateButton: {
-      width: 52,
-      height: 52,
-      borderRadius: 26,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       backgroundColor: isDark ? "#2C2C2E" : colors.primary,
       alignItems: "center",
       justifyContent: "center",
-      ...(Platform.OS === "android" ? { elevation: 6 } : {}),
+      ...(Platform.OS === "android" ? { elevation: 4 } : {}),
       ...(Platform.OS === "ios"
         ? {
             shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 6,
           }
         : {}),
     },
     searchContainer: {
-      paddingHorizontal: 24,
-      paddingBottom: 16,
+      paddingHorizontal: 20,
+      paddingBottom: 12,
       backgroundColor: colors.background,
     },
     searchInputWrapper: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: isDark ? "#2C2C2E" : colors.card,
-      borderRadius: 16,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      borderRadius: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
       borderWidth: 1,
       borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : colors.border,
     },
     searchIcon: {
-      marginRight: 12,
+      marginRight: 10,
     },
     searchInput: {
       flex: 1,
-      fontSize: 16,
+      fontSize: 15,
       fontFamily: "Inter_400Regular",
       color: colors.text,
     },
@@ -1335,20 +1335,20 @@ const createStyles = (colors: any, isDark: boolean) =>
       padding: 4,
     },
     categoriesWrapper: {
-      marginBottom: 24,
+      marginBottom: 16,
       backgroundColor: colors.background,
     },
     categoriesContent: {
-      paddingHorizontal: 24,
-      gap: 10,
+      paddingHorizontal: 20,
+      gap: 8,
       paddingVertical: 4,
     },
     categoryChip: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 16,
       backgroundColor: isDark ? "#2C2C2E" : "rgba(0, 0, 0, 0.06)",
       borderWidth: 1,
       borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "transparent",
@@ -1369,7 +1369,7 @@ const createStyles = (colors: any, isDark: boolean) =>
       transform: [{ scale: 1.05 }],
     },
     categoryText: {
-      fontSize: 15,
+      fontSize: 14,
       fontFamily: "Inter_600SemiBold",
       color: isDark ? "#9A9A9E" : "rgba(0, 0, 0, 0.65)",
     },
@@ -1378,7 +1378,7 @@ const createStyles = (colors: any, isDark: boolean) =>
       color: "#FFFFF0",
     },
     listContent: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 20,
       paddingBottom: 100,
     },
     row: {
@@ -1387,24 +1387,24 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     recipeCard: {
       backgroundColor: colors.card,
-      borderRadius: 24,
+      borderRadius: 16,
       overflow: "hidden",
-      ...(Platform.OS === "android" ? { elevation: 8 } : {}),
+      ...(Platform.OS === "android" ? { elevation: 4 } : {}),
       ...(Platform.OS === "ios"
         ? {
             shadowColor: "#000",
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: isDark ? 0.4 : 0.12,
-            shadowRadius: 16,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: isDark ? 0.3 : 0.1,
+            shadowRadius: 12,
           }
         : {}),
-      marginBottom: 20,
+      marginBottom: 16,
       borderWidth: isDark ? 1 : 0,
       borderColor: isDark ? "rgba(255, 255, 255, 0.08)" : "transparent",
     },
     imageContainer: {
       width: "100%",
-      height: 180,
+      height: 140,
       position: "relative",
       backgroundColor: isDark ? "rgba(255, 255, 255, 0.03)" : "#F5F5F5",
       overflow: "hidden",
@@ -1415,96 +1415,96 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     difficultyBadge: {
       position: "absolute",
-      top: 12,
-      right: 12,
+      top: 8,
+      right: 8,
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 20,
-      ...(Platform.OS === "android" ? { elevation: 5 } : {}),
-      ...(Platform.OS === "ios"
-        ? {
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.35,
-            shadowRadius: 8,
-          }
-        : {}),
-    },
-    difficultyText: {
-      fontSize: 11,
-      fontFamily: "Inter_700Bold",
-      color: "#FFFFF0",
-      letterSpacing: 0.5,
-    },
-    timeBadge: {
-      position: "absolute",
-      bottom: 12,
-      left: 12,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 6,
       paddingHorizontal: 10,
       paddingVertical: 6,
-      borderRadius: 14,
-      backgroundColor: "rgba(0, 0, 0, 0.65)",
+      borderRadius: 12,
       ...(Platform.OS === "android" ? { elevation: 3 } : {}),
       ...(Platform.OS === "ios"
         ? {
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.3,
-            shadowRadius: 4,
+            shadowRadius: 6,
+          }
+        : {}),
+    },
+    difficultyText: {
+      fontSize: 10,
+      fontFamily: "Inter_700Bold",
+      color: "#FFFFF0",
+      letterSpacing: 0.3,
+    },
+    timeBadge: {
+      position: "absolute",
+      bottom: 8,
+      left: 8,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      borderRadius: 12,
+      backgroundColor: "rgba(0, 0, 0, 0.65)",
+      ...(Platform.OS === "android" ? { elevation: 2 } : {}),
+      ...(Platform.OS === "ios"
+        ? {
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 3,
           }
         : {}),
     },
     timeBadgeText: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_600SemiBold",
       color: "#FFFFF0",
     },
     cardContent: {
-      padding: 16,
+      padding: 12,
       // backgroundColor removed to prevent overdraw (parent already has it)
     },
     recipeTitle: {
-      fontSize: 16,
+      fontSize: 15,
       fontFamily: "Inter_700Bold",
       color: colors.text,
-      marginBottom: 8,
-      minHeight: 44,
-      lineHeight: 22,
-      letterSpacing: -0.3,
+      marginBottom: 6,
+      minHeight: 36,
+      lineHeight: 20,
+      letterSpacing: -0.2,
     },
     categoryTag: {
       alignSelf: "flex-start",
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 10,
       backgroundColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
     },
     categoryTagText: {
-      fontSize: 11,
+      fontSize: 10,
       fontFamily: "Inter_600SemiBold",
       color: colors.textSecondary,
       textTransform: "uppercase",
-      letterSpacing: 0.5,
+      letterSpacing: 0.4,
     },
     recipeInfo: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      gap: 8,
-      marginTop: 4,
+      gap: 6,
+      marginTop: 2,
     },
     infoItem: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 4,
+      gap: 3,
     },
     infoText: {
-      fontSize: 13,
+      fontSize: 12,
       fontFamily: "Inter_600SemiBold",
       color: colors.text,
     },
@@ -1536,21 +1536,21 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     modalContent: {
       backgroundColor: colors.card,
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      paddingTop: 20,
-      paddingBottom: 40,
-      paddingHorizontal: 24,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingTop: 16,
+      paddingBottom: 32,
+      paddingHorizontal: 20,
       maxHeight: "80%",
     },
     modalHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: 24,
+      marginBottom: 20,
     },
     modalTitle: {
-      fontSize: 24,
+      fontSize: 20,
       fontFamily: "Inter_700Bold",
       color: colors.text,
     },
@@ -1558,16 +1558,16 @@ const createStyles = (colors: any, isDark: boolean) =>
       maxHeight: 400,
     },
     inputGroup: {
-      gap: 8,
-      marginBottom: 20,
+      gap: 6,
+      marginBottom: 16,
     },
     inputLabel: {
-      fontSize: 15,
+      fontSize: 14,
       fontFamily: "Inter_600SemiBold",
       color: colors.text,
     },
     inputHint: {
-      fontSize: 13,
+      fontSize: 12,
       fontFamily: "Inter_400Regular",
       fontStyle: "italic",
       color: colors.textSecondary,
@@ -1576,30 +1576,30 @@ const createStyles = (colors: any, isDark: boolean) =>
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 16,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      fontSize: 15,
       fontFamily: "Inter_400Regular",
       backgroundColor: colors.background,
       color: colors.text,
-      height: 120,
+      height: 100,
       textAlignVertical: "top",
     },
     submitButton: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: 8,
-      paddingVertical: 16,
-      borderRadius: 16,
+      gap: 6,
+      paddingVertical: 14,
+      borderRadius: 12,
       backgroundColor: isDark ? "#2C2C2E" : colors.primary,
-      ...(Platform.OS === "android" ? { elevation: 4 } : {}),
+      ...(Platform.OS === "android" ? { elevation: 3 } : {}),
       ...(Platform.OS === "ios"
         ? {
             shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 6,
           }
         : {}),
     },
@@ -1607,7 +1607,7 @@ const createStyles = (colors: any, isDark: boolean) =>
       opacity: 0.5,
     },
     submitButtonText: {
-      fontSize: 16,
+      fontSize: 15,
       fontFamily: "Inter_700Bold",
       color: "#FFFFF0",
     },

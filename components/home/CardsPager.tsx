@@ -10,9 +10,10 @@ import {
   ViewToken
 } from "react-native";
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useAppSettings } from "../../context/AppSettingsContext";
@@ -129,35 +130,37 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
   const { colors: themeColors, isDark } = useTheme();
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const flipAnim = useSharedValue(0);
-  const isAnimating = useRef(false);
 
   const primaryData = useMemo(() => getPrimaryData(stats), [stats]);
   const secondaryData = useMemo(() => getSecondaryData(stats), [stats]);
 
+  const finishFlip = useCallback(() => {
+    setIsFlipped(!isFlipped);
+    setIsAnimating(false);
+  }, [isFlipped]);
+
   const handleFlip = useCallback(() => {
-    if (isAnimating.current) return;
+    if (isAnimating) return;
     hapticLight();
-    isAnimating.current = true;
+    setIsAnimating(true);
 
     const toValue = isFlipped ? 0 : 1;
 
-    flipAnim.value = withSpring(toValue, {
-      damping: 10,
-      stiffness: 65,
+    flipAnim.value = withTiming(toValue, {
+      duration: 300,
     }, () => {
-      setIsFlipped(!isFlipped);
-      isAnimating.current = false;
+      runOnJS(finishFlip)();
     });
-  }, [isFlipped, flipAnim]);
+  }, [isFlipped, flipAnim, finishFlip, isAnimating]);
 
   const primaryAnimatedStyle = useAnimatedStyle(() => {
     const progress = flipAnim.value;
     return {
-      opacity: progress < 0.5 ? 1 - progress * 2 : 0,
+      opacity: 1 - progress,
       transform: [
-        { translateY: progress * 30 },
-        { scale: 1 - progress * 0.1 },
+        { scale: 1 - progress * 0.05 },
       ],
     };
   });
@@ -165,10 +168,9 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
   const secondaryAnimatedStyle = useAnimatedStyle(() => {
     const progress = flipAnim.value;
     return {
-      opacity: progress > 0.5 ? (progress - 0.5) * 2 : 0,
+      opacity: progress,
       transform: [
-        { translateY: (1 - progress) * -30 },
-        { scale: 0.9 + progress * 0.1 },
+        { scale: 0.95 + progress * 0.05 },
       ],
     };
   });
@@ -187,7 +189,11 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         ]}
         pointerEvents={isFlipped ? "none" : "auto"}
       >
-        <TouchableOpacity activeOpacity={0.9} onPress={handleFlip}>
+        <TouchableOpacity 
+          activeOpacity={0.9} 
+          onPress={handleFlip}
+          disabled={isAnimating}
+        >
           <View style={[styles.caloriesCard, { backgroundColor: themeColors.card }]}>
             <View style={styles.caloriesLeft}>
               <View style={styles.caloriesRow}>
@@ -229,7 +235,13 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
 
         <View style={styles.macrosRow}>
           {primaryData.macros.map((macro, idx) => (
-            <TouchableOpacity key={idx} style={styles.macroCardWrapper} activeOpacity={0.9} onPress={handleFlip}>
+            <TouchableOpacity 
+              key={idx} 
+              style={styles.macroCardWrapper} 
+              activeOpacity={0.9} 
+              onPress={handleFlip}
+              disabled={isAnimating}
+            >
               <View style={[styles.macroCard, { backgroundColor: themeColors.card }]}>
                 <View style={styles.macroValueRow}>
                   <Text style={[styles.macroValue, { color: themeColors.text }]}>{Math.round(macro.consumed)}</Text>
@@ -286,7 +298,13 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
               ? (macro.progress > 0.8 ? "#E91E63" : macro.progress > 0.5 ? "#FF9800" : "#4CAF50")
               : macro.color;
             return (
-              <TouchableOpacity key={idx} style={styles.macroCardWrapper} activeOpacity={0.9} onPress={handleFlip}>
+              <TouchableOpacity 
+                key={idx} 
+                style={styles.macroCardWrapper} 
+                activeOpacity={0.9} 
+                onPress={handleFlip}
+                disabled={isAnimating}
+              >
                 <View style={[styles.macroCard, { backgroundColor: themeColors.card }]}>
                   <View style={styles.macroValueRow}>
                     <Text style={[styles.macroValue, { color: themeColors.text }]}>{Math.round(macro.consumed)}</Text>
@@ -327,7 +345,11 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
           })}
         </View>
 
-        <TouchableOpacity activeOpacity={0.9} onPress={handleFlip}>
+        <TouchableOpacity 
+          activeOpacity={0.9} 
+          onPress={handleFlip}
+          disabled={isAnimating}
+        >
           <View style={[styles.healthScoreCard, { backgroundColor: themeColors.card }]}>
             <View style={styles.healthScoreHeader}>
               <Text style={[styles.healthScoreTitle, { color: themeColors.text }]}>Оценка здоровья</Text>
@@ -491,8 +513,6 @@ function WaterCard({ consumed, target, onAdd }: { consumed: number; target: numb
         {
           backgroundColor: themeColors.card,
           borderColor: themeColors.border,
-          shadowOpacity: isDark ? 0 : 0.03,
-          elevation: isDark ? 0 : 1,
         },
       ]}
     > 
@@ -646,11 +666,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 3,
   },
   caloriesLeft: {
     gap: 4,
@@ -708,11 +723,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 16,
     alignItems: "flex-start",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    elevation: 1,
   },
   macroValueRow: {
     flexDirection: "row",
@@ -754,11 +764,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     padding: 20,
     borderRadius: 18,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 2,
   },
   healthScoreHeader: {
     flexDirection: "row",
@@ -802,11 +807,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 2,
     minHeight: 140,
   },
   appleHealthContent: {
@@ -854,11 +854,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     borderRadius: 18,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 2,
   },
   burnedLabel: {
     fontSize: 13,
@@ -921,11 +916,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: StyleSheet.hairlineWidth,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 1,
   },
   waterIcon: {
     width: 52,

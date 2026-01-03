@@ -26,7 +26,7 @@ export function ProgressCard({ icon, value, label, subtitle, iconColor, gradient
         end={{ x: 1, y: 1 }}
       >
         <View style={[styles.iconContainer, { backgroundColor: iconBgColor }]}>
-          <Ionicons name={icon} size={28} color={iconColor || colors.primary} />
+          <Ionicons name={icon} size={22} color={iconColor || colors.primary} />
         </View>
         <View style={styles.contentContainer}>
           <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
@@ -43,44 +43,44 @@ export function ProgressCard({ icon, value, label, subtitle, iconColor, gradient
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    borderRadius: 24,
+    borderRadius: 16,
     overflow: "hidden",
-    minHeight: 160,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
+    minHeight: 130,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
   },
   gradientBackground: {
     flex: 1,
-    padding: 20,
+    padding: 14,
     justifyContent: "space-between",
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
   contentContainer: {
-    marginTop: 12,
+    marginTop: 10,
   },
   value: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    marginBottom: 4,
-    letterSpacing: -0.5,
+    marginBottom: 3,
+    letterSpacing: -0.4,
   },
   label: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_500Medium",
     textAlign: "left",
     marginBottom: 2,
   },
   subtitle: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
     textAlign: "left",
   },

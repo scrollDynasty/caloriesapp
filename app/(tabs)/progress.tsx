@@ -217,14 +217,14 @@ export default function ProgressScreen() {
             >
               <Ionicons
                 name="add"
-                size={20}
+                size={18}
                 color={isDark ? themeColors.black : themeColors.white}
               />
             </TouchableOpacity>
           </View>
 
           {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight ? (
-            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 16 }]}>
+            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 12 }]}>
               {(() => {
                 const start = weightStats.start_weight;
                 const current = weightStats.current_weight;
@@ -260,7 +260,7 @@ export default function ProgressScreen() {
               })()}
             </Text>
           ) : (
-            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 16 }]}>
+            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 12 }]}>
               📍 Добавьте вес и установите цель для отслеживания прогресса
             </Text>
           )}
@@ -421,7 +421,7 @@ export default function ProgressScreen() {
               {progressPhotos.map((photo) => (
                 <Image
                   key={photo.id}
-                  source={{ uri: apiService.getProgressPhotoUrl(photo.id), priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }}
+                  source={{ uri: apiService.getProgressPhotoUrl(photo.id) }}
                   style={styles.photoThumbnail}
                 />
               ))}
@@ -438,7 +438,7 @@ export default function ProgressScreen() {
             ]} 
             onPress={handleUploadPhoto}
           >
-            <Ionicons name="add" size={20} color={themeColors.text} />
+            <Ionicons name="add" size={18} color={themeColors.text} />
             <Text style={[styles.uploadButtonText, { color: themeColors.text }]}>
               Загрузить фото
             </Text>
@@ -667,7 +667,7 @@ export default function ProgressScreen() {
                       {hasData && (
                         <Ionicons 
                           name={isPositive ? "trending-up" : "trending-down"} 
-                          size={16} 
+                          size={14} 
                           color={statusColor} 
                         />
                       )}
@@ -707,25 +707,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    padding: 16,
     paddingBottom: 120,
   },
   title: {
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: "800",
     fontFamily: "Inter_700Bold",
-    marginBottom: 24,
-    letterSpacing: -0.5,
+    marginBottom: 16,
+    letterSpacing: -0.3,
   },
   cardsRow: {
     flexDirection: "row",
-    gap: 16,
-    marginBottom: 20,
+    gap: 12,
+    marginBottom: 16,
   },
   section: {
-    padding: 24,
-    borderRadius: 24,
-    marginBottom: 20,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -736,12 +736,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -751,40 +751,40 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    marginBottom: 20,
-    letterSpacing: -0.3,
+    marginBottom: 16,
+    letterSpacing: -0.2,
   },
   sectionSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
-    marginBottom: 20,
-    lineHeight: 20,
+    marginBottom: 16,
+    lineHeight: 18,
   },
   goalText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
   periodSelector: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 20,
+    gap: 8,
+    marginBottom: 16,
     flexWrap: "wrap",
   },
   periodButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
   },
   periodButtonText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
   weightProgress: {
-    marginTop: 24,
-    paddingTop: 24,
+    marginTop: 16,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#F0F0F0",
   },
@@ -792,42 +792,42 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   weightProgressLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_500Medium",
   },
   weightProgressNext: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
   currentWeight: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    marginBottom: 20,
-    letterSpacing: -0.5,
+    marginBottom: 16,
+    letterSpacing: -0.4,
   },
   progressBarContainer: {
-    marginTop: 12,
+    marginTop: 10,
   },
   progressBarBg: {
-    height: 10,
-    borderRadius: 5,
+    height: 8,
+    borderRadius: 4,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    borderRadius: 5,
+    borderRadius: 4,
   },
   progressLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 12,
+    marginTop: 10,
   },
   progressLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_500Medium",
   },
   divider: {
@@ -839,73 +839,73 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 16,
+    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     borderWidth: 2,
     borderStyle: "dashed",
   },
   uploadButtonText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_600SemiBold",
   },
   photosGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 20,
+    gap: 10,
+    marginBottom: 16,
   },
   photoThumbnail: {
-    width: 100,
-    height: 120,
-    borderRadius: 16,
+    width: 85,
+    height: 100,
+    borderRadius: 12,
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 48,
-    paddingHorizontal: 20,
+    paddingVertical: 36,
+    paddingHorizontal: 16,
   },
   emptyStateSmall: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 24,
+    paddingVertical: 20,
   },
   emptyStateText: {
-    fontSize: 17,
+    fontSize: 15,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
-    marginTop: 16,
-    marginBottom: 8,
+    marginTop: 12,
+    marginBottom: 6,
   },
   emptyStateSubtext: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 18,
     maxWidth: 280,
   },
   calorieStatsContainer: {
-    paddingTop: 16,
+    paddingTop: 12,
   },
   calorieMainStat: {
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   calorieValue: {
-    fontSize: 52,
+    fontSize: 40,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    letterSpacing: -1,
+    letterSpacing: -0.8,
   },
   calorieUnit: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_500Medium",
-    marginTop: 4,
+    marginTop: 3,
   },
   calorieLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_500Medium",
   },
   calorieProgressContainer: {
@@ -918,16 +918,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   calorieProgressLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_500Medium",
   },
   calorieProgressValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
   calorieProgressBar: {
-    height: 8,
-    borderRadius: 4,
+    height: 6,
+    borderRadius: 3,
     overflow: "hidden",
   },
   calorieProgressFill: {
@@ -941,30 +941,30 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   calorieTargetLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
   },
   calorieOverTarget: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
   energyChangeItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 18,
+    paddingVertical: 14,
   },
   periodLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_500Medium",
   },
   energyChangeValue: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
   },
   energyChangeText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "Inter_600SemiBold",
   },
   energyStatus: {

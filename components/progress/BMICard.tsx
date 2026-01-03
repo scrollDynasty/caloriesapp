@@ -44,7 +44,7 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Твой ИМТ</Text>
           <TouchableOpacity onPress={handleInfoPress}>
-            <Ionicons name="help-circle-outline" size={20} color={colors.textSecondary} />
+            <Ionicons name="help-circle-outline" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
         <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
@@ -69,7 +69,7 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
         <Text style={[styles.bmiValue, { color: colors.text }]}>{bmi.toFixed(1)}</Text>
         <View style={styles.weightRow}>
           <Text style={[styles.weightLabel, { color: colors.textSecondary }]}>Твой вес</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} />
         </View>
         <Text style={[styles.categoryLabel, { color: categoryInfo.color }]}>
           {categoryInfo.label}
@@ -124,27 +124,27 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    borderRadius: 20,
+    padding: 16,
+    borderRadius: 16,
     marginBottom: 16,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
   bmiValueContainer: {
     alignItems: "flex-start",
-    marginBottom: 24,
+    marginBottom: 20,
   },
   bmiValue: {
-    fontSize: 48,
+    fontSize: 36,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
@@ -152,26 +152,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    marginTop: 4,
+    marginTop: 3,
   },
   weightLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
   },
   categoryLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
-    marginTop: 8,
+    marginTop: 6,
   },
   scaleContainer: {
     position: "relative",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   scaleBar: {
     flexDirection: "row",
-    height: 12,
-    borderRadius: 6,
+    height: 10,
+    borderRadius: 5,
     overflow: "hidden",
   },
   scaleSegment: {
@@ -179,9 +179,9 @@ const styles = StyleSheet.create({
   },
   indicator: {
     position: "absolute",
-    top: -4,
+    top: -3,
     width: 2,
-    height: 20,
+    height: 16,
     backgroundColor: "#2D2A26",
     transform: [{ translateX: -1 }],
   },
@@ -193,29 +193,29 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 12,
+    gap: 10,
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
     flex: 1,
     minWidth: "45%",
   },
   legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   legendText: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
-    lineHeight: 14,
+    lineHeight: 13,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
 });
