@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
-import { Image } from "expo-image";
+import FastImage from "react-native-fast-image";
 import { Tabs, useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -248,7 +248,7 @@ export default function TabsLayout() {
                     opacity: focused ? 1 : 0.7,
                   }}
                 >
-                  <Image source={{ uri: avatarUri }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+                  <FastImage source={{ uri: avatarUri }} style={{ width: "100%", height: "100%", priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }} resizeMode={FastImage.resizeMode.cover} />
                 </View>
               ) : (
                 <Ionicons

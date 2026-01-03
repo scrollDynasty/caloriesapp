@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
+import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  FlatList,
+  InteractionManager,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +15,7 @@ import {
   View,
   ViewToken
 } from "react-native";
+import FastImage from "react-native-fast-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SnowOverlay from "../components/ui/SnowOverlay";
 import { useTheme } from "../context/ThemeContext";
@@ -28,7 +29,7 @@ const CIRCLE_SIZE = 52;
 const STROKE_WIDTH = 4;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 
-export default function MealDetailScreen() {
+function MealDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
@@ -47,7 +48,7 @@ export default function MealDetailScreen() {
   const isManual = params.isManual === "true";
 
   const [currentPage, setCurrentPage] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<any>(null);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(mealName);
@@ -97,7 +98,9 @@ export default function MealDetailScreen() {
     };
 
     if (mealId) {
-      loadMealDetail();
+      InteractionManager.runAfterInteractions(() => {
+        loadMealDetail();
+      });
     }
   }, [mealId]);
 
@@ -108,6 +111,17 @@ export default function MealDetailScreen() {
   }, []);
 
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+  const keyExtractor = useCallback((item: any) => item.key, []);
+
+  const renderCarouselItem = useCallback(
+    ({ item }: { item: any }) => (
+      <View style={styles.carouselPageWrapper}>
+        {item.render()}
+      </View>
+    ),
+    []
+  );
 
   if (!fontsLoaded) return null;
 
@@ -426,10 +440,14 @@ export default function MealDetailScreen() {
       <SnowOverlay />
       {imageUrl ? (
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: imageUrl }}
+          <FastImage
+            source={{
+              uri: imageUrl,
+              priority: FastImage.priority.normal,
+              cache: FastImage.cacheControl.immutable,
+            }}
             style={styles.image}
-            contentFit="cover"
+            resizeMode={FastImage.resizeMode.cover}
           />
           <View style={[styles.headerOverlay, { paddingTop: insets.top + 8 }]}>
             <View style={styles.headerContent}>
@@ -510,25 +528,18 @@ export default function MealDetailScreen() {
           </View>
 
           <View style={styles.carouselContainer}>
-            <FlatList
+            <FlashList
               ref={flatListRef}
               data={carouselPages}
               horizontal
               pagingEnabled
               showsHorizontalScrollIndicator={false}
-              keyExtractor={(item) => item.key}
-              renderItem={({ item }) => (
-                <View style={styles.carouselPageWrapper}>
-                  {item.render()}
-                </View>
-              )}
+              keyExtractor={keyExtractor}
+              renderItem={renderCarouselItem}
               onViewableItemsChanged={onViewableItemsChanged}
               viewabilityConfig={viewabilityConfig}
-              getItemLayout={(_, index) => ({
-                length: SCREEN_WIDTH - 40,
-                offset: (SCREEN_WIDTH - 40) * index,
-                index,
-              })}
+              removeClippedSubviews={true}
+              drawDistance={250}
             />
             <View style={styles.paginationDots}>
               {carouselPages.map((_, index) => (
@@ -1127,3 +1138,5 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     justifyContent: "center",
   },
 });
+
+export default memo(MealDetailScreen);

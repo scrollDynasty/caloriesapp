@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo } from "react";
 import {
@@ -9,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import FastImage from "react-native-fast-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
@@ -82,10 +82,14 @@ export default function RecipeDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: params.image }}
+          <FastImage
+            source={{
+              uri: params.image,
+              priority: FastImage.priority.normal,
+              cache: FastImage.cacheControl.immutable,
+            }}
             style={styles.recipeImage}
-            contentFit="cover"
+            resizeMode={FastImage.resizeMode.cover}
           />
           <View style={styles.imageOverlay}>
             <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(params.difficulty || "Легко") }]}>

@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { memo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import FastImage from "react-native-fast-image";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -51,10 +51,10 @@ export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderPro
     <View style={styles.header}>
       <View style={styles.headerTitle}>
         <View style={styles.logoContainer}>
-          <Image
+          <FastImage
             source={isDark ? require("../../assets/images/bright_logo.png") : require("../../assets/images/dark_logo.png")}
             style={styles.logo}
-            contentFit="contain"
+            resizeMode={FastImage.resizeMode.contain}
           />
         </View>
         <Text style={[styles.appName, { color: themeColors.text }]}>Yeb Ich</Text>

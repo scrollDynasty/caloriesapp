@@ -1,4 +1,4 @@
-import { Image } from "expo-image";
+import FastImage from "react-native-fast-image";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, Easing, StyleSheet, View, useColorScheme } from "react-native";
@@ -147,7 +147,7 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
           },
         ]}
       >
-        <Image source={logoSource} style={styles.logo} contentFit="contain" />
+        <FastImage source={logoSource} style={styles.logo} resizeMode={FastImage.resizeMode.contain} />
       </Animated.View>
     </View>
   );

@@ -1,5 +1,5 @@
 import { BlurView } from "expo-blur";
-import { Image } from "expo-image";
+import FastImage from "react-native-fast-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import { colors } from "../../constants/theme";
@@ -34,10 +34,10 @@ export default function FoodImagePreview({
       ]}
     >
       {}
-      <Image
+      <FastImage
         source={require("../../assets/images/food-demo-6453ad.png")}
         style={styles.foodImage}
-        contentFit="cover"
+        resizeMode={FastImage.resizeMode.cover}
         cachePolicy="disk"
       />
 

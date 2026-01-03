@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { memo, useEffect, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import FastImage from "react-native-fast-image";
 import Animated, {
   Easing,
   FadeIn,
@@ -99,14 +99,17 @@ const ProcessingMealCard = memo(function ProcessingMealCard({
     >
       <View style={styles.processingImageContainer}>
         {meal.uri ? (
-          <Image
-            source={{ uri: meal.uri }}
+          <FastImage
+            source={{
+              uri: meal.uri,
+              priority: FastImage.priority.normal,
+              cache: FastImage.cacheControl.immutable,
+            }}
             style={[
               styles.processingImage,
               !isCompleted && { opacity: 0.5 },
             ]}
-            contentFit="cover"
-            blurRadius={isCompleted ? 0 : 15}
+            resizeMode={FastImage.resizeMode.cover}
           />
         ) : (
           <View
@@ -265,11 +268,14 @@ export const RecentMeals = memo(function RecentMeals({
             >
               <View style={styles.mealImage}>
                 {meal.imageUrl ? (
-                  <Image
-                    source={{ uri: meal.imageUrl }}
+                  <FastImage
+                    source={{
+                      uri: meal.imageUrl,
+                      priority: FastImage.priority.normal,
+                      cache: FastImage.cacheControl.immutable,
+                    }}
                     style={styles.image}
-                    contentFit="cover"
-                    cachePolicy="disk"
+                    resizeMode={FastImage.resizeMode.cover}
                   />
                 ) : (
                   <View

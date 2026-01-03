@@ -1,15 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
-import { memo, useCallback, useRef, useState } from "react";
+import { FlashList } from "@shopify/flash-list";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
-  Animated,
   Dimensions,
-  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ViewToken,
+  ViewToken
 } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useAppSettings } from "../../context/AppSettingsContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -125,11 +129,11 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
   const { colors: themeColors, isDark } = useTheme();
   const [isFlipped, setIsFlipped] = useState(false);
-  const flipAnim = useRef(new Animated.Value(0)).current;
+  const flipAnim = useSharedValue(0);
   const isAnimating = useRef(false);
 
-  const primaryData = getPrimaryData(stats);
-  const secondaryData = getSecondaryData(stats);
+  const primaryData = useMemo(() => getPrimaryData(stats), [stats]);
+  const secondaryData = useMemo(() => getSecondaryData(stats), [stats]);
 
   const handleFlip = useCallback(() => {
     if (isAnimating.current) return;
@@ -138,45 +142,35 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
 
     const toValue = isFlipped ? 0 : 1;
 
-    Animated.spring(flipAnim, {
-      toValue,
-      useNativeDriver: true,
-      tension: 65,
-      friction: 10,
-    }).start(() => {
+    flipAnim.value = withSpring(toValue, {
+      damping: 10,
+      stiffness: 65,
+    }, () => {
       setIsFlipped(!isFlipped);
       isAnimating.current = false;
     });
   }, [isFlipped, flipAnim]);
 
-  const primaryOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [1, 0, 0],
+  const primaryAnimatedStyle = useAnimatedStyle(() => {
+    const progress = flipAnim.value;
+    return {
+      opacity: progress < 0.5 ? 1 - progress * 2 : 0,
+      transform: [
+        { translateY: progress * 30 },
+        { scale: 1 - progress * 0.1 },
+      ],
+    };
   });
 
-  const primaryTranslateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 30],
-  });
-
-  const primaryScale = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [1, 0.95, 0.9],
-  });
-
-  const secondaryOpacity = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  const secondaryTranslateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [-30, 0],
-  });
-
-  const secondaryScale = flipAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0.9, 0.95, 1],
+  const secondaryAnimatedStyle = useAnimatedStyle(() => {
+    const progress = flipAnim.value;
+    return {
+      opacity: progress > 0.5 ? (progress - 0.5) * 2 : 0,
+      transform: [
+        { translateY: (1 - progress) * -30 },
+        { scale: 0.9 + progress * 0.1 },
+      ],
+    };
   });
 
   const progress = primaryData.main.progress;
@@ -188,11 +182,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         style={[
           styles.flipContent,
           {
-            opacity: primaryOpacity,
-            transform: [
-              { translateY: primaryTranslateY },
-              { scale: primaryScale },
-            ],
+            ...primaryAnimatedStyle,
           },
         ]}
         pointerEvents={isFlipped ? "none" : "auto"}
@@ -285,11 +275,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
           styles.flipContent,
           styles.flipContentAbsolute,
           {
-            opacity: secondaryOpacity,
-            transform: [
-              { translateY: secondaryTranslateY },
-              { scale: secondaryScale },
-            ],
+            ...secondaryAnimatedStyle,
           },
         ]}
         pointerEvents={isFlipped ? "auto" : "none"}
@@ -541,7 +527,7 @@ function WaterCard({ consumed, target, onAdd }: { consumed: number; target: numb
 export const CardsPager = memo(function CardsPager({ stats, onAddWater }: CardsPagerProps) {
   const { colors: themeColors } = useTheme();
   const [currentPage, setCurrentPage] = useState(0);
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<any>(null);
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     if (viewableItems.length > 0 && viewableItems[0].index !== null) {
@@ -551,7 +537,7 @@ export const CardsPager = memo(function CardsPager({ stats, onAddWater }: CardsP
 
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
-  const pages = [
+  const pages = useMemo(() => [
     <View key="page1" style={styles.pageContainer}>
       <FlippableNutritionCard stats={stats} />
     </View>,
@@ -563,39 +549,45 @@ export const CardsPager = memo(function CardsPager({ stats, onAddWater }: CardsP
       </View>
       <WaterCard consumed={stats.water.consumed} target={stats.water.target} onAdd={onAddWater} />
     </View>,
-  ];
+  ], [stats, onAddWater]);
+
+  const keyExtractor = useCallback((_: any, index: number) => `page-${index}`, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: any }) => (
+      <View style={[styles.pageWrapper, { width: SCREEN_WIDTH }]}>
+        {item}
+      </View>
+    ),
+    []
+  );
+
+  const dotStyles = useMemo(() => pages.map((_, index) => [
+    styles.dot,
+    { backgroundColor: currentPage === index ? themeColors.primary : themeColors.gray4 },
+    currentPage === index && styles.dotActive,
+  ]), [currentPage, themeColors, pages]);
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <FlashList
         ref={flatListRef}
         data={pages}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(_, index) => `page-${index}`}
-        renderItem={({ item }) => (
-          <View style={[styles.pageWrapper, { width: SCREEN_WIDTH }]}>
-            {item}
-          </View>
-        )}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
-        getItemLayout={(_, index) => ({
-          length: SCREEN_WIDTH,
-          offset: SCREEN_WIDTH * index,
-          index,
-        })}
+        removeClippedSubviews={true}
+        drawDistance={250}
       />
       <View style={styles.pagination}>
         {pages.map((_, index) => (
           <View
             key={index}
-            style={[
-              styles.dot, 
-              { backgroundColor: currentPage === index ? themeColors.primary : themeColors.gray4 },
-              currentPage === index && styles.dotActive
-            ]}
+            style={dotStyles[index]}
           />
         ))}
       </View>

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
+import FastImage from "react-native-fast-image";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -353,10 +353,10 @@ export default function EditProfileScreen() {
               <TouchableOpacity style={styles.avatarContainer} onPress={handlePickAvatar}>
                 <View style={styles.avatarWrapper}>
                   {avatarDisplay ? (
-                    <Image 
-                      source={{ uri: avatarDisplay }} 
+                    <FastImage 
+                      source={{ uri: avatarDisplay, priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }} 
                       style={styles.avatar} 
-                      contentFit="cover"
+                      resizeMode={FastImage.resizeMode.cover}
                     />
                   ) : (
                     <View style={styles.avatarPlaceholder}>

@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   RefreshControl,
   StyleSheet,
   Text,
@@ -105,7 +105,7 @@ function WeightEntryItem({
   );
 }
 
-export default function WeightHistoryScreen() {
+function WeightHistoryScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
@@ -132,6 +132,32 @@ export default function WeightHistoryScreen() {
     setRefreshing(true);
     loadData();
   }, [loadData]);
+
+  const sortedHistory = useMemo(() => {
+    if (!stats?.history) return [];
+    return [...stats.history].sort(
+      (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+  }, [stats?.history]);
+
+  const keyExtractor = useCallback((item: WeightEntry) => item.id.toString(), []);
+
+  const renderWeightItem = useCallback(
+    ({ item }: { item: WeightEntry }) => {
+      const currentIndex = sortedHistory.findIndex(h => h.id === item.id);
+      const previousWeight = currentIndex > 0 ? sortedHistory[currentIndex - 1].weight : null;
+      
+      return (
+        <WeightEntryItem 
+          item={item} 
+          previousWeight={previousWeight}
+          colors={colors}
+          isDark={isDark}
+        />
+      );
+    },
+    [sortedHistory, colors, isDark]
+  );
 
   const getPeriodLabel = (period: string): string => {
     switch (period) {
@@ -294,29 +320,16 @@ export default function WeightHistoryScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <FlashList
         data={stats?.history || []}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item, index }) => {
-          const sortedHistory = [...(stats?.history || [])].sort(
-            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-          );
-          const currentIndex = sortedHistory.findIndex(h => h.id === item.id);
-          const previousWeight = currentIndex > 0 ? sortedHistory[currentIndex - 1].weight : null;
-          
-          return (
-            <WeightEntryItem 
-              item={item} 
-              previousWeight={previousWeight}
-              colors={colors}
-              isDark={isDark}
-            />
-          );
-        }}
+        keyExtractor={keyExtractor}
+        renderItem={renderWeightItem}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyHistory}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={true}
+        drawDistance={250}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -328,6 +341,8 @@ export default function WeightHistoryScreen() {
     </SafeAreaView>
   );
 }
+
+export default memo(WeightHistoryScreen);
 
 const styles = StyleSheet.create({
   container: {

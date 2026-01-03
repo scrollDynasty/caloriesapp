@@ -421,7 +421,7 @@ export default function ProgressScreen() {
               {progressPhotos.map((photo) => (
                 <Image
                   key={photo.id}
-                  source={{ uri: apiService.getProgressPhotoUrl(photo.id) }}
+                  source={{ uri: apiService.getProgressPhotoUrl(photo.id), priority: FastImage.priority.normal, cache: FastImage.cacheControl.immutable }}
                   style={styles.photoThumbnail}
                 />
               ))}
