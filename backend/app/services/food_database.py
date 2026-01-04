@@ -2,8 +2,14 @@ import csv
 import io
 from typing import List, Dict, Any, Optional
 from collections import defaultdict
-import boto3
-from botocore.exceptions import ClientError
+
+try:
+    import boto3
+    from botocore.exceptions import ClientError
+    BOTO3_AVAILABLE = True
+except ImportError:
+    BOTO3_AVAILABLE = False
+    ClientError = Exception
 
 from app.core.config import settings
 
@@ -25,6 +31,11 @@ class FoodDatabaseService:
     
     def _init_s3_client(self):
         """Инициализирует S3 клиент для Yandex Storage"""
+        if not BOTO3_AVAILABLE:
+            print("Warning: boto3 not installed. Food database will return empty results.")
+            self.s3_client = None
+            return
+            
         try:
             if settings.yandex_storage_access_key and settings.yandex_storage_secret_key:
                 self.s3_client = boto3.client(
@@ -34,6 +45,9 @@ class FoodDatabaseService:
                     aws_access_key_id=settings.yandex_storage_access_key,
                     aws_secret_access_key=settings.yandex_storage_secret_key
                 )
+            else:
+                print("Warning: Yandex Storage credentials not configured.")
+                self.s3_client = None
         except Exception as e:
             print(f"Error initializing S3 client: {e}")
             self.s3_client = None

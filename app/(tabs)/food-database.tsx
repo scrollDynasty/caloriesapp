@@ -1,10 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Text,
   TextInput,
@@ -28,8 +28,8 @@ interface FoodItem {
 }
 
 const SOURCES = [
-  { id: "foundation", label: "Foundation", icon: "leaf" as const },
-  { id: "branded", label: "Brands", icon: "storefront" as const },
+  { id: "foundation", label: "Основные", icon: "leaf" as const },
+  { id: "branded", label: "Бренды", icon: "storefront" as const },
   { id: "survey", label: "Survey", icon: "pulse" as const },
 ];
 
@@ -40,68 +40,161 @@ export default function FoodDatabaseScreen() {
   const [selectedSource, setSelectedSource] = useState("foundation");
   const [foods, setFoods] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      loadFoodsBySource("foundation");
+      loadInitialFoods("foundation");
       return () => {
         setSearchQuery("");
         setSelectedSource("foundation");
+        setOffset(0);
+        setHasMore(true);
       };
     }, [])
   );
 
-  const loadFoodsBySource = async (source: string) => {
+  const loadInitialFoods = async (source: string) => {
     try {
       setLoading(true);
-      const result = await apiService.getFoods(0, 30, source);
-      setFoods(result.foods);
+      setOffset(0);
+      setHasMore(true);
+      const result = await apiService.getFoods(0, 20, source);
+      setFoods(result.foods || []);
+      setHasMore((result.foods?.length || 0) >= 20);
       setError(null);
-    } catch (err) {
-      setError(`Ошибка при загрузке ${source}`);
-      console.error(err);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.detail || err?.message || "Ошибка загрузки";
+      console.error("Load foods error:", errorMsg);
+      
+      // Временные моковые данные для тестирования UI
+      const mockFoods: FoodItem[] = [
+        {
+          fdc_id: "1001",
+          name: "Молоко цельное 3.2%",
+          calories: 60,
+          protein: 3.2,
+          fat: 3.2,
+          carbs: 4.7,
+          portion: "100мл",
+          source: source,
+        },
+        {
+          fdc_id: "1002",
+          name: "Куриная грудка",
+          calories: 165,
+          protein: 31,
+          fat: 3.6,
+          carbs: 0,
+          portion: "100г",
+          source: source,
+        },
+        {
+          fdc_id: "1003",
+          name: "Рис белый вареный",
+          calories: 130,
+          protein: 2.7,
+          fat: 0.3,
+          carbs: 28,
+          portion: "100г",
+          source: source,
+        },
+      ];
+      
+      setFoods(mockFoods);
+      setHasMore(false);
+      setError(`Сервер недоступен. Показаны тестовые данные.`);
     } finally {
       setLoading(false);
     }
   };
 
+  const loadMoreFoods = async () => {
+    if (loadingMore || !hasMore || searchQuery.trim()) return;
+
+    try {
+      setLoadingMore(true);
+      const newOffset = offset + 20;
+      const result = await apiService.getFoods(newOffset, 20, selectedSource);
+      const newFoods = result.foods || [];
+      
+      setFoods(prev => [...prev, ...newFoods]);
+      setOffset(newOffset);
+      setHasMore(newFoods.length >= 20);
+    } catch (err) {
+      console.error("Load more error:", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   const searchFoods = async (query: string, source: string) => {
     if (!query.trim()) {
-      loadFoodsBySource(source);
+      loadInitialFoods(source);
       return;
     }
 
     try {
       setLoading(true);
       const result = await apiService.searchFoods(query, 50, source);
-      setFoods(result.foods);
+      setFoods(result.foods || []);
+      setHasMore(false);
       setError(null);
-    } catch (err) {
-      setError("Ошибка при поиске");
-      console.error(err);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.detail || err?.message || "Ошибка поиска";
+      console.error("Search error:", errorMsg);
+      
+      // Временные моковые данные для поиска
+      const mockSearchResults: FoodItem[] = [
+        {
+          fdc_id: "2001",
+          name: `${query} (тестовый результат)`,
+          calories: 100,
+          protein: 5,
+          fat: 3,
+          carbs: 12,
+          portion: "100г",
+          source: source,
+        },
+      ];
+      
+      setFoods(mockSearchResults);
+      setHasMore(false);
+      setError(`Сервер недоступен. Показаны тестовые данные.`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Debounced search effect
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
       if (searchQuery.trim()) {
         searchFoods(searchQuery, selectedSource);
       } else {
-        loadFoodsBySource(selectedSource);
+        loadInitialFoods(selectedSource);
       }
-    }, 300);
+    }, 400);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, [searchQuery, selectedSource]);
 
   const handleSourceChange = (source: string) => {
     setSelectedSource(source);
     setSearchQuery("");
+    setOffset(0);
   };
 
   const handleAddFood = (food: FoodItem) => {
@@ -124,6 +217,67 @@ export default function FoodDatabaseScreen() {
     } as any);
   };
 
+  const renderFoodItem = ({ item }: { item: FoodItem }) => (
+    <View
+      style={[
+        styles.foodItem,
+        { backgroundColor: colors.card },
+        isDark && styles.noShadow,
+      ]}
+    >
+      <View style={styles.foodInfo}>
+        <Text style={[styles.foodName, { color: colors.text }]} numberOfLines={2}>
+          {item.name}
+        </Text>
+        {item.brand && (
+          <Text style={[styles.foodBrand, { color: colors.textSecondary }]} numberOfLines={1}>
+            {item.brand}
+          </Text>
+        )}
+        <Text style={[styles.foodDetails, { color: colors.textSecondary }]}>
+          {item.calories ? `${item.calories} ккал` : "Нет данных"} {item.portion && `· ${item.portion}`}
+        </Text>
+        {item.calories !== undefined && item.protein !== undefined && (
+          <Text style={[styles.foodMacros, { color: colors.textTertiary }]}>
+            Б: {item.protein}г · Ж: {item.fat}г · У: {item.carbs}г
+          </Text>
+        )}
+      </View>
+      <TouchableOpacity
+        style={[styles.addButton, { backgroundColor: isDark ? colors.backgroundSecondary : "#F5F5F5" }]}
+        onPress={() => handleAddFood(item)}
+      >
+        <Ionicons name="add" size={18} color={colors.text} />
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.primary} />
+      </View>
+    );
+  };
+
+  const renderEmpty = () => {
+    if (loading) return null;
+    
+    return (
+      <View style={[styles.emptyContainer, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
+        <Ionicons 
+          name={error ? "alert-circle" : "search"} 
+          size={36} 
+          color={error ? colors.error : colors.textTertiary} 
+        />
+        <Text style={[styles.emptyText, { color: error ? colors.error : colors.textSecondary }]}>
+          {error || "Продукты не найдены"}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
       <View style={[styles.header, { backgroundColor: colors.background }]}>
@@ -131,18 +285,18 @@ export default function FoodDatabaseScreen() {
           style={[styles.backButton, { backgroundColor: colors.card }]}
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.text} />
+          <Ionicons name="chevron-back" size={22} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Food Database</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>База продуктов</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={18} color={colors.textSecondary} />
+          <Ionicons name="search" size={16} color={colors.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search foods..."
+            placeholder="Поиск продуктов..."
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -163,7 +317,7 @@ export default function FoodDatabaseScreen() {
             >
               <Ionicons
                 name={source.icon}
-                size={18}
+                size={16}
                 color={selectedSource === source.id ? "white" : colors.textSecondary}
               />
               <Text
@@ -181,65 +335,32 @@ export default function FoodDatabaseScreen() {
         </View>
 
         <Text style={[styles.resultsTitle, { color: colors.text }]}>
-          {searchQuery ? "Search Results" : `${selectedSource.toUpperCase()} Foods`}
+          {searchQuery ? "Результаты поиска" : `${SOURCES.find(s => s.id === selectedSource)?.label || ""} продукты`}
         </Text>
 
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
-        ) : error ? (
-          <View style={[styles.emptyContainer, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
-            <Ionicons name="alert-circle" size={40} color={colors.error} />
-            <Text style={[styles.emptyText, { color: colors.error }]}>
-              {error}
-            </Text>
-          </View>
-        ) : foods.length > 0 ? (
-          foods.map((food) => (
-            <View
-              key={`${food.fdc_id}-${food.source}`}
-              style={[
-                styles.foodItem,
-                { backgroundColor: colors.card },
-                isDark && styles.noShadow,
-              ]}
-            >
-              <View style={styles.foodInfo}>
-                <Text style={[styles.foodName, { color: colors.text }]}>{food.name}</Text>
-                {food.brand && (
-                  <Text style={[styles.foodBrand, { color: colors.textSecondary }]}>
-                    {food.brand}
-                  </Text>
-                )}
-                <Text style={[styles.foodDetails, { color: colors.textSecondary }]}>
-                  {food.calories ? `${food.calories} cal` : "No data"} {food.portion && `· ${food.portion}`}
-                </Text>
-                {food.calories && food.protein !== undefined && (
-                  <Text style={[styles.foodMacros, { color: colors.textTertiary }]}>
-                    P: {food.protein}g · F: {food.fat}g · C: {food.carbs}g
-                  </Text>
-                )}
-              </View>
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: isDark ? colors.backgroundSecondary : "#F5F5F5" }]}
-                onPress={() => handleAddFood(food)}
-              >
-                <Ionicons name="add" size={20} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-          ))
         ) : (
-          <View style={[styles.emptyContainer, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
-            <Ionicons name="search" size={40} color={colors.textTertiary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No foods found
-            </Text>
-          </View>
+          <FlatList
+            data={foods}
+            renderItem={renderFoodItem}
+            keyExtractor={(item, index) => `${item.fdc_id}-${item.source}-${index}`}
+            ListEmptyComponent={renderEmpty}
+            ListFooterComponent={renderFooter}
+            onEndReached={loadMoreFoods}
+            onEndReachedThreshold={0.3}
+            showsVerticalScrollIndicator={false}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            updateCellsBatchingPeriod={50}
+            initialNumToRender={15}
+            windowSize={5}
+            contentContainerStyle={styles.listContent}
+          />
         )}
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -253,35 +374,35 @@ const createStyles = (colors: any, isDark: boolean) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
     },
     backButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: "center",
       justifyContent: "center",
     },
     headerTitle: {
-      fontSize: 18,
+      fontSize: 17,
       fontFamily: "Inter_600SemiBold",
     },
     headerPlaceholder: {
-      width: 40,
+      width: 36,
     },
     content: {
       flex: 1,
-      paddingHorizontal: 16,
+      paddingHorizontal: 14,
     },
     searchContainer: {
       flexDirection: "row",
       alignItems: "center",
       paddingHorizontal: 12,
-      paddingVertical: 10,
+      paddingVertical: 9,
       backgroundColor: colors.backgroundSecondary,
-      borderRadius: 24,
-      marginBottom: 16,
+      borderRadius: 20,
+      marginBottom: 12,
       borderWidth: 1,
       borderColor: colors.border,
     },
@@ -293,70 +414,74 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     sourceTabsContainer: {
       flexDirection: "row",
-      gap: 8,
-      marginBottom: 16,
+      gap: 6,
+      marginBottom: 12,
     },
     sourceTab: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 12,
-      borderRadius: 12,
+      paddingVertical: 8,
+      paddingHorizontal: 8,
+      borderRadius: 10,
       backgroundColor: colors.backgroundSecondary,
-      gap: 6,
+      gap: 4,
     },
     sourceTabText: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_600SemiBold",
     },
     resultsTitle: {
-      fontSize: 16,
+      fontSize: 15,
       fontFamily: "Inter_700Bold",
-      marginBottom: 12,
+      marginBottom: 10,
+    },
+    listContent: {
+      paddingBottom: 20,
     },
     foodItem: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingVertical: 12,
-      paddingHorizontal: 14,
-      borderRadius: 12,
-      marginBottom: 8,
+      paddingVertical: 10,
+      paddingHorizontal: 12,
+      borderRadius: 10,
+      marginBottom: 6,
       shadowColor: "#000",
       shadowOpacity: 0.03,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
       elevation: 1,
     },
     foodInfo: {
       flex: 1,
+      paddingRight: 8,
     },
     foodName: {
-      fontSize: 15,
+      fontSize: 14,
       fontFamily: "Inter_600SemiBold",
       marginBottom: 2,
     },
     foodBrand: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_400Regular",
       fontStyle: "italic",
-      marginBottom: 4,
+      marginBottom: 3,
     },
     foodDetails: {
       fontSize: 12,
       fontFamily: "Inter_400Regular",
     },
     foodMacros: {
-      fontSize: 11,
+      fontSize: 10,
       fontFamily: "Inter_400Regular",
-      marginTop: 4,
+      marginTop: 3,
     },
     addButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -364,23 +489,27 @@ const createStyles = (colors: any, isDark: boolean) =>
       alignItems: "center",
       justifyContent: "center",
       paddingVertical: 40,
-      borderRadius: 12,
+      borderRadius: 10,
       marginTop: 20,
       shadowColor: "#000",
       shadowOpacity: 0.03,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
       elevation: 1,
     },
     emptyText: {
-      fontSize: 14,
+      fontSize: 13,
       fontFamily: "Inter_500Medium",
-      marginTop: 12,
+      marginTop: 10,
     },
     loadingContainer: {
       alignItems: "center",
       justifyContent: "center",
       paddingVertical: 40,
+    },
+    footerLoader: {
+      paddingVertical: 16,
+      alignItems: "center",
     },
     noShadow: {
       shadowOpacity: 0,
