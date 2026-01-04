@@ -1,11 +1,63 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
+import os
 
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
-from app.services.food_database import food_db_service
 
 router = APIRouter()
+
+# Путь к папке с CSV файлами: backend/fooddata/
+# файл находится в: backend/app/api/v1/foods.py
+# поднимаемся на 4 уровня: v1 -> api -> app -> backend -> fooddata
+FOODDATA_PATH = os.path.join(os.path.dirname(__file__), '../../../../fooddata')
+
+
+@router.get("/foods/csv/{filename}")
+async def get_csv_file(
+    filename: str,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Получает CSV файл из папки fooddata.
+    
+    Parameters:
+    - filename: имя файла (food.csv, food_nutrient.csv, etc)
+    """
+    # Безопасность - только .csv файлы
+    if not filename.endswith('.csv'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only CSV files are allowed"
+        )
+    
+    # Предотвращаем path traversal
+    if '..' in filename or '/' in filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid filename"
+        )
+    
+    file_path = os.path.join(FOODDATA_PATH, filename)
+    
+    # Проверяем что файл существует и находится в правильной папке
+    if not os.path.isfile(file_path) or not os.path.realpath(file_path).startswith(os.path.realpath(FOODDATA_PATH)):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"File not found: {filename}"
+        )
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        return PlainTextResponse(content=content, media_type="text/csv")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error reading file: {str(e)}"
+        )
 
 
 @router.get("/foods/search")
@@ -25,12 +77,12 @@ async def search_foods(
     - source: источник данных (all, foundation, branded, survey)
     """
     try:
-        results = food_db_service.search_foods(q, limit=limit, source=source)
+        # TODO: Реализовать поиск через CSV файлы
         return {
             "query": q,
             "source": source,
-            "count": len(results),
-            "foods": results,
+            "count": 0,
+            "foods": [],
         }
     except Exception as e:
         raise HTTPException(

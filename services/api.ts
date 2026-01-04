@@ -1170,9 +1170,12 @@ class ApiService {
       source: string;
     }>;
   }> {
+    console.log(`📡 API getFoods: offset=${offset}, limit=${limit}, source=${source}`);
+    console.log(`📡 API Base URL: ${API_BASE_URL}`);
     const response = await this.api.get("/api/v1/foods", {
       params: { offset, limit: Math.min(limit, 100), source },
     });
+    console.log(`📡 API getFoods response status: ${response.status}`);
     return response.data;
   }
 

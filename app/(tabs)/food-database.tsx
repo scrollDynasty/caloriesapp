@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
-import { apiService } from "../../services/api";
+import { foodStorageService } from "../../services/foodStorage";
 
 interface FoodItem {
   fdc_id: string;
@@ -47,8 +47,11 @@ export default function FoodDatabaseScreen() {
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const searchTimeoutRef = useRef<number | null>(null);
 
+  const isInitialMount = useRef(true);
+
   useFocusEffect(
     useCallback(() => {
+      console.log("🔵 useFocusEffect: loading foods");
       loadInitialFoods("foundation");
       return () => {
         setSearchQuery("");
@@ -60,55 +63,35 @@ export default function FoodDatabaseScreen() {
   );
 
   const loadInitialFoods = async (source: string) => {
+    console.log(`🟡 loadInitialFoods called with source: ${source}`);
     try {
       setLoading(true);
       setOffset(0);
       setHasMore(true);
-      const result = await apiService.getFoods(0, 20, source);
-      setFoods(result.foods || []);
-      setHasMore((result.foods?.length || 0) >= 20);
+      
+      console.log(`🟡 Загрузка из Yandex Storage: ${source}`);
+      
+      let result: FoodItem[] = [];
+      if (source === 'foundation') {
+        result = await foodStorageService.getFoundationFoods(20);
+      } else if (source === 'branded') {
+        result = await foodStorageService.getBrandedFoods(20);
+      } else {
+        result = await foodStorageService.getFoundationFoods(20);
+      }
+      
+      console.log("🟢 Загружено продуктов:", result.length);
+      setFoods(result);
+      setHasMore(result.length >= 20);
       setError(null);
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.detail || err?.message || "Ошибка загрузки";
-      console.error("Load foods error:", errorMsg);
+      const errorMsg = err?.message || "Ошибка загрузки";
+      console.error("🔴 Load foods error:", errorMsg);
+      console.error("🔴 Full error:", err);
       
-      // Временные моковые данные для тестирования UI
-      const mockFoods: FoodItem[] = [
-        {
-          fdc_id: "1001",
-          name: "Молоко цельное 3.2%",
-          calories: 60,
-          protein: 3.2,
-          fat: 3.2,
-          carbs: 4.7,
-          portion: "100мл",
-          source: source,
-        },
-        {
-          fdc_id: "1002",
-          name: "Куриная грудка",
-          calories: 165,
-          protein: 31,
-          fat: 3.6,
-          carbs: 0,
-          portion: "100г",
-          source: source,
-        },
-        {
-          fdc_id: "1003",
-          name: "Рис белый вареный",
-          calories: 130,
-          protein: 2.7,
-          fat: 0.3,
-          carbs: 28,
-          portion: "100г",
-          source: source,
-        },
-      ];
-      
-      setFoods(mockFoods);
+      setFoods([]);
       setHasMore(false);
-      setError(`Сервер недоступен. Показаны тестовые данные.`);
+      setError(`Ошибка: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -119,13 +102,8 @@ export default function FoodDatabaseScreen() {
 
     try {
       setLoadingMore(true);
-      const newOffset = offset + 20;
-      const result = await apiService.getFoods(newOffset, 20, selectedSource);
-      const newFoods = result.foods || [];
-      
-      setFoods(prev => [...prev, ...newFoods]);
-      setOffset(newOffset);
-      setHasMore(newFoods.length >= 20);
+      // Пока не реализовываем пагинацию для прямой загрузки
+      setHasMore(false);
     } catch (err) {
       console.error("Load more error:", err);
     } finally {
@@ -141,42 +119,39 @@ export default function FoodDatabaseScreen() {
 
     try {
       setLoading(true);
-      const result = await apiService.searchFoods(query, 50, source);
-      setFoods(result.foods || []);
+      console.log(`🟡 Поиск: "${query}" в источнике ${source}`);
+      
+      const result = await foodStorageService.searchFoods(query, source, 50);
+      
+      console.log("🟢 Результаты поиска:", result.length);
+      setFoods(result);
       setHasMore(false);
       setError(null);
     } catch (err: any) {
-      const errorMsg = err?.response?.data?.detail || err?.message || "Ошибка поиска";
-      console.error("Search error:", errorMsg);
+      const errorMsg = err?.message || "Ошибка поиска";
+      console.error("🔴 Search error:", errorMsg);
       
-      // Временные моковые данные для поиска
-      const mockSearchResults: FoodItem[] = [
-        {
-          fdc_id: "2001",
-          name: `${query} (тестовый результат)`,
-          calories: 100,
-          protein: 5,
-          fat: 3,
-          carbs: 12,
-          portion: "100г",
-          source: source,
-        },
-      ];
-      
-      setFoods(mockSearchResults);
+      setFoods([]);
       setHasMore(false);
-      setError(`Сервер недоступен. Показаны тестовые данные.`);
+      setError(`Ошибка: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Пропускаем первый рендер - useFocusEffect уже вызовет loadInitialFoods
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
     searchTimeoutRef.current = setTimeout(() => {
+      console.log(`🟣 useEffect timeout: searchQuery="${searchQuery}", source="${selectedSource}"`);
       if (searchQuery.trim()) {
         searchFoods(searchQuery, selectedSource);
       } else {
