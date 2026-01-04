@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
-import { foodStorageService } from "../../services/foodStorage";
+import { apiService } from "../../services/api";
 
 interface FoodItem {
   fdc_id: string;
@@ -51,7 +51,6 @@ export default function FoodDatabaseScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      console.log("🔵 useFocusEffect: loading foods");
       loadInitialFoods("foundation");
       return () => {
         setSearchQuery("");
@@ -63,35 +62,21 @@ export default function FoodDatabaseScreen() {
   );
 
   const loadInitialFoods = async (source: string) => {
-    console.log(`🟡 loadInitialFoods called with source: ${source}`);
     try {
       setLoading(true);
       setOffset(0);
       setHasMore(true);
       
-      console.log(`🟡 Загрузка из Yandex Storage: ${source}`);
+      const response = await apiService.getFoods(0, 20, source);
+      const result = response.foods || [];
       
-      let result: FoodItem[] = [];
-      if (source === 'foundation') {
-        result = await foodStorageService.getFoundationFoods(20);
-      } else if (source === 'branded') {
-        result = await foodStorageService.getBrandedFoods(20);
-      } else {
-        result = await foodStorageService.getFoundationFoods(20);
-      }
-      
-      console.log("🟢 Загружено продуктов:", result.length);
       setFoods(result);
-      setHasMore(result.length >= 20);
+      setHasMore(response.total > 20);
       setError(null);
     } catch (err: any) {
-      const errorMsg = err?.message || "Ошибка загрузки";
-      console.error("🔴 Load foods error:", errorMsg);
-      console.error("🔴 Full error:", err);
-      
       setFoods([]);
       setHasMore(false);
-      setError(`Ошибка: ${errorMsg}`);
+      setError(err?.message || "Ошибка загрузки");
     } finally {
       setLoading(false);
     }
@@ -102,10 +87,14 @@ export default function FoodDatabaseScreen() {
 
     try {
       setLoadingMore(true);
-      // Пока не реализовываем пагинацию для прямой загрузки
-      setHasMore(false);
-    } catch (err) {
-      console.error("Load more error:", err);
+      const newOffset = offset + 20;
+      
+      const response = await apiService.getFoods(newOffset, 20, selectedSource);
+      const result = response.foods || [];
+      
+      setFoods(prev => [...prev, ...result]);
+      setOffset(newOffset);
+      setHasMore(newOffset + result.length < response.total);
     } finally {
       setLoadingMore(false);
     }
@@ -119,11 +108,10 @@ export default function FoodDatabaseScreen() {
 
     try {
       setLoading(true);
-      console.log(`🟡 Поиск: "${query}" в источнике ${source}`);
       
-      const result = await foodStorageService.searchFoods(query, source, 50);
+      const response = await apiService.searchFoods(query, 50, source);
+      const result = response.foods || [];
       
-      console.log("🟢 Результаты поиска:", result.length);
       setFoods(result);
       setHasMore(false);
       setError(null);
@@ -151,7 +139,6 @@ export default function FoodDatabaseScreen() {
     }
 
     searchTimeoutRef.current = setTimeout(() => {
-      console.log(`🟣 useEffect timeout: searchQuery="${searchQuery}", source="${selectedSource}"`);
       if (searchQuery.trim()) {
         searchFoods(searchQuery, selectedSource);
       } else {

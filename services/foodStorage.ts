@@ -99,7 +99,7 @@ class FoodStorageService {
    */
   private async loadFoodNames(): Promise<Map<string, string>> {
     console.log('📚 Загрузка названий продуктов...');
-    const rows = await this.fetchCSV('food.csv');
+    const rows = await this.fetchCSV('food_sample.csv');
     const map = new Map<string, string>();
     
     let count = 0;
@@ -123,7 +123,7 @@ class FoodStorageService {
    */
   private async loadNutrients(): Promise<Map<string, Map<string, number>>> {
     console.log('🥗 Загрузка нутриентов...');
-    const rows = await this.fetchCSV('food_nutrient.csv');
+    const rows = await this.fetchCSV('food_nutrient_sample.csv');
     const nutrientMap = new Map<string, Map<string, number>>();
 
     // Коды нутриентов USDA
