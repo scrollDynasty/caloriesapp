@@ -2,20 +2,20 @@ import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CardsPager } from "../../components/home/CardsPager";
 import { HomeHeader } from "../../components/home/HomeHeader";
 import { RecentMeals } from "../../components/home/RecentMeals";
 import { WeekCalendar } from "../../components/home/WeekCalendar";
+import { LottieLoader } from "../../components/ui/LottieLoader";
 import { NutritionCardSkeleton } from "../../components/ui/Skeleton";
 import { useAppSettings } from "../../context/AppSettingsContext";
 import { ProcessingMeal, useProcessingMeals } from "../../context/ProcessingMealsContext";
@@ -688,7 +688,7 @@ export default function HomeScreen() {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={themeColors.primary} />
+          <LottieLoader size="large" />
           <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>Загрузка данных...</Text>
         </View>
       </SafeAreaView>

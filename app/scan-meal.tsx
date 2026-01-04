@@ -5,12 +5,11 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Alert,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useProcessingMeals } from "../context/ProcessingMealsContext";
@@ -254,7 +253,7 @@ export default function ScanMealScreen() {
   if (!permission) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <LottieLoader size="large" />
         <Text style={styles.loadingText}>Загрузка...</Text>
       </View>
     );
@@ -405,7 +404,7 @@ export default function ScanMealScreen() {
           </TouchableOpacity>
         ) : (
           <View style={styles.barcodeModeBadge}>
-            <ActivityIndicator size="small" color={colors.primary} />
+            <LottieLoader size="small" />
             <Text style={styles.barcodeModeText}>Сканер штрихкода</Text>
           </View>
         )}
@@ -436,7 +435,7 @@ export default function ScanMealScreen() {
 
         {barcodeLoading && (
           <View style={styles.barcodeRow}>
-            <ActivityIndicator color={colors.primary} />
+            <LottieLoader size="small" />
             <Text style={styles.barcodeStatus}>Ищем продукт...</Text>
           </View>
         )}
@@ -469,7 +468,7 @@ export default function ScanMealScreen() {
               disabled={savingBarcodeMeal}
             >
               {savingBarcodeMeal ? (
-                <ActivityIndicator color={colors.buttonPrimaryText} />
+                <LottieLoader size="small" />
               ) : (
                 <Text style={styles.saveBarcodeText}>Добавить в дневник</Text>
               )}

@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
@@ -128,7 +128,7 @@ export default function CallbackScreen() {
         </>
       ) : (
         <>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <LottieLoader size="large" />
           <Text style={styles.loadingText}>Авторизация...</Text>
           <Text style={styles.subText}>Пожалуйста, подождите</Text>
         </>

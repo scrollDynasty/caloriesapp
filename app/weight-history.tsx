@@ -3,15 +3,15 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WeightChart } from "../components/progress/WeightChart";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 
@@ -287,7 +287,7 @@ function WeightHistoryScreen() {
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <LottieLoader size="large" />
         </View>
       </SafeAreaView>
     );

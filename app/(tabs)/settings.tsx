@@ -3,18 +3,18 @@ import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Dimensions,
+    Linking,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LottieLoader } from "../../components/ui/LottieLoader";
 import { useSnow } from "../../context/SnowContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
@@ -261,8 +261,7 @@ export default function SettingsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.loadingContainer, { backgroundColor: themeColors.background }]}>
-        <ActivityIndicator size="large" color={themeColors.primary} />
-        <Text style={[styles.loadingText, { color: themeColors.secondary }]}>Загрузка...</Text>
+        <LottieLoader size="large" />
       </SafeAreaView>
     );
   }

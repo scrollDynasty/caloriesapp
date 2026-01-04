@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Platform,
@@ -16,6 +15,7 @@ import {
 } from "react-native";
 import DatePicker from "react-native-date-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
@@ -507,7 +507,7 @@ export default function PersonalDataScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <LottieLoader size="large" />
       </SafeAreaView>
     );
   }
@@ -645,7 +645,7 @@ export default function PersonalDataScreen() {
                     disabled={saving}
                   >
                     {saving ? (
-                      <ActivityIndicator size="small" color={colors.text} />
+                      <LottieLoader size="small" />
                     ) : (
                       <Text style={styles.modalButtonSaveText}>Сохранить</Text>
                     )}

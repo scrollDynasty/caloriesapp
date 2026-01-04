@@ -4,7 +4,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Keyboard,
     KeyboardAvoidingView,
@@ -17,7 +16,8 @@ import {
     TouchableWithoutFeedback,
     View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 
@@ -30,7 +30,8 @@ interface ProfileData {
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -179,7 +180,7 @@ export default function EditProfileScreen() {
   if (loading) {
     return (
       <SafeAreaView style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <LottieLoader size="large" />
       </SafeAreaView>
     );
   }
@@ -195,8 +196,8 @@ export default function EditProfileScreen() {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
     },
     backButton: {
       width: 44,
@@ -207,7 +208,7 @@ export default function EditProfileScreen() {
       justifyContent: "center",
     },
     headerTitle: {
-      fontSize: 17,
+      fontSize: 15,
       fontFamily: "Inter_600SemiBold",
       color: colors.text,
     },
@@ -218,26 +219,26 @@ export default function EditProfileScreen() {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 20,
+      paddingBottom: 12,
     },
     avatarContainer: {
       alignItems: "center",
-      marginTop: 20,
-      marginBottom: 32,
+      marginTop: 12,
+      marginBottom: 12,
     },
     avatarWrapper: {
       position: "relative",
     },
     avatar: {
-      width: 120,
-      height: 120,
-      borderRadius: 60,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
       backgroundColor: colors.fill,
     },
     avatarPlaceholder: {
-      width: 120,
-      height: 120,
-      borderRadius: 60,
+      width: 100,
+      height: 100,
+      borderRadius: 50,
       backgroundColor: colors.fill,
       alignItems: "center",
       justifyContent: "center",
@@ -246,40 +247,40 @@ export default function EditProfileScreen() {
       position: "absolute",
       bottom: 4,
       right: 4,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 28,
+      height: 28,
+      borderRadius: 14,
       backgroundColor: colors.accent,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 3,
+      borderWidth: 2,
       borderColor: colors.background,
     },
     changePhotoText: {
-      marginTop: 12,
-      fontSize: 14,
+      marginTop: 8,
+      fontSize: 13,
       fontFamily: "Inter_500Medium",
       color: colors.textSecondary,
     },
     form: {
-      paddingHorizontal: 16,
-      gap: 16,
+      paddingHorizontal: 12,
+      gap: 12,
     },
     inputGroup: {
       backgroundColor: colors.card,
-      borderRadius: 12,
-      padding: 16,
+      borderRadius: 10,
+      padding: 12,
       borderWidth: 1,
       borderColor: colors.border,
     },
     inputLabel: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_400Regular",
       color: colors.textSecondary,
-      marginBottom: 6,
+      marginBottom: 4,
     },
     input: {
-      fontSize: 16,
+      fontSize: 14,
       fontFamily: "Inter_500Medium",
       color: colors.text,
       padding: 0,
@@ -295,25 +296,26 @@ export default function EditProfileScreen() {
       marginLeft: 8,
     },
     errorText: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_400Regular",
       color: colors.error,
-      marginTop: 6,
+      marginTop: 4,
     },
     successText: {
-      fontSize: 12,
+      fontSize: 11,
       fontFamily: "Inter_400Regular",
       color: colors.success,
-      marginTop: 6,
+      marginTop: 4,
     },
     buttonContainer: {
-      paddingHorizontal: 16,
-      paddingBottom: 16,
+      paddingHorizontal: 12,
+      paddingBottom: 12,
+      paddingTop: 12,
     },
     saveButton: {
-      backgroundColor: colors.buttonPrimary,
-      borderRadius: 28,
-      paddingVertical: 16,
+      backgroundColor: isDark ? "#1C1C1E" : colors.buttonPrimary,
+      borderRadius: 24,
+      paddingVertical: 12,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -321,9 +323,9 @@ export default function EditProfileScreen() {
       opacity: 0.6,
     },
     saveButtonText: {
-      fontSize: 16,
+      fontSize: 14,
       fontFamily: "Inter_600SemiBold",
-      color: colors.buttonPrimaryText,
+      color: isDark ? "#FFFFF0" : colors.buttonPrimaryText,
     },
   });
 
@@ -413,7 +415,7 @@ export default function EditProfileScreen() {
                       autoCorrect={false}
                     />
                     {checkingUsername && (
-                      <ActivityIndicator size="small" color={colors.textSecondary} style={styles.usernameIndicator} />
+                      <LottieLoader size="small" />
                     )}
                     {!checkingUsername && usernameAvailable === true && data.username.length >= 3 && (
                       <Ionicons name="checkmark-circle" size={22} color={colors.success} style={styles.usernameIndicator} />
@@ -433,14 +435,14 @@ export default function EditProfileScreen() {
             </ScrollView>
 
             {}
-            <View style={styles.buttonContainer}>
+            <View style={[styles.buttonContainer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
               <TouchableOpacity
                 style={[styles.saveButton, saving && styles.saveButtonDisabled]}
                 onPress={handleSave}
                 disabled={saving || (data.username.length > 0 && data.username.length < 3) || usernameError !== null}
               >
                 {saving ? (
-                  <ActivityIndicator size="small" color="#FFFFF0" />
+                  <LottieLoader size="small" />
                 ) : (
                   <Text style={styles.saveButtonText}>Продолжить</Text>
                 )}

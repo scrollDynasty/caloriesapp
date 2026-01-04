@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   Modal,
   Platform,
@@ -16,6 +15,7 @@ import {
 } from "react-native";
 import DatePicker from "react-native-date-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
@@ -476,7 +476,7 @@ export default function GoalsWeightScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <LottieLoader size="large" />
       </SafeAreaView>
     );
   }
@@ -486,7 +486,7 @@ export default function GoalsWeightScreen() {
       {}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Цели и текущий вес</Text>
         <View style={styles.headerPlaceholder} />
@@ -515,7 +515,7 @@ export default function GoalsWeightScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{data.weight || "--"} кг</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -528,7 +528,7 @@ export default function GoalsWeightScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{data.height || "--"} см</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -541,7 +541,7 @@ export default function GoalsWeightScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{formatDate(data.birthDate)}</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -554,7 +554,7 @@ export default function GoalsWeightScreen() {
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{formatGender(data.gender)}</Text>
               <View style={styles.editIcon}>
-                <Ionicons name="create-outline" size={16} color={colors.secondary} />
+                <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
             </View>
           </TouchableOpacity>
@@ -563,7 +563,7 @@ export default function GoalsWeightScreen() {
 
           {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("stepGoal")} activeOpacity={0.6}>
-            <Text style={styles.rowLabel}>Ежедневная цель по шагам</Text>
+            <Text style={styles.rowLabel}>Ежедневная цель</Text>
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{data.stepGoal.toLocaleString()} шагов</Text>
               <View style={styles.editIcon}>
@@ -599,7 +599,6 @@ export default function GoalsWeightScreen() {
                     step={getStepValue(editField)}
                     colors={colors}
                   />
-                  <Text style={styles.inputUnit}>{getFieldUnit(editField)}</Text>
                 </View>
 
                 <View style={styles.modalButtons}>
@@ -615,7 +614,7 @@ export default function GoalsWeightScreen() {
                     disabled={saving}
                   >
                     {saving ? (
-                      <ActivityIndicator size="small" color="#FFFFF0" />
+                      <LottieLoader size="small" />
                     ) : (
                       <Text style={styles.modalButtonSaveText}>Сохранить</Text>
                     )}
@@ -655,7 +654,7 @@ export default function GoalsWeightScreen() {
                     Мужской
                   </Text>
                   {data.gender === "male" && (
-                    <Ionicons name="checkmark-circle" size={22} color="#4CAF50" />
+                    <Ionicons name="checkmark-circle" size={22} color={colors.success || "#4CAF50"} />
                   )}
                 </TouchableOpacity>
 
@@ -674,7 +673,7 @@ export default function GoalsWeightScreen() {
                     Женский
                   </Text>
                   {data.gender === "female" && (
-                    <Ionicons name="checkmark-circle" size={22} color="#4CAF50" />
+                    <Ionicons name="checkmark-circle" size={22} color={colors.success || "#4CAF50"} />
                   )}
                 </TouchableOpacity>
 
@@ -698,7 +697,7 @@ export default function GoalsWeightScreen() {
         mode="date"
         maximumDate={new Date()}
         minimumDate={new Date(1920, 0, 1)}
-        onConfirm={(date: Date) => {
+        onConfirm={(date) => {
           setShowDatePicker(false);
           handleSave("birthDate", date);
         }}
@@ -709,7 +708,7 @@ export default function GoalsWeightScreen() {
         confirmText="Сохранить"
         cancelText="Отмена"
       />
-    </SafeAreaView>
+      </SafeAreaView>
   );
 }
 
@@ -751,25 +750,25 @@ const createStyles = (colors: any) => StyleSheet.create({
     flex: 1,
   },
   targetCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 20,
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 14,
     backgroundColor: colors.card,
-    borderRadius: 14,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   targetLabel: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
     color: colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   targetValue: {
-    fontSize: 26,
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
     color: colors.text,
   },
@@ -777,30 +776,30 @@ const createStyles = (colors: any) => StyleSheet.create({
     backgroundColor: colors.backgroundSecondary,
     borderColor: colors.border,
     borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   changeGoalText: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
   },
   section: {
-    marginHorizontal: 16,
+    marginHorizontal: 12,
     backgroundColor: colors.card,
-    borderRadius: 14,
+    borderRadius: 12,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    minHeight: 56,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 44,
   },
   rowLabel: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     color: colors.text,
     flex: 1,
@@ -808,17 +807,17 @@ const createStyles = (colors: any) => StyleSheet.create({
   rowRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
   },
   rowValue: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     color: colors.text,
   },
   editIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
@@ -826,7 +825,7 @@ const createStyles = (colors: any) => StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border,
-    marginLeft: 16,
+    marginLeft: 12,
   },
   bottomSpacer: {
     height: 40,
@@ -840,46 +839,46 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   modalContent: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 14,
+    padding: 18,
     width: "100%",
-    maxWidth: 320,
+    maxWidth: 300,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 14,
   },
   pickerContainer: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 12,
-    marginBottom: 20,
+    borderRadius: 10,
+    marginBottom: 14,
     overflow: "hidden",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.backgroundSecondary,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 20,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 14,
   },
   input: {
     flex: 1,
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
-    paddingVertical: 14,
+    paddingVertical: 10,
     textAlign: "center",
   },
   inputUnit: {
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: "Inter_500Medium",
     color: colors.textSecondary,
-    marginLeft: 8,
+    marginLeft: 6,
     position: "absolute",
     right: 12,
     top: "50%",
@@ -887,47 +886,47 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   modalButtons: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   modalButtonCancel: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonCancelText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
     color: colors.textSecondary,
   },
   modalButtonCancelFull: {
-    marginTop: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
+    marginTop: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonSave: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonSaveText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    color: colors.buttonPrimaryText,
+    color: colors.textSecondary,
   },
   genderOption: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
     backgroundColor: colors.backgroundSecondary,
-    marginBottom: 10,
-    gap: 12,
+    marginBottom: 8,
+    gap: 10,
   },
   genderOptionSelected: {
     backgroundColor: colors.successSurface || "#E8F5E9",
@@ -935,11 +934,11 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderColor: colors.success || "#4CAF50",
   },
   genderEmoji: {
-    fontSize: 24,
+    fontSize: 20,
   },
   genderOptionText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Inter_500Medium",
     color: colors.text,
   },
@@ -949,10 +948,10 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   datePickerContainer: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 14,
+    padding: 16,
     width: "100%",
-    maxWidth: 320,
+    maxWidth: 300,
   },
   datePicker: {
     height: 180,
@@ -1011,4 +1010,5 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-  },});
+  },
+});

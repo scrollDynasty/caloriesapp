@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Dimensions,
     Platform,
@@ -24,6 +23,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import { RadioButton } from "../components/ui/RadioButton";
 import { useAppSettings } from "../context/AppSettingsContext";
 import { useTheme } from "../context/ThemeContext";
@@ -1173,7 +1173,7 @@ export default function NutritionGoalsScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.text} />
+          <LottieLoader size="large" />
         </View>
       </SafeAreaView>
     );
@@ -1193,7 +1193,7 @@ export default function NutritionGoalsScreen() {
           disabled={saving}
         >
           {saving ? (
-            <ActivityIndicator size="small" color={colors.text} />
+            <LottieLoader size="small" />
           ) : (
             <Text style={[styles.saveButtonText, { color: colors.accent }]}>Сохранить</Text>
           )}

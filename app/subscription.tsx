@@ -1,22 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  Dimensions,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-const isSmallScreen = SCREEN_WIDTH < 375;
-const isMediumScreen = SCREEN_WIDTH >= 375 && SCREEN_WIDTH < 414;
 
 type PlanType = {
   id: string;
@@ -54,14 +50,11 @@ const PLANS: { free: PlanType; premium: PlanType } = {
     priceDetail: "в месяц",
     priceValue: 30000,
     features: [
-      "Полный доступ к базе данных блюд",
-      "Расширенные рецепты с пошаговыми инструкциями",
-      "Детализированный анализ микронутриентов",
-      "Анализ сахара, натрия, клетчатки",
+      "Полный доступ к базе данных",
+      "Расширенные рецепты с инструкциями",
+      "Анализ микронутриентов",
       "Персонализированные планы питания",
       "Адаптация планов с помощью ИИ",
-      "Умный Онбординг",
-      "Поддержка сообщества",
       "Приоритетная поддержка",
     ],
     gradient: ["#FFFFF0", "#F5F5DC"],
@@ -72,6 +65,7 @@ const PLANS: { free: PlanType; premium: PlanType } = {
 
 export default function SubscriptionScreen() {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [selectedPlan] = useState<"premium">("premium");
 
   const handlePurchase = () => {
@@ -105,7 +99,7 @@ export default function SubscriptionScreen() {
             onPress={() => router.back()}
             style={[styles.backButton, { backgroundColor: colors.card }]}
           >
-            <Text style={[styles.backButtonText, { color: colors.text }]}>←</Text>
+            <Ionicons name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Выберите план</Text>
           <View style={styles.placeholder} />
@@ -114,7 +108,7 @@ export default function SubscriptionScreen() {
         {/* Title Section */}
         <View style={styles.titleSection}>
           <Text style={[styles.mainTitle, { color: colors.text }]}>
-            Разблокируйте Premium{"\n"}для достижения целей быстрее
+            Премиум для{"\n"}быстрых результатов
           </Text>
         </View>
 
@@ -169,7 +163,11 @@ export default function SubscriptionScreen() {
       </ScrollView>
 
       {/* Purchase Button */}
-      <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+      <View style={[styles.footer, { 
+        backgroundColor: colors.background, 
+        borderTopColor: colors.border,
+        paddingBottom: Math.max(insets.bottom, 10)
+      }]}>
         <TouchableOpacity
           onPress={handlePurchase}
           style={styles.purchaseButton}
@@ -199,135 +197,107 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingVertical: isSmallScreen ? 12 : 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   backButton: {
-    width: isSmallScreen ? 36 : 40,
-    height: isSmallScreen ? 36 : 40,
-    borderRadius: isSmallScreen ? 18 : 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
   },
   backButtonText: {
-    fontSize: isSmallScreen ? 22 : 24,
+    fontSize: 18,
     fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 20,
   },
   headerTitle: {
-    fontSize: isSmallScreen ? 16 : 18,
+    fontSize: 16,
     fontWeight: "600",
   },
   placeholder: {
-    width: isSmallScreen ? 36 : 40,
+    width: 36,
   },
   titleSection: {
-    paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingVertical: isSmallScreen ? 20 : 24,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     alignItems: "center",
   },
   mainTitle: {
-    fontSize: isSmallScreen ? 26 : isMediumScreen ? 30 : 32,
+    fontSize: 22,
     fontWeight: "700",
     textAlign: "center",
-    marginBottom: isSmallScreen ? 8 : 12,
-    lineHeight: isSmallScreen ? 32 : isMediumScreen ? 36 : 40,
-    paddingHorizontal: isSmallScreen ? 8 : 0,
+    lineHeight: 28,
   },
   subtitle: {
-    fontSize: isSmallScreen ? 14 : 16,
+    fontSize: 14,
     textAlign: "center",
-    lineHeight: isSmallScreen ? 20 : 22,
-    paddingHorizontal: isSmallScreen ? 12 : 0,
+    lineHeight: 20,
   },
   plansContainer: {
-    paddingHorizontal: isSmallScreen ? 16 : 20,
-    gap: isSmallScreen ? 12 : 16,
+    paddingHorizontal: 12,
+    gap: 10,
   },
   planCard: {
-    borderRadius: isSmallScreen ? 16 : 20,
-    padding: isSmallScreen ? 16 : 20,
+    borderRadius: 12,
+    padding: 14,
     borderWidth: 1.5,
-    marginBottom: isSmallScreen ? 10 : 12,
+    marginBottom: 8,
   },
   planCardSelected: {
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
     borderWidth: 0,
   },
   planHeaderContent: {
     flex: 1,
   },
-  popularBadge: {
-    position: "absolute",
-    top: isSmallScreen ? -10 : -12,
-    right: isSmallScreen ? 16 : 24,
-    backgroundColor: "#FFD60A",
-    paddingHorizontal: isSmallScreen ? 12 : 16,
-    paddingVertical: isSmallScreen ? 4 : 6,
-    borderRadius: isSmallScreen ? 10 : 12,
-  },
-  popularText: {
-    color: "#000000",
-    fontSize: isSmallScreen ? 10 : 12,
-    fontWeight: "700",
-    textTransform: "uppercase",
-  },
   planHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: isSmallScreen ? 18 : 24,
+    marginBottom: 12,
   },
   planName: {
-    fontSize: isSmallScreen ? 20 : isMediumScreen ? 22 : 24,
+    fontSize: 18,
     fontWeight: "700",
-    marginBottom: isSmallScreen ? 6 : 8,
+    marginBottom: 4,
   },
   priceContainer: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: isSmallScreen ? 4 : 6,
-    flexWrap: "wrap",
+    gap: 4,
   },
   planPrice: {
-    fontSize: isSmallScreen ? 24 : isMediumScreen ? 26 : 28,
+    fontSize: 20,
     fontWeight: "800",
   },
   priceDetail: {
-    fontSize: isSmallScreen ? 12 : 14,
+    fontSize: 12,
     fontWeight: "500",
   },
-  currentBadge: {
-    backgroundColor: "#34C759",
-    paddingHorizontal: isSmallScreen ? 10 : 12,
-    paddingVertical: isSmallScreen ? 4 : 6,
-    borderRadius: isSmallScreen ? 6 : 8,
-  },
-  currentText: {
-    color: "#FFFFFF",
-    fontSize: isSmallScreen ? 10 : 12,
-    fontWeight: "600",
-  },
   featuresContainer: {
-    gap: isSmallScreen ? 10 : 12,
+    gap: 8,
   },
   featureRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: isSmallScreen ? 10 : 12,
+    gap: 8,
   },
   checkmark: {
-    fontSize: isSmallScreen ? 16 : 18,
+    fontSize: 14,
     fontWeight: "700",
-    marginTop: isSmallScreen ? 1 : 2,
-    minWidth: isSmallScreen ? 16 : 18,
+    marginTop: 1,
+    minWidth: 14,
   },
   featureText: {
-    fontSize: isSmallScreen ? 13 : isMediumScreen ? 14 : 15,
-    lineHeight: isSmallScreen ? 20 : 22,
+    fontSize: 12,
+    lineHeight: 18,
     flex: 1,
     fontWeight: "500",
   },
@@ -336,39 +306,39 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingVertical: isSmallScreen ? 12 : 16,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderTopWidth: 1,
     ...Platform.select({
       ios: {
-        paddingBottom: isSmallScreen ? 20 : 24,
+        paddingBottom: 16,
       },
       android: {
-        paddingBottom: isSmallScreen ? 12 : 16,
+        paddingBottom: 10,
       },
     }),
   },
   purchaseButton: {
-    borderRadius: isSmallScreen ? 14 : 16,
+    borderRadius: 10,
     overflow: "hidden",
   },
   purchaseButtonContent: {
-    paddingVertical: isSmallScreen ? 16 : 18,
+    paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: isSmallScreen ? 14 : 16,
+    borderRadius: 10,
   },
   purchaseButtonText: {
-    fontSize: isSmallScreen ? 16 : isMediumScreen ? 17 : 18,
+    fontSize: 14,
     fontWeight: "700",
   },
   noPaymentContainer: {
-    paddingHorizontal: isSmallScreen ? 16 : 20,
-    paddingTop: isSmallScreen ? 16 : 20,
+    paddingHorizontal: 12,
+    paddingTop: 12,
     alignItems: "center",
   },
   noPaymentText: {
-    fontSize: isSmallScreen ? 13 : 14,
+    fontSize: 12,
     fontWeight: "500",
   },
 });

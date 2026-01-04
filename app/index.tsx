@@ -1,10 +1,11 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FoodImagePreview from "../components/features/FoodImagePreview";
 import TextContent from "../components/features/TextContent";
 import { PrimaryButton, SecondaryButton } from "../components/ui/Button";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { authService } from "../services/auth";
@@ -89,7 +90,7 @@ export default function Index() {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <LottieLoader size="large" />
         </View>
       </SafeAreaView>
     );

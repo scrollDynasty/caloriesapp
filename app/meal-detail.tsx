@@ -4,7 +4,6 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Dimensions,
     InteractionManager,
@@ -17,6 +16,7 @@ import {
     ViewToken
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import SnowOverlay from "../components/ui/SnowOverlay";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
@@ -362,7 +362,9 @@ function MealDetailScreen() {
           <View style={styles.healthScoreInfo}>
             <Text style={styles.healthScoreLabel}>Health Score</Text>
             {loadingDetail ? (
-              <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 6 }} />
+              <View style={{ marginTop: 6 }}>
+                <LottieLoader size="small" />
+              </View>
             ) : healthScore !== null ? (
               <View style={styles.healthScoreBar}>
                 <View style={[
@@ -403,7 +405,7 @@ function MealDetailScreen() {
           <Text style={styles.extraMacroIcon}>🍆</Text>
           <Text style={styles.extraMacroLabel}>Клетчатка</Text>
           {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+            <LottieLoader size="small" />
           ) : (
             <Text style={styles.extraMacroValue}>{extraMacros.fiber}g</Text>
           )}
@@ -412,7 +414,7 @@ function MealDetailScreen() {
           <Text style={styles.extraMacroIcon}>🍬</Text>
           <Text style={styles.extraMacroLabel}>Сахар</Text>
           {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+            <LottieLoader size="small" />
           ) : (
             <Text style={styles.extraMacroValue}>{extraMacros.sugar}g</Text>
           )}
@@ -421,7 +423,7 @@ function MealDetailScreen() {
           <Text style={styles.extraMacroIcon}>🧂</Text>
           <Text style={styles.extraMacroLabel}>Натрий</Text>
           {loadingDetail ? (
-            <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 4 }} />
+            <LottieLoader size="small" />
           ) : (
             <Text style={styles.extraMacroValue}>{extraMacros.sodium}mg</Text>
           )}
@@ -560,7 +562,7 @@ function MealDetailScreen() {
 
             {loadingDetail ? (
               <View style={styles.loadingIngredients}>
-                <ActivityIndicator size="small" color={colors.primary} />
+                <LottieLoader size="small" />
                 <Text style={styles.loadingText}>Анализ ингредиентов...</Text>
               </View>
             ) : ingredients.length > 0 ? (
@@ -612,7 +614,7 @@ function MealDetailScreen() {
               disabled={saving}
             >
               {saving ? (
-                <ActivityIndicator color="#FFFFF0" />
+                <LottieLoader size="small" />
               ) : (
                 <Text style={styles.doneButtonText}>Сохранить</Text>
               )}
@@ -633,7 +635,7 @@ function MealDetailScreen() {
 
       {deleting && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <LottieLoader size="large" />
         </View>
       )}
     </View>

@@ -4,7 +4,6 @@ import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
     Alert,
     Dimensions,
     InteractionManager,
@@ -27,6 +26,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LottieLoader } from "../../components/ui/LottieLoader";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { hapticLight, hapticMedium } from "../../utils/haptics";
@@ -1078,7 +1078,7 @@ function RecipesScreen() {
       <View style={styles.emptyContainer}>
         {isSearching ? (
           <>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <LottieLoader size="large" />
             <Text style={styles.emptyText}>Поиск...</Text>
           </>
         ) : searchQuery.trim().length >= 2 ? (
@@ -1242,7 +1242,7 @@ function RecipesScreen() {
                 activeOpacity={0.8}
               >
                 {generating ? (
-                  <ActivityIndicator color="#FFFFF0" />
+                  <LottieLoader size="small" />
                 ) : (
                   <>
                     <Ionicons name="sparkles" size={18} color="#FFFFF0" />
