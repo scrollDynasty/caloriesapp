@@ -3,20 +3,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeOut,
+    FadeIn,
+    FadeInDown,
+    FadeOut,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -414,11 +414,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
     paddingHorizontal: 20,
     marginBottom: 20,
-    lineHeight: 28,
+    lineHeight: 24,
   },
   section: {
     marginHorizontal: 16,

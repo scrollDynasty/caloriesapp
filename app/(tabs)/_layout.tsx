@@ -234,9 +234,9 @@ export default function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="recipes"
+          name="food-database"
           options={{
-            title: "Рецепты",
+            title: "База продуктов",
             tabBarIcon: ({ color, focused }) => (
               <Ionicons 
                 name={focused ? "restaurant" : "restaurant-outline"} 

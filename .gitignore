@@ -121,3 +121,4 @@ dist/
 expo-env.d.ts
 # @end expo-cli
 android/
+/FoodData

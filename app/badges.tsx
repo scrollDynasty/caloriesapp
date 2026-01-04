@@ -3,19 +3,19 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    Dimensions,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Animated, {
-  FadeInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSpring,
+    FadeInDown,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withSpring,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BadgeCelebration from "../components/ui/BadgeCelebration";
@@ -109,11 +109,6 @@ const BADGE_COLORS: Record<string, string> = {
   variety_50: "#FF7F54",
   cuisines_5: "#FF9800",
   cuisines_10: "#FFA726",
-  // Recipe
-  recipe_first: "#FF2D55",
-  recipe_5: "#FF3A5A",
-  recipe_10: "#FF4765",
-  recipe_25: "#FF5470",
   // Collector
   collector_5: "#FFC107",
   collector_10: "#FF9800",

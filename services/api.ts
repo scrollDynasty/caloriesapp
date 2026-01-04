@@ -2,9 +2,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { AxiosResponse } from "axios";
 import axios, {
-  AxiosError,
-  AxiosInstance,
-  InternalAxiosRequestConfig,
+    AxiosError,
+    AxiosInstance,
+    InternalAxiosRequestConfig,
 } from "axios";
 import { Platform } from "react-native";
 import { API_BASE_URL, API_ENDPOINTS } from "../constants/api";
@@ -1063,94 +1063,6 @@ class ApiService {
     return response.data;
   }
 
-  async generateRecipe(
-    prompt: string
-  ): Promise<{
-    recipe: {
-      id?: number;
-      name: string;
-      description: string;
-      image_url?: string;
-      meal_type?: string;
-      calories: number;
-      protein: number;
-      fat: number;
-      carbs: number;
-      time: number;
-      difficulty: string;
-      ingredients: string[];
-      instructions: string[];
-    };
-    meal_id: number;
-    added_to_diet: boolean;
-  }> {
-    const sanitizedPrompt = sanitizeString(prompt, 500);
-    
-    if (!sanitizedPrompt) {
-      throw new Error("Опишите желаемый рецепт");
-    }
-    
-    const response = await this.api.post("/api/v1/meals/recipes/generate", {
-      prompt: sanitizedPrompt,
-    });
-    
-    dataCache.invalidateDailyMeals(getLocalDateStr());
-    return response.data;
-  }
-
-  async getPopularRecipes(limit: number = 10): Promise<Array<{
-    id: number;
-    name: string;
-    description: string;
-    image_url: string;
-    calories: number;
-    protein: number;
-    fat: number;
-    carbs: number;
-    time: number;
-    difficulty: string;
-    meal_type: string;
-    ingredients: string[];
-    instructions: string[];
-    usage_count: number;
-  }>> {
-    const response = await this.api.get('/api/v1/meals/recipes/popular', {
-      params: { limit: Math.min(limit, 50) },
-    });
-    return response.data;
-  }
-
-  async searchRecipes(query: string): Promise<Array<{
-    id: number;
-    name: string;
-    description: string;
-    image_url: string;
-    calories: number;
-    protein: number;
-    fat: number;
-    carbs: number;
-    time: number;
-    difficulty: string;
-    meal_type: string;
-    ingredients: string[];
-    instructions: string[];
-    usage_count: number;
-  }>> {
-    const sanitizedQuery = sanitizeString(query, 100);
-    if (!sanitizedQuery || sanitizedQuery.length < 2) {
-      return [];
-    }
-    const response = await this.api.get('/api/v1/meals/recipes/search', {
-      params: { q: sanitizedQuery, limit: 50 },
-    });
-    return response.data;
-  }
-
-  async trackRecipeView(recipeId: number): Promise<{ success: boolean; usage_count: number }> {
-    const response = await this.api.post(`/api/v1/meals/recipes/${recipeId}/view`);
-    return response.data;
-  }
-
   async getBadges(): Promise<{
     badges: Array<{
       badge_id: string;
@@ -1213,6 +1125,66 @@ class ApiService {
     const response = await this.api.get(API_ENDPOINTS.BADGES_NEW);
     return response.data;
   }
-}
 
+  async searchFoods(query: string, limit: number = 50, source: string = "all"): Promise<{
+    query: string;
+    source: string;
+    count: number;
+    foods: Array<{
+      fdc_id: string;
+      name: string;
+      calories?: number;
+      protein?: number;
+      fat?: number;
+      carbs?: number;
+      portion?: string;
+      brand?: string;
+      source: string;
+    }>;
+  }> {
+    const sanitizedQuery = sanitizeString(query, 100);
+    if (!sanitizedQuery || sanitizedQuery.length < 1) {
+      return { query: "", source, count: 0, foods: [] };
+    }
+    const response = await this.api.get("/api/v1/foods/search", {
+      params: { q: sanitizedQuery, limit: Math.min(limit, 100), source },
+    });
+    return response.data;
+  }
+
+  async getFoods(offset: number = 0, limit: number = 50, source: string = "foundation"): Promise<{
+    total: number;
+    offset: number;
+    limit: number;
+    source: string;
+    count: number;
+    foods: Array<{
+      fdc_id: string;
+      name: string;
+      calories?: number;
+      protein?: number;
+      fat?: number;
+      carbs?: number;
+      portion?: string;
+      brand?: string;
+      source: string;
+    }>;
+  }> {
+    const response = await this.api.get("/api/v1/foods", {
+      params: { offset, limit: Math.min(limit, 100), source },
+    });
+    return response.data;
+  }
+
+  async getFoodSources(): Promise<{
+    sources: Array<{
+      id: string;
+      name: string;
+      description: string;
+    }>;
+  }> {
+    const response = await this.api.get("/api/v1/foods/sources");
+    return response.data;
+  }
+}
 export const apiService = new ApiService();

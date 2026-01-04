@@ -69,9 +69,6 @@ export default function AddManualScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Добавить вручную</Text>
-        <TouchableOpacity style={styles.headerButton} onPress={handleSave} disabled={saving}>
-          <Text style={[styles.saveText, saving && { opacity: 0.5 }]}>{saving ? "..." : "Сохранить"}</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 32 }}>
@@ -157,34 +154,34 @@ const createStyles = (colors: any, isDark: boolean) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: 20,
-      paddingVertical: 16,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
     headerButton: {
-      minWidth: 44,
-      height: 44,
+      minWidth: 40,
+      height: 40,
       alignItems: "center",
       justifyContent: "center",
     },
     headerTitle: {
-      fontSize: 18,
+      fontSize: 16,
       fontFamily: "Inter_600SemiBold",
       color: colors.text,
     },
     saveText: {
       color: colors.text,
       fontFamily: "Inter_600SemiBold",
-      fontSize: 15,
+      fontSize: 14,
     },
     content: {
       flex: 1,
-      paddingHorizontal: 20,
+      paddingHorizontal: 16,
     },
     card: {
       backgroundColor: colors.card,
-      borderRadius: 16,
-      padding: 16,
-      gap: 14,
+      borderRadius: 14,
+      padding: 12,
+      gap: 10,
       borderWidth: 1,
       borderColor: colors.border,
       shadowColor: "#000",
@@ -192,20 +189,20 @@ const createStyles = (colors: any, isDark: boolean) =>
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 4 },
       elevation: isDark ? 0 : 2,
-      marginTop: 12,
+      marginTop: 8,
     },
     label: {
-      fontSize: 14,
+      fontSize: 12,
       fontFamily: "Inter_500Medium",
       color: colors.textSecondary,
-      marginBottom: 6,
+      marginBottom: 4,
     },
     input: {
       backgroundColor: colors.backgroundSecondary,
-      borderRadius: 12,
-      paddingHorizontal: 12,
-      paddingVertical: 12,
-      fontSize: 15,
+      borderRadius: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      fontSize: 14,
       fontFamily: "Inter_500Medium",
       color: colors.text,
       borderWidth: 1,
@@ -213,29 +210,29 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     row: {
       flexDirection: "row",
-      gap: 12,
+      gap: 10,
     },
     col: {
       flex: 1,
     },
     errorText: {
       color: colors.error,
-      fontSize: 13,
+      fontSize: 12,
       fontFamily: "Inter_500Medium",
-      marginTop: 4,
+      marginTop: 2,
     },
     saveButton: {
       backgroundColor: isDark ? colors.backgroundSecondary : colors.primary,
-      borderRadius: 12,
-      paddingVertical: 14,
+      borderRadius: 10,
+      paddingVertical: 11,
       alignItems: "center",
-      marginTop: 8,
+      marginTop: 6,
       borderWidth: 1,
       borderColor: isDark ? colors.border : colors.primary,
     },
     saveButtonText: {
       color: isDark ? colors.text : colors.buttonPrimaryText,
-      fontSize: 16,
+      fontSize: 14,
       fontFamily: "Inter_600SemiBold",
     },
   });

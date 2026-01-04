@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.database import init_db, engine
-from app.api.v1 import auth, onboarding, meals, progress, press, badges
+from app.api.v1 import auth, onboarding, meals, progress, press, badges, foods
 from app.middleware.security import SecurityHeadersMiddleware, RequestValidationMiddleware, RateLimitMiddleware
 
 app = FastAPI(
@@ -53,6 +53,7 @@ app.include_router(meals.router, prefix="/api/v1")
 app.include_router(progress.router, prefix="/api/v1/progress", tags=["progress"])
 app.include_router(press.router, prefix="/api/v1", tags=["press"])
 app.include_router(badges.router, prefix="/api/v1/badges", tags=["badges"])
+app.include_router(foods.router, prefix="/api/v1", tags=["foods"])
 
 @app.on_event("startup")
 async def startup_event():

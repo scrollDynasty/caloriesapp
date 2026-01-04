@@ -348,7 +348,7 @@ export default function SettingsScreen() {
 
         <SectionHeader title="Поддержка и юридическая информация" />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <MenuItem icon="mail-outline" title="Написать в поддержку" />
+          <MenuItem icon="mail-outline" title="Написать в поддержку" onPress={() => openLink("https://yeb-ich.com/press/")} />
           <MenuItem icon="document-text-outline" title="Условия использования" onPress={() => openLink("https://yeb-ich.com/terms/")} />
           <MenuItem icon="shield-checkmark-outline" title="Политика конфиденциальности" onPress={() => openLink("https://yeb-ich.com/privacy/")} isLast />
         </View>
