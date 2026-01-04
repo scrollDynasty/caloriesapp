@@ -4,10 +4,10 @@ import { useRouter } from "expo-router";
 import { memo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withSpring,
+    useAnimatedStyle,
+    useSharedValue,
+    withSequence,
+    withSpring,
 } from "react-native-reanimated";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticLight } from "../../utils/haptics";
@@ -78,37 +78,37 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 22,
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 8,
   },
   headerTitle: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
   },
   logoContainer: {
-    width: 50,
-    height: 50,
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
   },
   appName: {
-    fontSize: 24,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
   },
   streakBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 22,
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 18,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
@@ -116,8 +116,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   streakText: {
-    fontSize: 15,
+    fontSize: 12,
     fontFamily: "Inter_700Bold",
-    letterSpacing: -0.2,
+    letterSpacing: -0.1,
   },
 });

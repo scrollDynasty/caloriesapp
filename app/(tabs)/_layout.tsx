@@ -71,8 +71,8 @@ export default function TabsLayout() {
   const router = useRouter();
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const { colors, isDark } = useTheme();
-  const [fabExpanded, setFabExpanded] = useState(false);
-  const fabAnimation = useRef(new Animated.Value(0)).current;
+  const [modalVisible, setModalVisible] = useState(false);
+  const modalAnimation = useRef(new Animated.Value(0)).current;
   const tabBarBottom = Math.max(insets.bottom, 12);
   const { showSplash } = useSplash();
 
@@ -98,9 +98,9 @@ export default function TabsLayout() {
 
   const toggleFab = () => {
     hapticMedium();
-    const toValue = fabExpanded ? 0 : 1;
-    setFabExpanded(!fabExpanded);
-    Animated.spring(fabAnimation, {
+    const toValue = modalVisible ? 0 : 1;
+    setModalVisible(!modalVisible);
+    Animated.spring(modalAnimation, {
       toValue,
       useNativeDriver: true,
       tension: 50,
@@ -110,18 +110,18 @@ export default function TabsLayout() {
 
   const handleScanFood = () => {
     hapticMedium();
-    setFabExpanded(false);
-    Animated.spring(fabAnimation, {
+    setModalVisible(false);
+    Animated.spring(modalAnimation, {
       toValue: 0,
       useNativeDriver: true,
     }).start();
-    router.push("/scan-meal");
+    router.push({ pathname: "/scan-meal", params: { mode: "photo" } } as any);
   };
 
   const handleAddManually = () => {
     hapticMedium();
-    setFabExpanded(false);
-    Animated.spring(fabAnimation, {
+    setModalVisible(false);
+    Animated.spring(modalAnimation, {
       toValue: 0,
       useNativeDriver: true,
     }).start();
@@ -130,40 +130,50 @@ export default function TabsLayout() {
 
   const handleAddWater = () => {
     hapticMedium();
-    setFabExpanded(false);
-    Animated.spring(fabAnimation, {
+    setModalVisible(false);
+    Animated.spring(modalAnimation, {
       toValue: 0,
       useNativeDriver: true,
     }).start();
     router.push("/add-water");
   };
 
-  const button1TranslateY = fabAnimation.interpolate({
+  const handleAddBarcode = () => {
+    hapticMedium();
+    setModalVisible(false);
+    Animated.spring(modalAnimation, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start();
+    router.push({ pathname: "/scan-meal", params: { mode: "barcode" } } as any);
+  };
+
+  const button1TranslateY = modalAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -70],
+    outputRange: [50, 0],
   });
 
-  const button2TranslateY = fabAnimation.interpolate({
+  const button2TranslateY = modalAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -140],
+    outputRange: [50, 0],
   });
 
-  const button3TranslateY = fabAnimation.interpolate({
+  const button3TranslateY = modalAnimation.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -210],
+    outputRange: [50, 0],
   });
 
-  const blurOpacity = fabAnimation.interpolate({
+  const button4TranslateY = modalAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [50, 0],
+  });
+
+  const modalOpacity = modalAnimation.interpolate({
     inputRange: [0, 0.3, 1],
     outputRange: [0, 0, 1],
   });
 
-  const buttonOpacity = fabAnimation.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: [0, 0, 1],
-  });
-
-  const fabRotation = fabAnimation.interpolate({
+  const fabRotation = modalAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '45deg'],
   });
@@ -264,101 +274,78 @@ export default function TabsLayout() {
         />
       </Tabs>
 
-      {}
-      {fabExpanded && (
-        <TouchableOpacity
-          style={styles.blurBackdrop}
-          activeOpacity={1}
-          onPress={toggleFab}
-        >
+      {/* Modal Overlay */}
+      {modalVisible && (
+        <View style={styles.modalBackdrop}>
+          <BlurView intensity={95} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
           <Animated.View
             style={[
-              styles.blurContainer,
-              { opacity: blurOpacity },
+              styles.blurOverlay,
+              { opacity: modalOpacity },
             ]}
-          >
-            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
-          </Animated.View>
-        </TouchableOpacity>
+          />
+          <TouchableOpacity
+            style={StyleSheet.absoluteFill}
+            activeOpacity={1}
+            onPress={toggleFab}
+          />
+        </View>
       )}
 
-      {}
-      <Animated.View
-        style={[
-          styles.fabSubButtonContainer,
-          {
-            right: MARGIN,
-            bottom: tabBarBottom + FAB_SIZE + 8,
-            opacity: buttonOpacity,
-            transform: [{ translateY: button1TranslateY }],
-          },
-        ]}
-      >
-        <TouchableOpacity 
-          style={styles.fabSubButtonRow}
-          onPress={handleScanFood}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.fabSubButtonTextContainer, { backgroundColor: colors.card }]}>
-            <Text style={[styles.fabSubButtonText, { color: colors.primary }]}>Сканировать еду</Text>
-          </View>
-          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: colors.card }]}>
-            <Ionicons name="scan-outline" size={22} color={colors.primary} />
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+      {modalVisible && (
+        <Animated.View style={[styles.modalContent, { opacity: modalOpacity }]}>
+          <View style={styles.buttonGrid}>
+            <Animated.View style={[styles.gridButton, { transform: [{ translateY: button1TranslateY }] }]}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: colors.card }]}
+                onPress={handleScanFood}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="camera-outline" size={28} color={colors.primary} />
+                <Text style={[styles.actionButtonLabel, { color: colors.text }]}>Сканировать</Text>
+              </TouchableOpacity>
+            </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.fabSubButtonContainer,
-          {
-            right: MARGIN,
-            bottom: tabBarBottom + FAB_SIZE + 8,
-            opacity: buttonOpacity,
-            transform: [{ translateY: button2TranslateY }],
-          },
-        ]}
-      >
-        <TouchableOpacity 
-          style={styles.fabSubButtonRow}
-          onPress={handleAddManually}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.fabSubButtonTextContainer, { backgroundColor: colors.card }]}>
-            <Text style={[styles.fabSubButtonText, { color: colors.primary }]}>Добавить вручную</Text>
-          </View>
-          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: colors.card }]}>
-            <Ionicons name="create-outline" size={22} color={colors.primary} />
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+            {/* Add Manually Button */}
+            <Animated.View style={[styles.gridButton, { transform: [{ translateY: button2TranslateY }] }]}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: colors.card }]}
+                onPress={handleAddManually}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="create-outline" size={28} color={colors.primary} />
+                <Text style={[styles.actionButtonLabel, { color: colors.text }]}>Вручную</Text>
+              </TouchableOpacity>
+            </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.fabSubButtonContainer,
-          {
-            right: MARGIN,
-            bottom: tabBarBottom + FAB_SIZE + 8,
-            opacity: buttonOpacity,
-            transform: [{ translateY: button3TranslateY }],
-          },
-        ]}
-      >
-        <TouchableOpacity 
-          style={styles.fabSubButtonRow}
-          onPress={handleAddWater}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.fabSubButtonTextContainer, { backgroundColor: colors.card }]}>
-            <Text style={[styles.fabSubButtonText, { color: colors.primary }]}>Вода</Text>
-          </View>
-          <View style={[styles.fabSubButtonIconContainer, { backgroundColor: isDark ? '#1E3A5F' : '#E8F4FD' }]}>
-            <Ionicons name="water" size={22} color="#1E90FF" />
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+            {/* Add Barcode Button */}
+            <Animated.View style={[styles.gridButton, { transform: [{ translateY: button3TranslateY }] }]}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: colors.card }]}
+                onPress={handleAddBarcode}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="barcode-outline" size={28} color={colors.primary} />
+                <Text style={[styles.actionButtonLabel, { color: colors.text }]}>Штрихкод</Text>
+              </TouchableOpacity>
+            </Animated.View>
 
-      {}
+            {/* Add Water Button */}
+            <Animated.View style={[styles.gridButton, { transform: [{ translateY: button4TranslateY }] }]}>
+              <TouchableOpacity
+                style={[styles.actionButton, { backgroundColor: isDark ? '#1E3A5F' : '#E8F4FD' }]}
+                onPress={handleAddWater}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="water" size={28} color="#1E90FF" />
+                <Text style={[styles.actionButtonLabel, { color: '#1E90FF' }]}>Вода</Text>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* FAB Button */}
       <TouchableOpacity 
         style={[
           styles.fab, 
@@ -401,12 +388,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  blurBackdrop: {
+  modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 8,
   },
-  blurContainer: {
+  blurOverlay: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+  },
+  modalContent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    pointerEvents: 'box-none',
+  },
+  buttonGrid: {
+    width: '100%',
+    maxWidth: 360,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 32,
+  },
+  gridButton: {
+    width: '45%',
+    pointerEvents: 'auto',
+  },
+  actionButton: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  actionButtonLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: -0.2,
   },
   fab: {
     position: "absolute",

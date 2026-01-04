@@ -795,12 +795,12 @@ const styles = StyleSheet.create({
     paddingBottom: 140, 
   },
   section: {
-    gap: 12,
-    paddingHorizontal: 20,
-    marginTop: 12,
+    gap: 10,
+    paddingHorizontal: 16,
+    marginTop: 10,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontFamily: "Inter_700Bold",
   },
 });

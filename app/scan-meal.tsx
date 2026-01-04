@@ -2,16 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Alert,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Alert,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { LottieLoader } from "../components/ui/LottieLoader";
 import { useProcessingMeals } from "../context/ProcessingMealsContext";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
@@ -21,6 +22,7 @@ import { apiService } from "../services/api";
 export default function ScanMealScreen() {
   const fontsLoaded = useFonts();
   const router = useRouter();
+  const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const { addProcessingMeal } = useProcessingMeals();
@@ -31,7 +33,7 @@ export default function ScanMealScreen() {
   const [scanned, setScanned] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(true);
-  const [cameraMode, setCameraMode] = useState<"photo" | "barcode">("photo");
+  const [cameraMode, setCameraMode] = useState<"photo" | "barcode">((params.mode as "photo" | "barcode") || "photo");
   const [barcodeResult, setBarcodeResult] = useState<BarcodeLookup | null>(null);
   const [barcodeLoading, setBarcodeLoading] = useState(false);
   const [barcodeError, setBarcodeError] = useState<string | null>(null);
@@ -349,133 +351,83 @@ export default function ScanMealScreen() {
                 : undefined
             }
           />
-          <View style={styles.scanArea} pointerEvents="none">
-            <View style={[styles.corner, styles.cornerTopLeft]} />
-            <View style={[styles.corner, styles.cornerTopRight]} />
-            <View style={[styles.corner, styles.cornerBottomLeft]} />
-            <View style={[styles.corner, styles.cornerBottomRight]} />
-          </View>
 
-          <View style={styles.instructionContainer} pointerEvents="none">
-            {cameraMode === "photo" ? (
-              <View style={styles.instructionButton}>
-                <Ionicons
-                  name="scan-outline"
-                  size={20}
-                  color="#FFFFF0"
-                  style={styles.instructionIcon}
-                />
-                <Text style={styles.instructionText}>Center your food</Text>
+          {cameraMode === "photo" && (
+            <View style={styles.scanArea} pointerEvents="none">
+              <View style={[styles.corner, styles.cornerTopLeft]} />
+              <View style={[styles.corner, styles.cornerTopRight]} />
+              <View style={[styles.corner, styles.cornerBottomLeft]} />
+              <View style={[styles.corner, styles.cornerBottomRight]} />
+            </View>
+          )}
+
+          {cameraMode === "barcode" && (
+            <View style={styles.barcodeIndicator} pointerEvents="none">
+              <View style={styles.barcodeCircle}>
+                <Ionicons name="barcode-outline" size={40} color="#FFFFF0" />
               </View>
-            ) : (
-              <View style={styles.instructionButton}>
-                <Ionicons
-                  name="barcode-outline"
-                  size={20}
-                  color="#FFFFF0"
-                  style={styles.instructionIcon}
-                />
-                <Text style={styles.instructionText}>Наведи на штрихкод</Text>
-              </View>
-            )}
-          </View>
+            </View>
+          )}
         </View>
       </View>
 
       <View style={styles.controls}>
         <TouchableOpacity
-          style={[styles.controlButton, cameraMode === "barcode" && styles.controlDisabled]}
-          onPress={handleGalleryPress}
-          disabled={cameraMode === "barcode"}
+          style={styles.shutterButton}
+          onPress={handleTakePicture}
         >
-          <View style={styles.galleryThumbnail}>
-            <Ionicons name="images-outline" size={24} color={colors.text} />
-          </View>
-        </TouchableOpacity>
-
-        {cameraMode === "photo" ? (
-          <TouchableOpacity
-            style={styles.shutterButton}
-            onPress={handleTakePicture}
-          >
-            <View style={styles.shutterButtonOuter}>
-              <View style={styles.shutterButtonInner} />
-            </View>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.barcodeModeBadge}>
-            <LottieLoader size="small" />
-            <Text style={styles.barcodeModeText}>Сканер штрихкода</Text>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={handleBarcodePress}
-        >
-          <View style={styles.barcodeIcon}>
-            <Ionicons
-              name={cameraMode === "barcode" ? "camera" : "barcode-outline"}
-              size={24}
-              color={colors.text}
-            />
+          <View style={styles.shutterButtonOuter}>
+            <View style={styles.shutterButtonInner} />
           </View>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.barcodePanel}>
-        <View style={styles.barcodeHeader}>
-          <Text style={styles.barcodeTitle}>Штрихкод</Text>
-          {scannedBarcode ? (
-            <Text style={styles.barcodeValue}>{scannedBarcode}</Text>
-          ) : (
-            <Text style={styles.barcodeHint}>Наведите камеру на штрихкод товара</Text>
+      {cameraMode === "barcode" && (
+        <View style={styles.barcodePanel}>
+          {barcodeLoading && (
+            <View style={styles.barcodeRow}>
+              <LottieLoader size="small" />
+              <Text style={styles.barcodeStatus}>Ищем продукт...</Text>
+            </View>
           )}
-        </View>
 
-        {barcodeLoading && (
-          <View style={styles.barcodeRow}>
-            <LottieLoader size="small" />
-            <Text style={styles.barcodeStatus}>Ищем продукт...</Text>
-          </View>
-        )}
-
-        {barcodeError ? (
-          <View style={styles.barcodeRow}>
-            <Ionicons name="alert-circle" size={18} color={colors.error} />
-            <Text style={[styles.barcodeStatus, { color: colors.error }]}>{barcodeError}</Text>
-            <TouchableOpacity style={styles.rescanButton} onPress={handleResetBarcode}>
-              <Text style={styles.rescanText}>Сканировать снова</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-
-        {barcodeResult ? (
-          <View style={styles.barcodeResultCard}>
-            <Text style={styles.productName}>{barcodeResult.name}</Text>
-            {barcodeResult.brand ? (
-              <Text style={styles.productBrand}>{barcodeResult.brand}</Text>
-            ) : null}
-            <View style={styles.macrosRowInline}>
-              <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Ккал</Text><Text style={styles.macroPillValue}>{barcodeResult.calories ?? 0}</Text></View>
-              <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Белки</Text><Text style={styles.macroPillValue}>{barcodeResult.protein ?? 0}</Text></View>
-              <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Жиры</Text><Text style={styles.macroPillValue}>{barcodeResult.fat ?? 0}</Text></View>
-              <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Углев.</Text><Text style={styles.macroPillValue}>{barcodeResult.carbs ?? 0}</Text></View>
+          {barcodeError ? (
+            <View style={styles.barcodeRow}>
+              <Ionicons name="alert-circle" size={18} color={colors.error} />
+              <Text style={[styles.barcodeStatus, { color: colors.error }]}>{barcodeError}</Text>
+              <TouchableOpacity style={styles.rescanButton} onPress={handleResetBarcode}>
+                <Text style={styles.rescanText}>Сканировать снова</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={[styles.saveBarcodeButton, savingBarcodeMeal && { opacity: 0.7 }]}
-              onPress={handleCreateMealFromBarcode}
-              disabled={savingBarcodeMeal}
-            >
-              {savingBarcodeMeal ? (
-                <LottieLoader size="small" />
-              ) : (
-                <Text style={styles.saveBarcodeText}>Добавить в дневник</Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        ) : null}
-      </View>
+          ) : null}
+
+          {barcodeResult ? (
+            <View style={styles.barcodeResultCard}>
+              <Text style={styles.productName}>{barcodeResult.name}</Text>
+              {barcodeResult.brand ? (
+                <Text style={styles.productBrand}>{barcodeResult.brand}</Text>
+              ) : null}
+              <View style={styles.macrosRowInline}>
+                <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Ккал</Text><Text style={styles.macroPillValue}>{barcodeResult.calories ?? 0}</Text></View>
+                <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Белки</Text><Text style={styles.macroPillValue}>{barcodeResult.protein ?? 0}</Text></View>
+                <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Жиры</Text><Text style={styles.macroPillValue}>{barcodeResult.fat ?? 0}</Text></View>
+                <View style={styles.macroPill}><Text style={styles.macroPillLabel}>Углев.</Text><Text style={styles.macroPillValue}>{barcodeResult.carbs ?? 0}</Text></View>
+              </View>
+              <TouchableOpacity
+                style={[styles.saveBarcodeButton, savingBarcodeMeal && { opacity: 0.7 }]}
+                onPress={handleCreateMealFromBarcode}
+                disabled={savingBarcodeMeal}
+              >
+                {savingBarcodeMeal ? (
+                  <LottieLoader size="small" />
+                ) : (
+                  <Text style={styles.saveBarcodeText}>Добавить в дневник</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -488,16 +440,17 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
     cameraWrapper: {
       flex: 1,
       position: "relative",
-      paddingTop: insetTop + 6,
-      paddingHorizontal: 12,
-      paddingBottom: 12,
+      paddingTop: insetTop + 8,
+      paddingHorizontal: 0,
+      paddingBottom: 0,
+      backgroundColor: "#000",
     },
     headerFloating: {
       position: "absolute",
-      top: insetTop + 6,
-      left: 20,
-      right: 20,
-      zIndex: 5,
+      top: insetTop + 8,
+      left: 16,
+      right: 16,
+      zIndex: 10,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -509,25 +462,25 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       justifyContent: "center",
     },
     headerButtonCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: colors.backgroundSecondary,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: "#FFFFFF",
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.border,
+      borderWidth: 0,
+      borderColor: "transparent",
     },
     headerTitle: {
-      fontSize: 18,
+      fontSize: 16,
       fontFamily: "Inter_600SemiBold",
-      color: colors.text,
+      color: "#FFFFFF",
     },
     cameraContainer: {
       flex: 1,
-      borderRadius: 18,
+      borderRadius: 0,
       overflow: "hidden",
-      backgroundColor: "#FFFFF0",
+      backgroundColor: "#000000",
       position: "relative",
     },
     camera: {
@@ -535,18 +488,18 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
     },
     scanArea: {
       position: "absolute",
-      top: 40,
+      top: 60,
       left: 40,
       right: 40,
-      bottom: 40,
-      zIndex: 1,
+      bottom: 100,
+      zIndex: 2,
     },
     corner: {
       position: "absolute",
-      width: 40,
-      height: 40,
-      borderColor: "#FFFFF0",
-      borderWidth: 3,
+      width: 32,
+      height: 32,
+      borderColor: "#FFFFFF",
+      borderWidth: 2,
     },
     cornerTopLeft: {
       top: 0,
@@ -574,36 +527,60 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
     },
     instructionContainer: {
       position: "absolute",
-      bottom: 28,
+      bottom: 40,
       left: 0,
       right: 0,
       alignItems: "center",
-      zIndex: 1,
+      zIndex: 2,
+    },
+    barcodeIndicator: {
+      position: "absolute",
+      bottom: 100,
+      left: 0,
+      right: 0,
+      alignItems: "center",
+      zIndex: 2,
+    },
+    barcodeCircle: {
+      width: 120,
+      height: 120,
+      borderRadius: 60,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 3,
+      borderColor: "rgba(255, 255, 240, 0.6)",
     },
     instructionButton: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.65)",
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
       paddingHorizontal: 16,
       paddingVertical: 10,
       borderRadius: 20,
       gap: 8,
     },
     instructionIcon: {
-      marginRight: 4,
+      marginRight: 2,
     },
     instructionText: {
-      color: "#FFFFF0",
-      fontSize: 14,
+      color: "#FFFFFF",
+      fontSize: 13,
       fontFamily: "Inter_500Medium",
     },
     controls: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: 28,
-      paddingVertical: 18,
-      backgroundColor: colors.background,
+      justifyContent: "center",
+      paddingHorizontal: 0,
+      paddingVertical: 8,
+      paddingBottom: 50,
+      backgroundColor: "transparent",
+      gap: 0,
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
     },
     controlButton: {
       width: 56,
@@ -612,67 +589,67 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       justifyContent: "center",
     },
     controlDisabled: {
-      opacity: 0.45,
+      opacity: 0.35,
     },
     galleryThumbnail: {
-      width: 48,
-      height: 48,
+      width: 52,
+      height: 52,
       borderRadius: 12,
       backgroundColor: colors.backgroundSecondary,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.border,
+      borderWidth: 0,
+      borderColor: "transparent",
     },
     shutterButton: {
-      width: 80,
-      height: 80,
+      width: 76,
+      height: 76,
       alignItems: "center",
       justifyContent: "center",
     },
     shutterButtonOuter: {
-      width: 72,
-      height: 72,
-      borderRadius: 36,
-      borderWidth: 6,
-      borderColor: colors.border,
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      borderWidth: 4,
+      borderColor: "#FFFFFF",
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.background,
+      backgroundColor: "rgba(0, 0, 0, 0.3)",
     },
     shutterButtonInner: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: colors.primary,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: "#FFFFFF",
     },
     barcodeModeBadge: {
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-      borderRadius: 14,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 12,
       backgroundColor: colors.backgroundSecondary,
-      borderWidth: 1,
-      borderColor: colors.border,
+      borderWidth: 0,
+      borderColor: "transparent",
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
-      minWidth: 160,
+      gap: 6,
+      minWidth: 140,
       justifyContent: "center",
     },
     barcodeModeText: {
       color: colors.text,
-      fontSize: 14,
+      fontSize: 12,
       fontFamily: "Inter_600SemiBold",
     },
     barcodeIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+      width: 52,
+      height: 52,
+      borderRadius: 26,
       backgroundColor: colors.backgroundSecondary,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth: 1,
-      borderColor: colors.border,
+      borderWidth: 0,
+      borderColor: "transparent",
     },
     permissionContainer: {
       flex: 1,
@@ -681,7 +658,7 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       paddingHorizontal: 32,
     },
     permissionText: {
-      fontSize: 16,
+      fontSize: 15,
       fontFamily: "Inter_400Regular",
       color: colors.text,
       textAlign: "center",
@@ -689,123 +666,133 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
     },
     permissionButton: {
       backgroundColor: colors.primary,
-      paddingHorizontal: 32,
-      paddingVertical: 16,
-      borderRadius: 12,
+      paddingHorizontal: 28,
+      paddingVertical: 12,
+      borderRadius: 10,
     },
     permissionButtonText: {
       color: colors.buttonPrimaryText,
-      fontSize: 16,
+      fontSize: 14,
       fontFamily: "Inter_600SemiBold",
     },
     loadingText: {
-      marginTop: 16,
-      fontSize: 16,
+      marginTop: 12,
+      fontSize: 14,
       fontFamily: "Inter_400Regular",
       color: colors.text,
     },
     barcodePanel: {
-      paddingHorizontal: 20,
-      paddingBottom: 18,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      paddingBottom: 12,
       backgroundColor: colors.background,
-      gap: 10,
+      gap: 6,
     },
     barcodeHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      justifyContent: "flex-start",
+      gap: 3,
     },
     barcodeTitle: {
-      fontSize: 16,
+      fontSize: 13,
       fontFamily: "Inter_700Bold",
       color: colors.text,
     },
     barcodeValue: {
-      fontSize: 14,
+      fontSize: 11,
       fontFamily: "Inter_600SemiBold",
-      color: colors.textSecondary,
+      color: colors.primary,
     },
     barcodeHint: {
-      fontSize: 14,
-      fontFamily: "Inter_500Medium",
+      fontSize: 11,
+      fontFamily: "Inter_400Regular",
       color: colors.textSecondary,
     },
     barcodeRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
+      gap: 6,
+      paddingTop: 2,
     },
     barcodeStatus: {
-      fontSize: 14,
+      fontSize: 11,
       fontFamily: "Inter_500Medium",
       color: colors.text,
+      flex: 1,
     },
     rescanButton: {
       marginLeft: "auto",
+      paddingHorizontal: 8,
     },
     rescanText: {
       color: colors.primary,
-      fontSize: 14,
+      fontSize: 10,
       fontFamily: "Inter_600SemiBold",
     },
     barcodeResultCard: {
       backgroundColor: colors.card,
-      borderRadius: 14,
-      padding: 14,
-      borderWidth: 1,
-      borderColor: colors.border,
-      gap: 10,
+      borderRadius: 10,
+      padding: 10,
+      borderWidth: 0,
+      borderColor: "transparent",
+      gap: 6,
       shadowColor: "#000",
-      shadowOpacity: isDark ? 0 : 0.05,
-      shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 },
-      elevation: isDark ? 0 : 2,
+      shadowOpacity: isDark ? 0 : 0.02,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 1 },
+      elevation: isDark ? 0 : 1,
+      marginTop: 2,
     },
     productName: {
-      fontSize: 16,
+      fontSize: 13,
       fontFamily: "Inter_700Bold",
       color: colors.text,
     },
     productBrand: {
-      fontSize: 13,
+      fontSize: 10,
       fontFamily: "Inter_500Medium",
       color: colors.textSecondary,
+      marginTop: -2,
     },
     macrosRowInline: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 8,
+      gap: 4,
       flexWrap: "wrap",
+      marginTop: 3,
     },
     macroPill: {
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      borderRadius: 10,
+      paddingHorizontal: 7,
+      paddingVertical: 5,
+      borderRadius: 6,
       backgroundColor: colors.backgroundSecondary,
-      borderWidth: 1,
-      borderColor: colors.border,
-      minWidth: 72,
+      borderWidth: 0,
+      borderColor: "transparent",
+      minWidth: 54,
+      alignItems: "center",
     },
     macroPillLabel: {
-      fontSize: 12,
+      fontSize: 9,
       fontFamily: "Inter_500Medium",
       color: colors.textSecondary,
     },
     macroPillValue: {
-      marginTop: 4,
-      fontSize: 15,
+      marginTop: 1,
+      fontSize: 11,
       fontFamily: "Inter_700Bold",
       color: colors.text,
     },
     saveBarcodeButton: {
       backgroundColor: colors.primary,
-      borderRadius: 12,
-      paddingVertical: 12,
+      borderRadius: 8,
+      paddingVertical: 9,
       alignItems: "center",
+      marginTop: 3,
     },
     saveBarcodeText: {
       color: colors.buttonPrimaryText,
-      fontSize: 15,
+      fontSize: 12,
       fontFamily: "Inter_700Bold",
     },
   });

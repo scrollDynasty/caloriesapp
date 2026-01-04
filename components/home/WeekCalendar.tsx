@@ -207,11 +207,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     width: 44,
-    paddingVertical: 8,
-    borderRadius: 18,
+    paddingVertical: 6,
+    borderRadius: 14,
   },
   calendarDaySelected: {
-    width: 56,
+    width: 48,
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 14,
@@ -219,9 +219,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   calendarDayName: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: "Inter_600SemiBold",
-    letterSpacing: -0.1,
+    letterSpacing: -0.05,
   },
   calendarDayNameActive: {
     fontFamily: "Inter_700Bold",
@@ -239,13 +239,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   calendarDateText: {
-    fontSize: 15,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
-    letterSpacing: -0.2,
+    letterSpacing: -0.1,
   },
   calendarDateTextActive: {
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: "Inter_700Bold",
-    letterSpacing: -0.3,
+    letterSpacing: -0.15,
   },
 });
