@@ -2,8 +2,11 @@
  * Food Storage Service - загружает CSV данные с backend сервера
  */
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Papa from "papaparse";
 import { API_BASE_URL } from "../constants/api";
+
+const TOKEN_KEY = "@yebich:auth_token";
 
 interface FoodItem {
   fdc_id: string;
@@ -42,6 +45,11 @@ class FoodStorageService {
     // Создаем промис загрузки
     const promise = (async () => {
       try {
+        const token = await AsyncStorage.getItem(TOKEN_KEY);
+        if (!token) {
+          throw new Error('Токен авторизации не найден');
+        }
+
         const url = `${API_BASE_URL}/api/v1/foods/csv/${fileName}`;
         console.log(`📥 Загружаем CSV: ${fileName}`);
         
@@ -50,6 +58,7 @@ class FoodStorageService {
           headers: {
             'Accept': 'text/csv',
             'Content-Type': 'text/csv',
+            'Authorization': `Bearer ${token}`,
           },
         });
         

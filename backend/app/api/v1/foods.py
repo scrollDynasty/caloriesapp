@@ -10,8 +10,8 @@ router = APIRouter()
 
 # Путь к папке с CSV файлами: backend/fooddata/
 # файл находится в: backend/app/api/v1/foods.py
-# поднимаемся на 4 уровня: v1 -> api -> app -> backend -> fooddata
-FOODDATA_PATH = os.path.join(os.path.dirname(__file__), '../../../../fooddata')
+# поднимаемся на 3 уровня: v1 -> api -> app -> backend, затем fooddata
+FOODDATA_PATH = os.path.join(os.path.dirname(__file__), '../../../fooddata')
 
 
 @router.get("/foods/csv/{filename}")
@@ -92,6 +92,7 @@ async def search_foods(
 
 
 @router.get("/foods")
+@router.get("/foods")
 async def get_foods(
     offset: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
@@ -108,17 +109,14 @@ async def get_foods(
     - source: источник данных (foundation, branded, survey)
     """
     try:
-        foods = food_db_service.get_by_source(source, limit=limit + offset)
-        total = len(foods)
-        paginated_foods = foods[offset:offset + limit]
-        
+        # TODO: Реализовать через CSV файлы
         return {
-            "total": total,
+            "total": 0,
             "offset": offset,
             "limit": limit,
             "source": source,
-            "count": len(paginated_foods),
-            "foods": paginated_foods,
+            "count": 0,
+            "foods": [],
         }
     except Exception as e:
         raise HTTPException(
