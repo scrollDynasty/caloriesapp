@@ -77,7 +77,7 @@ def build_food_response(food: Food, nutrients_dict: dict, branded_info: Optional
 
 @router.get("/foods/search", response_model=FoodSearchResponse)
 async def search_foods(
-    q: str = Query(..., min_length=2, max_length=100, description="Поисковый запрос"),
+    q: str = Query(..., min_length=1, max_length=100, description="Поисковый запрос"),
     limit: int = Query(50, ge=1, le=100, description="Количество результатов"),
     offset: int = Query(0, ge=0, description="Смещение для пагинации"),
     source: str = Query("all", regex="^(all|foundation|branded|survey)$", description="Источник данных"),
