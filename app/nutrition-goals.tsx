@@ -1287,7 +1287,7 @@ export default function NutritionGoalsScreen() {
           iconName="fitness"
           label="Цель по белку"
           value={goals.protein}
-          progressColor={isDark ? "#FFFFFF" : "#000000"}
+          progressColor={isDark ? "#FF6B9D" : "#FF6B9D"}
           iconColor={iconColorBase}
           onPress={() => handleEditGoal("protein", "Белки", "г")}
           colors={colors}
@@ -1309,7 +1309,7 @@ export default function NutritionGoalsScreen() {
           iconName="water"
           label="Цель по жирам"
           value={goals.fats}
-          progressColor={isDark ? "#007AFF" : "#007AFF"}
+          progressColor={isDark ? "#0066FF" : "#0066FF"}
           iconColor={iconColorBase}
           onPress={() => handleEditGoal("fats", "Жиры", "г")}
           colors={colors}
@@ -1339,7 +1339,7 @@ export default function NutritionGoalsScreen() {
               iconName="leaf"
               label="Цель по клетчатке"
               value={goals.fiber}
-              progressColor={isDark ? "#34C759" : "#34C759"}
+              progressColor={isDark ? "#9D4EDD" : "#9D4EDD"}
               iconColor={iconColorBase}
               onPress={() => handleEditGoal("fiber", "Клетчатка", "г")}
               colors={colors}
@@ -1350,7 +1350,7 @@ export default function NutritionGoalsScreen() {
               iconName="cube-outline"
               label="Цель по сахару"
               value={goals.sugar}
-              progressColor={isDark ? "#AF52DE" : "#AF52DE"}
+              progressColor={isDark ? "#FF6B9D" : "#FF6B9D"}
               iconColor={iconColorBase}
               onPress={() => handleEditGoal("sugar", "Сахар", "г")}
               colors={colors}
@@ -1361,7 +1361,7 @@ export default function NutritionGoalsScreen() {
               iconName="water-outline"
               label="Цель по натрию"
               value={goals.sodium}
-              progressColor={isDark ? "#8E8E93" : "#8E8E93"}
+              progressColor={isDark ? "#FFA500" : "#FFA500"}
               iconColor={iconColorBase}
               onPress={() => handleEditGoal("sodium", "Натрий", "мг")}
               colors={colors}
