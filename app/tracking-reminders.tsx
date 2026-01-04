@@ -3,20 +3,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeOut,
+  FadeIn,
+  FadeInDown,
+  FadeOut,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -352,7 +352,6 @@ export default function TrackingRemindersScreen() {
                     setTempTime(date);
                   }}
                   style={styles.timePicker}
-                  textColor={isDark ? "#FFFFF0" : "#2D2A26"}
                   locale="ru"
                 />
               </View>
@@ -372,7 +371,13 @@ export default function TrackingRemindersScreen() {
             setTempTime(date);
             setShowTimePicker(false);
             if (editingReminder) {
-              handleReminderToggle(editingReminder);
+              const newReminders = {
+                ...reminders,
+                [editingReminder]: { ...reminders[editingReminder], time: date },
+              };
+              setReminders(newReminders);
+              saveReminders(newReminders);
+              setEditingReminder(null);
             }
           }}
           onCancel={() => {
@@ -395,38 +400,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    backgroundColor: "rgba(0,0,0,0.05)",
   },
   scrollView: {
     flex: 1,
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontFamily: "Inter_700Bold",
     paddingHorizontal: 20,
-    marginBottom: 24,
-    lineHeight: 40,
+    marginBottom: 20,
+    lineHeight: 28,
   },
   section: {
     marginHorizontal: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   endOfDaySection: {
     marginTop: 16,
@@ -435,7 +436,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
+    paddingVertical: 12,
     paddingHorizontal: 16,
   },
   reminderLabel: {
@@ -445,15 +446,15 @@ const styles = StyleSheet.create({
   reminderRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 14,
   },
   timeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
   timeText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_500Medium",
   },
   divider: {
@@ -461,9 +462,9 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
   endOfDayHint: {
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
-    lineHeight: 18,
+    lineHeight: 14,
     paddingHorizontal: 16,
     paddingBottom: 16,
     paddingTop: 4,

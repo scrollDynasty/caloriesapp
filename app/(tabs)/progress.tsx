@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BMICard } from "../../components/progress/BMICard";
-import { ProgressCard } from "../../components/progress/ProgressCard";
 import { WeightChangeItem } from "../../components/progress/WeightChangeItem";
 import { WeightChart } from "../../components/progress/WeightChart";
 import { useTheme } from "../../context/ThemeContext";
@@ -176,112 +175,120 @@ export default function ProgressScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={themeColors.primary} />
         }
       >
-        {}
+        {/* Title */}
         <Text style={[styles.title, { color: themeColors.text }]}>Прогресс</Text>
 
-        {}
-        <View style={styles.cardsRow}>
-          <ProgressCard
-            icon="flame-outline"
-            value={streakCount}
-            label="Дней подряд"
-            subtitle="Серия активности"
-            iconColor="#FF6B6B"
-            gradientColors={["#FF6B6B15", "#FF6B6B05"]}
-          />
-          <ProgressCard
-            icon="body-outline"
-            value={weightStats?.current_weight ? `${weightStats.current_weight} кг` : "--"}
-            label="Текущий вес"
-            subtitle={weightStats?.total_change ? `${weightStats.total_change > 0 ? '+' : ''}${weightStats.total_change.toFixed(1)} кг` : "Без изменений"}
-            iconColor="#5271FF"
-            gradientColors={["#5271FF15", "#5271FF05"]}
-          />
-        </View>
-
-        {}
-        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-              Динамика веса
-            </Text>
+        {/* Current Weight Section */}
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+          <View style={styles.currentWeightHeader}>
+            <View>
+              <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
+                Текущий вес
+              </Text>
+              <Text style={[styles.bigWeight, { color: themeColors.text }]}>
+                {weightStats?.current_weight ? `${weightStats.current_weight} кг` : "-- кг"}
+              </Text>
+            </View>
             <TouchableOpacity
-              style={[
-                styles.addButton,
-                { backgroundColor: isDark ? themeColors.white : themeColors.primary },
-              ]}
+              style={[styles.recordWeightButtonDark]}
               onPress={() => {
                 hapticMedium();
                 router.push("/add-weight" as any);
               }}
             >
-              <Ionicons
-                name="add"
-                size={18}
-                color={isDark ? themeColors.black : themeColors.white}
-              />
+              <Text style={styles.recordWeightButtonDarkText}>Записать вес</Text>
+              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
-          {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight ? (
-            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 12 }]}>
-              {(() => {
-                const start = weightStats.start_weight;
-                const current = weightStats.current_weight;
-                const target = weightStats.target_weight;
-                
-                // Если старт и цель одинаковые
-                if (Math.abs(start - target) < 0.1) {
-                  return "🎯 Цель достигнута";
-                }
-                
-                let progress = 0;
-                
-                // Если цель - похудеть (start > target)
-                if (start > target) {
-                  if (current <= target) {
-                    return "🎯 Цель достигнута!";
-                  }
-                  progress = ((start - current) / (start - target)) * 100;
-                } 
-                // Если цель - набрать вес (start < target)
-                else if (start < target) {
-                  if (current >= target) {
-                    return "🎯 Цель достигнута!";
-                  }
-                  progress = ((current - start) / (target - start)) * 100;
-                }
-                
-                if (!isFinite(progress) || progress < 0) {
-                  return "📍 Установите целевой вес";
-                }
-                
-                return `📍 ${Math.round(Math.min(100, Math.max(0, progress)))}% от цели`;
-              })()}
-            </Text>
-          ) : (
-            <Text style={[styles.goalText, { color: themeColors.textSecondary, marginBottom: 12 }]}>
-              📍 Добавьте вес и установите цель для отслеживания прогресса
-            </Text>
+          {/* Progress Bar */}
+          {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
+            <View style={styles.currentWeightProgress}>
+              <View style={[styles.progressBarBg, { backgroundColor: isDark ? '#2C2C2E' : '#E8E8E8' }]}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    {
+                      backgroundColor: '#000000',
+                      width: `${(() => {
+                        const start = weightStats.start_weight;
+                        const current = weightStats.current_weight;
+                        const target = weightStats.target_weight;
+                        if (!start || !current || !target) return 0;
+                        if (Math.abs(start - target) < 0.1) return 100;
+                        if (start > target) {
+                          if (current <= target) return 100;
+                          return Math.min(100, Math.max(0, ((start - current) / (start - target)) * 100));
+                        } else if (start < target) {
+                          if (current >= target) return 100;
+                          return Math.min(100, Math.max(0, ((current - start) / (target - start)) * 100));
+                        }
+                        return 0;
+                      })()}%`,
+                    },
+                  ]}
+                />
+              </View>
+              <View style={styles.progressLabels}>
+                <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
+                  Старт: {weightStats.start_weight?.toFixed(1)} кг
+                </Text>
+                <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
+                  Цель: {weightStats.target_weight?.toFixed(1)} кг
+                </Text>
+              </View>
+            </View>
           )}
+        </View>
 
-          {}
+        {/* Weight Chart Section */}
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+          <View style={styles.sectionTitleRow}>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
+              Динамика веса
+            </Text>
+            {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
+              <View style={styles.progressPercentageRow}>
+                <Ionicons name="checkmark-circle" size={16} color={themeColors.text} />
+                <Text style={[styles.progressPercentage, { color: themeColors.text }]}>
+                  {(() => {
+                    const start = weightStats.start_weight;
+                    const current = weightStats.current_weight;
+                    const target = weightStats.target_weight;
+                    if (!start || !current || !target) return "0%";
+                    if (Math.abs(start - target) < 0.1) return "100%";
+                    let progress = 0;
+                    if (start > target) {
+                      if (current <= target) return "100%";
+                      progress = ((start - current) / (start - target)) * 100;
+                    } else if (start < target) {
+                      if (current >= target) return "100%";
+                      progress = ((current - start) / (target - start)) * 100;
+                    }
+                    return `${Math.round(Math.min(100, Math.max(0, progress)))}% от цели`;
+                  })()}
+                </Text>
+              </View>
+            )}
+          </View>
+
+          {/* Period Selector */}
           <View style={styles.periodSelector}>
             {(Object.keys(TIME_PERIOD_LABELS) as TimePeriod[]).map((period) => (
               <TouchableOpacity
                 key={period}
                 style={[
                   styles.periodButton,
-                  { backgroundColor: themeColors.fillTertiary },
-                  selectedPeriod === period && { backgroundColor: themeColors.primary },
+                  { backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5' },
+                  selectedPeriod === period && { backgroundColor: isDark ? '#3A3A3C' : '#E0E0E0' },
                 ]}
                 onPress={() => setSelectedPeriod(period)}
               >
                 <Text
                   style={[
                     styles.periodButtonText,
-                    { color: themeColors.text },
-                    selectedPeriod === period && { color: themeColors.buttonPrimaryText },
+                    { color: themeColors.textSecondary },
+                    selectedPeriod === period && { color: themeColors.text, fontFamily: 'Inter_600SemiBold' },
                   ]}
                 >
                   {TIME_PERIOD_LABELS[period]}
@@ -290,98 +297,12 @@ export default function ProgressScreen() {
             ))}
           </View>
 
-          {}
+          {/* Weight Chart */}
           <WeightChart data={filteredWeightHistory} targetWeight={weightStats?.target_weight} />
-
-          {}
-          {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
-            <View style={styles.weightProgress}>
-              <View style={styles.weightProgressHeader}>
-                <Text style={[styles.weightProgressLabel, { color: themeColors.textSecondary }]}>
-                  Текущий вес
-                </Text>
-                {lastWeightDate && (
-                  <Text style={[styles.weightProgressNext, { color: themeColors.textSecondary }]}>
-                    {(() => {
-                      const now = new Date();
-                      const daysSinceLastWeight = Math.floor(
-                        (now.getTime() - lastWeightDate.getTime()) / (1000 * 60 * 60 * 24)
-                      );
-                      // Рекомендуем взвешиваться раз в неделю
-                      const daysUntilNext = Math.max(0, 7 - daysSinceLastWeight);
-                      if (daysUntilNext === 0) {
-                        return "Пора взвеситься!";
-                      }
-                      return `Взвешивание через ${daysUntilNext} дн.`;
-                    })()}
-                  </Text>
-                )}
-              </View>
-              <Text style={[styles.currentWeight, { color: themeColors.text }]}>
-                {weightStats.current_weight} кг
-              </Text>
-              
-              {}
-              <View style={styles.progressBarContainer}>
-                <View style={[styles.progressBarBg, { backgroundColor: themeColors.border }]}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      {
-                        backgroundColor: themeColors.primary,
-                        width: `${(() => {
-                          const start = weightStats.start_weight;
-                          const current = weightStats.current_weight;
-                          const target = weightStats.target_weight;
-                          
-                          // Проверка на валидность данных
-                          if (!start || !current || !target) return 0;
-                          
-                          // Если старт и цель одинаковые, прогресс 100%
-                          if (Math.abs(start - target) < 0.1) return 100;
-                          
-                          // Вычисляем прогресс
-                          const totalDistance = Math.abs(start - target);
-                          const traveledDistance = Math.abs(start - current);
-                          
-                          // Если цель - похудеть (start > target)
-                          if (start > target) {
-                            // Если уже достигли или перешли цель
-                            if (current <= target) return 100;
-                            // Иначе считаем прогресс
-                            const progress = ((start - current) / (start - target)) * 100;
-                            return Math.min(100, Math.max(0, progress));
-                          } 
-                          // Если цель - набрать вес (start < target)
-                          else if (start < target) {
-                            // Если уже достигли или перешли цель
-                            if (current >= target) return 100;
-                            // Иначе считаем прогресс
-                            const progress = ((current - start) / (target - start)) * 100;
-                            return Math.min(100, Math.max(0, progress));
-                          }
-                          
-                          return 0;
-                        })()}%`,
-                      },
-                    ]}
-                  />
-                </View>
-                <View style={styles.progressLabels}>
-                  <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
-                    Старт: {weightStats.start_weight?.toFixed(1) || "--"} кг
-                  </Text>
-                  <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
-                    Цель: {weightStats.target_weight?.toFixed(1) || "--"} кг
-                  </Text>
-                </View>
-              </View>
-            </View>
-          )}
         </View>
 
-        {}
-        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+        {/* Weight Changes Section */}
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения веса
           </Text>
@@ -394,7 +315,7 @@ export default function ProgressScreen() {
                   status={change.status}
                 />
                 {index < weightStats.changes.length - 1 && (
-                  <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                  <View style={[styles.divider, { backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0' }]} />
                 )}
               </View>
             ))
@@ -407,8 +328,8 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {}
-        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+        {/* Progress Photos Section */}
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Фото прогресса
           </Text>
@@ -432,8 +353,8 @@ export default function ProgressScreen() {
             style={[
               styles.uploadButton, 
               { 
-                backgroundColor: themeColors.card,
-                borderColor: themeColors.border 
+                backgroundColor: 'transparent',
+                borderColor: isDark ? '#3A3A3C' : '#E0E0E0'
               }
             ]} 
             onPress={handleUploadPhoto}
@@ -445,21 +366,21 @@ export default function ProgressScreen() {
           </TouchableOpacity>
         </View>
 
-        {}
-        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+        {/* Average Calories Section */}
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Среднее количество калорий в день
           </Text>
 
-          {}
+          {/* Calorie Period Selector */}
           <View style={styles.periodSelector}>
             {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
               <TouchableOpacity
                 key={period}
                 style={[
                   styles.periodButton,
-                  { backgroundColor: themeColors.fillTertiary },
-                  selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
+                  { backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5' },
+                  selectedCaloriePeriod === period && { backgroundColor: isDark ? '#3A3A3C' : '#E0E0E0' },
                 ]}
                 onPress={() => {
                   hapticLight();
@@ -469,8 +390,8 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
-                    { color: themeColors.text },
-                    selectedCaloriePeriod === period && { color: themeColors.buttonPrimaryText },
+                    { color: themeColors.textSecondary },
+                    selectedCaloriePeriod === period && { color: themeColors.text, fontFamily: 'Inter_600SemiBold' },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -481,7 +402,7 @@ export default function ProgressScreen() {
 
           {selectedCalorieStat?.status === "insufficient_data" ? (
             <View style={styles.emptyState}>
-              <Ionicons name="bar-chart-outline" size={48} color={themeColors.textSecondary} />
+              <Ionicons name="bar-chart-outline" size={40} color={themeColors.textSecondary} />
               <Text style={[styles.emptyStateText, { color: themeColors.text }]}>
                 Нет данных для отображения
               </Text>
@@ -501,21 +422,21 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {}
-        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+        {/* Energy per Week Section */}
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Энергия за неделю
           </Text>
 
-          {}
+          {/* Period Selector */}
           <View style={styles.periodSelector}>
             {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
               <TouchableOpacity
                 key={period}
                 style={[
                   styles.periodButton,
-                  { backgroundColor: themeColors.fillTertiary },
-                  selectedCaloriePeriod === period && { backgroundColor: themeColors.primary },
+                  { backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5' },
+                  selectedCaloriePeriod === period && { backgroundColor: isDark ? '#3A3A3C' : '#E0E0E0' },
                 ]}
                 onPress={() => {
                   hapticLight();
@@ -525,8 +446,8 @@ export default function ProgressScreen() {
                 <Text
                   style={[
                     styles.periodButtonText,
-                    { color: themeColors.text },
-                    selectedCaloriePeriod === period && { color: themeColors.buttonPrimaryText },
+                    { color: themeColors.textSecondary },
+                    selectedCaloriePeriod === period && { color: themeColors.text, fontFamily: 'Inter_600SemiBold' },
                   ]}
                 >
                   {CALORIE_PERIOD_LABELS[period]}
@@ -540,7 +461,7 @@ export default function ProgressScreen() {
             if (!currentStats || currentStats.status === "insufficient_data") {
               return (
                 <View style={styles.emptyState}>
-                  <Ionicons name="bar-chart-outline" size={48} color={themeColors.textSecondary} />
+                  <Ionicons name="bar-chart-outline" size={40} color={themeColors.textSecondary} />
                   <Text style={[styles.emptyStateText, { color: themeColors.text }]}>
                     Нет данных для отображения
                   </Text>
@@ -554,7 +475,6 @@ export default function ProgressScreen() {
             const avgCalories = currentStats.average_calories || 0;
             const targetCalories = weightStats?.target_calories;
             
-            // Если нет цели калорий, показываем только среднее
             if (!targetCalories) {
               return (
                 <View style={styles.calorieStatsContainer}>
@@ -592,16 +512,16 @@ export default function ProgressScreen() {
                     <Text style={[styles.calorieProgressLabel, { color: themeColors.textSecondary }]}>
                       Среднее потребление
                     </Text>
-                    <Text style={[styles.calorieProgressValue, { color: isOverTarget ? themeColors.error : themeColors.success }]}>
+                    <Text style={[styles.calorieProgressValue, { color: isOverTarget ? '#FF6B6B' : '#51CF66' }]}>
                       {percentage}% от цели
                     </Text>
                   </View>
-                  <View style={[styles.calorieProgressBar, { backgroundColor: themeColors.border }]}>
+                  <View style={[styles.calorieProgressBar, { backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0' }]}>
                     <View 
                       style={[
                         styles.calorieProgressFill, 
                         { 
-                          backgroundColor: isOverTarget ? themeColors.error : themeColors.success,
+                          backgroundColor: isOverTarget ? '#FF6B6B' : '#51CF66',
                           width: `${Math.min(percentage, 100)}%` 
                         }
                       ]} 
@@ -612,7 +532,7 @@ export default function ProgressScreen() {
                       Цель: {targetCalories} ккал
                     </Text>
                     {isOverTarget && (
-                      <Text style={[styles.calorieOverTarget, { color: themeColors.error }]}>
+                      <Text style={[styles.calorieOverTarget, { color: '#FF6B6B' }]}>
                         +{Math.round(avgCalories - targetCalories)} ккал
                       </Text>
                     )}
@@ -623,8 +543,8 @@ export default function ProgressScreen() {
           })()}
         </View>
 
-        {}
-        <View style={[styles.section, { backgroundColor: themeColors.card }]}>
+        {/* Energy Changes Section */}
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения расхода
           </Text>
@@ -652,7 +572,7 @@ export default function ProgressScreen() {
               
               const statusColor = !hasData 
                 ? themeColors.textSecondary 
-                : isPositive ? themeColors.error : themeColors.success;
+                : isPositive ? '#FF6B6B' : '#51CF66';
 
               return (
                 <View key={change.period}>
@@ -674,7 +594,7 @@ export default function ProgressScreen() {
                     </View>
                   </View>
                   {index < energyChanges.length - 1 && (
-                    <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                    <View style={[styles.divider, { backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0' }]} />
                   )}
                 </View>
               );
@@ -682,7 +602,7 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {}
+        {/* BMI Card */}
         <BMICard
           bmi={bmi}
           bmiCategory={bmiCategory}
@@ -711,201 +631,259 @@ const styles = StyleSheet.create({
     paddingBottom: 120,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "800",
+    fontSize: 24,
+    fontWeight: "700",
     fontFamily: "Inter_700Bold",
     marginBottom: 16,
     letterSpacing: -0.3,
   },
   cardsRow: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 16,
+    gap: 10,
+    marginBottom: 10,
+  },
+  compactCard: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  cardIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  cardTextContainer: {
+    flex: 1,
+  },
+  cardValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+    marginBottom: 2,
+  },
+  cardLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+  },
+  cardIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   section: {
-    padding: 16,
+    padding: 14,
     borderRadius: 16,
-    marginBottom: 16,
+    marginBottom: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 1,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-    marginBottom: 16,
+    fontSize: 15,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
+    marginBottom: 8,
     letterSpacing: -0.2,
   },
   sectionSubtitle: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-    marginBottom: 16,
-    lineHeight: 18,
-  },
-  goalText: {
     fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_400Regular",
+    marginBottom: 12,
+    lineHeight: 16,
+  },
+  bigWeight: {
+    fontSize: 28,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+    marginBottom: 2,
+  },
+  weightChange: {
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+    marginBottom: 12,
+  },
+  currentWeightHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  currentWeightProgress: {
+    marginTop: 12,
+  },
+  recordWeightButtonDark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: '#000000',
+  },
+  recordWeightButtonDarkText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#FFFFFF',
+  },
+  recordWeightButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  recordWeightButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  progressPercentageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  progressPercentage: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
   },
   periodSelector: {
     flexDirection: "row",
-    gap: 8,
-    marginBottom: 16,
+    gap: 6,
+    marginBottom: 10,
     flexWrap: "wrap",
   },
   periodButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
   },
   periodButtonText: {
-    fontSize: 12,
-    fontFamily: "Inter_600SemiBold",
-  },
-  weightProgress: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
-  },
-  weightProgressHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  weightProgressLabel: {
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: "Inter_500Medium",
   },
-  weightProgressNext: {
-    fontSize: 11,
-    fontFamily: "Inter_400Regular",
-  },
-  currentWeight: {
-    fontSize: 28,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
-    marginBottom: 16,
-    letterSpacing: -0.4,
-  },
-  progressBarContainer: {
-    marginTop: 10,
+  weightProgress: {
+    marginTop: 12,
+    paddingTop: 12,
   },
   progressBarBg: {
-    height: 8,
-    borderRadius: 4,
+    height: 6,
+    borderRadius: 3,
     overflow: "hidden",
+    marginTop: 8,
   },
   progressBarFill: {
     height: "100%",
-    borderRadius: 4,
+    borderRadius: 3,
   },
   progressLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 10,
   },
   progressLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
   },
   divider: {
     height: 1,
-    marginVertical: 12,
-    opacity: 0.5,
+    marginVertical: 8,
   },
   uploadButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    borderWidth: 2,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderWidth: 1.5,
     borderStyle: "dashed",
   },
   uploadButtonText: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
   },
   photosGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 12,
   },
   photoThumbnail: {
-    width: 85,
-    height: 100,
-    borderRadius: 12,
+    width: 75,
+    height: 90,
+    borderRadius: 10,
   },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 36,
+    paddingVertical: 24,
     paddingHorizontal: 16,
   },
   emptyStateSmall: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   emptyStateText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
-    marginTop: 12,
-    marginBottom: 6,
+    marginTop: 10,
+    marginBottom: 4,
   },
   emptyStateSubtext: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    lineHeight: 18,
-    maxWidth: 280,
+    lineHeight: 16,
+    maxWidth: 260,
   },
   calorieStatsContainer: {
-    paddingTop: 12,
+    paddingTop: 8,
   },
   calorieMainStat: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 16,
   },
   calorieValue: {
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
   },
   calorieUnit: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "Inter_500Medium",
-    marginTop: 3,
+    marginTop: 2,
   },
   calorieLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: "Inter_500Medium",
   },
   calorieProgressContainer: {
@@ -915,61 +893,57 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   calorieProgressLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_500Medium",
   },
   calorieProgressValue: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
   calorieProgressBar: {
-    height: 6,
-    borderRadius: 3,
+    height: 5,
+    borderRadius: 2.5,
     overflow: "hidden",
   },
   calorieProgressFill: {
     height: "100%",
-    borderRadius: 4,
+    borderRadius: 2.5,
   },
   calorieTargetRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 6,
   },
   calorieTargetLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
   calorieOverTarget: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_600SemiBold",
   },
   energyChangeItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 10,
   },
   periodLabel: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
   },
   energyChangeValue: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: 4,
   },
   energyChangeText: {
-    fontSize: 14,
-    fontFamily: "Inter_600SemiBold",
-  },
-  energyStatus: {
     fontSize: 13,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_600SemiBold",
   },
 });
 

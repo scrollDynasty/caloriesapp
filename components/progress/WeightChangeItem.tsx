@@ -1,5 +1,5 @@
-import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 
 interface WeightChangeItemProps {
@@ -22,21 +22,21 @@ export function WeightChangeItem({ period, changeKg, status }: WeightChangeItemP
 
   const getStatusText = () => {
     if (status === "insufficient_data") {
-      return "Недостаточно данных";
+      return "Нет данных";
     }
     if (status === "no_change") {
-      return "Без изменений";
+      return "0 кг";
     }
     if (changeKg === null) {
-      return "Недостаточно данных";
+      return "Нет данных";
     }
-    return `${Math.abs(changeKg)} кг`;
+    return `${changeKg > 0 ? '+' : ''}${changeKg.toFixed(1)} кг`;
   };
 
   const getStatusIcon = () => {
     if (status === "gain") return "trending-up";
     if (status === "loss") return "trending-down";
-    return "remove";
+    return null;
   };
 
   const getStatusColor = () => {
@@ -45,22 +45,20 @@ export function WeightChangeItem({ period, changeKg, status }: WeightChangeItemP
     return colors.textSecondary;
   };
 
+  const icon = getStatusIcon();
+  const statusColor = getStatusColor();
+
   return (
     <View style={styles.item}>
       <Text style={[styles.periodLabel, { color: colors.textSecondary }]}>
         {PERIOD_LABELS[period] || period}
       </Text>
       <View style={styles.changeContainer}>
-        <Text style={[styles.changeValue, { color: colors.text }]}>
+        <Text style={[styles.changeValue, { color: statusColor }]}>
           {getStatusText()}
         </Text>
-        {status !== "insufficient_data" && changeKg !== null && (
-          <View style={styles.iconContainer}>
-            <Ionicons name={getStatusIcon()} size={16} color={getStatusColor()} />
-            <Text style={[styles.statusText, { color: getStatusColor() }]}>
-              {status === "gain" ? "Рост" : status === "loss" ? "Снижение" : ""}
-            </Text>
-          </View>
+        {icon && (
+          <Ionicons name={icon} size={14} color={statusColor} />
         )}
       </View>
     </View>
@@ -72,28 +70,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 16,
+    paddingVertical: 10,
   },
   periodLabel: {
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
   },
   changeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-  },
-  changeValue: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-  },
-  iconContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: 4,
   },
-  statusText: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
+  changeValue: {
+    fontSize: 13,
+    fontFamily: "Inter_600SemiBold",
   },
 });

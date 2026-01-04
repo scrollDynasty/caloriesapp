@@ -18,7 +18,7 @@ const BMI_CATEGORIES: Record<string, { label: string; color: string; range: stri
 };
 
 export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICardProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
 
   const handleInfoPress = () => {
@@ -40,7 +40,7 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
 
   if (!bmi || !bmiCategory) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.card }]}>
+      <View style={[styles.container, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Твой ИМТ</Text>
           <TouchableOpacity onPress={handleInfoPress}>
@@ -57,11 +57,11 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
   const categoryInfo = BMI_CATEGORIES[bmiCategory];
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Твой ИМТ</Text>
         <TouchableOpacity onPress={handleInfoPress}>
-          <Ionicons name="help-circle-outline" size={20} color={colors.textSecondary} />
+          <Ionicons name="help-circle-outline" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -69,7 +69,7 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
         <Text style={[styles.bmiValue, { color: colors.text }]}>{bmi.toFixed(1)}</Text>
         <View style={styles.weightRow}>
           <Text style={[styles.weightLabel, { color: colors.textSecondary }]}>Твой вес</Text>
-          <Ionicons name="chevron-forward" size={14} color={colors.textSecondary} />
+          <Ionicons name="chevron-forward" size={12} color={colors.textSecondary} />
         </View>
         <Text style={[styles.categoryLabel, { color: categoryInfo.color }]}>
           {categoryInfo.label}
@@ -87,7 +87,7 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
         
         {/* Indicator */}
         <View style={[styles.indicator, { left: `${Math.min(95, (bmi / 40) * 100)}%` }]}>
-          <View style={styles.indicatorLine} />
+          <View style={[styles.indicatorLine, { backgroundColor: isDark ? '#FFFFFF' : '#2D2A26' }]} />
         </View>
       </View>
 
@@ -96,19 +96,19 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: "#4DABF7" }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>
-            Недостаточный вес {"\n"}&lt;18.5
+            Недост. {"\n"}&lt;18.5
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: "#51CF66" }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>
-            Нормальный вес {"\n"}18.5–24.9
+            Норма {"\n"}18.5–24.9
           </Text>
         </View>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: "#FFD43B" }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>
-            Избыточный вес {"\n"}25.0–29.9
+            Избыток {"\n"}25.0–29.9
           </Text>
         </View>
         <View style={styles.legendItem}>
@@ -124,54 +124,59 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 10,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "700",
-    fontFamily: "Inter_700Bold",
+    fontSize: 14,
+    fontWeight: "600",
+    fontFamily: "Inter_600SemiBold",
   },
   bmiValueContainer: {
     alignItems: "flex-start",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   bmiValue: {
-    fontSize: 36,
+    fontSize: 24,
     fontWeight: "700",
     fontFamily: "Inter_700Bold",
   },
   weightRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 3,
     marginTop: 3,
   },
   weightLabel: {
-    fontSize: 13,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
   categoryLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
-    marginTop: 6,
+    marginTop: 3,
   },
   scaleContainer: {
     position: "relative",
-    marginBottom: 16,
+    marginBottom: 10,
   },
   scaleBar: {
     flexDirection: "row",
-    height: 10,
-    borderRadius: 5,
+    height: 8,
+    borderRadius: 4,
     overflow: "hidden",
   },
   scaleSegment: {
@@ -179,43 +184,42 @@ const styles = StyleSheet.create({
   },
   indicator: {
     position: "absolute",
-    top: -3,
+    top: -2,
     width: 2,
-    height: 16,
-    backgroundColor: "#2D2A26",
+    height: 12,
     transform: [{ translateX: -1 }],
   },
   indicatorLine: {
     width: 2,
     height: "100%",
-    backgroundColor: "#2D2A26",
+    borderRadius: 1,
   },
   legend: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: 7,
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: 4,
     flex: 1,
-    minWidth: "45%",
+    minWidth: "22%",
   },
   legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
   legendText: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Inter_400Regular",
-    lineHeight: 13,
+    lineHeight: 11,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    paddingVertical: 16,
+    paddingVertical: 8,
   },
 });
