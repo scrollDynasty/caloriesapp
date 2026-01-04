@@ -46,14 +46,24 @@ class FoodSearchResponse(BaseModel):
     total: int
     offset: int
     limit: int
+    lang: str = "en"
     foods: List[FoodItemResponse]
 
 
-def build_food_response(food: Food, nutrients_dict: dict, branded_info: Optional[BrandedFood] = None) -> FoodItemResponse:
+def get_food_name(food: Food, lang: str = 'en') -> str:
+    """Возвращает название продукта на нужном языке"""
+    if lang == 'ru' and food.description_ru:
+        return food.description_ru
+    elif lang == 'uz' and food.description_uz:
+        return food.description_uz
+    return food.description  # Fallback на английский
+
+
+def build_food_response(food: Food, nutrients_dict: dict, branded_info: Optional[BrandedFood] = None, lang: str = 'en') -> FoodItemResponse:
     """Формирует response для продукта с нутриентами"""
     return FoodItemResponse(
         fdc_id=food.fdc_id,
-        name=food.description,
+        name=get_food_name(food, lang),
         calories=nutrients_dict.get(1008),  # Energy
         protein=nutrients_dict.get(1003),   # Protein
         fat=nutrients_dict.get(1004),        # Fat
@@ -71,6 +81,7 @@ async def search_foods(
     limit: int = Query(50, ge=1, le=100, description="Количество результатов"),
     offset: int = Query(0, ge=0, description="Смещение для пагинации"),
     source: str = Query("all", regex="^(all|foundation|branded|survey)$", description="Источник данных"),
+    lang: str = Query("en", regex="^(en|ru|uz)$", description="Язык результатов"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -93,13 +104,29 @@ async def search_foods(
                 query = query.filter(Food.data_type.in_(["survey_fndds_food", "sample_food"]))
         
         # FULLTEXT поиск (быстрый для больших данных)
+        # Ищем во всех языках
         search_term = q.strip().lower()
-        query = query.filter(
-            or_(
-                Food.description.ilike(f"%{search_term}%"),
-                text(f"MATCH(description) AGAINST('{search_term}' IN BOOLEAN MODE)")
+        if lang == 'ru':
+            query = query.filter(
+                or_(
+                    Food.description_ru.ilike(f"%{search_term}%"),
+                    Food.description.ilike(f"%{search_term}%")
+                )
             )
-        )
+        elif lang == 'uz':
+            query = query.filter(
+                or_(
+                    Food.description_uz.ilike(f"%{search_term}%"),
+                    Food.description.ilike(f"%{search_term}%")
+                )
+            )
+        else:
+            query = query.filter(
+                or_(
+                    Food.description.ilike(f"%{search_term}%"),
+                    text(f"MATCH(description) AGAINST('{search_term}' IN BOOLEAN MODE)")
+                )
+            )
         
         # Подсчёт общего количества
         total = query.count()
@@ -127,12 +154,13 @@ async def search_foods(
             branded = db.query(BrandedFood).filter(BrandedFood.fdc_id.in_(fdc_ids)).all()
             branded_info = {b.fdc_id: b for b in branded}
         
-        # Формируем результат
+        # Формируем результат с учётом языка
         result_foods = [
             build_food_response(
                 food,
                 nutrients_by_food.get(food.fdc_id, {}),
-                branded_info.get(food.fdc_id)
+                branded_info.get(food.fdc_id),
+                lang
             )
             for food in foods
         ]
@@ -144,6 +172,7 @@ async def search_foods(
             total=total,
             offset=offset,
             limit=limit,
+            lang=lang,
             foods=result_foods
         )
         
@@ -159,6 +188,7 @@ async def get_foods(
     offset: int = Query(0, ge=0, description="Смещение для пагинации"),
     limit: int = Query(50, ge=1, le=100, description="Количество результатов"),
     source: str = Query("foundation", regex="^(all|foundation|branded|survey)$", description="Источник данных"),
+    lang: str = Query("en", regex="^(en|ru|uz)$", description="Язык результатов"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -208,7 +238,8 @@ async def get_foods(
             build_food_response(
                 food,
                 nutrients_by_food.get(food.fdc_id, {}),
-                branded_info.get(food.fdc_id)
+                branded_info.get(food.fdc_id),
+                lang
             )
             for food in foods
         ]
@@ -220,6 +251,7 @@ async def get_foods(
             total=total,
             offset=offset,
             limit=limit,
+            lang=lang,
             foods=result_foods
         )
         
@@ -233,6 +265,7 @@ async def get_foods(
 @router.get("/foods/{fdc_id}", response_model=FoodItemResponse)
 async def get_food_by_id(
     fdc_id: int,
+    lang: str = Query("en", regex="^(en|ru|uz)$", description="Язык результатов"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -256,7 +289,7 @@ async def get_food_by_id(
     # Брендовая информация
     branded = db.query(BrandedFood).filter(BrandedFood.fdc_id == fdc_id).first()
     
-    return build_food_response(food, nutrients_dict, branded)
+    return build_food_response(food, nutrients_dict, branded, lang)
 
 
 @router.get("/foods/sources")

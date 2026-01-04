@@ -1126,10 +1126,11 @@ class ApiService {
     return response.data;
   }
 
-  async searchFoods(query: string, limit: number = 50, source: string = "all"): Promise<{
+  async searchFoods(query: string, limit: number = 50, source: string = "all", lang: string = "en"): Promise<{
     query: string;
     source: string;
     count: number;
+    lang?: string;
     foods: Array<{
       fdc_id: string;
       name: string;
@@ -1147,17 +1148,18 @@ class ApiService {
       return { query: "", source, count: 0, foods: [] };
     }
     const response = await this.api.get("/api/v1/foods/search", {
-      params: { q: sanitizedQuery, limit: Math.min(limit, 100), source },
+      params: { q: sanitizedQuery, limit: Math.min(limit, 100), source, lang },
     });
     return response.data;
   }
 
-  async getFoods(offset: number = 0, limit: number = 50, source: string = "foundation"): Promise<{
+  async getFoods(offset: number = 0, limit: number = 50, source: string = "foundation", lang: string = "en"): Promise<{
     total: number;
     offset: number;
     limit: number;
     source: string;
     count: number;
+    lang?: string;
     foods: Array<{
       fdc_id: string;
       name: string;
@@ -1171,7 +1173,7 @@ class ApiService {
     }>;
   }> {
     const response = await this.api.get("/api/v1/foods", {
-      params: { offset, limit: Math.min(limit, 100), source },
+      params: { offset, limit: Math.min(limit, 100), source, lang },
     });
     return response.data;
   }

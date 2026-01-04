@@ -9,13 +9,23 @@ class Food(Base):
 
     fdc_id = Column(Integer, primary_key=True, index=True)
     data_type = Column(String(50), nullable=False, index=True)
-    description = Column(Text, nullable=False)
+    description = Column(Text, nullable=False)  # Английское название
+    description_ru = Column(Text)  # Русское название
+    description_uz = Column(Text)  # Узбекское название
     food_category_id = Column(String(100))
     publication_date = Column(Date)
 
     # Relationships
     nutrients = relationship("FoodNutrient", back_populates="food", cascade="all, delete-orphan")
     branded_info = relationship("BrandedFood", back_populates="food", uselist=False)
+
+    def get_name(self, lang: str = 'en') -> str:
+        """Возвращает название на нужном языке"""
+        if lang == 'ru' and self.description_ru:
+            return self.description_ru
+        elif lang == 'uz' and self.description_uz:
+            return self.description_uz
+        return self.description  # Fallback на английский
 
     __table_args__ = (
         Index('idx_description', 'description', mysql_prefix='FULLTEXT'),

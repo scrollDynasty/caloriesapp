@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
+import { initLanguage, SupportedLanguage, t } from "../../utils/language";
 
 interface FoodItem {
   fdc_id: string;
@@ -44,10 +45,16 @@ export default function FoodDatabaseScreen() {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
+  const [lang, setLang] = useState<SupportedLanguage>("en");
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const searchTimeoutRef = useRef<number | null>(null);
 
   const isInitialMount = useRef(true);
+
+  // Инициализация языка при монтировании
+  useEffect(() => {
+    initLanguage().then(setLang);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -58,7 +65,7 @@ export default function FoodDatabaseScreen() {
         setOffset(0);
         setHasMore(true);
       };
-    }, [])
+    }, [lang])
   );
 
   const loadInitialFoods = async (source: string) => {
@@ -67,7 +74,7 @@ export default function FoodDatabaseScreen() {
       setOffset(0);
       setHasMore(true);
       
-      const response = await apiService.getFoods(0, 20, source);
+      const response = await apiService.getFoods(0, 20, source, lang);
       const result = response.foods || [];
       
       setFoods(result);
@@ -76,7 +83,7 @@ export default function FoodDatabaseScreen() {
     } catch (err: any) {
       setFoods([]);
       setHasMore(false);
-      setError(err?.message || "Ошибка загрузки");
+      setError(err?.message || t('common.loading', lang));
     } finally {
       setLoading(false);
     }
@@ -89,7 +96,7 @@ export default function FoodDatabaseScreen() {
       setLoadingMore(true);
       const newOffset = offset + 20;
       
-      const response = await apiService.getFoods(newOffset, 20, selectedSource);
+      const response = await apiService.getFoods(newOffset, 20, selectedSource, lang);
       const result = response.foods || [];
       
       setFoods(prev => [...prev, ...result]);
@@ -109,7 +116,7 @@ export default function FoodDatabaseScreen() {
     try {
       setLoading(true);
       
-      const response = await apiService.searchFoods(query, 50, source);
+      const response = await apiService.searchFoods(query, 50, source, lang);
       const result = response.foods || [];
       
       setFoods(result);
@@ -117,7 +124,6 @@ export default function FoodDatabaseScreen() {
       setError(null);
     } catch (err: any) {
       const errorMsg = err?.message || "Ошибка поиска";
-      console.error("🔴 Search error:", errorMsg);
       
       setFoods([]);
       setHasMore(false);

@@ -21,6 +21,7 @@ import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
 import { dataCache } from "../../stores/dataCache";
 import { hapticLight } from "../../utils/haptics";
+import { getUserLanguage, LANGUAGE_NAMES, SupportedLanguage } from "../../utils/language";
 import { getLocalDayRange, getLocalTimezoneOffset } from "../../utils/timezone";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -113,6 +114,7 @@ export default function SettingsScreen() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [currentLang, setCurrentLang] = useState<SupportedLanguage>("en");
   
   const [dailyData, setDailyData] = useState({
     consumedCalories: 0,
@@ -156,6 +158,8 @@ export default function SettingsScreen() {
       if (!loading) {
         loadUser();
       }
+      // Обновляем язык при возврате на экран
+      getUserLanguage().then(setCurrentLang);
     }, [loading, loadUser])
   );
 
@@ -334,7 +338,7 @@ export default function SettingsScreen() {
           <MenuItem icon="person-outline" title="Личные данные" onPress={() => router.push("/personal-data" as any)} />
           <MenuItem icon="settings-outline" title="Настройки" onPress={() => router.push("/app-settings" as any)} />
           <MenuItem icon="diamond-outline" title="Подписка и тарифы" onPress={() => router.push("/subscription" as any)} />
-          <MenuItem icon="language-outline" title="Язык" />
+          <MenuItem icon="language-outline" title="Язык" rightText={LANGUAGE_NAMES[currentLang]} onPress={() => router.push("/language-settings" as any)} />
           <MenuItem icon="people-outline" title="Обновиться до семейного плана" isLast />
         </View>
 
