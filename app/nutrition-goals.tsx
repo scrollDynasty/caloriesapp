@@ -1,25 +1,26 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Dimensions,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeOut,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming
+    FadeIn,
+    FadeInDown,
+    FadeOut,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+    withTiming
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -32,7 +33,174 @@ import { dataCache } from "../stores/dataCache";
 import { UserData, calculateCalories } from "../utils/calorieCalculator";
 import { hapticLight, hapticMedium, hapticSuccess } from "../utils/haptics";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const SCREEN_WIDTH = Dimensions.get("window").width;
+
+// Кросс-платформный компонент для выбора чисел
+// iOS: красивый пикер, Android: простой TextInput
+const NumericInput = React.memo(function NumericInput({
+  value,
+  onChangeValue,
+  unit,
+  min,
+  max,
+  step = 1,
+  colors,
+}: {
+  value: string;
+  onChangeValue: (value: string) => void;
+  unit: string;
+  min: number;
+  max: number;
+  step?: number;
+  colors: any;
+}) {
+  const [inputValue, setInputValue] = useState(value);
+
+  const handleChangeText = useCallback((text: string) => {
+    const numValue = parseInt(text) || 0;
+    if (numValue >= min && numValue <= max) {
+      setInputValue(text);
+      onChangeValue(text);
+    } else if (text === "") {
+      setInputValue("");
+    }
+  }, [min, max, onChangeValue]);
+
+  const incrementValue = useCallback(() => {
+    const current = parseInt(inputValue) || min;
+    const newValue = Math.min(current + step, max);
+    setInputValue(String(newValue));
+    onChangeValue(String(newValue));
+  }, [inputValue, min, max, step, onChangeValue]);
+
+  const decrementValue = useCallback(() => {
+    const current = parseInt(inputValue) || max;
+    const newValue = Math.max(current - step, min);
+    setInputValue(String(newValue));
+    onChangeValue(String(newValue));
+  }, [inputValue, min, max, step, onChangeValue]);
+
+  return (
+    <View style={{ gap: 16 }}>
+      {Platform.OS === "android" ? (
+        // Android: простой TextInput с кнопками
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          borderWidth: 2,
+          borderRadius: 12,
+          borderColor: colors.primary,
+          paddingHorizontal: 8,
+          gap: 8,
+          height: 56,
+        }}>
+          <TouchableOpacity 
+            onPress={decrementValue}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          >
+            <Text style={{ fontSize: 24, color: colors.primary }}>−</Text>
+          </TouchableOpacity>
+          
+          <TextInput
+            value={inputValue}
+            onChangeText={handleChangeText}
+            keyboardType="number-pad"
+            style={{
+              flex: 1,
+              fontSize: 20,
+              fontFamily: "Inter_600SemiBold",
+              borderWidth: 0,
+              textAlign: "center",
+              paddingHorizontal: 8,
+              color: colors.text,
+              backgroundColor: colors.backgroundSecondary,
+            }}
+            placeholder="0"
+            placeholderTextColor={colors.textSecondary}
+            maxLength={3}
+          />
+          
+          <TouchableOpacity 
+            onPress={incrementValue}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          >
+            <Text style={{ fontSize: 24, color: colors.primary }}>+</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        // iOS: стрелочки по сторонам с красивым отображением
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+          borderRadius: 12,
+          height: 100,
+          backgroundColor: colors.backgroundSecondary,
+        }}>
+          <TouchableOpacity 
+            onPress={decrementValue}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          
+          <View style={{ alignItems: "center", gap: 4 }}>
+            <Text style={{
+              fontSize: 32,
+              fontFamily: "Inter_700Bold",
+              textAlign: "center",
+              color: colors.text,
+            }}>
+              {inputValue}
+            </Text>
+            <Text style={{
+              fontSize: 12,
+              fontFamily: "Inter_500Medium",
+              letterSpacing: 0.5,
+              color: colors.textSecondary,
+            }}>
+              {unit}
+            </Text>
+          </View>
+          
+          <TouchableOpacity 
+            onPress={incrementValue}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-forward" size={24} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      <View style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
+        <Text style={{
+          fontSize: 12,
+          fontFamily: "Inter_400Regular",
+          textAlign: "center",
+          color: colors.textSecondary,
+        }}>
+          Диапазон: {min} - {max} {unit}
+        </Text>
+      </View>
+    </View>
+  );
+});
 
 interface NutritionGoals {
   calories: number;
@@ -254,12 +422,10 @@ function EditGoalModal({
   colors: any;
 }) {
   const [inputValue, setInputValue] = useState(value.toString());
-  const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (visible) {
       setInputValue(value.toString());
-      setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [visible, value]);
 
@@ -287,16 +453,16 @@ function EditGoalModal({
         style={[styles.modalContent, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}
       >
         <Text style={[styles.modalTitle, { color: colors.text }]}>{label}</Text>
-        <View style={[styles.inputContainer, { backgroundColor: colors.inputBackground }]}>
-          <TextInput
-            ref={inputRef}
-            style={[styles.input, { color: colors.text }]}
+        <View style={[styles.pickerContainer]}>
+          <NumericInput
             value={inputValue}
-            onChangeText={setInputValue}
-            keyboardType="numeric"
-            selectTextOnFocus
+            onChangeValue={setInputValue}
+            unit={unit}
+            min={1}
+            max={1000}
+            step={1}
+            colors={colors}
           />
-          <Text style={[styles.inputUnit, { color: colors.textSecondary }]}>{unit}</Text>
         </View>
         <View style={styles.modalButtons}>
           <TouchableOpacity
@@ -1412,6 +1578,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+  pickerContainer: {
+    borderRadius: 14,
+    marginBottom: 20,
+    overflow: "hidden",
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -1430,6 +1601,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Inter_500Medium",
     marginLeft: 8,
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    transform: [{ translateY: -10 }],
   },
   modalButtons: {
     flexDirection: "row",
@@ -1779,5 +1954,57 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     lineHeight: 24,
   },
-});
-
+  // Android Input styles
+  androidInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    gap: 8,
+    height: 56,
+  },
+  androidButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  androidInput: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: "Inter_600SemiBold",
+    borderWidth: 0,
+    textAlign: "center",
+    paddingHorizontal: 8,
+  },
+  // iOS Container styles
+  iosContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    height: 100,
+  },
+  iosValueDisplay: {
+    fontSize: 32,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  iosUnitDisplay: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.5,
+  },
+  rangeInfo: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
+  rangeText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },});

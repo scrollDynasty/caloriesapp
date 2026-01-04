@@ -1,12 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Keyboard,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
@@ -15,8 +12,9 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from "react-native";
+import DatePicker from "react-native-date-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
@@ -46,6 +44,173 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
+// Кросс-платформный компонент для выбора чисел
+// iOS: красивый пикер, Android: простой TextInput
+const NumericInput = React.memo(function NumericInput({
+  value,
+  onChangeValue,
+  unit,
+  min,
+  max,
+  step = 1,
+  colors,
+}: {
+  value: string;
+  onChangeValue: (value: string) => void;
+  unit: string;
+  min: number;
+  max: number;
+  step?: number;
+  colors: any;
+}) {
+  const [inputValue, setInputValue] = useState(value);
+
+  const handleChangeText = useCallback((text: string) => {
+    const numValue = parseInt(text) || 0;
+    if (numValue >= min && numValue <= max) {
+      setInputValue(text);
+      onChangeValue(text);
+    } else if (text === "") {
+      setInputValue("");
+    }
+  }, [min, max, onChangeValue]);
+
+  const incrementValue = useCallback(() => {
+    const current = parseInt(inputValue) || min;
+    const newValue = Math.min(current + step, max);
+    setInputValue(String(newValue));
+    onChangeValue(String(newValue));
+  }, [inputValue, min, max, step, onChangeValue]);
+
+  const decrementValue = useCallback(() => {
+    const current = parseInt(inputValue) || max;
+    const newValue = Math.max(current - step, min);
+    setInputValue(String(newValue));
+    onChangeValue(String(newValue));
+  }, [inputValue, min, max, step, onChangeValue]);
+
+  return (
+    <View style={{ gap: 16 }}>
+      {Platform.OS === "android" ? (
+        // Android: простой TextInput с кнопками
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          borderWidth: 2,
+          borderRadius: 12,
+          borderColor: colors.primary,
+          paddingHorizontal: 8,
+          gap: 8,
+          height: 56,
+        }}>
+          <TouchableOpacity 
+            onPress={decrementValue}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          >
+            <Text style={{ fontSize: 24, color: colors.primary }}>−</Text>
+          </TouchableOpacity>
+          
+          <TextInput
+            value={inputValue}
+            onChangeText={handleChangeText}
+            keyboardType="number-pad"
+            style={{
+              flex: 1,
+              fontSize: 20,
+              fontFamily: "Inter_600SemiBold",
+              borderWidth: 0,
+              textAlign: "center",
+              paddingHorizontal: 8,
+              color: colors.text,
+              backgroundColor: colors.backgroundSecondary,
+            }}
+            placeholder="0"
+            placeholderTextColor={colors.textSecondary}
+            maxLength={3}
+          />
+          
+          <TouchableOpacity 
+            onPress={incrementValue}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          >
+            <Text style={{ fontSize: 24, color: colors.primary }}>+</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        // iOS: стрелочки по сторонам с красивым отображением
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+          borderRadius: 12,
+          height: 100,
+          backgroundColor: colors.backgroundSecondary,
+        }}>
+          <TouchableOpacity 
+            onPress={decrementValue}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          
+          <View style={{ alignItems: "center", gap: 4 }}>
+            <Text style={{
+              fontSize: 32,
+              fontFamily: "Inter_700Bold",
+              textAlign: "center",
+              color: colors.text,
+            }}>
+              {inputValue}
+            </Text>
+            <Text style={{
+              fontSize: 12,
+              fontFamily: "Inter_500Medium",
+              letterSpacing: 0.5,
+              color: colors.textSecondary,
+            }}>
+              {unit}
+            </Text>
+          </View>
+          
+          <TouchableOpacity 
+            onPress={incrementValue}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-forward" size={24} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      <View style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
+        <Text style={{
+          fontSize: 12,
+          fontFamily: "Inter_400Regular",
+          textAlign: "center",
+          color: colors.textSecondary,
+        }}>
+          Диапазон: {min} - {max} {unit}
+        </Text>
+      </View>
+    </View>
+  );
+});
+
 export default function PersonalDataScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
@@ -67,6 +232,33 @@ export default function PersonalDataScreen() {
   const [editValue, setEditValue] = useState<string>("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date(2000, 0, 1));
+
+  // Мемоизированные значения для пикера
+  const pickerDataSource = useMemo(() => {
+    if (editField === "weight" || editField === "targetWeight") {
+      return Array.from({ length: 251 }, (_, i) => i + 20);
+    } else if (editField === "height") {
+      return Array.from({ length: 151 }, (_, i) => i + 100);
+    } else if (editField === "stepGoal") {
+      return Array.from({ length: 41 }, (_, i) => (i + 1) * 1000);
+    }
+    return [];
+  }, [editField]);
+
+  const pickerSelectedIndex = useMemo(() => {
+    if (editField === "weight" || editField === "targetWeight") {
+      return Math.max(0, (parseInt(editValue) || 70) - 20);
+    } else if (editField === "height") {
+      return Math.max(0, (parseInt(editValue) || 170) - 100);
+    } else if (editField === "stepGoal") {
+      return Math.max(0, Math.floor((parseInt(editValue) || 10000) / 1000) - 1);
+    }
+    return 0;
+  }, [editField, editValue]);
+
+  const handlePickerValueChange = useCallback((value: number) => {
+    setEditValue(String(value));
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -220,8 +412,10 @@ export default function PersonalDataScreen() {
         setEditValue(data.height?.toString() || "");
         break;
       case "birthDate":
+        setEditField(null);
         setTempDate(data.birthDate || new Date(2000, 0, 1));
-        setShowDatePicker(true);
+        // Show date picker directly
+        setTimeout(() => setShowDatePicker(true), 100);
         return;
       case "gender":
         break;
@@ -253,7 +447,7 @@ export default function PersonalDataScreen() {
     switch (field) {
       case "weight": return "Текущий вес";
       case "height": return "Рост";
-      case "stepGoal": return "Ежедневная цель по шагам";
+      case "stepGoal": return "Ежедневная цель";
       case "targetWeight": return "Целевой вес";
       default: return "";
     }
@@ -270,6 +464,43 @@ export default function PersonalDataScreen() {
         return "шагов";
       default:
         return "";
+    }
+  };
+
+  const getMinValue = (field: EditField) => {
+    switch (field) {
+      case "weight":
+      case "targetWeight":
+        return 20;
+      case "height":
+        return 100;
+      case "stepGoal":
+        return 1000;
+      default:
+        return 0;
+    }
+  };
+
+  const getMaxValue = (field: EditField) => {
+    switch (field) {
+      case "weight":
+      case "targetWeight":
+        return 270;
+      case "height":
+        return 250;
+      case "stepGoal":
+        return 41000;
+      default:
+        return 100;
+    }
+  };
+
+  const getStepValue = (field: EditField) => {
+    switch (field) {
+      case "stepGoal":
+        return 1000;
+      default:
+        return 1;
     }
   };
 
@@ -363,7 +594,7 @@ export default function PersonalDataScreen() {
 
           {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("stepGoal")} activeOpacity={0.6}>
-            <Text style={styles.rowLabel}>Ежедневная цель по шагам</Text>
+            <Text style={styles.rowLabel}>Ежедневная цель</Text>
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{data.stepGoal.toLocaleString()} шагов</Text>
               <View style={styles.editIcon}>
@@ -383,26 +614,22 @@ export default function PersonalDataScreen() {
         animationType="fade"
         onRequestClose={() => setEditField(null)}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <KeyboardAvoidingView 
-            style={styles.modalOverlay} 
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
+        <TouchableWithoutFeedback onPress={() => setEditField(null)}>
+          <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>{getFieldTitle(editField)}</Text>
                 
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.input}
+                <View style={styles.pickerContainer}>
+                  <NumericInput
                     value={editValue}
-                    onChangeText={setEditValue}
-                    keyboardType="numeric"
-                    autoFocus
-                    selectTextOnFocus
-                    placeholderTextColor={colors.textSecondary}
+                    onChangeValue={setEditValue}
+                    unit={getFieldUnit(editField)}
+                    min={getMinValue(editField)}
+                    max={getMaxValue(editField)}
+                    step={getStepValue(editField)}
+                    colors={colors}
                   />
-                  <Text style={styles.inputUnit}>{getFieldUnit(editField)}</Text>
                 </View>
 
                 <View style={styles.modalButtons}>
@@ -426,7 +653,7 @@ export default function PersonalDataScreen() {
                 </View>
               </View>
             </TouchableWithoutFeedback>
-          </KeyboardAvoidingView>
+          </View>
         </TouchableWithoutFeedback>
       </Modal>
 
@@ -494,62 +721,25 @@ export default function PersonalDataScreen() {
       </Modal>
 
       {}
-      {showDatePicker && (
-        <Modal
-          visible={showDatePicker}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
-            <View style={styles.modalOverlay}>
-              <TouchableWithoutFeedback>
-                <View style={styles.datePickerContainer}>
-                  <Text style={styles.modalTitle}>Дата рождения</Text>
-                  
-                  <DateTimePicker
-                    value={tempDate}
-                    mode="date"
-                    display="spinner"
-                    onChange={(event, date) => {
-                      if (date) setTempDate(date);
-                    }}
-                    maximumDate={new Date()}
-                    minimumDate={new Date(1920, 0, 1)}
-                    locale="ru"
-                    textColor={colors.primary}
-                    style={styles.datePicker}
-                  />
-
-                  <View style={styles.modalButtons}>
-                    <TouchableOpacity 
-                      style={styles.modalButtonCancel} 
-                      onPress={() => setShowDatePicker(false)}
-                    >
-                      <Text style={styles.modalButtonCancelText}>Отмена</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.modalButtonSave}
-                      onPress={() => {
-                        setShowDatePicker(false);
-                        handleSave("birthDate", tempDate);
-                      }}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <ActivityIndicator size="small" color={colors.text} />
-                      ) : (
-                        <Text style={styles.modalButtonSaveText}>Сохранить</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-      )}
-    </SafeAreaView>
+      <DatePicker
+        modal
+        open={showDatePicker}
+        date={tempDate}
+        mode="date"
+        maximumDate={new Date()}
+        minimumDate={new Date(1920, 0, 1)}
+        onConfirm={(date) => {
+          setShowDatePicker(false);
+          handleSave("birthDate", date);
+        }}
+        onCancel={() => {
+          setShowDatePicker(false);
+        }}
+        title="Дата рождения"
+        confirmText="Сохранить"
+        cancelText="Отмена"
+      />
+      </SafeAreaView>
   );
 }
 
@@ -592,25 +782,25 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
 
   targetCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 20,
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 14,
     backgroundColor: colors.card,
-    borderRadius: 14,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   targetLabel: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
     color: colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   targetValue: {
-    fontSize: 26,
+    fontSize: 20,
     fontFamily: "Inter_700Bold",
     color: colors.text,
   },
@@ -618,30 +808,30 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     backgroundColor: colors.backgroundSecondary,
     borderColor: colors.border,
     borderWidth: 1,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   changeGoalText: {
-    fontSize: 14,
+    fontSize: 11,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
   },
   section: {
-    marginHorizontal: 16,
+    marginHorizontal: 12,
     backgroundColor: colors.card,
-    borderRadius: 14,
+    borderRadius: 12,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    minHeight: 56,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minHeight: 44,
   },
   rowLabel: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     color: colors.text,
     flex: 1,
@@ -649,17 +839,17 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   rowRight: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
   },
   rowValue: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
     color: colors.text,
   },
   editIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
     justifyContent: "center",
@@ -667,7 +857,7 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: colors.border,
-    marginLeft: 16,
+    marginLeft: 12,
   },
   bottomSpacer: {
     height: 40,
@@ -681,83 +871,94 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   modalContent: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 14,
+    padding: 18,
     width: "100%",
-    maxWidth: 320,
+    maxWidth: 300,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 14,
+  },
+  pickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 10,
+    marginBottom: 14,
+    overflow: "hidden",
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.backgroundSecondary,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    marginBottom: 20,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 14,
   },
   input: {
     flex: 1,
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
-    paddingVertical: 14,
+    paddingVertical: 10,
     textAlign: "center",
   },
   inputUnit: {
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: "Inter_500Medium",
     color: colors.textSecondary,
-    marginLeft: 8,
+    marginLeft: 6,
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    transform: [{ translateY: -10 }],
   },
   modalButtons: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   modalButtonCancel: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonCancelText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
     color: colors.textSecondary,
   },
   modalButtonCancelFull: {
-    marginTop: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
+    marginTop: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonSave: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
     backgroundColor: colors.backgroundSecondary,
     alignItems: "center",
   },
   modalButtonSaveText: {
-    fontSize: 15,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
     color: colors.text,
   },
   genderOption: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 14,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
     backgroundColor: colors.backgroundSecondary,
-    marginBottom: 10,
-    gap: 12,
+    marginBottom: 8,
+    gap: 10,
   },
   genderOptionSelected: {
     backgroundColor: colors.successSurface || "#E8F5E9",
@@ -765,11 +966,11 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     borderColor: colors.success || "#4CAF50",
   },
   genderEmoji: {
-    fontSize: 24,
+    fontSize: 20,
   },
   genderOptionText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Inter_500Medium",
     color: colors.text,
   },
@@ -779,13 +980,66 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
   },
   datePickerContainer: {
     backgroundColor: colors.card,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 14,
+    padding: 16,
     width: "100%",
-    maxWidth: 320,
+    maxWidth: 300,
   },
   datePicker: {
     height: 180,
     marginBottom: 16,
   },
-});
+  // Android Input styles
+  androidInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    gap: 8,
+    height: 56,
+  },
+  androidButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  androidInput: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: "Inter_600SemiBold",
+    borderWidth: 0,
+    textAlign: "center",
+    paddingHorizontal: 8,
+  },
+  // iOS Container styles
+  iosContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    height: 100,
+  },
+  iosValueDisplay: {
+    fontSize: 32,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  iosUnitDisplay: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.5,
+  },
+  rangeInfo: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
+  rangeText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },});

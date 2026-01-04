@@ -1,12 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Keyboard,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   ScrollView,
@@ -15,8 +12,9 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from "react-native";
+import DatePicker from "react-native-date-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
@@ -45,6 +43,173 @@ function calculateAge(birthDate: Date): number {
   }
   return age;
 }
+
+// Кросс-платформный компонент для выбора чисел
+// iOS: красивый пикер, Android: простой TextInput
+const NumericInput = React.memo(function NumericInput({
+  value,
+  onChangeValue,
+  unit,
+  min,
+  max,
+  step = 1,
+  colors,
+}: {
+  value: string;
+  onChangeValue: (value: string) => void;
+  unit: string;
+  min: number;
+  max: number;
+  step?: number;
+  colors: any;
+}) {
+  const [inputValue, setInputValue] = useState(value);
+
+  const handleChangeText = useCallback((text: string) => {
+    const numValue = parseInt(text) || 0;
+    if (numValue >= min && numValue <= max) {
+      setInputValue(text);
+      onChangeValue(text);
+    } else if (text === "") {
+      setInputValue("");
+    }
+  }, [min, max, onChangeValue]);
+
+  const incrementValue = useCallback(() => {
+    const current = parseInt(inputValue) || min;
+    const newValue = Math.min(current + step, max);
+    setInputValue(String(newValue));
+    onChangeValue(String(newValue));
+  }, [inputValue, min, max, step, onChangeValue]);
+
+  const decrementValue = useCallback(() => {
+    const current = parseInt(inputValue) || max;
+    const newValue = Math.max(current - step, min);
+    setInputValue(String(newValue));
+    onChangeValue(String(newValue));
+  }, [inputValue, min, max, step, onChangeValue]);
+
+  return (
+    <View style={{ gap: 16 }}>
+      {Platform.OS === "android" ? (
+        // Android: простой TextInput с кнопками
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          borderWidth: 2,
+          borderRadius: 12,
+          borderColor: colors.primary,
+          paddingHorizontal: 8,
+          gap: 8,
+          height: 56,
+        }}>
+          <TouchableOpacity 
+            onPress={decrementValue}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          >
+            <Text style={{ fontSize: 24, color: colors.primary }}>−</Text>
+          </TouchableOpacity>
+          
+          <TextInput
+            value={inputValue}
+            onChangeText={handleChangeText}
+            keyboardType="number-pad"
+            style={{
+              flex: 1,
+              fontSize: 20,
+              fontFamily: "Inter_600SemiBold",
+              borderWidth: 0,
+              textAlign: "center",
+              paddingHorizontal: 8,
+              color: colors.text,
+              backgroundColor: colors.backgroundSecondary,
+            }}
+            placeholder="0"
+            placeholderTextColor={colors.textSecondary}
+            maxLength={3}
+          />
+          
+          <TouchableOpacity 
+            onPress={incrementValue}
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 10,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: colors.backgroundSecondary,
+            }}
+          >
+            <Text style={{ fontSize: 24, color: colors.primary }}>+</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        // iOS: стрелочки по сторонам с красивым отображением
+        <View style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+          borderRadius: 12,
+          height: 100,
+          backgroundColor: colors.backgroundSecondary,
+        }}>
+          <TouchableOpacity 
+            onPress={decrementValue}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-back" size={24} color={colors.primary} />
+          </TouchableOpacity>
+          
+          <View style={{ alignItems: "center", gap: 4 }}>
+            <Text style={{
+              fontSize: 32,
+              fontFamily: "Inter_700Bold",
+              textAlign: "center",
+              color: colors.text,
+            }}>
+              {inputValue}
+            </Text>
+            <Text style={{
+              fontSize: 12,
+              fontFamily: "Inter_500Medium",
+              letterSpacing: 0.5,
+              color: colors.textSecondary,
+            }}>
+              {unit}
+            </Text>
+          </View>
+          
+          <TouchableOpacity 
+            onPress={incrementValue}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons name="chevron-forward" size={24} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      )}
+      
+      <View style={{ paddingHorizontal: 4, paddingVertical: 8 }}>
+        <Text style={{
+          fontSize: 12,
+          fontFamily: "Inter_400Regular",
+          textAlign: "center",
+          color: colors.textSecondary,
+        }}>
+          Диапазон: {min} - {max} {unit}
+        </Text>
+      </View>
+    </View>
+  );
+});
 
 export default function GoalsWeightScreen() {
   const router = useRouter();
@@ -251,7 +416,7 @@ export default function GoalsWeightScreen() {
     switch (field) {
       case "weight": return "Текущий вес";
       case "height": return "Рост";
-      case "stepGoal": return "Ежедневная цель по шагам";
+      case "stepGoal": return "Ежедневная цель";
       case "targetWeight": return "Целевой вес";
       default: return "";
     }
@@ -268,6 +433,43 @@ export default function GoalsWeightScreen() {
         return "шагов";
       default:
         return "";
+    }
+  };
+
+  const getMinValue = (field: EditField) => {
+    switch (field) {
+      case "weight":
+      case "targetWeight":
+        return 20;
+      case "height":
+        return 100;
+      case "stepGoal":
+        return 1000;
+      default:
+        return 0;
+    }
+  };
+
+  const getMaxValue = (field: EditField) => {
+    switch (field) {
+      case "weight":
+      case "targetWeight":
+        return 270;
+      case "height":
+        return 250;
+      case "stepGoal":
+        return 41000;
+      default:
+        return 100;
+    }
+  };
+
+  const getStepValue = (field: EditField) => {
+    switch (field) {
+      case "stepGoal":
+        return 1000;
+      default:
+        return 1;
     }
   };
 
@@ -381,24 +583,21 @@ export default function GoalsWeightScreen() {
         animationType="fade"
         onRequestClose={() => setEditField(null)}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <KeyboardAvoidingView 
-            style={styles.modalOverlay} 
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-          >
+        <TouchableWithoutFeedback onPress={() => setEditField(null)}>
+          <View style={styles.modalOverlay}>
             <TouchableWithoutFeedback>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>{getFieldTitle(editField)}</Text>
                 
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={styles.input}
+                <View style={styles.pickerContainer}>
+                  <NumericInput
                     value={editValue}
-                    onChangeText={setEditValue}
-                    keyboardType="numeric"
-                    autoFocus
-                    selectTextOnFocus
-                    placeholderTextColor={colors.secondary}
+                    onChangeValue={setEditValue}
+                    unit={getFieldUnit(editField)}
+                    min={getMinValue(editField)}
+                    max={getMaxValue(editField)}
+                    step={getStepValue(editField)}
+                    colors={colors}
                   />
                   <Text style={styles.inputUnit}>{getFieldUnit(editField)}</Text>
                 </View>
@@ -424,7 +623,7 @@ export default function GoalsWeightScreen() {
                 </View>
               </View>
             </TouchableWithoutFeedback>
-          </KeyboardAvoidingView>
+          </View>
         </TouchableWithoutFeedback>
       </Modal>
 
@@ -492,61 +691,24 @@ export default function GoalsWeightScreen() {
       </Modal>
 
       {}
-      {showDatePicker && (
-        <Modal
-          visible={showDatePicker}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
-            <View style={styles.modalOverlay}>
-              <TouchableWithoutFeedback>
-                <View style={styles.datePickerContainer}>
-                  <Text style={styles.modalTitle}>Дата рождения</Text>
-                  
-                  <DateTimePicker
-                    value={tempDate}
-                    mode="date"
-                    display="spinner"
-                    onChange={(event, date) => {
-                      if (date) setTempDate(date);
-                    }}
-                    maximumDate={new Date()}
-                    minimumDate={new Date(1920, 0, 1)}
-                    locale="ru"
-                    textColor={colors.primary}
-                    style={styles.datePicker}
-                  />
-
-                  <View style={styles.modalButtons}>
-                    <TouchableOpacity 
-                      style={styles.modalButtonCancel} 
-                      onPress={() => setShowDatePicker(false)}
-                    >
-                      <Text style={styles.modalButtonCancelText}>Отмена</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={styles.modalButtonSave}
-                      onPress={() => {
-                        setShowDatePicker(false);
-                        handleSave("birthDate", tempDate);
-                      }}
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <ActivityIndicator size="small" color="#FFFFF0" />
-                      ) : (
-                        <Text style={styles.modalButtonSaveText}>Сохранить</Text>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
-      )}
+      <DatePicker
+        modal
+        open={showDatePicker}
+        date={tempDate}
+        mode="date"
+        maximumDate={new Date()}
+        minimumDate={new Date(1920, 0, 1)}
+        onConfirm={(date: Date) => {
+          setShowDatePicker(false);
+          handleSave("birthDate", date);
+        }}
+        onCancel={() => {
+          setShowDatePicker(false);
+        }}
+        title="Дата рождения"
+        confirmText="Сохранить"
+        cancelText="Отмена"
+      />
     </SafeAreaView>
   );
 }
@@ -690,6 +852,13 @@ const createStyles = (colors: any) => StyleSheet.create({
     textAlign: "center",
     marginBottom: 20,
   },
+  pickerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 12,
+    marginBottom: 20,
+    overflow: "hidden",
+  },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -711,6 +880,10 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: colors.textSecondary,
     marginLeft: 8,
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    transform: [{ translateY: -10 }],
   },
   modalButtons: {
     flexDirection: "row",
@@ -785,4 +958,57 @@ const createStyles = (colors: any) => StyleSheet.create({
     height: 180,
     marginBottom: 16,
   },
-});
+  // Android Input styles
+  androidInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    gap: 8,
+    height: 56,
+  },
+  androidButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  androidInput: {
+    flex: 1,
+    fontSize: 20,
+    fontFamily: "Inter_600SemiBold",
+    borderWidth: 0,
+    textAlign: "center",
+    paddingHorizontal: 8,
+  },
+  // iOS Container styles
+  iosContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
+    height: 100,
+  },
+  iosValueDisplay: {
+    fontSize: 32,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+  },
+  iosUnitDisplay: {
+    fontSize: 12,
+    fontFamily: "Inter_500Medium",
+    letterSpacing: 0.5,
+  },
+  rangeInfo: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+  },
+  rangeText: {
+    fontSize: 12,
+    fontFamily: "Inter_400Regular",
+    textAlign: "center",
+  },});

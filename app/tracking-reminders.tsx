@@ -1,22 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
+import DatePicker from "react-native-date-picker";
 import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeOut,
+    FadeIn,
+    FadeInDown,
+    FadeOut,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -345,11 +345,12 @@ export default function TrackingRemindersScreen() {
                 </TouchableOpacity>
               </View>
               <View style={styles.timePickerContainer}>
-                <DateTimePicker
-                  value={tempTime}
+                <DatePicker
+                  date={tempTime}
                   mode="time"
-                  display="spinner"
-                  onChange={handleTimeChange}
+                  onDateChange={(date) => {
+                    setTempTime(date);
+                  }}
                   style={styles.timePicker}
                   textColor={isDark ? "#FFFFF0" : "#2D2A26"}
                   locale="ru"
@@ -362,12 +363,24 @@ export default function TrackingRemindersScreen() {
 
       {}
       {Platform.OS === "android" && showTimePicker && (
-        <DateTimePicker
-          value={tempTime}
+        <DatePicker
+          modal
+          open={showTimePicker}
+          date={tempTime}
           mode="time"
-          display="spinner"
-          onChange={handleTimeChange}
-          is24Hour={true}
+          onConfirm={(date) => {
+            setTempTime(date);
+            setShowTimePicker(false);
+            if (editingReminder) {
+              handleReminderToggle(editingReminder);
+            }
+          }}
+          onCancel={() => {
+            setShowTimePicker(false);
+          }}
+          title={editingReminder ? reminderLabels[editingReminder] : ""}
+          confirmText="Готово"
+          cancelText="Отмена"
         />
       )}
     </SafeAreaView>

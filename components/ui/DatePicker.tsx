@@ -1,4 +1,4 @@
-import { Picker } from "@react-native-picker/picker";
+import { Picker as RNPicker } from "@react-native-picker/picker";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
@@ -9,33 +9,15 @@ interface DatePickerProps {
 }
 
 const MONTHS = [
-  "Январь",
-  "Февраль",
-  "Март",
-  "Апрель",
-  "Май",
-  "Июнь",
-  "Июль",
-  "Август",
-  "Сентябрь",
-  "Октябрь",
-  "Ноябрь",
-  "Декабрь",
+  "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+  "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
 ];
 
 const getDaysInMonth = (year: number, month: number): number => {
   return new Date(year, month + 1, 0).getDate();
 };
 
-const PickerColumn = ({
-  label,
-  items,
-  value,
-  onValueChange,
-  columnWidth,
-  themeColors,
-  isDark,
-}: {
+interface PickerColumnProps {
   label: string;
   items: (string | number)[];
   value: string | number;
@@ -43,6 +25,16 @@ const PickerColumn = ({
   columnWidth?: number;
   themeColors: any;
   isDark: boolean;
+}
+
+const PickerColumn: React.FC<PickerColumnProps> = ({
+  label,
+  items,
+  value,
+  onValueChange,
+  columnWidth,
+  themeColors,
+  isDark,
 }) => {
   const containerStyle = columnWidth
     ? [styles.columnContainer, { width: columnWidth }]
@@ -70,26 +62,31 @@ const PickerColumn = ({
   return (
     <View style={containerStyle}>
       <Text style={[styles.columnLabel, { color: themeColors.textSecondary }]}>{label}</Text>
-      <View style={[wrapperStyle, { backgroundColor: themeColors.background }, { borderRadius: 12 }]}>
-        {}
+      <View style={[wrapperStyle, { backgroundColor: themeColors.background, borderRadius: 12 }]}>
         {Platform.OS === "android" && (
-          <View style={[styles.selectedItemOverlay, { backgroundColor: isDark ? themeColors.gray5 : "#FFFFF0" }]} pointerEvents="none" />
+          <View 
+            style={[
+              styles.selectedItemOverlay, 
+              { backgroundColor: isDark ? themeColors.gray5 : "#FFFFF0" }
+            ]} 
+            pointerEvents="none" 
+          />
         )}
-        <Picker
+        <RNPicker
           selectedValue={value}
           onValueChange={onValueChange}
           style={[pickerStyle, { color: themeColors.text }]}
           itemStyle={Platform.OS === "ios" ? [styles.pickerItem, { color: themeColors.text }] : { color: themeColors.text }}
         >
           {items.map((item) => (
-            <Picker.Item
+            <RNPicker.Item
               key={String(item)}
               label={String(item)}
               value={item}
               color={themeColors.text}
             />
           ))}
-        </Picker>
+        </RNPicker>
       </View>
     </View>
   );
@@ -125,8 +122,7 @@ export const DatePicker = React.memo(function DatePicker({
       setMonth(newMonth);
       setYear(newYear);
     }
-    
-  }, []);
+  }, [value, day, month, year]);
 
   useEffect(() => {
     const daysInMonth = getDaysInMonth(year, month);
@@ -150,8 +146,7 @@ export const DatePicker = React.memo(function DatePicker({
     }, 0);
     
     return () => clearTimeout(timer);
-    
-  }, [day, month, year]);
+  }, [day, month, year, value, onValueChange]);
 
   const handleDayChange = useCallback(
     (value: string | number) => {
@@ -273,4 +268,3 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
   },
 });
-

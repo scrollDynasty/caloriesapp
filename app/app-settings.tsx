@@ -11,11 +11,10 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppSettings, useAppSettings } from "../context/AppSettingsContext";
 import { ThemeMode, useTheme } from "../context/ThemeContext";
-import { hapticLight, hapticMedium } from "../utils/haptics";
+import { hapticLight } from "../utils/haptics";
 
 function ThemePreviewCard({
   mode,
@@ -148,111 +147,19 @@ function SettingToggle({
           </Text>
           {extra}
         </View>
-        <Switch
-          value={value}
-          onValueChange={onValueChange}
-          trackColor={{ false: colors.switchTrackOff, true: iosGreen }}
-          thumbColor="#FFFFF0"
-          ios_backgroundColor={colors.switchTrackOff}
-          disabled={disabled}
-        />
+        <View style={styles.switchContainer}>
+          <Switch
+            value={value}
+            onValueChange={onValueChange}
+            trackColor={{ false: colors.switchTrackOff, true: iosGreen }}
+            thumbColor="#FFFFF0"
+            ios_backgroundColor={colors.switchTrackOff}
+            disabled={disabled}
+          />
+        </View>
       </View>
       {!isLast && <View style={[styles.toggleDivider, { backgroundColor: colors.separator }]} />}
     </>
-  );
-}
-
-function HealthConnectionCard({
-  colors,
-  isDark,
-  isConnected,
-  isAvailable,
-  onConnect,
-  onDisconnect,
-  stepsToday,
-  caloriestoday,
-}: {
-  colors: any;
-  isDark: boolean;
-  isConnected: boolean;
-  isAvailable: boolean;
-  onConnect: () => void;
-  onDisconnect: () => void;
-  stepsToday?: number;
-  caloriestoday?: number;
-}) {
-  const healthName = Platform.OS === "ios" ? "Apple Health" : "Health Connect";
-  const healthIcon = Platform.OS === "ios" ? "heart" : "fitness";
-  
-  return (
-    <Animated.View 
-      entering={FadeInDown.delay(100)}
-      style={[styles.healthCard, { backgroundColor: colors.card }]}
-    >
-      <View style={styles.healthHeader}>
-        <View style={[styles.healthIconContainer, { backgroundColor: isConnected ? "#FF2D5520" : colors.fillTertiary }]}>
-          <Ionicons name={healthIcon} size={24} color={isConnected ? "#FF2D55" : colors.textSecondary} />
-        </View>
-        <View style={styles.healthInfo}>
-          <Text style={[styles.healthTitle, { color: colors.text }]}>{healthName}</Text>
-          <Text style={[styles.healthStatus, { color: isConnected ? "#34C759" : colors.textSecondary }]}>
-            {isConnected ? "Подключено" : isAvailable ? "Не подключено" : "Недоступно"}
-          </Text>
-        </View>
-        
-        {isAvailable && (
-          <TouchableOpacity
-            style={[
-              styles.healthButton,
-              { backgroundColor: isConnected ? colors.fillTertiary : "#007AFF" },
-            ]}
-            onPress={() => {
-              hapticMedium();
-              isConnected ? onDisconnect() : onConnect();
-            }}
-          >
-            <Text style={[styles.healthButtonText, { color: isConnected ? colors.text : "#FFFFF0" }]}>
-              {isConnected ? "Отключить" : "Подключить"}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-      
-      {isConnected && (stepsToday !== undefined || caloriestoday !== undefined) && (
-        <View style={[styles.healthStats, { borderTopColor: colors.separator }]}>
-          {stepsToday !== undefined && (
-            <View style={styles.healthStat}>
-              <Ionicons name="walk" size={18} color="#007AFF" />
-              <Text style={[styles.healthStatValue, { color: colors.text }]}>
-                {stepsToday.toLocaleString()}
-              </Text>
-              <Text style={[styles.healthStatLabel, { color: colors.textSecondary }]}>шагов</Text>
-            </View>
-          )}
-          {caloriestoday !== undefined && (
-            <View style={styles.healthStat}>
-              <Ionicons name="flame" size={18} color="#FF9500" />
-              <Text style={[styles.healthStatValue, { color: colors.text }]}>
-                {caloriestoday}
-              </Text>
-              <Text style={[styles.healthStatLabel, { color: colors.textSecondary }]}>ккал</Text>
-            </View>
-          )}
-        </View>
-      )}
-      
-      {!isAvailable && (
-        <View style={[styles.healthUnavailable, { backgroundColor: colors.fillTertiary }]}>
-          <Ionicons name="information-circle" size={16} color={colors.textSecondary} />
-          <Text style={[styles.healthUnavailableText, { color: colors.textSecondary }]}>
-            {Platform.OS === "ios" 
-              ? "HealthKit недоступен на этом устройстве"
-              : "Установите Health Connect из Google Play"
-            }
-          </Text>
-        </View>
-      )}
-    </Animated.View>
   );
 }
 
@@ -401,21 +308,6 @@ export default function AppSettingsScreen() {
           </View>
         </View>
 
-        {/* Health интеграция */}
-        <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ЗДОРОВЬЕ</Text>
-          <HealthConnectionCard
-            colors={colors}
-            isDark={isDark}
-            isConnected={featureStatus.healthAuthorized}
-            isAvailable={featureStatus.healthAvailable}
-            onConnect={handleHealthConnect}
-            onDisconnect={handleHealthDisconnect}
-            stepsToday={burnedCalories?.steps}
-            caloriestoday={burnedCalories?.activeCalories}
-          />
-        </View>
-
         {/* Функции */}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ФУНКЦИИ</Text>
@@ -450,11 +342,6 @@ export default function AppSettingsScreen() {
               value={settings.burnedCalories}
               onValueChange={(value) => handleToggle("burnedCalories", value)}
               disabled={!featureStatus.healthAuthorized}
-              statusBadge={
-                !featureStatus.healthAuthorized
-                  ? { text: "Требуется Health", color: "#FF9500" }
-                  : undefined
-              }
               colors={colors}
               isDark={isDark}
               extra={settings.burnedCalories && burnedCalories ? (
@@ -488,38 +375,6 @@ export default function AppSettingsScreen() {
           </View>
         </View>
 
-        {/* Информация о настройках */}
-        <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ИНФОРМАЦИЯ</Text>
-          <View style={[styles.infoSection, { backgroundColor: colors.card }]}>
-            <InfoRow
-              icon="sparkles"
-              title="Празднования значков"
-              description="При достижении целей (стрик, вес, калории) показывается красивая анимация с конфетти"
-              colors={colors}
-            />
-            <InfoRow
-              icon="flame"
-              title="Сожжённые калории"
-              description="Калории, сожжённые во время тренировок и активности, добавляются к вашей дневной норме"
-              colors={colors}
-            />
-            <InfoRow
-              icon="arrow-forward"
-              title="Перенос калорий"
-              description="Если вчера вы не использовали все калории, до 200 из них можно перенести на сегодня"
-              colors={colors}
-            />
-            <InfoRow
-              icon="options"
-              title="Авто-корректировка"
-              description="При изменении целевых калорий белки, жиры и углеводы пересчитываются автоматически"
-              colors={colors}
-              isLast
-            />
-          </View>
-        </View>
-
         <View style={styles.bottomSpacer} />
       </ScrollView>
     </SafeAreaView>
@@ -534,13 +389,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -550,29 +405,29 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: "Inter_600SemiBold",
   },
   headerPlaceholder: {
-    width: 44,
+    width: 40,
   },
   scrollView: {
     flex: 1,
   },
   sectionContainer: {
-    marginTop: 24,
+    marginTop: 16,
   },
   sectionHeader: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_500Medium",
     letterSpacing: 0.5,
-    marginBottom: 8,
-    marginHorizontal: 32,
+    marginBottom: 6,
+    marginHorizontal: 28,
   },
   section: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    padding: 16,
+    marginHorizontal: 12,
+    borderRadius: 14,
+    padding: 12,
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -580,25 +435,25 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   sectionContent: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: "Inter_600SemiBold",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   sectionSubtitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_400Regular",
-    lineHeight: 20,
+    lineHeight: 18,
   },
   themeSelector: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
   themeCard: {
     flex: 1,
-    borderRadius: 14,
+    borderRadius: 12,
     overflow: "hidden",
     borderWidth: 2,
     borderColor: "transparent",
@@ -607,17 +462,17 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   themePreview: {
-    height: 88,
-    padding: 10,
+    height: 76,
+    padding: 8,
     position: "relative",
   },
   themeBadge: {
     position: "absolute",
-    top: 8,
-    right: 8,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    top: 6,
+    right: 6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: "#8E8E93",
     alignItems: "center",
     justifyContent: "center",
@@ -626,50 +481,50 @@ const styles = StyleSheet.create({
   themePreviewContent: {
     flex: 1,
     justifyContent: "flex-end",
-    gap: 5,
+    gap: 4,
   },
   themePreviewRow: {
-    height: 16,
-    borderRadius: 5,
+    height: 12,
+    borderRadius: 4,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    gap: 6,
+    paddingHorizontal: 6,
+    gap: 4,
   },
   themePreviewDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   themePreviewLine: {
     flex: 1,
-    height: 5,
-    borderRadius: 2.5,
+    height: 4,
+    borderRadius: 2,
   },
   themeLabelRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 12,
+    gap: 6,
+    paddingVertical: 10,
   },
   themeRadio: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
   },
   themeLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
   // Health Card
   healthCard: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    padding: 16,
+    marginHorizontal: 12,
+    borderRadius: 14,
+    padding: 12,
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -679,12 +534,12 @@ const styles = StyleSheet.create({
   healthHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
   },
   healthIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -692,60 +547,61 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   healthTitle: {
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: "Inter_600SemiBold",
     marginBottom: 2,
   },
   healthStatus: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_500Medium",
   },
   healthButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
   healthButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
   healthStats: {
     flexDirection: "row",
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 12,
+    paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     justifyContent: "space-around",
   },
   healthStat: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
   },
   healthStatValue: {
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: "Inter_700Bold",
   },
   healthStatLabel: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
   },
   healthUnavailable: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 10,
-    gap: 8,
+    marginTop: 10,
+    padding: 8,
+    borderRadius: 8,
+    gap: 6,
   },
   healthUnavailableText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
   // Toggles
   togglesSection: {
-    marginHorizontal: 16,
-    borderRadius: 16,
+    marginHorizontal: 12,
+    marginTop: 10,
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -755,9 +611,9 @@ const styles = StyleSheet.create({
   toggleRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    gap: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    gap: 6,
   },
   toggleRowDisabled: {
     opacity: 0.6,
@@ -768,46 +624,48 @@ const styles = StyleSheet.create({
   toggleTitleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
+    gap: 4,
+    marginBottom: 1,
   },
   toggleTitle: {
-    fontSize: 15,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
   },
   statusBadgeText: {
-    fontSize: 10,
+    fontSize: 8,
     fontFamily: "Inter_600SemiBold",
   },
   toggleSubtitle: {
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
-    lineHeight: 18,
+    lineHeight: 13,
+  },
+  switchContainer: {
   },
   toggleDivider: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: 16,
+    marginLeft: 10,
   },
   burnedCaloriesInfo: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
-    gap: 6,
+    marginTop: 6,
+    gap: 5,
   },
   burnedCaloriesText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
   // Info Section
   infoSection: {
-    marginHorizontal: 16,
-    borderRadius: 16,
-    padding: 4,
+    marginHorizontal: 12,
+    borderRadius: 14,
+    padding: 3,
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -817,13 +675,13 @@ const styles = StyleSheet.create({
   infoRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    padding: 14,
-    gap: 12,
+    padding: 11,
+    gap: 10,
   },
   infoIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -831,18 +689,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-    marginBottom: 4,
+    marginBottom: 3,
   },
   infoDescription: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
-    lineHeight: 18,
+    lineHeight: 16,
   },
   infoDivider: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: 62,
+    marginLeft: 54,
   },
   bottomSpacer: {
     height: 40,
