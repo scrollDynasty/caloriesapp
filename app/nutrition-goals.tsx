@@ -16,9 +16,7 @@ import Animated, {
     FadeIn,
     FadeInDown,
     FadeOut,
-    useAnimatedStyle,
     useSharedValue,
-    withSpring,
     withTiming
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -284,120 +282,182 @@ function CircularProgress({
   );
 }
 
-function GoalCard({
-  icon,
-  label,
-  value,
-  unit,
-  color,
-  onEdit,
-  isDark,
-  colors,
+function CircularProgressWithIcon({
+  progress,
+  size = 64,
+  strokeWidth = 4,
+  progressColor,
+  backgroundColor = "#E5E5E5",
+  iconName,
+  iconColor = "#666666",
 }: {
-  icon: string;
-  label: string;
-  value: number;
-  unit: string;
-  color: string;
-  onEdit: () => void;
-  isDark: boolean;
-  colors: any;
+  progress: number;
+  size?: number;
+  strokeWidth?: number;
+  progressColor: string;
+  backgroundColor?: string;
+  iconName: string;
+  iconColor?: string;
 }) {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
-    hapticLight();
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-  };
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - Math.min(1, Math.max(0, progress)));
 
   return (
-    <TouchableOpacity
-      activeOpacity={1}
-      onPress={onEdit}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
-      <Animated.View
-        style={[
-          styles.goalCard,
-          { backgroundColor: isDark ? colors.card : "#FFFFF0" },
-          animatedStyle,
-        ]}
-      >
-        <View style={styles.goalCardHeader}>
-          <View style={[styles.goalIconContainer, { backgroundColor: `${color}15` }]}>
-            <Text style={styles.goalIcon}>{icon}</Text>
-          </View>
-          <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-            <Ionicons name="pencil" size={14} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
-        <Text style={[styles.goalLabel, { color: colors.textSecondary }]}>{label}</Text>
-        <View style={styles.goalValueContainer}>
-          <CircularProgress
-            progress={0}
-            size={52}
+    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+      <Svg width={size} height={size} style={{ position: "absolute" }}>
+        {/* Background track */}
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={backgroundColor}
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        {/* Progress arc */}
+        {progress > 0 && (
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={progressColor}
+            strokeWidth={strokeWidth}
+            fill="none"
+            strokeDasharray={circumference}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        )}
+      </Svg>
+      {/* Icon in center */}
+      <Ionicons name={iconName as any} size={24} color={iconColor} />
+    </View>
+  );
+}
+
+function GoalListItem({
+  iconName,
+  label,
+  value,
+  progressColor,
+  iconColor,
+  onPress,
+  colors,
+  isDark,
+}: {
+  iconName: string;
+  label: string;
+  value: number;
+  progressColor: string;
+  iconColor: string;
+  onPress: () => void;
+  colors: any;
+  isDark: boolean;
+}) {
+  const cardBg = isDark ? colors.card : "#FFFFFF";
+  const iconBg = isDark ? colors.background : "#FFFFF0";
+  const labelColor = isDark ? colors.textSecondary : "#9b9b9b";
+  const valueColor = colors.text;
+  const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
+
+  return (
+    <View style={styles.goalItemContainer}>
+      {/* Icon Circle */}
+      <View style={styles.goalIconWrapper}>
+        <Svg width={64} height={64} style={{ position: "absolute" }}>
+          <Circle
+            cx={32}
+            cy={32}
+            r={30}
+            stroke={progressColor}
             strokeWidth={4}
-            color={color}
-            backgroundColor={isDark ? colors.fillTertiary : "#F0F0F0"}
-          >
-            <Text style={[styles.goalValue, { color: colors.text }]}>{value}</Text>
-          </CircularProgress>
-          <Text style={[styles.goalUnit, { color: colors.textSecondary }]}>{unit}</Text>
+            fill="none"
+          />
+        </Svg>
+        <View style={[styles.goalIconBackground, { backgroundColor: iconBg }]}>
+          <Ionicons name={iconName as any} size={18} color={iconColor} />
         </View>
-      </Animated.View>
-    </TouchableOpacity>
+      </View>
+      
+      {/* Card */}
+      <TouchableOpacity
+        style={[styles.goalCardNew, { backgroundColor: cardBg, borderColor }]}
+        onPress={onPress}
+        activeOpacity={0.8}
+      >
+        <View style={styles.goalCardContentNew}>
+          <Text style={[styles.goalListItemLabelNew, { color: labelColor }]}>{label}</Text>
+          <Text style={[styles.goalListItemValueNew, { color: valueColor }]}>{value}</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 function MicroCard({
-  icon,
+  iconName,
   label,
   value,
   unit,
-  color,
+  iconColor,
   onEdit,
   isDark,
   colors,
+  isLast = false,
 }: {
-  icon: string;
+  iconName: string;
   label: string;
   value: number;
   unit: string;
-  color: string;
+  iconColor: string;
   onEdit: () => void;
   isDark: boolean;
   colors: any;
+  isLast?: boolean;
 }) {
+  // Convert hex to rgba for translucent background
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
   return (
     <Animated.View
       entering={FadeInDown.delay(100).springify()}
       style={[
         styles.microCard,
-        { backgroundColor: isDark ? colors.card : "#FFFFF0" },
+        { 
+          backgroundColor: isDark ? "#1C1C1E" : "#FFFFF0",
+        },
       ]}
     >
-      <View style={[styles.microIconContainer, { backgroundColor: `${color}15` }]}>
-        <Text style={styles.microIcon}>{icon}</Text>
+      <View style={[styles.microIconContainer, { backgroundColor: hexToRgba(iconColor, 0.15) }]}>
+        <Ionicons name={iconName as any} size={18} color={iconColor} />
       </View>
-      <View style={styles.microInfo}>
-        <Text style={[styles.microLabel, { color: colors.textSecondary }]}>{label}</Text>
+      
+      <View style={styles.microContent}>
+        <Text style={[styles.microLabel, { color: colors.text }]}>{label}</Text>
         <View style={styles.microValueRow}>
           <Text style={[styles.microValue, { color: colors.text }]}>{value}</Text>
           <Text style={[styles.microUnit, { color: colors.textSecondary }]}>{unit}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.microEditButton} onPress={onEdit}>
-        <Ionicons name="pencil" size={14} color={colors.textSecondary} />
+      
+      <TouchableOpacity 
+        style={styles.microEditButton} 
+        onPress={onEdit}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Ionicons name="pencil-outline" size={16} color={colors.textSecondary} />
       </TouchableOpacity>
+      
+      {!isLast && (
+        <View style={[styles.microSeparator, { backgroundColor: isDark ? "#333333" : "#E5E5E5" }]} />
+      )}
     </Animated.View>
   );
 }
@@ -1179,152 +1239,156 @@ export default function NutritionGoalsScreen() {
     );
   }
 
+  // Background color based on theme
+  const backgroundColor = isDark ? colors.background : "#FFFFF0";
+  const textColor = colors.text;
+  const secondaryTextColor = colors.textSecondary;
+  const separatorColor = isDark ? "#38383A" : "#E5E5E5";
+  const progressBgColor = isDark ? "#2C2C2E" : "#E5E5E5";
+  
+  // Icon colors
+  const iconColorBase = isDark ? colors.text : "#0b0b0b";
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-      {}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Цели питания</Text>
-        <TouchableOpacity
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]}
-          onPress={saveAllGoals}
-          disabled={saving}
-        >
-          {saving ? (
-            <LottieLoader size="small" />
-          ) : (
-            <Text style={[styles.saveButtonText, { color: colors.accent }]}>Сохранить</Text>
-          )}
-        </TouchableOpacity>
+    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={["top", "bottom"]}>
+      {/* Fixed Header */}
+      <View style={[styles.fixedHeader, { backgroundColor }]}>
+        <View style={[styles.backButtonRound, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.03)" }]}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={24} color={textColor} />
+          </TouchableOpacity>
+        </View>
       </View>
 
+      {/* Scrollable Content */}
       <ScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor }]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
       >
-        {}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>ОСНОВНЫЕ ЦЕЛИ</Text>
-          <View style={styles.goalsGrid}>
-            <GoalCard
-              icon="🔥"
-              label="Калории"
-              value={goals.calories}
-              unit="ккал"
-              color="#FF6B6B"
-              onEdit={() => handleEditGoal("calories", "Калории", "ккал")}
-              isDark={isDark}
-              colors={colors}
-            />
-            <GoalCard
-              icon="🥩"
-              label="Белки"
-              value={goals.protein}
-              unit="г"
-              color="#FF6B6B"
-              onEdit={() => handleEditGoal("protein", "Белки", "г")}
-              isDark={isDark}
-              colors={colors}
-            />
-            <GoalCard
-              icon="🌾"
-              label="Углеводы"
-              value={goals.carbs}
-              unit="г"
-              color="#FFB347"
-              onEdit={() => handleEditGoal("carbs", "Углеводы", "г")}
-              isDark={isDark}
-              colors={colors}
-            />
-            <GoalCard
-              icon="💧"
-              label="Жиры"
-              value={goals.fats}
-              unit="г"
-              color="#4D96FF"
-              onEdit={() => handleEditGoal("fats", "Жиры", "г")}
-              isDark={isDark}
-              colors={colors}
-            />
-          </View>
-        </View>
+        <Text style={[styles.headerTitleNew, { color: textColor, marginBottom: 24 }]}>
+          Изменить цели{"\n"}по питанию
+        </Text>
 
-        {}
+        <View>
+        <GoalListItem
+          iconName="flame"
+          label="Цель по калориям"
+          value={goals.calories}
+          progressColor={isDark ? "#FFFFFF" : "#000000"}
+          iconColor={iconColorBase}
+          onPress={() => handleEditGoal("calories", "Калории", "ккал")}
+          colors={colors}
+          isDark={isDark}
+        />
+        
+        <GoalListItem
+          iconName="fitness"
+          label="Цель по белку"
+          value={goals.protein}
+          progressColor={isDark ? "#FFFFFF" : "#000000"}
+          iconColor={iconColorBase}
+          onPress={() => handleEditGoal("protein", "Белки", "г")}
+          colors={colors}
+          isDark={isDark}
+        />
+        
+        <GoalListItem
+          iconName="restaurant"
+          label="Цель по углеводам"
+          value={goals.carbs}
+          progressColor={isDark ? "#FF9500" : "#FF9500"}
+          iconColor={iconColorBase}
+          onPress={() => handleEditGoal("carbs", "Углеводы", "г")}
+          colors={colors}
+          isDark={isDark}
+        />
+        
+        <GoalListItem
+          iconName="water"
+          label="Цель по жирам"
+          value={goals.fats}
+          progressColor={isDark ? "#007AFF" : "#007AFF"}
+          iconColor={iconColorBase}
+          onPress={() => handleEditGoal("fats", "Жиры", "г")}
+          colors={colors}
+          isDark={isDark}
+        />
+
         <TouchableOpacity
-          style={[styles.micronutrientsToggle, { backgroundColor: isDark ? colors.card : "#FFFFF0" }]}
+          style={styles.micronutrientsToggle}
           onPress={toggleMicronutrients}
-          activeOpacity={0.7}
+          activeOpacity={0.6}
         >
-          <View style={styles.micronutrientsToggleContent}>
-            <Text style={{ fontSize: 18 }}>🥗</Text>
-            <Text style={[styles.micronutrientsToggleText, { color: colors.text }]}>
-              Посмотреть микронутриенты
-            </Text>
-          </View>
+          <Text style={[styles.micronutrientsToggleText, { color: colors.textSecondary }]}>
+            {showMicronutrients ? "Скрыть" : "Посмотреть микронутриенты"}
+          </Text>
           <Animated.View
             style={{
               transform: [{ rotate: showMicronutrients ? "180deg" : "0deg" }],
             }}
           >
-            <Ionicons name="chevron-down" size={20} color={colors.textSecondary} />
+            <Ionicons name="chevron-down" size={16} color={colors.textSecondary} />
           </Animated.View>
         </TouchableOpacity>
 
-        {}
         {showMicronutrients && (
-          <View style={styles.micronutrientsContainer}>
-            <MicroCard
-              icon="🌿"
-              label="Клетчатка"
+          <Animated.View entering={FadeInDown.duration(300).springify()} style={{ marginTop: 12 }}>
+            <GoalListItem
+              iconName="leaf"
+              label="Цель по клетчатке"
               value={goals.fiber}
-              unit="г"
-              color="#4CAF50"
-              onEdit={() => handleEditGoal("fiber", "Клетчатка", "г")}
-              isDark={isDark}
+              progressColor={isDark ? "#34C759" : "#34C759"}
+              iconColor={iconColorBase}
+              onPress={() => handleEditGoal("fiber", "Клетчатка", "г")}
               colors={colors}
+              isDark={isDark}
             />
-            <MicroCard
-              icon="🍬"
-              label="Сахар"
+            
+            <GoalListItem
+              iconName="cube-outline"
+              label="Цель по сахару"
               value={goals.sugar}
-              unit="г"
-              color="#FF9800"
-              onEdit={() => handleEditGoal("sugar", "Сахар", "г")}
-              isDark={isDark}
+              progressColor={isDark ? "#AF52DE" : "#AF52DE"}
+              iconColor={iconColorBase}
+              onPress={() => handleEditGoal("sugar", "Сахар", "г")}
               colors={colors}
+              isDark={isDark}
             />
-            <MicroCard
-              icon="🧂"
-              label="Натрий"
+            
+            <GoalListItem
+              iconName="water-outline"
+              label="Цель по натрию"
               value={goals.sodium}
-              unit="мг"
-              color="#9C27B0"
-              onEdit={() => handleEditGoal("sodium", "Натрий", "мг")}
-              isDark={isDark}
+              progressColor={isDark ? "#8E8E93" : "#8E8E93"}
+              iconColor={iconColorBase}
+              onPress={() => handleEditGoal("sodium", "Натрий", "мг")}
               colors={colors}
+              isDark={isDark}
             />
-          </View>
+          </Animated.View>
         )}
 
         <View style={styles.bottomSpacer} />
+        </View>
       </ScrollView>
 
-      {}
-      <View style={[styles.bottomButtonContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.bottomButtonContainer, { backgroundColor }]}>
         <TouchableOpacity
-          style={[styles.autoGenerateButtonFixed, { backgroundColor: colors.buttonPrimary }]}
+          style={[styles.autoGenerateButtonNew, { 
+            backgroundColor: isDark ? colors.card : "#FFFFFF",
+            borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"
+          }]}
           onPress={() => {
             hapticMedium();
             setShowAutoGenerate(true);
           }}
           activeOpacity={0.8}
         >
-          <Ionicons name="sparkles" size={20} color={colors.buttonPrimaryText} />
-          <Text style={[styles.autoGenerateButtonText, { color: colors.buttonPrimaryText }]}>
-            Автогенерация целей
+          <Ionicons name="sparkles" size={16} color={colors.text} />
+          <Text style={[styles.autoGenerateButtonTextNew, { color: colors.text }]}>
+            Автогенерация
           </Text>
         </TouchableOpacity>
       </View>
@@ -1367,190 +1431,264 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   backButton: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     alignItems: "center",
     justifyContent: "center",
   },
   headerTitle: {
-    fontSize: 17,
-    fontFamily: "Inter_600SemiBold",
+    fontSize: 26,
+    fontFamily: "Inter_700Bold",
   },
-  saveButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+  headerSpacer: {
+    width: 40,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  section: {
-    marginTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontFamily: "Inter_600SemiBold",
-    letterSpacing: 0.5,
-    marginBottom: 12,
-  },
-  goalsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+    paddingHorizontal: 18,
+    paddingTop: 20,
+    paddingBottom: 120,
   },
   goalCard: {
-    width: (SCREEN_WIDTH - 52) / 2,
-    padding: 16,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-  goalCardHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 24,
+    borderWidth: 1,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 4,
   },
-  goalIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+  goalCardContent: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  goalListItemLabel: {
+    fontSize: 13,
+    fontFamily: "Inter_500Medium",
+    textTransform: "none",
+  },
+  goalListItemValue: {
+    fontSize: 24,
+    fontFamily: "Inter_700Bold",
+    marginTop: 4,
+  },
+  goalItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 12,
+  },
+  goalIconWrapper: {
+    width: 64,
+    height: 64,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  goalIconBackground: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
-  goalIcon: {
-    fontSize: 18,
-  },
-  editButton: {
-    padding: 6,
-  },
-  goalLabel: {
-    fontSize: 13,
-    fontFamily: "Inter_500Medium",
-    marginBottom: 8,
-  },
-  goalValueContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  goalValue: {
-    fontSize: 16,
-    fontFamily: "Inter_700Bold",
-  },
-  goalUnit: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-  },
-  micronutrientsToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    borderRadius: 16,
-    marginTop: 20,
+  goalCardNew: {
+    flex: 1,
+    height: 72,
+    borderRadius: 12,
+    borderWidth: 1,
+    paddingHorizontal: 17,
+    paddingVertical: 13,
+    justifyContent: "center",
     shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
-  micronutrientsToggleContent: {
-    flexDirection: "row",
-    alignItems: "center",
+  goalCardContentNew: {
+    gap: 4,
+  },
+  goalListItemLabelNew: {
+    fontSize: 13,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 16,
+  },
+  goalListItemValueNew: {
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    lineHeight: 21,
+  },
+  headerNew: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     gap: 12,
   },
+  fixedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "rgba(0,0,0,0.1)",
+  },
+  backButtonRound: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitleNew: {
+    fontSize: 20,
+    fontFamily: "Inter_700Bold",
+    lineHeight: 24,
+  },
+  autoGenerateButtonNew: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    gap: 8,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    minHeight: 36,
+    width: "100%",
+  },
+  autoGenerateButtonTextNew: {
+    fontSize: 14,
+    fontFamily: "Inter_500Medium",
+  },
+  micronutrientsToggle: {
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 0,
+    marginTop: 16,
+    marginBottom: 12,
+  },
   micronutrientsToggleText: {
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
+    fontSize: 14,
+    fontFamily: "Inter_400Regular",
   },
   micronutrientsContainer: {
     marginTop: 12,
-    gap: 10,
-    marginBottom: 10,
+    marginHorizontal: 20,
+    marginBottom: 8,
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   microCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    position: "relative",
   },
   microIconContainer: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 16,
   },
-  microIcon: {
-    fontSize: 18,
-  },
-  microInfo: {
+  microContent: {
     flex: 1,
-    marginLeft: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   microLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: "Inter_500Medium",
-    marginBottom: 2,
+    letterSpacing: 0.2,
+    marginRight: 12,
   },
   microValueRow: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 4,
+    gap: 6,
   },
   microValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: "Inter_700Bold",
+    lineHeight: 22,
+    letterSpacing: -0.4,
   },
   microUnit: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
+    opacity: 0.6,
+    marginLeft: 4,
+    letterSpacing: 0.2,
   },
   microEditButton: {
     padding: 8,
+    marginLeft: 12,
+  },
+  microSeparator: {
+    position: "absolute",
+    bottom: 0,
+    left: 76,
+    right: 20,
+    height: 1,
   },
   bottomButtonContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingBottom: 34,
+    paddingVertical: 12,
+    paddingBottom: 16,
+    alignItems: "center",
   },
   autoGenerateButtonFixed: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 18,
-    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 28,
+    borderRadius: 40,
     gap: 10,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E3E3E3",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
+    minHeight: 52,
   },
   autoGenerateButtonText: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: "Inter_600SemiBold",
+    color: "#111111",
   },
   bottomSpacer: {
-    height: 100,
+    height: 20,
   },
   modalOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -1563,9 +1701,9 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
   },
   modalContent: {
-    width: SCREEN_WIDTH - 48,
-    padding: 24,
-    borderRadius: 24,
+    width: SCREEN_WIDTH - 32,
+    padding: 18,
+    borderRadius: 18,
     shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -1573,9 +1711,9 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 17,
     fontFamily: "Inter_700Bold",
-    marginBottom: 20,
+    marginBottom: 16,
     textAlign: "center",
   },
   pickerContainer: {
@@ -1656,39 +1794,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   autoGenerateScrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 120,
+    paddingHorizontal: 18,
+    paddingBottom: 100,
   },
   autoGenerateBottom: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    paddingBottom: 40,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    paddingBottom: 0,
   },
   autoGenerateFlowButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 18,
-    borderRadius: 16,
+    padding: 14,
+    borderRadius: 14,
   },
   stepContainer: {
     paddingTop: 24,
   },
   stepTitle: {
-    fontSize: 28,
+    fontSize: 22,
     fontFamily: "Inter_700Bold",
-    lineHeight: 34,
-    marginBottom: 12,
+    lineHeight: 28,
+    marginBottom: 10,
   },
   stepSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: "Inter_400Regular",
-    lineHeight: 24,
-    marginBottom: 32,
+    lineHeight: 20,
+    marginBottom: 24,
   },
   optionsContainer: {
     gap: 16,

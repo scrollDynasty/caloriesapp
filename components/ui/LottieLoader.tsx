@@ -7,7 +7,7 @@ interface LottieLoaderProps {
   color?: string;
 }
 
-const LottieLoader: React.FC<LottieLoaderProps> = ({ size = "large", color = "#007AFF" }) => {
+export const LottieLoader: React.FC<LottieLoaderProps> = ({ size = "large", color = "#007AFF" }) => {
   const loaderSize = size === "small" ? 50 : 100;
 
   return (
@@ -24,5 +24,4 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({ size = "large", color = "#0
 
 LottieLoader.displayName = "LottieLoader";
 
-export { LottieLoader };
 export default LottieLoader;
