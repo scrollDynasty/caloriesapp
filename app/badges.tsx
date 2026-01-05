@@ -39,7 +39,6 @@ interface BadgeData {
 }
 
 const BADGE_COLORS: Record<string, string> = {
-  // Streak
   streak_3: "#FF453A",
   streak_7: "#FF9F0A",
   streak_14: "#FFD60A",
@@ -48,7 +47,6 @@ const BADGE_COLORS: Record<string, string> = {
   streak_100: "#64D2FF",
   streak_365: "#BF5AF2",
   streak_1000: "#FF2D55",
-  // Meals
   first_meal: "#D1D1D6",
   meals_5: "#AEAEB2",
   meals_10: "#8E8E93",
@@ -59,57 +57,48 @@ const BADGE_COLORS: Record<string, string> = {
   meals_500: "#FF8500",
   meals_1000: "#FFD60A",
   meals_5000: "#BF5AF2",
-  // Water
   water_first: "#007AFF",
   water_3days: "#0A84FF",
   water_week: "#5AC8FA",
   water_month: "#32D3E6",
   water_100days: "#30B0C7",
   water_365days: "#00C7E6",
-  // Goals
   goal_first: "#34C759",
   goal_3days: "#30D158",
   goal_week: "#32D74B",
   goal_month: "#30DB5B",
   goal_100days: "#00E588",
   goal_perfect: "#FFD60A",
-  // Macros
   macro_first: "#AF52DE",
   macro_week: "#BF5AF2",
   protein_week: "#FF6B6B",
   fiber_week: "#A0A000",
   lowcarb_week: "#8BC34A",
-  // Healthy
   healthy_first: "#34C759",
   healthy_week: "#32D74B",
   veggies_day: "#8BC34A",
   fruits_day: "#FF3B30",
   nosugar_week: "#636366",
   wholegrains_week: "#D4A574",
-  // Weight
   weight_first: "#8E8E93",
   weight_week: "#636366",
   weight_month: "#48484A",
   weight_loss_5kg: "#FF9500",
   weight_loss_10kg: "#FFD60A",
-  // Time
   early_bird: "#FFD60A",
   night_owl: "#5856D6",
   regular_meals: "#007AFF",
   breakfast_week: "#FF9500",
-  // Scanner
   scanner_first: "#5856D6",
   scanner_10: "#5AC8FA",
   scanner_50: "#64D2FF",
   scanner_100: "#32D3E6",
   scanner_500: "#00C7E6",
-  // Variety
   variety_10: "#FF5722",
   variety_25: "#FF6B3B",
   variety_50: "#FF7F54",
   cuisines_5: "#FF9800",
   cuisines_10: "#FFA726",
-  // Collector
   collector_5: "#FFC107",
   collector_10: "#FF9800",
   collector_25: "#FF8700",
@@ -265,7 +254,6 @@ export default function BadgesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDark ? "#000000" : "#FFFDF6" }]} edges={["top"]}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: isDark ? "#1C1C1E" : "#F2F2F7" }]}
@@ -280,13 +268,11 @@ export default function BadgesScreen() {
           Достижения
         </Text>
       </View>
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Большая темная карточка - Серия дней */}
         <Animated.View 
           entering={FadeInDown.delay(100).springify()} 
           style={[
@@ -306,7 +292,6 @@ export default function BadgesScreen() {
             <Text style={[styles.streakLabel, { color: "#FFFFFF" }]}>СЕРИЯ ДНЕЙ</Text>
           </LinearGradient>
 
-          {/* Прогресс секция */}
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
               <Text style={[styles.progressTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
@@ -333,7 +318,6 @@ export default function BadgesScreen() {
           </View>
         </Animated.View>
 
-        {/* Стрик секция */}
         <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: isDark ? "#FFFFFF" : colors.text }]}>
@@ -360,7 +344,6 @@ export default function BadgesScreen() {
           </ScrollView>
         </Animated.View>
 
-        {/* Активность */}
         {activityBadges.length > 0 && (
           <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -389,7 +372,6 @@ export default function BadgesScreen() {
           </Animated.View>
         )}
 
-        {/* Питание */}
         {nutritionBadges.length > 0 && (
           <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -418,7 +400,6 @@ export default function BadgesScreen() {
           </Animated.View>
         )}
 
-        {/* Особые */}
         {specialBadges.length > 0 && (
           <Animated.View entering={FadeInDown.delay(500)} style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -450,7 +431,6 @@ export default function BadgesScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Анимация нового значка */}
       {celebratingBadge && (
         <BadgeCelebration
           visible={celebratingBadge !== null}

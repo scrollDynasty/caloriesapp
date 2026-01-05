@@ -1,7 +1,3 @@
-/**
- * Food Storage Service - загружает CSV данные с backend сервера
- */
-
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Papa from "papaparse";
 import { API_BASE_URL } from "../constants/api";
@@ -107,9 +103,6 @@ class FoodStorageService {
     return map;
   }
 
-  /**
-   * Загружает нутриенты продуктов
-   */
   private async loadNutrients(): Promise<Map<string, Map<string, number>>> {
     console.log('🥗 Загрузка нутриентов...');
     const rows = await this.fetchCSV('food_nutrient_sample.csv');
@@ -190,9 +183,6 @@ class FoodStorageService {
     }
   }
 
-  /**
-   * Загружает branded foods
-   */
   async getBrandedFoods(limit: number = 50): Promise<FoodItem[]> {
     console.log('🏪 Загрузка Branded Foods...');
     
@@ -238,9 +228,6 @@ class FoodStorageService {
     }
   }
 
-  /**
-   * Поиск продуктов по названию
-   */
   async searchFoods(query: string, source: string = 'all', limit: number = 50): Promise<FoodItem[]> {
     console.log(`🔍 Поиск: "${query}" в источнике ${source}`);
     

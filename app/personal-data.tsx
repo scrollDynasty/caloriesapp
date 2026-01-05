@@ -44,8 +44,6 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
-// Кросс-платформный компонент для выбора чисел
-// iOS: красивый пикер, Android: простой TextInput
 const NumericInput = React.memo(function NumericInput({
   value,
   onChangeValue,
@@ -92,7 +90,6 @@ const NumericInput = React.memo(function NumericInput({
   return (
     <View style={{ gap: 16 }}>
       {Platform.OS === "android" ? (
-        // Android: простой TextInput с кнопками
         <View style={{
           flexDirection: "row",
           alignItems: "center",
@@ -151,7 +148,6 @@ const NumericInput = React.memo(function NumericInput({
           </TouchableOpacity>
         </View>
       ) : (
-        // iOS: стрелочки по сторонам с красивым отображением
         <View style={{
           flexDirection: "row",
           alignItems: "center",

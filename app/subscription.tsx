@@ -3,13 +3,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    Alert,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
@@ -67,7 +67,6 @@ export default function SubscriptionScreen() {
   const [selectedPlan] = useState<"premium">("premium");
 
   const handlePurchase = () => {
-    // Здесь будет интеграция с платежной системой
     Alert.alert(
       "Скоро доступно",
       "Оплата Premium подписки скоро будет доступна. Мы оповестим вас!",
@@ -75,7 +74,6 @@ export default function SubscriptionScreen() {
     );
   };
 
-  // Определяем цвета в зависимости от темы
   const premiumGradient = isDark 
     ? [colors.card || "#1C1C1E", colors.card || "#2C2C2E"] as [string, string]
     : ["#FFFFF0", "#F5F5DC"] as [string, string];
@@ -91,7 +89,6 @@ export default function SubscriptionScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity
             onPress={() => router.back()}
@@ -103,14 +100,12 @@ export default function SubscriptionScreen() {
           <View style={styles.placeholder} />
         </View>
 
-        {/* Title Section */}
         <View style={styles.titleSection}>
           <Text style={[styles.mainTitle, { color: colors.text }]}>
             Премиум для{"\n"}быстрых результатов
           </Text>
         </View>
 
-        {/* Premium Plan Card */}
         <View style={styles.plansContainer}>
           <LinearGradient
             colors={premiumGradient}
@@ -118,7 +113,6 @@ export default function SubscriptionScreen() {
             end={{ x: 1, y: 1 }}
             style={[styles.planCard, styles.planCardSelected]}
           >
-            {/* Plan Header */}
             <View style={styles.planHeader}>
               <View style={styles.planHeaderContent}>
                 <Text style={[styles.planName, { color: textColor }]}>
@@ -135,7 +129,6 @@ export default function SubscriptionScreen() {
               </View>
             </View>
 
-            {/* Features */}
             <View style={styles.featuresContainer}>
               {PLANS.premium.features.map((feature, index) => (
                 <View key={index} style={styles.featureRow}>
@@ -151,7 +144,6 @@ export default function SubscriptionScreen() {
           </LinearGradient>
         </View>
 
-        {/* No Payment Info */}
         <View style={styles.noPaymentContainer}>
           <Text style={[styles.noPaymentText, { color: colors.textSecondary }]}>
             ✓ Платеж не требуется сейчас
@@ -160,7 +152,6 @@ export default function SubscriptionScreen() {
 
       </ScrollView>
 
-      {/* Purchase Button */}
       <View style={[styles.footer, { 
         backgroundColor: colors.background, 
         borderTopColor: colors.border,

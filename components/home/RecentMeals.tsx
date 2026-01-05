@@ -455,7 +455,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
   },
 
-  // Processing card styles
   processingCard: {
     borderRadius: 14,
     padding: 10,
@@ -528,7 +527,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
   },
 
-  // Regular meal card styles
   mealCard: {
     borderRadius: 8,
     padding: 8,

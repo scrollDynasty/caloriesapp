@@ -15,7 +15,7 @@ export function useScrollColorTransition(sections: SectionColor[]) {
   useEffect(() => {
     const observerOptions = {
       root: null,
-      rootMargin: "-20% 0px -20% 0px", // Триггер раньше для очень плавного перехода
+      rootMargin: "-20% 0px -20% 0px",
       threshold: 0,
     };
 
