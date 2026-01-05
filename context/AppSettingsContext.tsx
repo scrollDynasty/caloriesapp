@@ -3,15 +3,11 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { Alert, Platform } from "react-native";
 import { HealthPermissionStatus, healthService } from "../services/health";
 
-// Ключи хранилища
 const APP_SETTINGS_KEY = "@caloriesapp:app_settings";
 const BURNED_CALORIES_KEY = "@caloriesapp:burned_calories";
 const CALORIE_ROLLOVER_KEY = "@caloriesapp:calorie_rollover";
 const FEATURE_STATUS_KEY = "@caloriesapp:feature_status";
 
-/**
- * Интерфейс настроек приложения
- */
 export interface AppSettings {
   badgeCelebrations: boolean;     // Показывать анимацию при получении значков
   liveActivity: boolean;          // Живая активность (iOS Dynamic Island)
@@ -24,34 +20,28 @@ export interface AppSettings {
  * Статус доступности функций
  */
 export interface FeatureStatus {
-  healthAvailable: boolean;       // Health (iOS/Android) доступен
-  healthAuthorized: boolean;      // Есть разрешение на чтение данных
-  liveActivityAvailable: boolean; // Live Activity доступен (iOS 16+)
-  lastChecked: string;            // Последняя проверка
+  healthAvailable: boolean;
+  healthAuthorized: boolean;
+  liveActivityAvailable: boolean;
+  lastChecked: string;
 }
 
-/**
- * Данные о сожжённых калориях за день
- */
 export interface BurnedCaloriesData {
-  date: string;           // YYYY-MM-DD
-  activeCalories: number; // Активные калории (тренировки)
-  restingCalories: number; // Базовые калории
-  totalCalories: number;   // Всего сожжено
-  steps: number;           // Шаги
-  distance?: number;       // Дистанция в метрах
-  flightsClimbed?: number; // Этажи
-  lastUpdated: string;     // ISO timestamp
+  date: string;
+  activeCalories: number;
+  restingCalories: number;
+  totalCalories: number;
+  steps: number;
+  distance?: number;
+  flightsClimbed?: number;
+  lastUpdated: string;
 }
 
-/**
- * Данные о переносе калорий
- */
 export interface CalorieRolloverData {
-  fromDate: string;       // Дата, с которой перенесено
-  toDate: string;         // Дата, на которую перенесено
-  amount: number;         // Количество перенесённых калорий (макс 200)
-  used: boolean;          // Уже использовано
+  fromDate: string;
+  toDate: string;
+  amount: number;
+  used: boolean;
 }
 
 interface AppSettingsContextType {
@@ -59,35 +49,29 @@ interface AppSettingsContextType {
   featureStatus: FeatureStatus;
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>;
   
-  // Health интеграция
   healthStatus: HealthPermissionStatus | null;
   requestHealthPermission: () => Promise<boolean>;
   disconnectHealth: () => Promise<void>;
   
-  // Сожжённые калории
   burnedCalories: BurnedCaloriesData | null;
   refreshBurnedCalories: () => Promise<void>;
   getBurnedCaloriesForDate: (dateStr: string) => Promise<BurnedCaloriesData | null>;
   
-  // Перенос калорий
   rolloverCalories: CalorieRolloverData | null;
   calculateRollover: (yesterdayConsumed: number, yesterdayTarget: number) => number;
   getRolloverForDate: (dateStr: string) => Promise<CalorieRolloverData | null>;
   
-  // Авто-корректировка макросов
   calculateAdjustedMacros: (
     targetCalories: number,
     weight: number,
     goal: "lose" | "maintain" | "gain"
   ) => { protein: number; carbs: number; fats: number };
   
-  // Проверка достижений для анимации
   shouldShowBadgeCelebration: () => boolean;
   markBadgeCelebrationShown: () => void;
   pendingBadgeCelebration: string | null;
   setPendingBadgeCelebration: (badge: string | null) => void;
   
-  // Проверка доступности функций
   checkFeatureAvailability: () => Promise<void>;
   
   isLoaded: boolean;
@@ -120,7 +104,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
   const [pendingBadgeCelebration, setPendingBadgeCelebration] = useState<string | null>(null);
   const [badgeCelebrationShown, setBadgeCelebrationShown] = useState(false);
 
-  // Загрузка настроек при инициализации
   useEffect(() => {
     initializeSettings();
   }, []);
@@ -131,42 +114,33 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       hasRefreshedBurnedCaloriesRef.current = true;
       refreshBurnedCalories();
     }
-    // Сбрасываем флаг при отключении
     if (!settings.burnedCalories) {
       hasRefreshedBurnedCaloriesRef.current = false;
     }
   }, [settings.burnedCalories, isLoaded, featureStatus.healthAuthorized]);
 
-  // Загрузка данных о переносе калорий
   useEffect(() => {
     if (settings.calorieRollover && isLoaded) {
       loadRolloverData();
     }
   }, [settings.calorieRollover, isLoaded]);
 
-  /**
-   * Инициализация настроек и проверка доступности функций
-   */
   const initializeSettings = async () => {
     try {
-      // Загружаем настройки
       const storedSettings = await AsyncStorage.getItem(APP_SETTINGS_KEY);
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings);
         setSettings({ ...defaultSettings, ...parsed });
       }
 
-      // Загружаем статус функций
       const storedStatus = await AsyncStorage.getItem(FEATURE_STATUS_KEY);
       if (storedStatus) {
         setFeatureStatus(JSON.parse(storedStatus));
       }
 
-      // Инициализируем Health Service
       const status = await healthService.initialize();
       setHealthStatus(status);
 
-      // Обновляем статус функций
       const newFeatureStatus: FeatureStatus = {
         healthAvailable: status.isAvailable,
         healthAuthorized: status.isAuthorized,
@@ -177,7 +151,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       setFeatureStatus(newFeatureStatus);
       await AsyncStorage.setItem(FEATURE_STATUS_KEY, JSON.stringify(newFeatureStatus));
 
-      // Автоматически отключаем функции, которые недоступны
       await validateAndDisableUnavailableFeatures(storedSettings ? JSON.parse(storedSettings) : defaultSettings, newFeatureStatus);
     } catch (error) {
     } finally {
@@ -185,9 +158,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  /**
-   * Проверка и отключение недоступных функций
-   */
   const validateAndDisableUnavailableFeatures = async (
     currentSettings: AppSettings,
     status: FeatureStatus
@@ -195,13 +165,11 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     let needsUpdate = false;
     const updatedSettings = { ...currentSettings };
 
-    // Отключаем burnedCalories если Health недоступен или не авторизован
     if (currentSettings.burnedCalories && !status.healthAuthorized) {
       updatedSettings.burnedCalories = false;
       needsUpdate = true;
     }
 
-    // Отключаем liveActivity если недоступен
     if (currentSettings.liveActivity && !status.liveActivityAvailable) {
       updatedSettings.liveActivity = false;
       needsUpdate = true;
@@ -213,9 +181,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  /**
-   * Проверка доступности функций
-   */
   const checkFeatureAvailability = async () => {
     try {
       const status = await healthService.initialize();
@@ -231,15 +196,11 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       setFeatureStatus(newFeatureStatus);
       await AsyncStorage.setItem(FEATURE_STATUS_KEY, JSON.stringify(newFeatureStatus));
 
-      // Валидируем текущие настройки
       await validateAndDisableUnavailableFeatures(settings, newFeatureStatus);
     } catch (error) {
     }
   };
 
-  /**
-   * Запрос разрешения Health
-   */
   const requestHealthPermission = async (): Promise<boolean> => {
     try {
       const granted = await healthService.requestPermissions();
@@ -267,9 +228,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  /**
-   * Отключение Health интеграции
-   */
   const disconnectHealth = async (): Promise<void> => {
     try {
       await healthService.disconnect();
@@ -284,7 +242,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       setHealthStatus(healthService.getStatus());
       await AsyncStorage.setItem(FEATURE_STATUS_KEY, JSON.stringify(newFeatureStatus));
       
-      // Отключаем связанные настройки
       if (settings.burnedCalories) {
         await updateSetting("burnedCalories", false);
       }
@@ -296,10 +253,8 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     key: K,
     value: AppSettings[K]
   ): Promise<void> => {
-    // Проверяем доступность функции перед включением
     if (value === true) {
       if (key === "burnedCalories" && !featureStatus.healthAuthorized) {
-        // Запрашиваем разрешение
         const granted = await requestHealthPermission();
         if (!granted) {
           Alert.alert(
@@ -332,17 +287,12 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  /**
-   * Получение сожжённых калорий через HealthService
-   * ОПТИМИЗАЦИЯ: Добавлен throttle для предотвращения частых вызовов
-   */
   const lastRefreshTimeRef = React.useRef(0);
-  const MIN_REFRESH_INTERVAL = 30000; // Минимум 30 секунд между обновлениями
+  const MIN_REFRESH_INTERVAL = 30000;
 
   const refreshBurnedCalories = useCallback(async () => {
     if (!settings.burnedCalories || !featureStatus.healthAuthorized) return;
 
-    // ОПТИМИЗАЦИЯ: Throttle - не чаще чем раз в 30 секунд
     const now = Date.now();
     if (now - lastRefreshTimeRef.current < MIN_REFRESH_INTERVAL) {
       return;
@@ -366,15 +316,12 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
         
         setBurnedCalories(burnedData);
         
-        // Кэшируем данные
         await AsyncStorage.setItem(
           `${BURNED_CALORIES_KEY}_${data.date}`,
           JSON.stringify(burnedData)
         );
       }
     } catch (error) {
-      
-      // Если произошла ошибка, возможно разрешения были отозваны
       await checkFeatureAvailability();
     }
   }, [settings.burnedCalories, featureStatus.healthAuthorized]);
@@ -393,9 +340,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  /**
-   * Загрузка данных о переносе калорий
-   */
   const loadRolloverData = async () => {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -409,9 +353,6 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  /**
-   * Расчёт переноса калорий (максимум 200)
-   */
   const calculateRollover = useCallback((
     yesterdayConsumed: number,
     yesterdayTarget: number
@@ -420,10 +361,8 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     
     const remaining = yesterdayTarget - yesterdayConsumed;
     
-    // Только если остались неиспользованные калории
     if (remaining <= 0) return 0;
     
-    // Максимум 200 калорий
     return Math.min(remaining, 200);
   }, [settings.calorieRollover]);
 
@@ -441,16 +380,12 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  /**
-   * Авто-корректировка макроэлементов при изменении целевых калорий
-   */
   const calculateAdjustedMacros = useCallback((
     targetCalories: number,
     weight: number,
     goal: "lose" | "maintain" | "gain"
   ): { protein: number; carbs: number; fats: number } => {
     if (!settings.autoMacroAdjust) {
-      // Возвращаем стандартное распределение 30/40/30
       return {
         protein: Math.round((targetCalories * 0.30) / 4),
         carbs: Math.round((targetCalories * 0.40) / 4),
@@ -458,24 +393,21 @@ export function AppSettingsProvider({ children }: { children: React.ReactNode })
       };
     }
 
-    // Расчёт белка на основе веса и цели
     let proteinGrams: number;
     if (goal === "lose") {
-      proteinGrams = weight * 2.2; // Больше белка при похудении
+      proteinGrams = weight * 2.2;
     } else if (goal === "gain") {
-      proteinGrams = weight * 2.0; // Для набора массы
+      proteinGrams = weight * 2.0;
     } else {
-      proteinGrams = weight * 1.8; // Для поддержания
+      proteinGrams = weight * 1.8;
     }
 
     const proteinCalories = proteinGrams * 4;
 
-    // Расчёт жиров (0.9-1.0 г на кг веса)
     const fatGramsPerKg = goal === "lose" ? 0.9 : 1.0;
     const fatGrams = weight * fatGramsPerKg;
     const fatCalories = fatGrams * 9;
 
-    // Остаток на углеводы
     const carbsCalories = Math.max(0, targetCalories - proteinCalories - fatCalories);
     const carbsGrams = carbsCalories / 4;
 

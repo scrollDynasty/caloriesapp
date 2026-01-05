@@ -212,7 +212,6 @@ export default function AppSettingsScreen() {
     hapticLight();
     await updateSetting(key, value);
     
-    // Специальная обработка для сожжённых калорий
     if (key === "burnedCalories" && value === true) {
       await refreshBurnedCalories();
     }
@@ -262,7 +261,6 @@ export default function AppSettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
-      {/* Заголовок */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={[styles.backButton, { backgroundColor: colors.card }]} 
@@ -278,7 +276,6 @@ export default function AppSettingsScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Внешний вид */}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ВНЕШНИЙ ВИД</Text>
           <View style={[styles.section, { backgroundColor: colors.card }]}>
@@ -308,7 +305,6 @@ export default function AppSettingsScreen() {
           </View>
         </View>
 
-        {/* Функции */}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ФУНКЦИИ</Text>
           <View style={[styles.togglesSection, { backgroundColor: colors.card }]}>
@@ -520,7 +516,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
   },
-  // Health Card
   healthCard: {
     marginHorizontal: 12,
     borderRadius: 14,
@@ -597,7 +592,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: "Inter_400Regular",
   },
-  // Toggles
   togglesSection: {
     marginHorizontal: 12,
     marginTop: 10,
@@ -661,7 +655,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: "Inter_600SemiBold",
   },
-  // Info Section
   infoSection: {
     marginHorizontal: 12,
     borderRadius: 14,

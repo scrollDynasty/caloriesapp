@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
-import { initLanguage, SupportedLanguage, t } from "../../utils/language";
+import { SupportedLanguage, initLanguage, t } from "../../utils/language";
 
 interface FoodItem {
   fdc_id: string;
@@ -51,7 +51,6 @@ export default function FoodDatabaseScreen() {
 
   const isInitialMount = useRef(true);
 
-  // Инициализация языка при монтировании
   useEffect(() => {
     initLanguage().then(setLang);
   }, []);
@@ -134,7 +133,6 @@ export default function FoodDatabaseScreen() {
   };
 
   useEffect(() => {
-    // Пропускаем первый рендер - useFocusEffect уже вызовет loadInitialFoods
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;

@@ -233,7 +233,6 @@ export default function PersonalDataScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState<Date>(new Date(2000, 0, 1));
 
-  // Мемоизированные значения для пикера
   const pickerDataSource = useMemo(() => {
     if (editField === "weight" || editField === "targetWeight") {
       return Array.from({ length: 251 }, (_, i) => i + 20);
@@ -414,7 +413,6 @@ export default function PersonalDataScreen() {
       case "birthDate":
         setEditField(null);
         setTempDate(data.birthDate || new Date(2000, 0, 1));
-        // Show date picker directly
         setTimeout(() => setShowDatePicker(true), 100);
         return;
       case "gender":
@@ -514,7 +512,6 @@ export default function PersonalDataScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      {}
       <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -524,7 +521,6 @@ export default function PersonalDataScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {}
         <View style={styles.targetCard}>
           <View>
             <Text style={styles.targetLabel}>Целевой вес</Text>
@@ -538,9 +534,7 @@ export default function PersonalDataScreen() {
           </TouchableOpacity>
         </View>
 
-        {}
         <View style={styles.section}>
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("weight")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Текущий вес</Text>
             <View style={styles.rowRight}>
@@ -553,7 +547,6 @@ export default function PersonalDataScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("height")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Рост</Text>
             <View style={styles.rowRight}>
@@ -566,7 +559,6 @@ export default function PersonalDataScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("birthDate")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Дата рождения</Text>
             <View style={styles.rowRight}>
@@ -579,7 +571,6 @@ export default function PersonalDataScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => setEditField("gender")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Пол</Text>
             <View style={styles.rowRight}>
@@ -592,7 +583,6 @@ export default function PersonalDataScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("stepGoal")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Ежедневная цель</Text>
             <View style={styles.rowRight}>
@@ -607,7 +597,6 @@ export default function PersonalDataScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {}
       <Modal
         visible={editField !== null && editField !== "gender" && editField !== "birthDate"}
         transparent
@@ -720,7 +709,6 @@ export default function PersonalDataScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {}
       <DatePicker
         modal
         open={showDatePicker}
@@ -989,7 +977,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     height: 180,
     marginBottom: 16,
   },
-  // Android Input styles
   androidInputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -1014,7 +1001,6 @@ const createStyles = (colors: any, isDark: boolean) => StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 8,
   },
-  // iOS Container styles
   iosContainer: {
     flexDirection: "row",
     alignItems: "center",

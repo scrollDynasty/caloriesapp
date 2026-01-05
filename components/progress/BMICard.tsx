@@ -76,7 +76,6 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
         </Text>
       </TouchableOpacity>
 
-      {/* BMI Scale */}
       <View style={styles.scaleContainer}>
         <View style={styles.scaleBar}>
           <View style={[styles.scaleSegment, { backgroundColor: "#4DABF7", flex: 18.5 }]} />
@@ -85,13 +84,11 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
           <View style={[styles.scaleSegment, { backgroundColor: "#FF6B6B", flex: 10 }]} />
         </View>
         
-        {/* Indicator */}
         <View style={[styles.indicator, { left: `${Math.min(95, (bmi / 40) * 100)}%` }]}>
           <View style={[styles.indicatorLine, { backgroundColor: isDark ? '#FFFFFF' : '#2D2A26' }]} />
         </View>
       </View>
 
-      {/* Legend */}
       <View style={styles.legend}>
         <View style={styles.legendItem}>
           <View style={[styles.legendDot, { backgroundColor: "#4DABF7" }]} />

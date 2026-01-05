@@ -44,8 +44,6 @@ function calculateAge(birthDate: Date): number {
   return age;
 }
 
-// Кросс-платформный компонент для выбора чисел
-// iOS: красивый пикер, Android: простой TextInput
 const NumericInput = React.memo(function NumericInput({
   value,
   onChangeValue,
@@ -92,7 +90,6 @@ const NumericInput = React.memo(function NumericInput({
   return (
     <View style={{ gap: 16 }}>
       {Platform.OS === "android" ? (
-        // Android: простой TextInput с кнопками
         <View style={{
           flexDirection: "row",
           alignItems: "center",
@@ -151,7 +148,6 @@ const NumericInput = React.memo(function NumericInput({
           </TouchableOpacity>
         </View>
       ) : (
-        // iOS: стрелочки по сторонам с красивым отображением
         <View style={{
           flexDirection: "row",
           alignItems: "center",
@@ -483,7 +479,6 @@ export default function GoalsWeightScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      {}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
@@ -493,7 +488,6 @@ export default function GoalsWeightScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {}
         <View style={styles.targetCard}>
           <View>
             <Text style={styles.targetLabel}>Целевой вес</Text>
@@ -507,9 +501,7 @@ export default function GoalsWeightScreen() {
           </TouchableOpacity>
         </View>
 
-        {}
         <View style={styles.section}>
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("weight")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Текущий вес</Text>
             <View style={styles.rowRight}>
@@ -522,7 +514,6 @@ export default function GoalsWeightScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("height")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Рост</Text>
             <View style={styles.rowRight}>
@@ -535,7 +526,6 @@ export default function GoalsWeightScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("birthDate")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Дата рождения</Text>
             <View style={styles.rowRight}>
@@ -548,7 +538,6 @@ export default function GoalsWeightScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => setEditField("gender")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Пол</Text>
             <View style={styles.rowRight}>
@@ -561,7 +550,6 @@ export default function GoalsWeightScreen() {
 
           <View style={styles.divider} />
 
-          {}
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("stepGoal")} activeOpacity={0.6}>
             <Text style={styles.rowLabel}>Ежедневная цель</Text>
             <View style={styles.rowRight}>
@@ -576,7 +564,6 @@ export default function GoalsWeightScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      {}
       <Modal
         visible={editField !== null && editField !== "gender" && editField !== "birthDate"}
         transparent
@@ -689,7 +676,6 @@ export default function GoalsWeightScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      {}
       <DatePicker
         modal
         open={showDatePicker}
@@ -957,7 +943,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     height: 180,
     marginBottom: 16,
   },
-  // Android Input styles
   androidInputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -982,7 +967,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 8,
   },
-  // iOS Container styles
   iosContainer: {
     flexDirection: "row",
     alignItems: "center",

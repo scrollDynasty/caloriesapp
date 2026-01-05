@@ -4,10 +4,10 @@ import { useRouter } from "expo-router";
 import { memo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
-    useAnimatedStyle,
-    useSharedValue,
-    withSequence,
-    withSpring,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
 } from "react-native-reanimated";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticLight } from "../../utils/haptics";
@@ -25,7 +25,6 @@ export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderPro
   const handleStreakPress = () => {
     hapticLight();
     
-    // Анимация при нажатии
     scale.value = withSequence(
       withSpring(1.2, { damping: 10, stiffness: 200 }),
       withSpring(1, { damping: 10, stiffness: 200 })
@@ -36,7 +35,6 @@ export const HomeHeader = memo(function HomeHeader({ streak = 0 }: HomeHeaderPro
       withSpring(0, { damping: 10 })
     );
 
-    // Переход на экран значков
     router.push("/badges" as any);
   };
 

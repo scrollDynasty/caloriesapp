@@ -188,7 +188,6 @@ export function ProcessingMealsProvider({ children }: { children: React.ReactNod
     
     setProcessingMeals(prev => [newMeal, ...prev]);
     
-    // Start processing immediately
     processUpload(newMeal);
     
     return id;

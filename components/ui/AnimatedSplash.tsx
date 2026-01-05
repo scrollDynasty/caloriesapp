@@ -88,7 +88,6 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
           useNativeDriver: true,
         }),
       ]).start(async () => {
-        // Скрываем SplashScreen ПОСЛЕ анимации, а не до
         await SplashScreen.hideAsync();
         setIsVisible(false);
         onFinish();
@@ -123,7 +122,6 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
-      {/* Полный экран для покрытия нижней панели */}
       <Animated.View
         style={[
           styles.glowContainer,
@@ -139,7 +137,6 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
         <View style={styles.glow} />
       </Animated.View>
 
-      {/* SVG логотип */}
       <Animated.View
         style={[
           styles.logoContainer,

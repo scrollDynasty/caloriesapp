@@ -2,22 +2,22 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Dimensions,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeOut,
-    useSharedValue,
-    withTiming
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  useSharedValue,
+  withTiming
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -33,8 +33,6 @@ import { hapticLight, hapticMedium, hapticSuccess } from "../utils/haptics";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
-// Кросс-платформный компонент для выбора чисел
-// iOS: красивый пикер, Android: простой TextInput
 const NumericInput = React.memo(function NumericInput({
   value,
   onChangeValue,
@@ -81,7 +79,6 @@ const NumericInput = React.memo(function NumericInput({
   return (
     <View style={{ gap: 16 }}>
       {Platform.OS === "android" ? (
-        // Android: простой TextInput с кнопками
         <View style={{
           flexDirection: "row",
           alignItems: "center",
@@ -140,7 +137,6 @@ const NumericInput = React.memo(function NumericInput({
           </TouchableOpacity>
         </View>
       ) : (
-        // iOS: стрелочки по сторонам с красивым отображением
         <View style={{
           flexDirection: "row",
           alignItems: "center",
@@ -306,7 +302,6 @@ function CircularProgressWithIcon({
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       <Svg width={size} height={size} style={{ position: "absolute" }}>
-        {/* Background track */}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -315,7 +310,6 @@ function CircularProgressWithIcon({
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Progress arc */}
         {progress > 0 && (
           <Circle
             cx={size / 2}
@@ -331,7 +325,6 @@ function CircularProgressWithIcon({
           />
         )}
       </Svg>
-      {/* Icon in center */}
       <Ionicons name={iconName as any} size={24} color={iconColor} />
     </View>
   );
@@ -364,7 +357,6 @@ function GoalListItem({
 
   return (
     <View style={styles.goalItemContainer}>
-      {/* Icon Circle */}
       <View style={styles.goalIconWrapper}>
         <Svg width={64} height={64} style={{ position: "absolute" }}>
           <Circle
@@ -381,7 +373,6 @@ function GoalListItem({
         </View>
       </View>
       
-      {/* Card */}
       <TouchableOpacity
         style={[styles.goalCardNew, { backgroundColor: cardBg, borderColor }]}
         onPress={onPress}
@@ -417,7 +408,6 @@ function MicroCard({
   colors: any;
   isLast?: boolean;
 }) {
-  // Convert hex to rgba for translucent background
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -704,7 +694,6 @@ function AutoGenerateFlow({
       style={[styles.autoGenerateOverlay, { backgroundColor: isDark ? colors.background : "#FFFFF0" }]}
     >
       <SafeAreaView style={styles.autoGenerateContainer} edges={["top"]}>
-        {}
         <View style={styles.autoGenerateHeader}>
           <TouchableOpacity style={styles.autoGenerateBackButton} onPress={handleBack}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -863,7 +852,6 @@ function AutoGenerateFlow({
                   Ты можешь изменить это в любое время
                 </Text>
 
-                {}
                 <View style={styles.resultMacrosList}>
                   <ResultMacroRow
                     icon="🔥"
@@ -996,7 +984,6 @@ function AutoGenerateFlow({
           )}
         </ScrollView>
 
-        {}
         <View style={[styles.autoGenerateBottom, { backgroundColor: isDark ? colors.background : "#FFFFF0" }]}>
           <TouchableOpacity
             style={[styles.autoGenerateFlowButton, { backgroundColor: colors.buttonPrimary }]}
@@ -1181,9 +1168,8 @@ export default function NutritionGoalsScreen() {
   };
 
   const handleSaveGoal = (value: number) => {
-    if (editingGoal) {
-      // Если изменяются калории и включена авто-корректировка
-      if (editingGoal.key === "calories" && settings.autoMacroAdjust && onboardingData) {
+      if (editingGoal) {
+        if (editingGoal.key === "calories" && settings.autoMacroAdjust && onboardingData) {
         const weight = onboardingData.weight || 70;
         const goal = onboardingData.goal || "maintain";
         const adjustedMacros = calculateAdjustedMacros(value, weight, goal);
@@ -1239,19 +1225,16 @@ export default function NutritionGoalsScreen() {
     );
   }
 
-  // Background color based on theme
   const backgroundColor = isDark ? colors.background : "#FFFFF0";
   const textColor = colors.text;
   const secondaryTextColor = colors.textSecondary;
   const separatorColor = isDark ? "#38383A" : "#E5E5E5";
   const progressBgColor = isDark ? "#2C2C2E" : "#E5E5E5";
   
-  // Icon colors
   const iconColorBase = isDark ? colors.text : "#0b0b0b";
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]} edges={["top", "bottom"]}>
-      {/* Fixed Header */}
       <View style={[styles.fixedHeader, { backgroundColor }]}>
         <View style={[styles.backButtonRound, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.03)" }]}>
           <TouchableOpacity onPress={() => router.back()}>
@@ -1260,7 +1243,6 @@ export default function NutritionGoalsScreen() {
         </View>
       </View>
 
-      {/* Scrollable Content */}
       <ScrollView
         style={[styles.scrollView, { backgroundColor }]}
         contentContainerStyle={styles.scrollContent}
@@ -1405,7 +1387,6 @@ export default function NutritionGoalsScreen() {
         colors={colors}
       />
 
-      {}
       <AutoGenerateFlow
         visible={showAutoGenerate}
         onClose={() => setShowAutoGenerate(false)}
@@ -2092,7 +2073,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     lineHeight: 24,
   },
-  // Android Input styles
   androidInputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -2117,7 +2097,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 8,
   },
-  // iOS Container styles
   iosContainer: {
     flexDirection: "row",
     alignItems: "center",

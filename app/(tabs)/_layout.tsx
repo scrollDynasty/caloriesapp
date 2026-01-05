@@ -274,7 +274,6 @@ export default function TabsLayout() {
         />
       </Tabs>
 
-      {/* Modal Overlay */}
       {modalVisible && (
         <View style={styles.modalBackdrop}>
           <BlurView intensity={95} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
@@ -306,7 +305,6 @@ export default function TabsLayout() {
               </TouchableOpacity>
             </Animated.View>
 
-            {/* Add Manually Button */}
             <Animated.View style={[styles.gridButton, { transform: [{ translateY: button2TranslateY }] }]}>
               <TouchableOpacity
                 style={[styles.actionButton, { backgroundColor: colors.card }]}
@@ -318,7 +316,6 @@ export default function TabsLayout() {
               </TouchableOpacity>
             </Animated.View>
 
-            {/* Add Barcode Button */}
             <Animated.View style={[styles.gridButton, { transform: [{ translateY: button3TranslateY }] }]}>
               <TouchableOpacity
                 style={[styles.actionButton, { backgroundColor: colors.card }]}
@@ -330,7 +327,6 @@ export default function TabsLayout() {
               </TouchableOpacity>
             </Animated.View>
 
-            {/* Add Water Button */}
             <Animated.View style={[styles.gridButton, { transform: [{ translateY: button4TranslateY }] }]}>
               <TouchableOpacity
                 style={[styles.actionButton, { backgroundColor: isDark ? '#1E3A5F' : '#E8F4FD' }]}
@@ -345,7 +341,6 @@ export default function TabsLayout() {
         </Animated.View>
       )}
 
-      {/* FAB Button */}
       <TouchableOpacity 
         style={[
           styles.fab, 

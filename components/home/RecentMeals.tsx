@@ -3,15 +3,15 @@ import { Image } from "expo-image";
 import { memo, useEffect, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
-    Easing,
-    FadeIn,
-    FadeOut,
-    useAnimatedStyle,
-    useSharedValue,
-    withRepeat,
-    withSequence,
-    withSpring,
-    withTiming,
+  Easing,
+  FadeIn,
+  FadeOut,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { ProcessingMeal, useProcessingMeals } from "../../context/ProcessingMealsContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -176,7 +176,6 @@ const ProcessingMealCard = memo(function ProcessingMealCard({
           )}
         </View>
 
-        {/* Progress Bar */}
         {!isError && (
           <View
             style={[

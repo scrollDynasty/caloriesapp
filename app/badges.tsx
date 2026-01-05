@@ -3,19 +3,19 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    Dimensions,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import Animated, {
-    FadeInDown,
-    useAnimatedStyle,
-    useSharedValue,
-    withDelay,
-    withSpring,
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BadgeCelebration from "../components/ui/BadgeCelebration";
@@ -201,7 +201,6 @@ export default function BadgesScreen() {
         setCelebratingBadge(celebrationQueue.current[0]);
       }
       
-      // Затем загружаем все значки
       const [badgesData, progressData] = await Promise.all([
         apiService.getBadges(),
         apiService.getProgressData(),

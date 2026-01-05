@@ -3,15 +3,15 @@ import { Image } from "expo-image";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    Linking,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Dimensions,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LottieLoader } from "../../components/ui/LottieLoader";
@@ -21,7 +21,7 @@ import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
 import { dataCache } from "../../stores/dataCache";
 import { hapticLight } from "../../utils/haptics";
-import { getUserLanguage, LANGUAGE_NAMES, SupportedLanguage } from "../../utils/language";
+import { LANGUAGE_NAMES, SupportedLanguage, getUserLanguage } from "../../utils/language";
 import { getLocalDayRange, getLocalTimezoneOffset } from "../../utils/timezone";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -158,7 +158,6 @@ export default function SettingsScreen() {
       if (!loading) {
         loadUser();
       }
-      // Обновляем язык при возврате на экран
       getUserLanguage().then(setCurrentLang);
     }, [loading, loadUser])
   );

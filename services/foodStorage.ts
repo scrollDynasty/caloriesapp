@@ -24,25 +24,19 @@ class FoodStorageService {
   private cache: Map<string, any> = new Map();
   private loading: Map<string, Promise<any>> = new Map();
 
-  /**
-   * Загружает и парсит CSV файл с сервера
-   */
   private async fetchCSV(fileName: string): Promise<Record<string, string>[]> {
     const cacheKey = `csv:${fileName}`;
     
-    // Проверяем кэш
     if (this.cache.has(cacheKey)) {
       console.log(`💾 CSV из кэша: ${fileName}`);
       return this.cache.get(cacheKey);
     }
 
-    // Проверяем активную загрузку
     if (this.loading.has(cacheKey)) {
       console.log(`⏳ CSV уже загружается: ${fileName}`);
       return this.loading.get(cacheKey)!;
     }
 
-    // Создаем промис загрузки
     const promise = (async () => {
       try {
         const token = await AsyncStorage.getItem(TOKEN_KEY);
@@ -69,7 +63,6 @@ class FoodStorageService {
         const text = await response.text();
         console.log(`📄 CSV загружен: ${fileName} (${text.length} символов)`);
 
-        // Используем PapaParse для корректного парсинга
         const result = Papa.parse(text, {
           header: true,
           skipEmptyLines: true,
@@ -79,7 +72,6 @@ class FoodStorageService {
         const rows = result.data as Record<string, string>[];
         console.log(`✅ CSV парсен: ${fileName} (${rows.length} строк)`);
         
-        // Сохраняем в кэш
         this.cache.set(cacheKey, rows);
         return rows;
       } catch (error) {
@@ -94,9 +86,6 @@ class FoodStorageService {
     return promise;
   }
 
-  /**
-   * Загружает названия продуктов
-   */
   private async loadFoodNames(): Promise<Map<string, string>> {
     console.log('📚 Загрузка названий продуктов...');
     const rows = await this.fetchCSV('food_sample.csv');
@@ -104,7 +93,7 @@ class FoodStorageService {
     
     let count = 0;
     for (const row of rows) {
-      if (count > 5000) break; // Лимит для производительности
+      if (count > 5000) break;
       
       const fdcId = row['fdc_id'];
       const description = row['description'];
@@ -126,17 +115,16 @@ class FoodStorageService {
     const rows = await this.fetchCSV('food_nutrient_sample.csv');
     const nutrientMap = new Map<string, Map<string, number>>();
 
-    // Коды нутриентов USDA
     const NUTRIENT_IDS = {
-      calories: '1008',  // Energy (kcal)
-      protein: '1003',   // Protein
-      fat: '1004',       // Total lipid (fat)
-      carbs: '1005',     // Carbohydrate
+      calories: '1008',
+      protein: '1003',
+      fat: '1004',
+      carbs: '1005',
     };
 
     let count = 0;
     for (const row of rows) {
-      if (count > 50000) break; // Лимит
+      if (count > 50000) break;
       
       const fdcId = row['fdc_id'];
       const nutrientId = row['nutrient_id'];
@@ -162,9 +150,6 @@ class FoodStorageService {
     return nutrientMap;
   }
 
-  /**
-   * Загружает foundation foods
-   */
   async getFoundationFoods(limit: number = 50): Promise<FoodItem[]> {
     console.log('🌿 Загрузка Foundation Foods...');
     

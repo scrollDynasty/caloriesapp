@@ -62,7 +62,6 @@ export default function ProgressScreen() {
       setStreakCount(progressData.streak_count);
       setWeightStats(progressData.weight_stats);
       
-      // Получаем дату последнего взвешивания из истории
       if (progressData.weight_stats?.history?.length > 0) {
         const sortedHistory = [...progressData.weight_stats.history].sort(
           (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -175,10 +174,8 @@ export default function ProgressScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={themeColors.primary} />
         }
       >
-        {/* Title */}
         <Text style={[styles.title, { color: themeColors.text }]}>Прогресс</Text>
 
-        {/* Current Weight Section */}
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <View style={styles.currentWeightHeader}>
             <View>
@@ -201,7 +198,6 @@ export default function ProgressScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Progress Bar */}
           {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
             <View style={styles.currentWeightProgress}>
               <View style={[styles.progressBarBg, { backgroundColor: isDark ? '#2C2C2E' : '#E8E8E8' }]}>
@@ -241,7 +237,6 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {/* Weight Chart Section */}
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <View style={styles.sectionTitleRow}>
             <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
@@ -272,7 +267,6 @@ export default function ProgressScreen() {
             )}
           </View>
 
-          {/* Period Selector */}
           <View style={styles.periodSelector}>
             {(Object.keys(TIME_PERIOD_LABELS) as TimePeriod[]).map((period) => (
               <TouchableOpacity
@@ -297,11 +291,9 @@ export default function ProgressScreen() {
             ))}
           </View>
 
-          {/* Weight Chart */}
           <WeightChart data={filteredWeightHistory} targetWeight={weightStats?.target_weight} />
         </View>
 
-        {/* Weight Changes Section */}
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения веса
@@ -328,7 +320,6 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {/* Progress Photos Section */}
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Фото прогресса
@@ -366,13 +357,11 @@ export default function ProgressScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Average Calories Section */}
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Среднее количество калорий в день
           </Text>
 
-          {/* Calorie Period Selector */}
           <View style={styles.periodSelector}>
             {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
               <TouchableOpacity
@@ -422,13 +411,11 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {/* Energy per Week Section */}
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Энергия за неделю
           </Text>
 
-          {/* Period Selector */}
           <View style={styles.periodSelector}>
             {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
               <TouchableOpacity
@@ -543,7 +530,6 @@ export default function ProgressScreen() {
           })()}
         </View>
 
-        {/* Energy Changes Section */}
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения расхода
@@ -602,7 +588,6 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        {/* BMI Card */}
         <BMICard
           bmi={bmi}
           bmiCategory={bmiCategory}
