@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LottieLoader } from "../../components/ui/LottieLoader";
 import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
 import { apiService } from "../../services/api";

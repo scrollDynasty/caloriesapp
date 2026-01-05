@@ -13,8 +13,9 @@ import {
   TouchableWithoutFeedback,
   View
 } from "react-native";
-import DatePicker from "react-native-date-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { DatePicker } from "../components/ui/DatePicker";
+import { HeightWeightPicker } from "../components/ui/HeightWeightPicker";
 import { LottieLoader } from "../components/ui/LottieLoader";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
@@ -565,7 +566,67 @@ export default function GoalsWeightScreen() {
       </ScrollView>
 
       <Modal
-        visible={editField !== null && editField !== "gender" && editField !== "birthDate"}
+        visible={editField !== null && editField !== "gender" && editField !== "birthDate" && editField !== "stepGoal"}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditField(null)}
+      >
+        <TouchableWithoutFeedback onPress={() => setEditField(null)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>{getFieldTitle(editField)}</Text>
+                
+                <View style={styles.pickerContainer}>
+                  {(editField === "weight" || editField === "height" || editField === "targetWeight") ? (
+                    <HeightWeightPicker
+                      label=""
+                      value={parseFloat(editValue) || (editField === "height" ? 170 : 70)}
+                      onValueChange={(value) => setEditValue(String(value))}
+                      unit={getFieldUnit(editField)}
+                      min={getMinValue(editField)}
+                      max={getMaxValue(editField)}
+                    />
+                  ) : (
+                    <NumericInput
+                      value={editValue}
+                      onChangeValue={setEditValue}
+                      unit={getFieldUnit(editField)}
+                      min={getMinValue(editField)}
+                      max={getMaxValue(editField)}
+                      step={getStepValue(editField)}
+                      colors={colors}
+                    />
+                  )}
+                </View>
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity 
+                    style={styles.modalButtonCancel} 
+                    onPress={() => setEditField(null)}
+                  >
+                    <Text style={styles.modalButtonCancelText}>Отмена</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.modalButtonSave}
+                    onPress={() => handleSave(editField, editValue)}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <LottieLoader size="small" />
+                    ) : (
+                      <Text style={styles.modalButtonSaveText}>Сохранить</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal
+        visible={editField === "stepGoal"}
         transparent
         animationType="fade"
         onRequestClose={() => setEditField(null)}
@@ -676,24 +737,52 @@ export default function GoalsWeightScreen() {
         </TouchableWithoutFeedback>
       </Modal>
 
-      <DatePicker
-        modal
-        open={showDatePicker}
-        date={tempDate}
-        mode="date"
-        maximumDate={new Date()}
-        minimumDate={new Date(1920, 0, 1)}
-        onConfirm={(date) => {
-          setShowDatePicker(false);
-          handleSave("birthDate", date);
-        }}
-        onCancel={() => {
-          setShowDatePicker(false);
-        }}
-        title="Дата рождения"
-        confirmText="Сохранить"
-        cancelText="Отмена"
-      />
+      <Modal
+        visible={showDatePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setShowDatePicker(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Дата рождения</Text>
+                
+                <View style={styles.pickerContainer}>
+                  <DatePicker
+                    value={tempDate}
+                    onValueChange={(date) => setTempDate(date)}
+                  />
+                </View>
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity 
+                    style={styles.modalButtonCancel} 
+                    onPress={() => setShowDatePicker(false)}
+                  >
+                    <Text style={styles.modalButtonCancelText}>Отмена</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.modalButtonSave}
+                    onPress={() => {
+                      setShowDatePicker(false);
+                      handleSave("birthDate", tempDate);
+                    }}
+                    disabled={saving}
+                  >
+                    {saving ? (
+                      <LottieLoader size="small" />
+                    ) : (
+                      <Text style={styles.modalButtonSaveText}>Сохранить</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       </SafeAreaView>
   );
 }

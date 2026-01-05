@@ -1,6 +1,7 @@
 import { Picker as RNPicker } from "@react-native-picker/picker";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
+import WheelScrollPicker from "react-native-wheel-scrollview-picker";
 import { useTheme } from "../../context/ThemeContext";
 
 interface DatePickerProps {
@@ -26,6 +27,20 @@ interface PickerColumnProps {
   themeColors: any;
   isDark: boolean;
 }
+
+const DateWheelItem = React.memo(({ 
+  data, 
+  textColor 
+}: { 
+  data: any; 
+  textColor: string;
+}) => (
+  <View style={styles.wheelItemContainer}>
+    <Text style={[styles.wheelItem, { color: textColor }]}>
+      {String(data)}
+    </Text>
+  </View>
+));
 
 const PickerColumn: React.FC<PickerColumnProps> = ({
   label,
@@ -59,24 +74,80 @@ const PickerColumn: React.FC<PickerColumnProps> = ({
     ? [styles.picker, { width: columnWidth }]
     : styles.picker;
 
+  const selectedIndex = useMemo(() => items.indexOf(value), [items, value]);
+  const changeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const renderItem = useCallback((data: any, index: number) => {
+    return (
+      <DateWheelItem 
+        key={`${data}-${index}`}
+        data={data} 
+        textColor={themeColors.text}
+      />
+    );
+  }, [themeColors.text]);
+
+  const handleValueChange = useCallback((data: any, selectedIndex: number) => {
+    if (changeTimeoutRef.current) {
+      clearTimeout(changeTimeoutRef.current);
+    }
+    changeTimeoutRef.current = setTimeout(() => {
+      if (selectedIndex >= 0 && selectedIndex < items.length) {
+        onValueChange(items[selectedIndex]);
+      }
+    }, 16);
+  }, [items, onValueChange]);
+
+  useEffect(() => {
+    return () => {
+      if (changeTimeoutRef.current) {
+        clearTimeout(changeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  if (Platform.OS === "android") {
+    return (
+      <View style={containerStyle}>
+        <Text style={[styles.columnLabel, { color: themeColors.textSecondary }]}>{label}</Text>
+        <View style={[wrapperStyle, { backgroundColor: themeColors.background, borderRadius: 12 }]}>
+          <WheelScrollPicker
+            dataSource={items}
+            selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
+            renderItem={renderItem}
+            onValueChange={handleValueChange}
+            wrapperHeight={280}
+            wrapperBackground={themeColors.background}
+            itemHeight={50}
+            highlightColor={isDark ? (themeColors.gray5 || "#1a1a1a") : "#FFFFF0"}
+            highlightBorderWidth={2}
+            style={{ width: columnWidth || 120 }}
+            decelerationRate="fast"
+            showsVerticalScrollIndicator={false}
+          />
+          <View 
+            style={[
+              styles.selectedItemOverlay, 
+              { 
+                borderColor: themeColors.primary || "#007AFF",
+              }
+            ]} 
+            pointerEvents="none" 
+          />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={containerStyle}>
       <Text style={[styles.columnLabel, { color: themeColors.textSecondary }]}>{label}</Text>
       <View style={[wrapperStyle, { backgroundColor: themeColors.background, borderRadius: 12 }]}>
-        {Platform.OS === "android" && (
-          <View 
-            style={[
-              styles.selectedItemOverlay, 
-              { backgroundColor: isDark ? themeColors.gray5 : "#FFFFF0" }
-            ]} 
-            pointerEvents="none" 
-          />
-        )}
         <RNPicker
           selectedValue={value}
           onValueChange={onValueChange}
           style={[pickerStyle, { color: themeColors.text }]}
-          itemStyle={Platform.OS === "ios" ? [styles.pickerItem, { color: themeColors.text }] : { color: themeColors.text }}
+          itemStyle={[styles.pickerItem, { color: themeColors.text }]}
         >
           {items.map((item) => (
             <RNPicker.Item
@@ -253,10 +324,11 @@ const styles = StyleSheet.create({
     top: "50%",
     left: 0,
     right: 0,
-    height: 40,
-    marginTop: -20,
+    height: 50,
+    marginTop: -25,
     borderRadius: 12,
-    zIndex: 0,
+    borderWidth: 2,
+    zIndex: 10,
   },
   picker: {
     width: "100%",
@@ -266,5 +338,17 @@ const styles = StyleSheet.create({
   pickerItem: {
     fontSize: 20,
     fontFamily: "Inter_600SemiBold",
+  },
+  wheelItemContainer: {
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  wheelItem: {
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    textAlign: "center",
+    lineHeight: 22,
+    includeFontPadding: false,
   },
 });

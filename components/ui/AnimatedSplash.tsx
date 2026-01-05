@@ -26,8 +26,8 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
   useEffect(() => {
     hapticLight();
 
-    let breathingInterval: NodeJS.Timeout;
-    let timeoutId: NodeJS.Timeout;
+    let breathingInterval: ReturnType<typeof setInterval>;
+    let timeoutId: ReturnType<typeof setTimeout>;
 
     breathingInterval = setInterval(() => {
       hapticLight();
@@ -103,7 +103,14 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
   if (!isVisible) return null;
 
   const backgroundColor = isDark ? "#000000" : "#FFFFF0";
-  const logoSource = require("../../assets/images/bright_logo.png");
+  
+  let logoSource;
+  try {
+    logoSource = require("../../assets/images/bright_logo.png");
+  } catch (error) {
+    console.warn("Logo image not found, using fallback");
+    logoSource = null;
+  }
 
   const rotation = rotateAnim.interpolate({
     inputRange: [0, 1],
@@ -137,20 +144,28 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
         <View style={styles.glow} />
       </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.logoContainer,
-          {
-            opacity: fadeAnim,
-            transform: [
-              { scale: scaleAnim },
-              { rotate: rotation },
-            ],
-          },
-        ]}
-      >
-        <Image source={logoSource} style={styles.logo} contentFit="contain" />
-      </Animated.View>
+      {logoSource && (
+        <Animated.View
+          style={[
+            styles.logoContainer,
+            {
+              opacity: fadeAnim,
+              transform: [
+                { scale: scaleAnim },
+                { rotate: rotation },
+              ],
+            },
+          ]}
+        >
+          <Image 
+            source={logoSource} 
+            style={styles.logo} 
+            contentFit="contain"
+            cachePolicy="memory-disk"
+            priority="high"
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }

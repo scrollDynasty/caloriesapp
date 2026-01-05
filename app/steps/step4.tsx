@@ -41,15 +41,11 @@ export default function Step4() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
         <StepHeader stepNumber={4} onBack={handleBackPress} />
 
-        {}
         <ProgressBar currentStep={4} totalSteps={9} />
 
-        {}
         <View style={styles.contentContainer}>
-          {}
           <View style={styles.textSection}>
             <Text style={[styles.title, { color: themeColors.text }]}>Дата рождения</Text>
             <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
@@ -57,13 +53,11 @@ export default function Step4() {
             </Text>
           </View>
 
-          {}
           <View style={styles.pickerContainer}>
             <DatePicker value={birthDate} onValueChange={setBirthDate} />
           </View>
         </View>
 
-        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

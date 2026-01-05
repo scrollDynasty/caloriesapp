@@ -41,15 +41,11 @@ export default function Step3() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
         <StepHeader stepNumber={3} onBack={handleBackPress} />
 
-        {}
         <ProgressBar currentStep={3} totalSteps={9} />
 
-        {}
         <View style={styles.contentContainer}>
-          {}
           <View style={styles.textSection}>
             <Text style={[styles.title, { color: themeColors.text }]}>Рост и вес</Text>
             <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
@@ -57,7 +53,6 @@ export default function Step3() {
             </Text>
           </View>
 
-          {}
           <View style={styles.pickersContainer}>
             <HeightWeightPicker
               label="Рост"
@@ -78,7 +73,6 @@ export default function Step3() {
           </View>
         </View>
 
-        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

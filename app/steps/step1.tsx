@@ -46,15 +46,11 @@ export default function Step1() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
         <StepHeader stepNumber={1} />
 
-        {}
         <ProgressBar currentStep={1} totalSteps={9} />
 
-        {}
         <View style={styles.contentContainer}>
-          {}
           <View style={styles.textSection}>
             <Text style={[styles.title, { color: themeColors.text }]}>Выберите пол</Text>
             <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
@@ -62,7 +58,6 @@ export default function Step1() {
             </Text>
           </View>
 
-          {}
           <View style={styles.optionsContainer}>
             <GenderRadioButton
               label="Мужской"
@@ -79,7 +74,6 @@ export default function Step1() {
           </View>
         </View>
 
-        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

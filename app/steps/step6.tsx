@@ -43,15 +43,11 @@ export default function Step6() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
         <StepHeader stepNumber={6} onBack={handleBackPress} />
 
-        {}
         <ProgressBar currentStep={6} totalSteps={9} />
 
-        {}
         <View style={styles.contentContainer}>
-          {}
           <View style={styles.textSection}>
             <Text style={[styles.title, { color: colors.text }]}>Какова твоя цель?</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
@@ -59,7 +55,6 @@ export default function Step6() {
             </Text>
           </View>
 
-          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Похудеть"
@@ -79,7 +74,6 @@ export default function Step6() {
           </View>
         </View>
 
-        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Автогенерация целей"

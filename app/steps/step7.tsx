@@ -43,15 +43,11 @@ export default function Step7() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
         <StepHeader stepNumber={7} onBack={handleBackPress} />
 
-        {}
         <ProgressBar currentStep={7} totalSteps={9} />
 
-        {}
         <View style={styles.contentContainer}>
-          {}
           <View style={styles.textSection}>
             <Text style={[styles.title, { color: themeColors.text }]}>Что мешает достигать цели</Text>
             <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
@@ -59,7 +55,6 @@ export default function Step7() {
             </Text>
           </View>
 
-          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Непоследовательность"
@@ -89,7 +84,6 @@ export default function Step7() {
           </View>
         </View>
 
-        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

@@ -95,15 +95,11 @@ export default function Step2() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
         <StepHeader stepNumber={2} onBack={handleBackPress} />
 
-        {}
         <ProgressBar currentStep={2} totalSteps={9} />
 
-        {}
         <View style={styles.contentContainer}>
-          {}
           <View style={styles.textSection}>
             <Text style={styles.title}>Количество тренировок</Text>
             <Text style={styles.subtitle}>
@@ -111,7 +107,6 @@ export default function Step2() {
             </Text>
           </View>
 
-          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="0–2 тренировки"
@@ -131,7 +126,6 @@ export default function Step2() {
           </View>
         </View>
 
-        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

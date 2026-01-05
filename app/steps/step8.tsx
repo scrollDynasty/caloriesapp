@@ -45,15 +45,11 @@ export default function Step8() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
         <StepHeader stepNumber={8} onBack={handleBackPress} />
 
-        {}
         <ProgressBar currentStep={8} totalSteps={9} />
 
-        {}
         <View style={styles.contentContainer}>
-          {}
           <View style={styles.textSection}>
             <Text style={[styles.title, { color: themeColors.text }]}>Ваш тип питания</Text>
             <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>
@@ -61,7 +57,6 @@ export default function Step8() {
             </Text>
           </View>
 
-          {}
           <View style={styles.optionsContainer}>
             <RadioButton
               label="Классическая"
@@ -86,7 +81,6 @@ export default function Step8() {
           </View>
         </View>
 
-        {}
         <View style={styles.buttonContainer}>
           <PrimaryButton
             label="Продолжить"

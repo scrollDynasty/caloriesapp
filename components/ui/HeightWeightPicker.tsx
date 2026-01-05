@@ -1,6 +1,7 @@
 import { Picker } from "@react-native-picker/picker";
-import React, { useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Platform, StyleSheet, Text, View } from "react-native";
+import WheelScrollPicker from "react-native-wheel-scrollview-picker";
 import { useTheme } from "../../context/ThemeContext";
 
 interface HeightWeightPickerProps {
@@ -11,6 +12,20 @@ interface HeightWeightPickerProps {
   min: number;
   max: number;
 }
+
+const WheelItem = React.memo(({ 
+  data, 
+  textColor 
+}: { 
+  data: any; 
+  textColor: string;
+}) => (
+  <View style={styles.wheelItemContainer}>
+    <Text style={[styles.wheelItem, { color: textColor }]}>
+      {String(data)}
+    </Text>
+  </View>
+));
 
 export const HeightWeightPicker = React.memo(function HeightWeightPicker({
   label,
@@ -25,6 +40,71 @@ export const HeightWeightPicker = React.memo(function HeightWeightPicker({
     () => Array.from({ length: max - min + 1 }, (_, i) => min + i),
     [min, max]
   );
+  
+  const selectedIndex = useMemo(() => items.indexOf(value), [items, value]);
+  const changeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const renderItem = useCallback((data: any, index: number) => {
+    return (
+      <WheelItem 
+        key={`${data}-${index}`}
+        data={data} 
+        textColor={themeColors.text}
+      />
+    );
+  }, [themeColors.text]);
+
+  const handleValueChange = useCallback((data: any, selectedIndex: number) => {
+    if (changeTimeoutRef.current) {
+      clearTimeout(changeTimeoutRef.current);
+    }
+    changeTimeoutRef.current = setTimeout(() => {
+      if (selectedIndex >= 0 && selectedIndex < items.length) {
+        onValueChange(items[selectedIndex]);
+      }
+    }, 16);
+  }, [items, onValueChange]);
+
+  useEffect(() => {
+    return () => {
+      if (changeTimeoutRef.current) {
+        clearTimeout(changeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  if (Platform.OS === "android") {
+    return (
+      <View style={styles.container}>
+        <Text style={[styles.label, { color: themeColors.textSecondary }]}>{label}</Text>
+        <View style={[styles.pickerWrapper, { backgroundColor: themeColors.background }]}>
+          <WheelScrollPicker
+            dataSource={items}
+            selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
+            renderItem={renderItem}
+            onValueChange={handleValueChange}
+            wrapperHeight={280}
+            wrapperBackground={themeColors.background}
+            itemHeight={50}
+            highlightColor={isDark ? (themeColors.gray5 || "#1a1a1a") : "#FFFFF0"}
+            highlightBorderWidth={2}
+            style={{ width: 120 }}
+            decelerationRate="fast"
+            showsVerticalScrollIndicator={false}
+          />
+          <View 
+            style={[
+              styles.selectedItemOverlay, 
+              { 
+                borderColor: themeColors.primary || "#007AFF",
+              }
+            ]} 
+            pointerEvents="none" 
+          />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -34,7 +114,7 @@ export const HeightWeightPicker = React.memo(function HeightWeightPicker({
           selectedValue={value}
           onValueChange={onValueChange}
           style={[styles.picker, { color: themeColors.text }]}
-          itemStyle={Platform.OS === "ios" ? [styles.pickerItem, { color: themeColors.text }] : { color: themeColors.text }}
+          itemStyle={[styles.pickerItem, { color: themeColors.text }]}
         >
           {items.map((item) => (
             <Picker.Item
@@ -77,6 +157,29 @@ const styles = StyleSheet.create({
   pickerItem: {
     fontSize: 20,
     fontFamily: "Inter_600SemiBold",
+  },
+  selectedItemOverlay: {
+    position: "absolute",
+    top: "50%",
+    left: 0,
+    right: 0,
+    height: 50,
+    marginTop: -25,
+    borderRadius: 12,
+    borderWidth: 2,
+    zIndex: 10,
+  },
+  wheelItemContainer: {
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  wheelItem: {
+    fontSize: 20,
+    fontFamily: "Inter_600SemiBold",
+    textAlign: "center",
+    lineHeight: 24,
+    includeFontPadding: false,
   },
 });
 
