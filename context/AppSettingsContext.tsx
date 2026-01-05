@@ -9,16 +9,13 @@ const CALORIE_ROLLOVER_KEY = "@caloriesapp:calorie_rollover";
 const FEATURE_STATUS_KEY = "@caloriesapp:feature_status";
 
 export interface AppSettings {
-  badgeCelebrations: boolean;     // Показывать анимацию при получении значков
-  liveActivity: boolean;          // Живая активность (iOS Dynamic Island)
-  burnedCalories: boolean;        // Добавлять сожжённые калории к норме
-  calorieRollover: boolean;       // Переносить калории с предыдущего дня
-  autoMacroAdjust: boolean;       // Авто-корректировка макроэлементов
+  badgeCelebrations: boolean;     
+  liveActivity: boolean;          
+  burnedCalories: boolean;        
+  calorieRollover: boolean;       
+  autoMacroAdjust: boolean;       
 }
 
-/**
- * Статус доступности функций
- */
 export interface FeatureStatus {
   healthAvailable: boolean;
   healthAuthorized: boolean;

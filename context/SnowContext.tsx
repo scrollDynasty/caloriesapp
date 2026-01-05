@@ -23,7 +23,6 @@ interface SnowProviderProps {
 }
 
 export function SnowProvider({ children }: SnowProviderProps) {
-  // ОПТИМИЗАЦИЯ: Снег отключён по умолчанию для экономии батареи
   const [isSnowEnabled, setIsSnowEnabled] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -31,11 +30,9 @@ export function SnowProvider({ children }: SnowProviderProps) {
     loadSnowPreference();
   }, []);
 
-  // Не рендерим пока не загрузили настройку
   const loadSnowPreference = async () => {
     try {
       const stored = await AsyncStorage.getItem(SNOW_ENABLED_KEY);
-      // Снег включается только если явно включён пользователем
       if (stored !== null) {
         setIsSnowEnabled(JSON.parse(stored) === true);
       }

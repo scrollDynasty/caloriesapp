@@ -5,9 +5,6 @@ const LANGUAGE_KEY = '@yebich:language';
 
 export type SupportedLanguage = 'en' | 'ru' | 'uz';
 
-/**
- * Получает код языка системы устройства
- */
 export const getDeviceLanguage = (): SupportedLanguage => {
   let deviceLanguage = 'en';
   
@@ -24,25 +21,17 @@ export const getDeviceLanguage = (): SupportedLanguage => {
     console.warn('Failed to get device language:', e);
   }
   
-  // Нормализуем язык (ru_RU -> ru, uz_UZ -> uz)
   const langCode = deviceLanguage.toLowerCase().split(/[-_]/)[0];
   
-  // Проверяем поддерживаемые языки
   if (langCode === 'ru') return 'ru';
   if (langCode === 'uz') return 'uz';
   return 'en';
 };
 
-/**
- * Сохраняет выбранный язык пользователя
- */
 export const setUserLanguage = async (lang: SupportedLanguage): Promise<void> => {
   await AsyncStorage.setItem(LANGUAGE_KEY, lang);
 };
 
-/**
- * Получает сохранённый язык пользователя или язык системы
- */
 export const getUserLanguage = async (): Promise<SupportedLanguage> => {
   try {
     const savedLang = await AsyncStorage.getItem(LANGUAGE_KEY);
@@ -53,13 +42,9 @@ export const getUserLanguage = async (): Promise<SupportedLanguage> => {
     console.warn('Failed to get saved language:', e);
   }
   
-  // Если нет сохранённого, используем язык системы
   return getDeviceLanguage();
 };
 
-/**
- * Синхронно возвращает язык (кэшированный)
- */
 let cachedLanguage: SupportedLanguage = 'en';
 
 export const initLanguage = async (): Promise<SupportedLanguage> => {
@@ -71,18 +56,12 @@ export const getCurrentLanguage = (): SupportedLanguage => {
   return cachedLanguage;
 };
 
-/**
- * Названия языков для UI
- */
 export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
   en: 'English',
   ru: 'Русский',
   uz: "O'zbekcha"
 };
 
-/**
- * Базовые переводы UI
- */
 export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
   en: {
     'settings.language': 'Language',
@@ -128,9 +107,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
   }
 };
 
-/**
- * Получает перевод по ключу
- */
 export const t = (key: string, lang?: SupportedLanguage): string => {
   const currentLang = lang || cachedLanguage;
   return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS.en[key] || key;

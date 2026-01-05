@@ -10,16 +10,15 @@ from app.models.food import Food, FoodNutrient, BrandedFood
 
 router = APIRouter()
 
-# Маппинг nutrient_id на читаемые названия
 NUTRIENT_MAP = {
-    1008: 'calories',      # Energy (kcal)
-    1003: 'protein',       # Protein (g)
-    1004: 'fat',           # Total lipid (fat) (g)
-    1005: 'carbs',         # Carbohydrate (g)
-    1079: 'fiber',         # Fiber (g)
-    1087: 'calcium',       # Calcium (mg)
-    1089: 'iron',          # Iron (mg)
-    1093: 'sodium',        # Sodium (mg)
+    1008: 'calories',
+    1003: 'protein',
+    1004: 'fat',
+    1005: 'carbs',
+    1079: 'fiber',
+    1087: 'calcium',
+    1089: 'iron',
+    1093: 'sodium',
 }
 
 
@@ -51,24 +50,22 @@ class FoodSearchResponse(BaseModel):
 
 
 def get_food_name(food: Food, lang: str = 'en') -> str:
-    """Возвращает название продукта на нужном языке"""
     if lang == 'ru' and food.description_ru:
         return food.description_ru
     elif lang == 'uz' and food.description_uz:
         return food.description_uz
-    return food.description  # Fallback на английский
+    return food.description
 
 
 def build_food_response(food: Food, nutrients_dict: dict, branded_info: Optional[BrandedFood] = None, lang: str = 'en') -> FoodItemResponse:
-    """Формирует response для продукта с нутриентами"""
     return FoodItemResponse(
         fdc_id=food.fdc_id,
         name=get_food_name(food, lang),
-        calories=nutrients_dict.get(1008),  # Energy
-        protein=nutrients_dict.get(1003),   # Protein
-        fat=nutrients_dict.get(1004),        # Fat
-        carbs=nutrients_dict.get(1005),      # Carbs
-        fiber=nutrients_dict.get(1079),      # Fiber
+        calories=nutrients_dict.get(1008),
+        protein=nutrients_dict.get(1003),
+        fat=nutrients_dict.get(1004),
+        carbs=nutrients_dict.get(1005),
+        fiber=nutrients_dict.get(1079),
         portion=f"{branded_info.serving_size}{branded_info.serving_size_unit}" if branded_info and branded_info.serving_size else "100g",
         brand=branded_info.brand_owner if branded_info else None,
         source=food.data_type
@@ -85,16 +82,8 @@ async def search_foods(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Поиск продуктов по названию с full-text индексом.
-    
-    Оптимизирован для быстрого поиска в базе 2M+ продуктов.
-    """
     try:
-        # Базовый запрос
         query = db.query(Food)
-        
-        # Фильтр по типу источника
         if source != "all":
             if source == "foundation":
                 query = query.filter(Food.data_type == "foundation_food")

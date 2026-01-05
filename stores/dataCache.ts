@@ -1,8 +1,3 @@
-/**
- * Централизованный кэш данных в памяти
- * Реализует паттерн stale-while-revalidate
- */
-
 interface CacheEntry<T> {
   data: T;
   timestamp: number;

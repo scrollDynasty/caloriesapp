@@ -270,9 +270,6 @@ class FoodStorageService {
     }
   }
 
-  /**
-   * Очистка кэша
-   */
   clearCache() {
     this.cache.clear();
     this.loading.clear();
