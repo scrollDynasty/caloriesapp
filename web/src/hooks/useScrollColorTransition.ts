@@ -36,7 +36,6 @@ export function useScrollColorTransition(sections: SectionColor[]) {
       observerOptions,
     );
 
-    // Наблюдаем за всеми секциями
     sections.forEach((section) => {
       const element = document.querySelector(
         `[data-section-id="${section.id}"]`,

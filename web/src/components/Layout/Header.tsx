@@ -59,7 +59,6 @@ export default function Header() {
           <DownloadButton platform="googleplay" size="small" />
         </div>
 
-        {/* Мобильное бургер-меню */}
         <button
           type="button"
           className={styles.mobileMenuButton}
@@ -79,7 +78,6 @@ export default function Header() {
         </button>
       </nav>
 
-      {/* Мобильное меню */}
       <div
         className={`${styles.mobileMenu} ${isMenuOpen ? styles.mobileMenuOpen : ""}`}
       >
@@ -115,7 +113,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Overlay для закрытия меню */}
       {isMenuOpen && (
         <div
           className={styles.mobileMenuOverlay}

@@ -92,8 +92,6 @@ async def search_foods(
             elif source == "survey":
                 query = query.filter(Food.data_type.in_(["survey_fndds_food", "sample_food"]))
         
-        # FULLTEXT поиск (быстрый для больших данных)
-        # Ищем во всех языках
         search_term = q.strip().lower()
         if lang == 'ru':
             query = query.filter(
@@ -117,33 +115,26 @@ async def search_foods(
                 )
             )
         
-        # Подсчёт общего количества
         total = query.count()
         
-        # Пагинация
         foods = query.order_by(Food.description).offset(offset).limit(limit).all()
-        
-        # Получаем нутриенты для найденных продуктов (batch query)
         fdc_ids = [f.fdc_id for f in foods]
         nutrients = db.query(FoodNutrient).filter(
             FoodNutrient.fdc_id.in_(fdc_ids),
             FoodNutrient.nutrient_id.in_(NUTRIENT_MAP.keys())
         ).all()
         
-        # Группируем нутриенты по fdc_id
         nutrients_by_food = {}
         for nutrient in nutrients:
             if nutrient.fdc_id not in nutrients_by_food:
                 nutrients_by_food[nutrient.fdc_id] = {}
             nutrients_by_food[nutrient.fdc_id][nutrient.nutrient_id] = float(nutrient.amount) if nutrient.amount else None
         
-        # Получаем брендовую информацию если нужно
         branded_info = {}
         if source in ("all", "branded"):
             branded = db.query(BrandedFood).filter(BrandedFood.fdc_id.in_(fdc_ids)).all()
             branded_info = {b.fdc_id: b for b in branded}
         
-        # Формируем результат с учётом языка
         result_foods = [
             build_food_response(
                 food,
@@ -181,16 +172,8 @@ async def get_foods(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Получает список продуктов с пагинацией.
-    
-    Оптимизирован для быстрой загрузки с индексами.
-    """
     try:
-        # Базовый запрос
         query = db.query(Food)
-        
-        # Фильтр по типу
         if source == "foundation":
             query = query.filter(Food.data_type == "foundation_food")
         elif source == "branded":
@@ -198,13 +181,9 @@ async def get_foods(
         elif source == "survey":
             query = query.filter(Food.data_type.in_(["survey_fndds_food", "sample_food"]))
         
-        # Подсчёт
         total = query.count()
         
-        # Пагинация
         foods = query.order_by(Food.fdc_id).offset(offset).limit(limit).all()
-        
-        # Получаем нутриенты (batch)
         fdc_ids = [f.fdc_id for f in foods]
         nutrients = db.query(FoodNutrient).filter(
             FoodNutrient.fdc_id.in_(fdc_ids),
@@ -217,7 +196,6 @@ async def get_foods(
                 nutrients_by_food[nutrient.fdc_id] = {}
             nutrients_by_food[nutrient.fdc_id][nutrient.nutrient_id] = float(nutrient.amount) if nutrient.amount else None
         
-        # Брендовая информация
         branded_info = {}
         if source in ("all", "branded"):
             branded = db.query(BrandedFood).filter(BrandedFood.fdc_id.in_(fdc_ids)).all()
@@ -258,7 +236,6 @@ async def get_food_by_id(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Получает детальную информацию о продукте по ID"""
     food = db.query(Food).filter(Food.fdc_id == fdc_id).first()
     
     if not food:
@@ -267,7 +244,6 @@ async def get_food_by_id(
             detail=f"Food with fdc_id {fdc_id} not found"
         )
     
-    # Нутриенты
     nutrients = db.query(FoodNutrient).filter(
         FoodNutrient.fdc_id == fdc_id,
         FoodNutrient.nutrient_id.in_(NUTRIENT_MAP.keys())
@@ -275,7 +251,6 @@ async def get_food_by_id(
     
     nutrients_dict = {n.nutrient_id: float(n.amount) if n.amount else None for n in nutrients}
     
-    # Брендовая информация
     branded = db.query(BrandedFood).filter(BrandedFood.fdc_id == fdc_id).first()
     
     return build_food_response(food, nutrients_dict, branded, lang)
@@ -286,11 +261,7 @@ async def get_sources(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """
-    Получает доступные источники данных о продуктах.
-    """
     try:
-        # Подсчёт по типам
         foundation_count = db.query(func.count(Food.fdc_id)).filter(Food.data_type == "foundation_food").scalar()
         branded_count = db.query(func.count(Food.fdc_id)).filter(Food.data_type == "branded_food").scalar()
         survey_count = db.query(func.count(Food.fdc_id)).filter(

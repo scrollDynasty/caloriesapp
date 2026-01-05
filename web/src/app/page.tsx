@@ -14,13 +14,13 @@ import { useScrollColorTransition } from "../hooks/useScrollColorTransition";
 import styles from "./page.module.css";
 
 const SECTION_COLORS = [
-  { id: "hero", color: "#FFFFFF" }, // White
-  { id: "influencers", color: "#FFFFF0" }, // Ivory
-  { id: "features", color: "#FFFFF0" }, // Ivory
-  { id: "why", color: "#FFFFF0" }, // Ivory
-  { id: "light", color: "#FFFFF0" }, // Ivory
-  { id: "testimonials", color: "#1E1A24" }, // Dark (Bastille)
-  { id: "footer", color: "#FFFFF0" }, // Ivory
+  { id: "hero", color: "#FFFFFF" },
+  { id: "influencers", color: "#FFFFF0" },
+  { id: "features", color: "#FFFFF0" },
+  { id: "why", color: "#FFFFF0" },
+  { id: "light", color: "#FFFFF0" },
+  { id: "testimonials", color: "#1E1A24" },
+  { id: "footer", color: "#FFFFF0" },
 ];
 
 export default function Home() {

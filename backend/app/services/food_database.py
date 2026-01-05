@@ -15,8 +15,6 @@ from app.core.config import settings
 
 
 class FoodDatabaseService:
-    """Сервис для работы с полным USDA FoodData Central датасетом"""
-    
     def __init__(self):
         self._foods_cache = None
         self._food_names_cache = None
@@ -30,7 +28,6 @@ class FoodDatabaseService:
         self._init_s3_client()
     
     def _init_s3_client(self):
-        """Инициализирует S3 клиент для Yandex Storage"""
         if not BOTO3_AVAILABLE:
             print("Warning: boto3 not installed. Food database will return empty results.")
             self.s3_client = None
@@ -53,7 +50,6 @@ class FoodDatabaseService:
             self.s3_client = None
     
     def _get_s3_file(self, file_path: str) -> Optional[str]:
-        """Загружает файл из Yandex Storage"""
         if not self.s3_client:
             return None
         
@@ -69,7 +65,6 @@ class FoodDatabaseService:
             return None
     
     def _load_food_names(self) -> Dict[str, str]:
-        """Загружает названия продуктов из food.csv"""
         if self._food_names_cache is not None:
             return self._food_names_cache
         
@@ -98,7 +93,6 @@ class FoodDatabaseService:
         return food_names
     
     def _load_nutrients(self) -> Dict[str, Dict[int, float]]:
-        """Загружает питательные вещества"""
         if self._nutrients_cache is not None:
             return self._nutrients_cache
         
@@ -137,7 +131,6 @@ class FoodDatabaseService:
         return self._nutrients_cache
     
     def _load_foundation_foods(self) -> set:
-        """Загружает FDC IDs основных продуктов"""
         foundation_ids = set()
         file_path = "fooddata/foundation_food.csv"
         
@@ -157,7 +150,6 @@ class FoodDatabaseService:
         return foundation_ids
     
     def _load_portions(self) -> Dict[str, str]:
-        """Загружает информацию о порциях"""
         if self._portions_cache is not None:
             return self._portions_cache
         
@@ -187,7 +179,6 @@ class FoodDatabaseService:
         return dict(portions)
     
     def _load_categories(self) -> Dict[str, str]:
-        """Загружает категории продуктов"""
         if self._categories_cache is not None:
             return self._categories_cache
         
@@ -213,7 +204,6 @@ class FoodDatabaseService:
         return categories
     
     def _load_branded_foods(self) -> List[Dict[str, Any]]:
-        """Загружает брендированные продукты"""
         if self._branded_foods_cache is not None:
             return self._branded_foods_cache
         
@@ -249,7 +239,6 @@ class FoodDatabaseService:
         return branded
     
     def _load_survey_foods(self) -> List[Dict[str, Any]]:
-        """Загружает FNDDS/Survey продукты"""
         if self._survey_foods_cache is not None:
             return self._survey_foods_cache
         
@@ -283,7 +272,6 @@ class FoodDatabaseService:
         return survey
     
     def get_all_foods(self) -> List[Dict[str, Any]]:
-        """Получает основные продукты"""
         if self._foods_cache is not None:
             return self._foods_cache
         
@@ -322,7 +310,6 @@ class FoodDatabaseService:
         return foods
     
     def search_foods(self, query: str, limit: int = 50, source: str = "all") -> List[Dict[str, Any]]:
-        """Ищет продукты по названию во всех источниках"""
         query_lower = query.lower()
         results = []
         
@@ -347,7 +334,6 @@ class FoodDatabaseService:
                 if query_lower in food["name"].lower()
             ])
         
-        # Удаляем дубликаты
         seen = set()
         unique_results = []
         for food in results:
@@ -359,7 +345,6 @@ class FoodDatabaseService:
         return unique_results[:limit]
     
     def get_by_source(self, source: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """Получает продукты определенного источника"""
         if source == "foundation":
             return self.get_all_foods()[:limit]
         elif source == "branded":
@@ -369,5 +354,4 @@ class FoodDatabaseService:
         return []
 
 
-# Глобальный экземпляр
 food_db_service = FoodDatabaseService()

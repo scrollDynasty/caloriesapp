@@ -87,14 +87,12 @@ export default function PressPage() {
         throw new Error(errorMessage);
       }
 
-      // Успешная отправка
       setFormData({ email: "", subject: "", message: "" });
       setNotification({
         type: "success",
         message: "Спасибо за ваш запрос! Мы свяжемся с вами в ближайшее время.",
       });
 
-      // Автоматически скрываем уведомление через 5 секунд
       setTimeout(() => {
         setNotification(null);
       }, 5000);
@@ -110,7 +108,6 @@ export default function PressPage() {
         message: errorMessage,
       });
 
-      // Автоматически скрываем уведомление об ошибке через 7 секунд
       setTimeout(() => {
         setNotification(null);
       }, 7000);

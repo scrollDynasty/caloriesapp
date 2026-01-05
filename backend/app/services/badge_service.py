@@ -12,7 +12,6 @@ from app.models.onboarding_data import OnboardingData
 
 
 ALL_BADGES = [
-    # STREAK BADGES 🔥 (8 badges)
     {
         "id": "streak_3",
         "emoji": "🔥",
@@ -86,7 +85,6 @@ ALL_BADGES = [
         "category": "streak",
     },
     
-    # MEALS BADGES 🍽️ (10 badges)
     {
         "id": "first_meal",
         "emoji": "🍽️",
@@ -178,7 +176,6 @@ ALL_BADGES = [
         "category": "activity",
     },
     
-    # WATER BADGES 💧 (6 badges)
     {
         "id": "water_first",
         "emoji": "💧",
@@ -234,7 +231,6 @@ ALL_BADGES = [
         "category": "nutrition",
     },
     
-    # GOAL/CALORIE BADGES ✅ (6 badges)
     {
         "id": "goal_first",
         "emoji": "✅",
@@ -290,7 +286,6 @@ ALL_BADGES = [
         "category": "nutrition",
     },
     
-    # MACRO BADGES 📊 (5 badges)
     {
         "id": "macro_first",
         "emoji": "📊",
@@ -337,7 +332,6 @@ ALL_BADGES = [
         "category": "nutrition",
     },
     
-    # HEALTHY EATING BADGES 💚 (6 badges)
     {
         "id": "healthy_first",
         "emoji": "💚",
@@ -393,7 +387,6 @@ ALL_BADGES = [
         "category": "nutrition",
     },
     
-    # WEIGHT TRACKING BADGES ⚖️ (5 badges)
     {
         "id": "weight_first",
         "emoji": "⚖️",
@@ -440,7 +433,6 @@ ALL_BADGES = [
         "category": "special",
     },
     
-    # TIME-BASED BADGES ⏰ (4 badges)
     {
         "id": "early_bird",
         "emoji": "🌅",
@@ -478,7 +470,6 @@ ALL_BADGES = [
         "category": "special",
     },
     
-    # SCANNER BADGES 📸 (5 badges)
     {
         "id": "scanner_first",
         "emoji": "📸",
@@ -525,7 +516,6 @@ ALL_BADGES = [
         "category": "special",
     },
     
-    # VARIETY BADGES 🗺️ (5 badges)
     {
         "id": "variety_10",
         "emoji": "🗺️",
@@ -572,7 +562,6 @@ ALL_BADGES = [
         "category": "special",
     },
     
-    # RECIPE BADGES 📖 (4 badges)
     {
         "id": "recipe_first",
         "emoji": "📖",
@@ -610,7 +599,6 @@ ALL_BADGES = [
         "category": "special",
     },
     
-    # ACHIEVEMENT COLLECTOR BADGES 🏅 (4 badges)
     {
         "id": "collector_5",
         "emoji": "🏅",
@@ -696,7 +684,6 @@ def get_user_stats(user: User, db: Session) -> Dict:
 
 
 def check_badge_eligibility(badge_id: str, stats: Dict) -> bool:
-    # Streak badges
     if badge_id == "streak_3":
         return stats["streak_count"] >= 3
     elif badge_id == "streak_7":
@@ -714,7 +701,6 @@ def check_badge_eligibility(badge_id: str, stats: Dict) -> bool:
     elif badge_id == "streak_1000":
         return stats["streak_count"] >= 1000
     
-    # Meals badges
     elif badge_id == "first_meal":
         return stats["meals_count"] >= 1
     elif badge_id == "meals_5":
@@ -736,11 +722,9 @@ def check_badge_eligibility(badge_id: str, stats: Dict) -> bool:
     elif badge_id == "meals_5000":
         return stats["meals_count"] >= 5000
     
-    # Water badges
     elif badge_id.startswith("water_"):
         return stats["water_days_goal_met"] >= 1
     
-    # Goal badges
     elif badge_id.startswith("goal_"):
         return stats["calorie_days_goal_met"] >= 1
     
@@ -781,7 +765,6 @@ def check_badge_eligibility(badge_id: str, stats: Dict) -> bool:
     elif badge_id.startswith("recipe_"):
         return False
     
-    # Collector badges
     elif badge_id == "collector_5":
         return stats["earned_badges_count"] >= 5
     elif badge_id == "collector_10":

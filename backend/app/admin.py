@@ -272,7 +272,6 @@ class MealPhotoReadSchema(BaseModel):
     
     def model_dump(self, **kwargs) -> dict[str, Any]:
         data = super().model_dump(**kwargs)
-        # Вычисляем file_url из file_path
         if data.get('file_path') and data['file_path'] not in ("manual", ""):
             file_path = data['file_path']
             if not (file_path.startswith("http://") or file_path.startswith("https://")):
@@ -321,7 +320,6 @@ class MealPhotoAdmin(admin.ModelAdmin):
         return query.order_by(MealPhoto.created_at.desc())
     
     async def get_list_data(self, request, data: list) -> list:
-        """Добавляет file_url для каждого элемента"""
         result = await super().get_list_data(request, data)
         for item in result:
             if isinstance(item, dict) and 'file_path' in item:
@@ -405,7 +403,6 @@ class ProgressPhotoReadSchema(BaseModel):
     
     def model_dump(self, **kwargs) -> dict[str, Any]:
         data = super().model_dump(**kwargs)
-        # Вычисляем file_url из file_path
         if data.get('file_path') and data['file_path'] not in ("manual", ""):
             file_path = data['file_path']
             if not (file_path.startswith("http://") or file_path.startswith("https://")):
@@ -444,7 +441,6 @@ class ProgressPhotoAdmin(admin.ModelAdmin):
         return query.order_by(ProgressPhoto.created_at.desc())
     
     async def get_list_data(self, request, data: list) -> list:
-        """Добавляет file_url для каждого элемента"""
         result = await super().get_list_data(request, data)
         for item in result:
             if isinstance(item, dict) and 'file_path' in item:

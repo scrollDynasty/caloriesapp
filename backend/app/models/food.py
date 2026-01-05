@@ -4,28 +4,25 @@ from app.core.database import Base
 
 
 class Food(Base):
-    """Модель продукта из USDA FoodData"""
     __tablename__ = "foods"
 
     fdc_id = Column(Integer, primary_key=True, index=True)
     data_type = Column(String(50), nullable=False, index=True)
-    description = Column(Text, nullable=False)  # Английское название
-    description_ru = Column(Text)  # Русское название
-    description_uz = Column(Text)  # Узбекское название
+    description = Column(Text, nullable=False)
+    description_ru = Column(Text)
+    description_uz = Column(Text)
     food_category_id = Column(String(100))
     publication_date = Column(Date)
 
-    # Relationships
     nutrients = relationship("FoodNutrient", back_populates="food", cascade="all, delete-orphan")
     branded_info = relationship("BrandedFood", back_populates="food", uselist=False)
 
     def get_name(self, lang: str = 'en') -> str:
-        """Возвращает название на нужном языке"""
         if lang == 'ru' and self.description_ru:
             return self.description_ru
         elif lang == 'uz' and self.description_uz:
             return self.description_uz
-        return self.description  # Fallback на английский
+        return self.description
 
     __table_args__ = (
         Index('idx_description', 'description', mysql_prefix='FULLTEXT'),
@@ -33,7 +30,6 @@ class Food(Base):
 
 
 class FoodNutrient(Base):
-    """Модель нутриентов продукта"""
     __tablename__ = "food_nutrients"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
@@ -41,7 +37,6 @@ class FoodNutrient(Base):
     nutrient_id = Column(Integer, nullable=False, index=True)
     amount = Column(Numeric(12, 4))
 
-    # Relationships
     food = relationship("Food", back_populates="nutrients")
 
     __table_args__ = (
@@ -50,7 +45,6 @@ class FoodNutrient(Base):
 
 
 class BrandedFood(Base):
-    """Модель брендированного продукта"""
     __tablename__ = "branded_foods"
 
     fdc_id = Column(Integer, ForeignKey("foods.fdc_id", ondelete="CASCADE"), primary_key=True)
@@ -63,12 +57,10 @@ class BrandedFood(Base):
     serving_size_unit = Column(String(50))
     household_serving_fulltext = Column(String(255))
 
-    # Relationships
     food = relationship("Food", back_populates="branded_info")
 
 
 class NutrientName(Base):
-    """Справочник названий нутриентов"""
     __tablename__ = "nutrient_names"
 
     nutrient_id = Column(Integer, primary_key=True)
