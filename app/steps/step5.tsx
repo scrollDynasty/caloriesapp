@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepHeader from "../../components/features/StepHeader";
@@ -191,70 +191,70 @@ const styles = StyleSheet.create({
     paddingBottom: 48,
   },
   contentContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 32,
-    paddingBottom: 32,
+    paddingHorizontal: Platform.OS === "android" ? 20 : 24,
+    paddingTop: Platform.OS === "android" ? 24 : 32,
+    paddingBottom: Platform.OS === "android" ? 24 : 32,
   },
   textSection: {
     alignItems: "flex-start",
-    marginBottom: 32,
-    gap: 12,
+    marginBottom: Platform.OS === "android" ? 24 : 32,
+    gap: Platform.OS === "android" ? 8 : 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: Platform.OS === "android" ? 22 : 26,
     fontWeight: "700",
-    lineHeight: 34,
+    lineHeight: Platform.OS === "android" ? 26.4 : 31.2,
     textAlign: "left",
     fontFamily: "Inter_700Bold",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: Platform.OS === "android" ? 14 : 16,
     fontWeight: "400",
-    lineHeight: 24,
+    lineHeight: Platform.OS === "android" ? 20 : 24,
     textAlign: "left",
     fontFamily: "Inter_400Regular",
   },
   optionsContainer: {
     width: "100%",
-    gap: 16,
+    gap: Platform.OS === "android" ? 12 : 16,
   },
   buttonContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingHorizontal: Platform.OS === "android" ? 20 : 24,
+    paddingTop: Platform.OS === "android" ? 20 : 24,
   },
   workoutOption: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
-    borderRadius: 20,
-    gap: 16,
+    padding: Platform.OS === "android" ? 14 : 18,
+    borderRadius: Platform.OS === "android" ? 16 : 18,
+    gap: Platform.OS === "android" ? 12 : 16,
     shadowOffset: { width: 0, height: 2 },
   },
   workoutDots: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: Platform.OS === "android" ? 36 : 40,
+    height: Platform.OS === "android" ? 36 : 40,
+    borderRadius: Platform.OS === "android" ? 18 : 20,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 4,
+    gap: Platform.OS === "android" ? 3 : 4,
   },
   workoutDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: Platform.OS === "android" ? 8 : 9,
+    height: Platform.OS === "android" ? 8 : 9,
+    borderRadius: Platform.OS === "android" ? 4 : 4.5,
   },
   workoutInfo: {
     flex: 1,
   },
   workoutTitle: {
-    fontSize: 18,
+    fontSize: Platform.OS === "android" ? 16 : 17,
     fontFamily: "Inter_700Bold",
-    marginBottom: 4,
+    marginBottom: Platform.OS === "android" ? 2 : 4,
   },
   workoutSubtitle: {
-    fontSize: 14,
+    fontSize: Platform.OS === "android" ? 13 : 14,
     fontFamily: "Inter_400Regular",
   },
 });

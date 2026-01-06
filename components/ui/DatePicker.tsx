@@ -35,8 +35,8 @@ const DateWheelItem = React.memo(({
   data: any; 
   textColor: string;
 }) => (
-  <View style={styles.wheelItemContainer}>
-    <Text style={[styles.wheelItem, { color: textColor }]}>
+  <View style={[styles.wheelItemContainer, Platform.OS === "android" && styles.wheelItemContainerAndroid]}>
+    <Text style={[styles.wheelItem, Platform.OS === "android" && styles.wheelItemAndroid, { color: textColor }]}>
       {String(data)}
     </Text>
   </View>
@@ -109,25 +109,26 @@ const PickerColumn: React.FC<PickerColumnProps> = ({
   if (Platform.OS === "android") {
     return (
       <View style={containerStyle}>
-        <Text style={[styles.columnLabel, { color: themeColors.textSecondary }]}>{label}</Text>
-        <View style={[wrapperStyle, { backgroundColor: themeColors.background, borderRadius: 12 }]}>
+        <Text style={[styles.columnLabel, styles.columnLabelAndroid, { color: themeColors.textSecondary }]}>{label}</Text>
+        <View style={[wrapperStyle, styles.pickerWrapperAndroid, { backgroundColor: themeColors.background, borderRadius: 12 }]}>
           <WheelScrollPicker
             dataSource={items}
             selectedIndex={selectedIndex >= 0 ? selectedIndex : 0}
             renderItem={renderItem}
             onValueChange={handleValueChange}
-            wrapperHeight={280}
+            wrapperHeight={200}
             wrapperBackground={themeColors.background}
-            itemHeight={50}
+            itemHeight={40}
             highlightColor={isDark ? (themeColors.gray5 || "#1a1a1a") : "#FFFFF0"}
             highlightBorderWidth={2}
-            style={{ width: columnWidth || 120 }}
+            style={{ width: columnWidth || 100 }}
             decelerationRate="fast"
             showsVerticalScrollIndicator={false}
           />
           <View 
             style={[
               styles.selectedItemOverlay, 
+              styles.selectedItemOverlayAndroid,
               { 
                 borderColor: themeColors.primary || "#007AFF",
               }
@@ -250,15 +251,19 @@ export const DatePicker = React.memo(function DatePicker({
     []
   );
 
+  const dayWidth = Platform.OS === "android" ? 80 : 100;
+  const monthWidth = Platform.OS === "android" ? 140 : 200;
+  const yearWidth = Platform.OS === "android" ? 100 : 120;
+
   return (
     <View style={styles.container}>
-      <View style={styles.pickersRow}>
+      <View style={[styles.pickersRow, Platform.OS === "android" && styles.pickersRowAndroid]}>
         <PickerColumn
           label="ДЕНЬ"
           items={days}
           value={day}
           onValueChange={handleDayChange}
-          columnWidth={100}
+          columnWidth={dayWidth}
           themeColors={themeColors}
           isDark={isDark}
         />
@@ -267,7 +272,7 @@ export const DatePicker = React.memo(function DatePicker({
           items={months}
           value={MONTHS[month]}
           onValueChange={handleMonthChange}
-          columnWidth={200}
+          columnWidth={monthWidth}
           themeColors={themeColors}
           isDark={isDark}
         />
@@ -276,7 +281,7 @@ export const DatePicker = React.memo(function DatePicker({
           items={years}
           value={year}
           onValueChange={handleYearChange}
-          columnWidth={120}
+          columnWidth={yearWidth}
           themeColors={themeColors}
           isDark={isDark}
         />
@@ -298,6 +303,10 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingHorizontal: 24,
   },
+  pickersRowAndroid: {
+    gap: 8,
+    paddingHorizontal: 16,
+  },
   columnContainer: {
     alignItems: "center",
     marginBottom: 0,
@@ -314,10 +323,17 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: 16,
   },
+  columnLabelAndroid: {
+    fontSize: 12,
+    marginBottom: 12,
+  },
   pickerWrapper: {
     height: 280,
     overflow: "hidden",
     position: "relative",
+  },
+  pickerWrapperAndroid: {
+    height: 200,
   },
   selectedItemOverlay: {
     position: "absolute",
@@ -329,6 +345,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     zIndex: 10,
+  },
+  selectedItemOverlayAndroid: {
+    height: 40,
+    marginTop: -20,
+    borderRadius: 10,
+    borderWidth: 1.5,
   },
   picker: {
     width: "100%",
@@ -350,5 +372,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
     includeFontPadding: false,
+  },
+  wheelItemContainerAndroid: {
+    height: 40,
+  },
+  wheelItemAndroid: {
+    fontSize: 16,
+    lineHeight: 20,
   },
 });

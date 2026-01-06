@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -99,7 +99,7 @@ export function RadioButton({ label, selected, onPress }: RadioButtonProps) {
             ]}
           >
             {selected && (
-              <Ionicons name="checkmark" size={16} color={checkIconColor} />
+              <Ionicons name="checkmark" size={Platform.OS === "android" ? 15 : 17} color={checkIconColor} />
             )}
           </View>
         </View>
@@ -114,31 +114,31 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     alignSelf: "stretch",
-    padding: 20,
-    borderRadius: 20,
+    padding: Platform.OS === "android" ? 14 : 18,
+    borderRadius: Platform.OS === "android" ? 16 : 18,
     shadowOffset: {
       width: 0,
       height: 2,
     },
   },
   radioText: {
-    fontSize: 17,
+    fontSize: Platform.OS === "android" ? 15 : 16,
     fontWeight: "600",
-    lineHeight: 22,
+    lineHeight: Platform.OS === "android" ? 20 : 22,
     fontFamily: "Inter_600SemiBold",
     flex: 1,
   },
   radioCircleContainer: {
-    width: 24,
-    height: 24,
+    width: Platform.OS === "android" ? 22 : 26,
+    height: Platform.OS === "android" ? 22 : 26,
     justifyContent: "center",
     alignItems: "center",
   },
   radioCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
+    width: Platform.OS === "android" ? 22 : 26,
+    height: Platform.OS === "android" ? 22 : 26,
+    borderRadius: Platform.OS === "android" ? 11 : 13,
+    borderWidth: Platform.OS === "android" ? 1.5 : 2,
     justifyContent: "center",
     alignItems: "center",
   },

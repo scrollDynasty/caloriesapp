@@ -1,7 +1,7 @@
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { colors } from "../../constants/theme";
 
 interface FoodImagePreviewProps {
@@ -110,18 +110,18 @@ export default function FoodImagePreview({
 
 const styles = StyleSheet.create({
   imageContainer: {
-    borderRadius: 40,
+    borderRadius: Platform.OS === "android" ? 32 : 40,
     overflow: "hidden",
     alignSelf: "center",
     
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 12,
+      height: Platform.OS === "android" ? 8 : 12,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOpacity: Platform.OS === "android" ? 0.12 : 0.15,
+    shadowRadius: Platform.OS === "android" ? 16 : 24,
+    elevation: Platform.OS === "android" ? 8 : 12,
   },
   foodImage: {
     width: "100%",
@@ -131,12 +131,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    gap: Platform.OS === "android" ? 5 : 6,
+    paddingHorizontal: Platform.OS === "android" ? 12 : 16,
+    paddingVertical: Platform.OS === "android" ? 6 : 8,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 20,
-    minWidth: 159.3, 
+    borderRadius: Platform.OS === "android" ? 16 : 20,
+    minWidth: Platform.OS === "android" ? 130 : 159.3, 
     
     shadowColor: "#000",
     shadowOffset: {
@@ -148,29 +148,29 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   scanningDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 1.17,
+    width: Platform.OS === "android" ? 12 : 14,
+    height: Platform.OS === "android" ? 12 : 14,
+    borderRadius: Platform.OS === "android" ? 6 : 7,
+    borderWidth: Platform.OS === "android" ? 1 : 1.17,
     borderColor: colors.primary,
   },
   overlayText: {
     color: colors.primary,
-    fontSize: 13,
+    fontSize: Platform.OS === "android" ? 12 : 13,
     fontWeight: "600",
-    lineHeight: 15.73,
+    lineHeight: Platform.OS === "android" ? 14.5 : 15.73,
     fontFamily: "Inter_600SemiBold",
   },
   caloriesOverlay: {
     position: "absolute",
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    gap: Platform.OS === "android" ? 5 : 6,
+    paddingHorizontal: Platform.OS === "android" ? 12 : 16,
+    paddingVertical: Platform.OS === "android" ? 6 : 8,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 20,
-    minWidth: 110.78, 
+    borderRadius: Platform.OS === "android" ? 16 : 20,
+    minWidth: Platform.OS === "android" ? 90 : 110.78, 
     
     shadowColor: "#000",
     shadowOffset: {
@@ -191,11 +191,11 @@ const styles = StyleSheet.create({
     
   },
   cameraIcon: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
+    width: Platform.OS === "android" ? 20 : 24,
+    height: Platform.OS === "android" ? 20 : 24,
+    borderWidth: Platform.OS === "android" ? 1.5 : 2,
     borderColor: colors.buttonPrimaryText,
-    borderRadius: 4,
+    borderRadius: Platform.OS === "android" ? 3 : 4,
   },
 });
 

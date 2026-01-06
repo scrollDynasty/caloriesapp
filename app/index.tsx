@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FoodImagePreview from "../components/features/FoodImagePreview";
 import TextContent from "../components/features/TextContent";
@@ -61,8 +61,9 @@ export default function Index() {
     imageWrapper: {
       alignItems: "center",
       justifyContent: "center",
-      marginBottom: 16,
+      marginBottom: Platform.OS === "android" ? 8 : 16,
       width: "100%",
+      paddingHorizontal: Platform.OS === "android" ? 16 : 0,
     },
     loadingContainer: {
       flex: 1,
@@ -70,9 +71,9 @@ export default function Index() {
       alignItems: "center",
     },
     textContainer: {
-      paddingHorizontal: 24,
-      paddingBottom: 24,
-      gap: 16, 
+      paddingHorizontal: Platform.OS === "android" ? 20 : 24,
+      paddingBottom: Platform.OS === "android" ? 20 : 24,
+      gap: Platform.OS === "android" ? 14 : 16, 
     },
     preloadContainer: {
       position: "absolute",

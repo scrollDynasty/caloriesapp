@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 
 interface TextContentProps {
   title: string;
@@ -17,23 +17,23 @@ export default function TextContent({ title, subtitle }: TextContentProps) {
 const styles = StyleSheet.create({
   textWrapper: {
     alignItems: "center",
-    gap: 8, 
+    gap: Platform.OS === "android" ? 6 : 8, 
     marginBottom: 0,
   },
   title: {
     color: "#2D2A26",
-    fontSize: 20,
+    fontSize: Platform.OS === "android" ? 18 : 20,
     fontWeight: "600",
-    lineHeight: 24.2,
+    lineHeight: Platform.OS === "android" ? 21.6 : 24.2,
     textAlign: "center",
     fontFamily: "Inter_600SemiBold",
     flexShrink: 0,
   },
   subtitle: {
     color: "#8C867D",
-    fontSize: 15,
+    fontSize: Platform.OS === "android" ? 14 : 15,
     fontWeight: "400",
-    lineHeight: 18.15,
+    lineHeight: Platform.OS === "android" ? 16.8 : 18.15,
     textAlign: "center",
     fontFamily: "Inter_400Regular",
     flexShrink: 0,

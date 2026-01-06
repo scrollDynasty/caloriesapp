@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -76,13 +76,28 @@ function MacroRow({
   isDark: boolean;
   colors: any;
 }) {
+  const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
+    "🔥": "flame",
+    "🌾": "nutrition",
+    "🥩": "restaurant",
+    "💧": "water",
+  };
+
+  const iconName = iconMap[icon] || "ellipse-outline";
+
   return (
     <Animated.View 
       entering={FadeInUp.delay(delay).springify()}
       style={styles.macroRow}
     >
       <View style={styles.macroRowLeft}>
-        <Text style={{ fontSize: 18 }}>{icon}</Text>
+        <View style={[styles.macroIconContainer, { backgroundColor: isDark ? colors.fillTertiary : "rgba(0,0,0,0.04)" }]}>
+          <Ionicons 
+            name={iconName} 
+            size={Platform.OS === "android" ? 18 : 20} 
+            color={icon === "🔥" ? "#FF6B35" : icon === "🌾" ? "#FFA726" : icon === "🥩" ? "#EF5350" : "#42A5F5"} 
+          />
+        </View>
         <Text style={[styles.macroRowLabel, { color: colors.text }]}>{label}</Text>
         <TouchableOpacity style={styles.macroRowEdit}>
           <Ionicons name="pencil-outline" size={14} color={colors.textSecondary} />
@@ -91,8 +106,8 @@ function MacroRow({
       <View style={styles.macroRowRight}>
         <CircularProgress
           progress={0}
-          size={56}
-          strokeWidth={4}
+          size={Platform.OS === "android" ? 48 : 56}
+          strokeWidth={Platform.OS === "android" ? 3 : 4}
           color={isDark ? colors.textSecondary : "#E0E0E0"}
           backgroundColor={isDark ? colors.fillTertiary : "#F0F0F0"}
         >
@@ -106,10 +121,23 @@ function MacroRow({
 }
 
 function TipItem({ icon, text, delay, isDark, colors }: { icon: string; text: string; delay: number; isDark: boolean; colors: any }) {
+  const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
+    "💪": "fitness",
+    "🥑": "leaf",
+    "🎯": "locate",
+    "⚡": "flash",
+  };
+
+  const iconName = iconMap[icon] || "ellipse-outline";
+
   return (
     <Animated.View entering={FadeInDown.delay(delay)} style={styles.tipItem}>
-      <View style={[styles.tipIconContainer, { backgroundColor: isDark ? colors.fillQuaternary : "rgba(0,0,0,0.04)" }]}>
-        <Text style={{ fontSize: 20 }}>{icon}</Text>
+      <View style={[styles.tipIconContainer, { backgroundColor: isDark ? colors.fillQuaternary : "#FFFFF0" }]}>
+        <Ionicons 
+          name={iconName} 
+          size={Platform.OS === "android" ? 20 : 22} 
+          color={icon === "💪" ? "#FF6B35" : icon === "🥑" ? "#66BB6A" : icon === "🎯" ? "#42A5F5" : "#FFA726"} 
+        />
       </View>
       <Text style={[styles.tipText, { color: colors.text }]}>{text}</Text>
     </Animated.View>
@@ -171,7 +199,7 @@ export default function Results() {
         {}
         <Animated.View entering={FadeIn.delay(100)} style={styles.headerSection}>
           <View style={[styles.checkIcon, { backgroundColor: colors.text }]}>
-            <Ionicons name="checkmark" size={28} color={isDark ? colors.black : colors.buttonPrimaryText} />
+            <Ionicons name="checkmark" size={Platform.OS === "android" ? 24 : 28} color={isDark ? colors.black : colors.buttonPrimaryText} />
           </View>
           <Text style={[styles.mainTitle, { color: colors.text }]}>
             Поздравляем{"\n"}твой индивидуальный план готов!
@@ -239,10 +267,10 @@ export default function Results() {
           {}
           <Animated.View 
             entering={FadeInUp.delay(800)}
-            style={[styles.healthScore, { backgroundColor: isDark ? colors.fillTertiary : "#F8F8F8" }]}
+            style={[styles.healthScore, { backgroundColor: isDark ? colors.fillTertiary : "#FFFFF0" }]}
           >
-            <View style={styles.healthIcon}>
-              <Text style={{ fontSize: 24 }}>💪</Text>
+            <View style={[styles.healthIcon, { backgroundColor: isDark ? colors.fillQuaternary : "rgba(255, 107, 53, 0.1)" }]}>
+              <Ionicons name="fitness" size={Platform.OS === "android" ? 20 : 24} color="#FF6B35" />
             </View>
             <View style={styles.healthInfo}>
               <Text style={[styles.healthLabel, { color: colors.text }]}>Оценка здоровья</Text>
@@ -326,48 +354,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 120,
+    paddingHorizontal: Platform.OS === "android" ? 20 : 24,
+    paddingBottom: Platform.OS === "android" ? 100 : 120,
   },
   headerSection: {
     alignItems: "center",
-    paddingTop: 24,
-    marginBottom: 24,
+    paddingTop: Platform.OS === "android" ? 20 : 24,
+    marginBottom: Platform.OS === "android" ? 20 : 24,
   },
   checkIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: Platform.OS === "android" ? 48 : 56,
+    height: Platform.OS === "android" ? 48 : 56,
+    borderRadius: Platform.OS === "android" ? 24 : 28,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 20,
+    marginBottom: Platform.OS === "android" ? 16 : 20,
   },
   mainTitle: {
-    fontSize: 26,
+    fontSize: Platform.OS === "android" ? 22 : 24,
     fontFamily: "Inter_700Bold",
     textAlign: "center",
-    lineHeight: 32,
-    marginBottom: 16,
+    lineHeight: Platform.OS === "android" ? 27 : 30,
+    marginBottom: Platform.OS === "android" ? 12 : 16,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: Platform.OS === "android" ? 14 : 16,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: Platform.OS === "android" ? 10 : 12,
   },
   weightBadge: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 24,
+    paddingHorizontal: Platform.OS === "android" ? 16 : 20,
+    paddingVertical: Platform.OS === "android" ? 8 : 10,
+    borderRadius: Platform.OS === "android" ? 20 : 24,
   },
   weightText: {
-    fontSize: 18,
+    fontSize: Platform.OS === "android" ? 16 : 18,
     fontFamily: "Inter_700Bold",
   },
   recommendationCard: {
-    padding: 20,
-    borderRadius: 24,
-    marginBottom: 20,
+    padding: Platform.OS === "android" ? 16 : 20,
+    borderRadius: Platform.OS === "android" ? 20 : 24,
+    marginBottom: Platform.OS === "android" ? 16 : 20,
     shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowRadius: 16,
@@ -375,14 +403,14 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: Platform.OS === "android" ? 16 : 18,
     fontFamily: "Inter_700Bold",
-    marginBottom: 6,
+    marginBottom: Platform.OS === "android" ? 4 : 6,
   },
   cardSubtitle: {
-    fontSize: 14,
+    fontSize: Platform.OS === "android" ? 13 : 14,
     fontFamily: "Inter_400Regular",
-    marginBottom: 20,
+    marginBottom: Platform.OS === "android" ? 16 : 20,
   },
   macrosList: {
     marginBottom: 16,
@@ -391,17 +419,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 16,
+    paddingVertical: Platform.OS === "android" ? 12 : 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "rgba(0,0,0,0.08)",
   },
   macroRowLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: Platform.OS === "android" ? 8 : 10,
+  },
+  macroIconContainer: {
+    width: Platform.OS === "android" ? 32 : 36,
+    height: Platform.OS === "android" ? 32 : 36,
+    borderRadius: Platform.OS === "android" ? 16 : 18,
+    alignItems: "center",
+    justifyContent: "center",
   },
   macroRowLabel: {
-    fontSize: 16,
+    fontSize: Platform.OS === "android" ? 14 : 16,
     fontFamily: "Inter_600SemiBold",
   },
   macroRowEdit: {
@@ -411,42 +446,48 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   macroRowValue: {
-    fontSize: 14,
+    fontSize: Platform.OS === "android" ? 12 : 14,
     fontFamily: "Inter_700Bold",
   },
   healthScore: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    borderRadius: 16,
-    gap: 12,
+    padding: Platform.OS === "android" ? 12 : 16,
+    borderRadius: Platform.OS === "android" ? 14 : 16,
+    gap: Platform.OS === "android" ? 10 : 12,
   },
-  healthIcon: {},
+  healthIcon: {
+    width: Platform.OS === "android" ? 36 : 40,
+    height: Platform.OS === "android" ? 36 : 40,
+    borderRadius: Platform.OS === "android" ? 18 : 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   healthInfo: {
     flex: 1,
   },
   healthLabel: {
-    fontSize: 14,
+    fontSize: Platform.OS === "android" ? 13 : 14,
     fontFamily: "Inter_600SemiBold",
-    marginBottom: 8,
+    marginBottom: Platform.OS === "android" ? 6 : 8,
   },
   healthBar: {
-    height: 6,
-    borderRadius: 3,
+    height: Platform.OS === "android" ? 5 : 6,
+    borderRadius: Platform.OS === "android" ? 2.5 : 3,
     overflow: "hidden",
   },
   healthFill: {
     height: "100%",
-    borderRadius: 3,
+    borderRadius: Platform.OS === "android" ? 2.5 : 3,
   },
   healthValue: {
-    fontSize: 16,
+    fontSize: Platform.OS === "android" ? 14 : 16,
     fontFamily: "Inter_700Bold",
   },
   tipsCard: {
-    padding: 20,
-    borderRadius: 24,
-    marginBottom: 20,
+    padding: Platform.OS === "android" ? 16 : 20,
+    borderRadius: Platform.OS === "android" ? 20 : 24,
+    marginBottom: Platform.OS === "android" ? 16 : 20,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 12,
@@ -454,30 +495,30 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   tipsTitle: {
-    fontSize: 17,
+    fontSize: Platform.OS === "android" ? 15 : 17,
     fontFamily: "Inter_700Bold",
-    marginBottom: 16,
+    marginBottom: Platform.OS === "android" ? 12 : 16,
   },
   tipItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    gap: 14,
+    paddingVertical: Platform.OS === "android" ? 10 : 12,
+    gap: Platform.OS === "android" ? 12 : 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "rgba(0,0,0,0.08)",
   },
   tipIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: Platform.OS === "android" ? 38 : 44,
+    height: Platform.OS === "android" ? 38 : 44,
+    borderRadius: Platform.OS === "android" ? 19 : 22,
     alignItems: "center",
     justifyContent: "center",
   },
   tipText: {
     flex: 1,
-    fontSize: 15,
+    fontSize: Platform.OS === "android" ? 14 : 15,
     fontFamily: "Inter_500Medium",
-    lineHeight: 20,
+    lineHeight: Platform.OS === "android" ? 18 : 20,
   },
   sourcesSection: {
     marginTop: 8,
@@ -499,17 +540,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    paddingBottom: 40,
+    paddingHorizontal: Platform.OS === "android" ? 20 : 24,
+    paddingVertical: Platform.OS === "android" ? 16 : 20,
+    paddingBottom: Platform.OS === "android" ? 32 : 40,
   },
   continueButton: {
-    paddingVertical: 18,
-    borderRadius: 16,
+    paddingVertical: Platform.OS === "android" ? 14 : 16,
+    borderRadius: Platform.OS === "android" ? 14 : 16,
     alignItems: "center",
   },
   continueButtonText: {
-    fontSize: 17,
+    fontSize: Platform.OS === "android" ? 15 : 17,
     fontFamily: "Inter_600SemiBold",
   },
 });

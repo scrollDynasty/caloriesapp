@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticMedium } from "../../utils/haptics";
 
@@ -14,16 +14,18 @@ export function PrimaryButton({
   label,
   onPress,
   icon = "arrow-forward",
-  iconSize = 20,
+  iconSize,
 }: PrimaryButtonProps) {
   const { colors, isDark } = useTheme();
+  const defaultIconSize = Platform.OS === "android" ? 18 : 20;
+  const finalIconSize = iconSize || defaultIconSize;
   
   return (
     <TouchableOpacity
       style={[styles.primaryButton, { backgroundColor: colors.buttonPrimary }]}
       onPress={() => {
         hapticMedium();
-        onPress();
+        onPress?.();
       }}
       activeOpacity={0.8}
     >
@@ -31,7 +33,7 @@ export function PrimaryButton({
       {icon && (
         <Ionicons
           name={icon}
-          size={iconSize}
+          size={finalIconSize}
           color={colors.buttonPrimaryText}
           style={styles.primaryButtonIcon}
         />
@@ -67,40 +69,40 @@ export function SecondaryButton({ label, onPress }: SecondaryButtonProps) {
 const styles = StyleSheet.create({
   primaryButton: {
     width: "100%",
-    borderRadius: 16,
+    borderRadius: Platform.OS === "android" ? 14 : 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 18,
-    paddingHorizontal: 24,
+    gap: Platform.OS === "android" ? 6 : 8,
+    paddingVertical: Platform.OS === "android" ? 14 : 16,
+    paddingHorizontal: Platform.OS === "android" ? 20 : 24,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: Platform.OS === "android" ? 2 : 4,
     },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: Platform.OS === "android" ? 0.08 : 0.12,
+    shadowRadius: Platform.OS === "android" ? 6 : 8,
+    elevation: Platform.OS === "android" ? 2 : 4,
   },
   primaryButtonText: {
-    fontSize: 17,
+    fontSize: Platform.OS === "android" ? 15 : 16,
     fontWeight: "600",
     fontFamily: "Inter_600SemiBold",
   },
   primaryButtonIcon: {
-    marginLeft: 4,
+    marginLeft: Platform.OS === "android" ? 2 : 4,
   },
   secondaryButtonContainer: {
     alignItems: "center",
   },
   secondaryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingHorizontal: Platform.OS === "android" ? 16 : 20,
+    paddingVertical: Platform.OS === "android" ? 10 : 12,
+    borderRadius: Platform.OS === "android" ? 10 : 12,
   },
   secondaryButtonText: {
-    fontSize: 15,
+    fontSize: Platform.OS === "android" ? 14 : 15,
     fontWeight: "500",
     textAlign: "center",
     fontFamily: "Inter_500Medium",

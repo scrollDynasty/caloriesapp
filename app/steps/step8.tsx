@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import StepHeader from "../../components/features/StepHeader";
 import { PrimaryButton } from "../../components/ui/Button";
@@ -115,16 +115,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   title: {
-    fontSize: 28,
+    fontSize: Platform.OS === "android" ? 22 : 26,
     fontWeight: "700",
-    lineHeight: 33.88,
+    lineHeight: Platform.OS === "android" ? 26.4 : 31.2,
     textAlign: "left",
     fontFamily: "Inter_700Bold",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: Platform.OS === "android" ? 14 : 16,
     fontWeight: "400",
-    lineHeight: 24,
+    lineHeight: Platform.OS === "android" ? 20 : 24,
     textAlign: "left",
     fontFamily: "Inter_400Regular",
   },
