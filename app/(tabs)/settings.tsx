@@ -291,10 +291,6 @@ export default function SettingsScreen() {
             )}
           </View>
           <View style={styles.profileInfo}>
-            <View style={styles.premiumBadge}>
-              <Text style={styles.premiumIcon}>👑</Text>
-              <Text style={[styles.premiumText, { color: "#B8860B" }]}>Премиум</Text>
-            </View>
             <Text style={[styles.name, { color: themeColors.text }]}>{displayName}</Text>
             <Text style={[styles.username, { color: themeColors.textSecondary }]}>@{displayUsername}</Text>
           </View>
@@ -433,19 +429,6 @@ const styles = StyleSheet.create({
   profileInfo: {
     flex: 1,
     marginLeft: 10,
-  },
-  premiumBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 2,
-  },
-  premiumIcon: {
-    fontSize: 11,
-  },
-  premiumText: {
-    fontSize: 10,
-    fontFamily: "Inter_600SemiBold",
   },
   name: {
     fontSize: 14,
