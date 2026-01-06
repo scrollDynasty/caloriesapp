@@ -2,13 +2,12 @@ import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Alert,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CardsPager } from "../../components/home/CardsPager";
@@ -23,6 +22,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 import { apiService } from "../../services/api";
 import { dataCache } from "../../stores/dataCache";
+import { showToast } from "../../utils/toast";
 
 import { getLocalDayRange, getLocalTimezoneOffset, getLocalTimezoneOffsetMs } from "../../utils/timezone";
 
@@ -448,7 +448,7 @@ export default function HomeScreen() {
 
   const handleScanFood = async () => {
     if (!isTodaySelected) {
-      Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
+      showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
       return;
     }
     
@@ -458,17 +458,15 @@ export default function HomeScreen() {
         if (result.granted) {
           router.push("/scan-meal" as any);
         } else {
-          Alert.alert(
-            "Разрешение камеры",
+          showToast.warning(
             "Для сканирования еды необходимо разрешение на использование камеры. Пожалуйста, разрешите доступ в настройках приложения.",
-            [{ text: "ОК" }]
+            "Разрешение камеры"
           );
         }
       } else {
-        Alert.alert(
-          "Разрешение камеры",
+        showToast.warning(
           "Для сканирования еды необходимо разрешение на использование камеры. Пожалуйста, разрешите доступ в настройках приложения.",
-          [{ text: "ОК" }]
+          "Разрешение камеры"
         );
       }
     } else {
@@ -478,7 +476,7 @@ export default function HomeScreen() {
 
   const handleAddManually = () => {
     if (!isTodaySelected) {
-      Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
+      showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
       return;
     }
     router.push("/add-manual" as any);
@@ -486,7 +484,7 @@ export default function HomeScreen() {
 
   const handleAddWater = () => {
     if (!isTodaySelected) {
-      Alert.alert("Доступно только сегодня", "Добавлять можно только в текущий день.");
+      showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
       return;
     }
     router.push("/add-water" as any);

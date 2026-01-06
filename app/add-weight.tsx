@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,9 +20,17 @@ export default function AddWeightScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleWeightChange = (text: string) => {
+    const cleaned = text.replace(/[^0-9.,]/g, '').replace(',', '.');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) return;
+    if (parts[1] && parts[1].length > 3) return;
+    setWeight(cleaned);
+  };
+
   const validate = () => {
     if (!weight.trim()) return "Введите вес";
-    const val = Number(weight);
+    const val = parseFloat(weight.replace(',', '.'));
     if (isNaN(val) || val <= 0) return "Некорректное значение";
     if (val < 30 || val > 300) return "Вес должен быть от 30 до 300 кг";
     return null;
@@ -38,8 +45,7 @@ export default function AddWeightScreen() {
     setError(null);
     setSaving(true);
     try {
-      await apiService.addWeightLog(Number(weight));
-      Alert.alert("Сохранено", "Запись о весе добавлена.");
+      await apiService.addWeightLog(parseFloat(weight.replace(',', '.')));
       router.back();
     } catch (e: any) {
       setError(e?.message || "Не удалось сохранить");
@@ -73,7 +79,7 @@ export default function AddWeightScreen() {
             placeholderTextColor={colors.textTertiary}
             keyboardType="decimal-pad"
             value={weight}
-            onChangeText={setWeight}
+            onChangeText={handleWeightChange}
             autoFocus
           />
 

@@ -4,22 +4,22 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    Alert,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LottieLoader } from "../components/ui/LottieLoader";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
+import { showToast } from "../utils/toast";
 
 interface ProfileData {
   firstName: string;
@@ -102,11 +102,11 @@ export default function EditProfileScreen() {
       if (galleryPermission?.canAskAgain) {
         const result = await requestGalleryPermission();
         if (!result.granted) {
-          Alert.alert("Разрешение", "Разрешите доступ к фотографиям для выбора аватара");
+          showToast.warning("Разрешите доступ к фотографиям для выбора аватара", "Разрешение");
           return;
         }
       } else {
-        Alert.alert("Разрешение", "Разрешите доступ к фотографиям в настройках устройства");
+        showToast.warning("Разрешите доступ к фотографиям в настройках устройства", "Разрешение");
         return;
       }
     }
@@ -125,12 +125,12 @@ export default function EditProfileScreen() {
 
   const handleSave = useCallback(async () => {
     if (data.username && data.username.length < 3) {
-      Alert.alert("Ошибка", "Username должен быть минимум 3 символа");
+      showToast.error("Username должен быть минимум 3 символа");
       return;
     }
 
     if (usernameError) {
-      Alert.alert("Ошибка", usernameError);
+      showToast.error(usernameError);
       return;
     }
 
@@ -149,7 +149,7 @@ export default function EditProfileScreen() {
           );
           avatarUrl = uploadResult.avatar_url;
         } catch {
-          Alert.alert("Ошибка", "Не удалось загрузить фотографию");
+          showToast.error("Не удалось загрузить фотографию");
           setSaving(false);
           return;
         }
@@ -166,7 +166,7 @@ export default function EditProfileScreen() {
 
       router.back();
     } catch (error: any) {
-      Alert.alert("Ошибка", error.response?.data?.detail || "Не удалось сохранить профиль");
+      showToast.error(error.response?.data?.detail || "Не удалось сохранить профиль");
     } finally {
       setSaving(false);
     }

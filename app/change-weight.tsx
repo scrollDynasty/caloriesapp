@@ -2,19 +2,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
-    Alert,
-    Dimensions,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
+import { showToast } from "../utils/toast";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -91,10 +91,9 @@ export default function ChangeWeightScreen() {
     setSaving(true);
     try {
       await apiService.addWeightLog(weight);
-      Alert.alert("Сохранено", `Вес ${weight.toFixed(1)} кг сохранён`);
       router.back();
     } catch (error: any) {
-      Alert.alert("Ошибка", error?.message || "Не удалось сохранить вес");
+      showToast.error(error?.message || "Не удалось сохранить вес");
     } finally {
       setSaving(false);
     }

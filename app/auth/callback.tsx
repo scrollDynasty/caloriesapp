@@ -1,11 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LottieLoader } from "../../components/ui/LottieLoader";
-import { colors } from "../../constants/theme";
 import { useOnboarding } from "../../context/OnboardingContext";
+import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { saveOnboardingData } from "../../services/onboarding";
 
@@ -13,6 +15,7 @@ export default function CallbackScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { data: onboardingData } = useOnboarding();
+  const { colors, isDark } = useTheme();
   const [error, setError] = useState<string | null>(null);
   const isMounted = useRef(true);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -120,55 +123,87 @@ export default function CallbackScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {error ? (
-        <>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.subText}>Перенаправление на страницу входа...</Text>
-        </>
-      ) : (
-        <>
-          <LottieLoader size="large" />
-          <Text style={styles.loadingText}>Авторизация...</Text>
-          <Text style={styles.subText}>Пожалуйста, подождите</Text>
-        </>
-      )}
-    </SafeAreaView>
+    <LinearGradient
+      colors={isDark ? ["#1a1a1a", "#2d2d2d"] : ["#FFFFF0", "#F5F5E8"]}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.container}>
+        {error ? (
+          <View style={[styles.card, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.9)" }]}>
+            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.blurCard}>
+              <Text style={styles.errorIcon}>⚠️</Text>
+              <Text style={[styles.errorText, { color: isDark ? "#ff6b6b" : "#d32f2f" }]}>{error}</Text>
+              <Text style={[styles.subText, { color: isDark ? colors.textSecondary : colors.textSecondary }]}>Перенаправление на страницу входа...</Text>
+            </BlurView>
+          </View>
+        ) : (
+          <View style={[styles.card, { backgroundColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.9)" }]}>
+            <BlurView intensity={20} tint={isDark ? "dark" : "light"} style={styles.blurCard}>
+              <LottieLoader size="large" />
+              <Text style={[styles.loadingText, { color: isDark ? colors.text : colors.primary }]}>Авторизация...</Text>
+              <Text style={[styles.subText, { color: isDark ? colors.textSecondary : colors.textSecondary }]}>Пожалуйста, подождите</Text>
+            </BlurView>
+          </View>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.background,
     padding: 20,
   },
+  card: {
+    borderRadius: 24,
+    padding: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 280,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  blurCard: {
+    borderRadius: 24,
+    padding: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
   loadingText: {
-    marginTop: 20,
-    fontSize: 18,
+    marginTop: 24,
+    fontSize: 20,
     fontWeight: "600",
-    color: colors.primary,
     fontFamily: "Inter_600SemiBold",
+    textAlign: "center",
   },
   subText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: colors.secondary,
+    marginTop: 12,
+    fontSize: 15,
     fontFamily: "Inter_400Regular",
+    textAlign: "center",
   },
   errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+    fontSize: 56,
+    marginBottom: 20,
   },
   errorText: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "600",
-    color: "#d32f2f",
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 12,
     fontFamily: "Inter_600SemiBold",
   },
 });

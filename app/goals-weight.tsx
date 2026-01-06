@@ -447,6 +447,20 @@ export default function GoalsWeightScreen() {
     }
   };
 
+  const getStepValue = (field: EditField) => {
+    switch (field) {
+      case "weight":
+      case "targetWeight":
+        return 0.1;
+      case "height":
+        return 1;
+      case "stepGoal":
+        return 100;
+      default:
+        return 1;
+    }
+  };
+
   const getMaxValue = (field: EditField) => {
     switch (field) {
       case "weight":
@@ -461,14 +475,6 @@ export default function GoalsWeightScreen() {
     }
   };
 
-  const getStepValue = (field: EditField) => {
-    switch (field) {
-      case "stepGoal":
-        return 1000;
-      default:
-        return 1;
-    }
-  };
 
   if (loading) {
     return (
@@ -586,6 +592,7 @@ export default function GoalsWeightScreen() {
                       unit={getFieldUnit(editField)}
                       min={getMinValue(editField)}
                       max={getMaxValue(editField)}
+                      step={getStepValue(editField)}
                     />
                   ) : (
                     <NumericInput

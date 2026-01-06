@@ -10,6 +10,8 @@ export interface OnboardingData {
 
   height?: number;
   weight?: number;
+  targetWeight?: number;
+  stepGoal?: number;
 
   birthDate?: Date;
 
@@ -83,6 +85,8 @@ export async function saveOnboardingData(data: OnboardingData) {
       workout_frequency: workoutFrequency,
       height,
       weight,
+      target_weight: data.targetWeight,
+      step_goal: data.stepGoal,
       birth_date: birthDateStr,
       has_trainer: data.hasTrainer,
       goal,

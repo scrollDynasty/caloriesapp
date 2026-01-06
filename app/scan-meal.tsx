@@ -5,7 +5,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -18,6 +17,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import type { BarcodeLookup } from "../services/api";
 import { apiService } from "../services/api";
+import { showToast } from "../utils/toast";
 
 export default function ScanMealScreen() {
   const fontsLoaded = useFonts();
@@ -59,10 +59,9 @@ export default function ScanMealScreen() {
 
   useEffect(() => {
     if (permission && !permission.granted && !permission.canAskAgain) {
-      Alert.alert(
-        "Разрешение камеры",
+      showToast.warning(
         "Для сканирования еды необходимо разрешение на использование камеры. Пожалуйста, разрешите доступ в настройках.",
-        [{ text: "ОК" }]
+        "Разрешение камеры"
       );
     } else if (permission && !permission.granted && permission.canAskAgain) {
       requestPermission();
@@ -110,11 +109,11 @@ export default function ScanMealScreen() {
           params: { refresh: Date.now().toString() } 
         } as any);
       } else {
-        Alert.alert("Ошибка", "Не удалось сделать фотографию");
+        showToast.error("Не удалось сделать фотографию");
         setCameraActive(true);
       }
     } catch (error: any) {
-      Alert.alert("Ошибка", error.message || "Не удалось сделать фотографию");
+      showToast.error(error.message || "Не удалось сделать фотографию");
       setCameraActive(true);
     }
   };
@@ -124,16 +123,16 @@ export default function ScanMealScreen() {
       if (galleryPermission?.canAskAgain) {
         const result = await requestGalleryPermission();
         if (!result.granted) {
-          Alert.alert(
-            "Разрешение галереи",
-            "Для выбора фотографий необходимо разрешение на доступ к галерее."
+          showToast.warning(
+            "Для выбора фотографий необходимо разрешение на доступ к галерее.",
+            "Разрешение галереи"
           );
           return;
         }
       } else {
-        Alert.alert(
-          "Разрешение галереи",
-          "Пожалуйста, разрешите доступ к галерее в настройках приложения."
+        showToast.warning(
+          "Пожалуйста, разрешите доступ к галерее в настройках приложения.",
+          "Разрешение галереи"
         );
         return;
       }
@@ -158,7 +157,7 @@ export default function ScanMealScreen() {
         } as any);
       }
     } catch {
-      Alert.alert("Ошибка", "Не удалось выбрать фотографию");
+      showToast.error("Не удалось выбрать фотографию");
     }
   };
 
@@ -211,10 +210,9 @@ export default function ScanMealScreen() {
         sodium: barcodeResult.sodium ?? 0,
         health_score: barcodeResult.health_score ?? null,
       });
-      Alert.alert("Сохранено", "Блюдо добавлено из штрихкода.");
       router.replace({ pathname: "/(tabs)", params: { refresh: Date.now().toString() } } as any);
     } catch (error: any) {
-      Alert.alert("Ошибка", error?.message || "Не удалось сохранить блюдо");
+      showToast.error(error?.message || "Не удалось сохранить блюдо");
     } finally {
       setSavingBarcodeMeal(false);
     }

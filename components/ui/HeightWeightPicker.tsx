@@ -11,6 +11,7 @@ interface HeightWeightPickerProps {
   unit: string;
   min: number;
   max: number;
+  step?: number;
 }
 
 const WheelItem = React.memo(({ 
@@ -34,14 +35,23 @@ export const HeightWeightPicker = React.memo(function HeightWeightPicker({
   unit,
   min,
   max,
+  step = 1,
 }: HeightWeightPickerProps) {
   const { colors: themeColors, isDark } = useTheme();
-  const items = useMemo(
-    () => Array.from({ length: max - min + 1 }, (_, i) => min + i),
-    [min, max]
-  );
+  const items = useMemo(() => {
+    const result: number[] = [];
+    for (let i = min; i <= max; i += step) {
+      result.push(Math.round(i * 100) / 100);
+    }
+    return result;
+  }, [min, max, step]);
   
-  const selectedIndex = useMemo(() => items.indexOf(value), [items, value]);
+  const selectedIndex = useMemo(() => {
+    const closest = items.reduce((prev, curr) => 
+      Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+    );
+    return items.indexOf(closest);
+  }, [items, value]);
   const changeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const renderItem = useCallback((data: any, index: number) => {

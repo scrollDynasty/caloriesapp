@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -50,7 +49,6 @@ export default function AddWaterScreen() {
         goal_ml: goal.trim() ? Number(goal) : undefined,
         created_at: new Date().toISOString(),
       });
-      Alert.alert("Сохранено", "Запись по воде добавлена.");
       router.push({ pathname: "/", params: { refresh: Date.now().toString() } } as any);
     } catch (e: any) {
       setError(e?.message || "Не удалось сохранить");

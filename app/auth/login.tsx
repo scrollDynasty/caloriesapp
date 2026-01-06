@@ -1,13 +1,14 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthButton } from "../../components/ui/AuthButton";
 import { colors } from "../../constants/theme";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
 import { authService } from "../../services/auth";
+import { showToast } from "../../utils/toast";
 
 export default function LoginScreen() {
   const fontsLoaded = useFonts();
@@ -25,10 +26,10 @@ export default function LoginScreen() {
       if (res.success) {
         router.replace("/(tabs)");
       } else {
-        Alert.alert("Ошибка", res.error || "Не удалось войти через Google");
+        showToast.error(res.error || "Не удалось войти через Google");
       }
     } catch (err: any) {
-      Alert.alert("Ошибка", err?.message || "Не удалось войти через Google");
+      showToast.error(err?.message || "Не удалось войти через Google");
     } finally {
       setLoading(false);
     }
@@ -42,10 +43,10 @@ export default function LoginScreen() {
       if (res.success) {
         router.replace("/(tabs)");
       } else {
-        Alert.alert("Ошибка", res.error || "Не удалось войти через Apple");
+        showToast.error(res.error || "Не удалось войти через Apple");
       }
     } catch (err: any) {
-      Alert.alert("Ошибка", err?.message || "Не удалось войти через Apple");
+      showToast.error(err?.message || "Не удалось войти через Apple");
     } finally {
       setLoading(false);
     }

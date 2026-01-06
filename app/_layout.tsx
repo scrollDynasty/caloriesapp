@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { View } from "react-native";
 import { AnimatedSplash } from "../components/ui/AnimatedSplash";
 import { BadgeCelebration } from "../components/ui/BadgeCelebration";
+import { CustomToast } from "../components/ui/CustomToast";
 import { SnowOverlay } from "../components/ui/SnowOverlay";
 import { AppSettingsProvider, useAppSettings } from "../context/AppSettingsContext";
 import { OnboardingProvider } from "../context/OnboardingContext";
@@ -168,6 +169,7 @@ function RootLayoutContent() {
       <RootNavigator />
       <SnowOverlay />
       <BadgeCelebrationWrapper />
+      <CustomToast />
       {showSplash && <AnimatedSplash onFinish={() => setShowSplash(false)} />}
     </View>
   );

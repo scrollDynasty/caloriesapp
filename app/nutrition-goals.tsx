@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
   Dimensions,
   Platform,
   ScrollView,
@@ -30,6 +29,7 @@ import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
 import { UserData, calculateCalories } from "../utils/calorieCalculator";
 import { hapticLight, hapticMedium, hapticSuccess } from "../utils/haptics";
+import { showToast } from "../utils/toast";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -210,6 +210,8 @@ interface OnboardingData {
   gender?: "male" | "female";
   height?: number;
   weight?: number;
+  target_weight?: number;
+  step_goal?: number;
   birth_date?: string;
   workout_frequency?: "0-2" | "3-5" | "6+";
   goal?: "lose" | "maintain" | "gain";
@@ -487,7 +489,7 @@ function EditGoalModal({
       onSave(num);
       onClose();
     } else {
-      Alert.alert("Ошибка", "Введите корректное значение");
+      showToast.error("Введите корректное значение");
     }
   };
 
@@ -585,8 +587,9 @@ function AutoGenerateFlow({
   };
 
   const calculateGoals = useCallback(() => {
-    const h = parseInt(height, 10) || 175;
-    const w = parseInt(weight, 10) || 70;
+    const h = parseInt(height, 10) || initialData?.height || 175;
+    const w = parseInt(weight, 10) || initialData?.weight || 70;
+    const targetWeight = initialData?.target_weight || w;
 
     const age = initialData?.birth_date
       ? new Date().getFullYear() - new Date(initialData.birth_date).getFullYear()
@@ -622,18 +625,34 @@ function AutoGenerateFlow({
     if (dietType === "pescatarian") {
       fiber = 40;
     }
+    
     const barrier = initialData?.barrier;
     
     if (barrier === "busy-schedule") {
       sugar = 40;
+      fiber = Math.max(fiber, 35);
     }
     
     if (barrier === "bad-habits") {
       sugar = 35;
       sodium = 2000;
+      fiber = Math.max(fiber, 40);
     }
     
     if (barrier === "inconsistency") {
+      fiber = Math.max(fiber, 42);
+      sugar = Math.min(sugar, 45);
+      protein = Math.round(protein * 1.03);
+    }
+    
+    if (barrier === "lack-of-support") {
+      protein = Math.round(protein * 1.05);
+      fiber = Math.max(fiber, 40);
+    }
+    
+    if (barrier === "lack-of-ideas") {
+      fiber = Math.max(fiber, 40);
+      sugar = Math.min(sugar, 45);
     }
 
     const motivation = initialData?.motivation;
@@ -646,6 +665,18 @@ function AutoGenerateFlow({
     
     if (motivation === "feel-better") {
       protein = Math.round(protein * 1.05);
+      fiber = Math.max(fiber, 40);
+    }
+    
+    if (motivation === "eat-healthy") {
+      fiber = Math.max(fiber, 42);
+      sugar = Math.min(sugar, 45);
+      sodium = Math.min(sodium, 2200);
+    }
+    
+    if (motivation === "stay-motivated") {
+      protein = Math.round(protein * 1.03);
+      fiber = Math.max(fiber, 40);
     }
 
     if (initialData?.has_trainer) {
@@ -660,6 +691,29 @@ function AutoGenerateFlow({
     if (initialData?.gender === "female") {
       sodium = Math.min(sodium, 2000);
       protein = Math.max(protein, Math.round(w * 1.6));
+    }
+    
+    if (targetWeight && targetWeight !== w) {
+      const weightDiff = Math.abs(targetWeight - w);
+      if (goal === "lose" && targetWeight < w) {
+        const deficitMultiplier = Math.min(1 + (weightDiff / 10) * 0.05, 1.15);
+        calories = Math.round(calories * (1 - (weightDiff / 10) * 0.02));
+        protein = Math.round(protein * deficitMultiplier);
+      } else if (goal === "gain" && targetWeight > w) {
+        const surplusMultiplier = Math.min(1 + (weightDiff / 10) * 0.05, 1.15);
+        calories = Math.round(calories * (1 + (weightDiff / 10) * 0.02));
+        protein = Math.round(protein * surplusMultiplier);
+      }
+    }
+    
+    if (initialData?.step_goal) {
+      const stepGoal = initialData.step_goal;
+      if (stepGoal >= 12000) {
+        calories = Math.round(calories * 1.05);
+        carbs = Math.round(carbs * 1.03);
+      } else if (stepGoal >= 8000) {
+        calories = Math.round(calories * 1.02);
+      }
     }
 
     const goals: NutritionGoals = {
@@ -1209,7 +1263,7 @@ export default function NutritionGoalsScreen() {
       dataCache.invalidateOnboarding();
       router.back();
     } catch {
-      Alert.alert("Ошибка", "Не удалось сохранить цели");
+      showToast.error("Не удалось сохранить цели");
     } finally {
       setSaving(false);
     }
