@@ -48,7 +48,7 @@ export default function FoodDatabaseScreen() {
   const [offset, setOffset] = useState(0);
   const [lang, setLang] = useState<SupportedLanguage>("en");
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
-  const searchTimeoutRef = useRef<number | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isInitialMount = useRef(true);
 
@@ -56,19 +56,7 @@ export default function FoodDatabaseScreen() {
     initLanguage().then(setLang);
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadInitialFoods("foundation");
-      return () => {
-        setSearchQuery("");
-        setSelectedSource("foundation");
-        setOffset(0);
-        setHasMore(true);
-      };
-    }, [lang])
-  );
-
-  const loadInitialFoods = async (source: string) => {
+  const loadInitialFoods = useCallback(async (source: string) => {
     try {
       setLoading(true);
       setOffset(0);
@@ -87,9 +75,17 @@ export default function FoodDatabaseScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang]);
 
-  const loadMoreFoods = async () => {
+  useFocusEffect(
+    useCallback(() => {
+      if (!foods.length && !loading) {
+        loadInitialFoods("foundation");
+      }
+    }, [foods.length, loading, loadInitialFoods])
+  );
+
+  const loadMoreFoods = useCallback(async () => {
     if (loadingMore || !hasMore || searchQuery.trim()) return;
 
     try {
@@ -105,9 +101,9 @@ export default function FoodDatabaseScreen() {
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [loadingMore, hasMore, searchQuery, offset, selectedSource, lang]);
 
-  const searchFoods = async (query: string, source: string) => {
+  const searchFoods = useCallback(async (query: string, source: string) => {
     if (!query.trim()) {
       loadInitialFoods(source);
       return;
@@ -131,7 +127,7 @@ export default function FoodDatabaseScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lang, loadInitialFoods]);
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -156,15 +152,15 @@ export default function FoodDatabaseScreen() {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchQuery, selectedSource]);
+  }, [searchQuery, selectedSource, searchFoods, loadInitialFoods]);
 
-  const handleSourceChange = (source: string) => {
+  const handleSourceChange = useCallback((source: string) => {
     setSelectedSource(source);
     setSearchQuery("");
     setOffset(0);
-  };
+  }, []);
 
-  const handleAddFood = (food: FoodItem) => {
+  const handleAddFood = useCallback((food: FoodItem) => {
     router.push({
       pathname: "/",
       params: {
@@ -182,9 +178,9 @@ export default function FoodDatabaseScreen() {
         refresh: Date.now().toString(),
       },
     } as any);
-  };
+  }, [router]);
 
-  const renderFoodItem = ({ item }: { item: FoodItem }) => (
+  const renderFoodItem = useCallback(({ item }: { item: FoodItem }) => (
     <View
       style={[
         styles.foodItem,
@@ -217,6 +213,11 @@ export default function FoodDatabaseScreen() {
         <Ionicons name="add" size={18} color={colors.text} />
       </TouchableOpacity>
     </View>
+  ), [colors, isDark, styles, handleAddFood]);
+
+  const keyExtractor = useCallback((item: FoodItem, index: number) => 
+    `${item.fdc_id}-${item.source}-${index}`, 
+    []
   );
 
   const renderFooter = () => {
@@ -326,7 +327,7 @@ export default function FoodDatabaseScreen() {
           <FlatList
             data={foods}
             renderItem={renderFoodItem}
-            keyExtractor={(item, index) => `${item.fdc_id}-${item.source}-${index}`}
+            keyExtractor={keyExtractor}
             ListEmptyComponent={renderEmpty}
             ListFooterComponent={renderFooter}
             onEndReached={loadMoreFoods}

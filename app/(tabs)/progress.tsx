@@ -46,7 +46,7 @@ export default function ProgressScreen() {
   const [bmiCategory, setBmiCategory] = useState<string | null>(null);
   const [progressPhotos, setProgressPhotos] = useState<any[]>([]);
 
-  const loadProgressData = async (showRefresh = false) => {
+  const loadProgressData = useCallback(async (showRefresh = false) => {
     try {
       if (showRefresh) {
         setRefreshing(true);
@@ -79,7 +79,7 @@ export default function ProgressScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadProgressData();
@@ -91,11 +91,11 @@ export default function ProgressScreen() {
     }, [])
   );
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     loadProgressData(true);
-  };
+  }, [loadProgressData]);
 
-  const handleUploadPhoto = async () => {
+  const handleUploadPhoto = useCallback(async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
@@ -126,9 +126,9 @@ export default function ProgressScreen() {
     } catch {
       Alert.alert("Ошибка", "Не удалось загрузить фото");
     }
-  };
+  }, []);
 
-  const getFilteredWeightHistory = () => {
+  const getFilteredWeightHistory = useCallback(() => {
     if (!weightStats?.history) return [];
     
     const now = new Date();
@@ -151,7 +151,7 @@ export default function ProgressScreen() {
     return weightStats.history.filter((item: any) => 
       new Date(item.created_at) >= cutoffDate
     );
-  };
+  }, [weightStats, selectedPeriod]);
 
   if (loading) {
     return (

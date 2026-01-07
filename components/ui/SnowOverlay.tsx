@@ -32,21 +32,30 @@ const Snowflake = React.memo(function Snowflake({ config }: { config: SnowflakeC
   const wobbleAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      Animated.loop(
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    let loopRef: Animated.CompositeAnimation | null = null;
+    let wobbleLoopRef: Animated.CompositeAnimation | null = null;
+    
+    timeout = setTimeout(() => {
+      loopRef = Animated.loop(
         Animated.timing(fallAnim, { toValue: 1, duration: config.duration, easing: Easing.linear, useNativeDriver: true })
-      ).start();
-      Animated.loop(
+      );
+      loopRef.start();
+      
+      wobbleLoopRef = Animated.loop(
         Animated.timing(wobbleAnim, { toValue: 1, duration: 4000, easing: Easing.linear, useNativeDriver: true })
-      ).start();
+      );
+      wobbleLoopRef.start();
     }, config.delay);
 
     return () => {
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
+      if (loopRef) loopRef.stop();
+      if (wobbleLoopRef) wobbleLoopRef.stop();
       fallAnim.stopAnimation();
       wobbleAnim.stopAnimation();
     };
-  }, []);
+  }, [fallAnim, wobbleAnim, config.delay, config.duration]);
 
   const translateY = fallAnim.interpolate({
     inputRange: [0, 1],

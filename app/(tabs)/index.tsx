@@ -368,7 +368,7 @@ export default function HomeScreen() {
   }, [params?.refresh, loadDailyData, selectedDateTimestamp]);
 
   useEffect(() => {
-    setOnMealCompleted(async (completedMeal: ProcessingMeal) => {
+    const handleMealCompleted = async (completedMeal: ProcessingMeal) => {
         if (completedMeal.result) {
           await loadDailyData(selectedDateTimestamp, true);
           
@@ -403,7 +403,9 @@ export default function HomeScreen() {
             }
           }
         }
-    });
+    };
+    
+    setOnMealCompleted(handleMealCompleted);
     
     return () => setOnMealCompleted(undefined);
   }, [setOnMealCompleted, loadDailyData, selectedDateTimestamp, settings.badgeCelebrations, setPendingBadgeCelebration]);
@@ -446,7 +448,7 @@ export default function HomeScreen() {
     return new Date(selectedDateTimestamp + getLocalTimezoneOffsetMs());
   }, [selectedDateTimestamp]);
 
-  const handleScanFood = async () => {
+  const handleScanFood = useCallback(async () => {
     if (!isTodaySelected) {
       showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
       return;
@@ -472,25 +474,25 @@ export default function HomeScreen() {
     } else {
       router.push("/scan-meal" as any);
     }
-  };
+  }, [isTodaySelected, cameraPermission, requestCameraPermission, router]);
 
-  const handleAddManually = () => {
+  const handleAddManually = useCallback(() => {
     if (!isTodaySelected) {
       showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
       return;
     }
     router.push("/add-manual" as any);
-  };
+  }, [isTodaySelected, router]);
 
-  const handleAddWater = () => {
+  const handleAddWater = useCallback(() => {
     if (!isTodaySelected) {
       showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
       return;
     }
     router.push("/add-water" as any);
-  };
+  }, [isTodaySelected, router]);
 
-  const handleMealPress = (meal: {
+  const handleMealPress = useCallback((meal: {
     id: number;
     name: string;
     time: string;
@@ -515,7 +517,7 @@ export default function HomeScreen() {
         imageUrl: meal.imageUrl || "",
       },
     } as any);
-  };
+  }, [router]);
 
   const loadWeekAchievements = useCallback(
     async (baseDate: Date) => {
@@ -588,7 +590,7 @@ export default function HomeScreen() {
             loadData();
           }, [selectedDateTimestamp, loadDailyData, loadWeekAchievements]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     hasLoadedRef.current = false;
     lastLoadedDateRef.current = null;
@@ -605,7 +607,7 @@ export default function HomeScreen() {
     } finally {
       setRefreshing(false);
     }
-  };
+  }, [selectedDateTimestamp, loadUserData, loadDailyData]);
 
   const handleLoadMore = async () => {
   };

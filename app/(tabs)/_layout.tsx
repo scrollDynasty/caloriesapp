@@ -3,7 +3,7 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tabs, useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Animated, Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomTabBar from "../../components/ui/CustomTabBar";
@@ -57,7 +57,7 @@ export default function TabsLayout() {
     }, [loadAvatar])
   );
 
-  const toggleFab = () => {
+  const toggleFab = useCallback(() => {
     hapticMedium();
     const toValue = modalVisible ? 0 : 1;
     setModalVisible(!modalVisible);
@@ -67,9 +67,9 @@ export default function TabsLayout() {
       tension: 50,
       friction: 7,
     }).start();
-  };
+  }, [modalVisible, modalAnimation]);
 
-  const handleScanFood = () => {
+  const handleScanFood = useCallback(() => {
     hapticMedium();
     setModalVisible(false);
     Animated.spring(modalAnimation, {
@@ -77,9 +77,9 @@ export default function TabsLayout() {
       useNativeDriver: true,
     }).start();
     router.push({ pathname: "/scan-meal", params: { mode: "photo" } } as any);
-  };
+  }, [modalAnimation, router]);
 
-  const handleAddManually = () => {
+  const handleAddManually = useCallback(() => {
     hapticMedium();
     setModalVisible(false);
     Animated.spring(modalAnimation, {
@@ -87,9 +87,9 @@ export default function TabsLayout() {
       useNativeDriver: true,
     }).start();
     router.push("/add-manual");
-  };
+  }, [modalAnimation, router]);
 
-  const handleAddWater = () => {
+  const handleAddWater = useCallback(() => {
     hapticMedium();
     setModalVisible(false);
     Animated.spring(modalAnimation, {
@@ -97,9 +97,9 @@ export default function TabsLayout() {
       useNativeDriver: true,
     }).start();
     router.push("/add-water");
-  };
+  }, [modalAnimation, router]);
 
-  const handleAddBarcode = () => {
+  const handleAddBarcode = useCallback(() => {
     hapticMedium();
     setModalVisible(false);
     Animated.spring(modalAnimation, {
@@ -107,37 +107,45 @@ export default function TabsLayout() {
       useNativeDriver: true,
     }).start();
     router.push({ pathname: "/scan-meal", params: { mode: "barcode" } } as any);
-  };
+  }, [modalAnimation, router]);
 
-  const button1TranslateY = modalAnimation.interpolate({
+  const button1TranslateY = useMemo(() => modalAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: [50, 0],
-  });
+  }), [modalAnimation]);
 
-  const button2TranslateY = modalAnimation.interpolate({
+  const button2TranslateY = useMemo(() => modalAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: [50, 0],
-  });
+  }), [modalAnimation]);
 
-  const button3TranslateY = modalAnimation.interpolate({
+  const button3TranslateY = useMemo(() => modalAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: [50, 0],
-  });
+  }), [modalAnimation]);
 
-  const button4TranslateY = modalAnimation.interpolate({
+  const button4TranslateY = useMemo(() => modalAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: [50, 0],
-  });
+  }), [modalAnimation]);
 
-  const modalOpacity = modalAnimation.interpolate({
+  const modalOpacity = useMemo(() => modalAnimation.interpolate({
     inputRange: [0, 0.3, 1],
     outputRange: [0, 0, 1],
-  });
+  }), [modalAnimation]);
 
-  const fabRotation = modalAnimation.interpolate({
+  const fabRotation = useMemo(() => modalAnimation.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '45deg'],
-  });
+  }), [modalAnimation]);
+
+  useEffect(() => {
+    return () => {
+      if (modalVisible) {
+        setModalVisible(false);
+      }
+    };
+  }, [modalVisible]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
