@@ -5,10 +5,11 @@ import { Tabs, useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CustomTabBar from "../../components/ui/CustomTabBar";
 import { useSplash } from "../../context/SplashContext";
 import { defaultColors, useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
-import { hapticLight, hapticMedium } from "../../utils/haptics";
+import { hapticMedium } from "../../utils/haptics";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -21,50 +22,9 @@ const ProgressIcon = ({ color, size = 24 }: { color: string; size?: number }) =>
 );
 
 const FAB_SIZE = 70;
-const TAB_BAR_HEIGHT = 56;
+const TAB_BAR_HEIGHT = 70; 
 const MARGIN = 16;
 const GAP_BETWEEN = 2;
-
-const CustomTabButton = ({ children, onPress, accessibilityState, themeColors }: any) => {
-  const focused = accessibilityState?.selected;
-  const animValue = useRef(new Animated.Value(focused ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.timing(animValue, {
-      toValue: focused ? 1 : 0,
-      duration: 250,
-      useNativeDriver: false,
-    }).start();
-  }, [focused, animValue]);
-
-  const bgColor = themeColors?.card || "#FFFFF0";
-  const backgroundColor = animValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['transparent', bgColor],
-  });
-
-  return (
-    <TouchableOpacity
-      onPress={() => {
-        hapticLight();
-        onPress?.();
-      }}
-      activeOpacity={0.7}
-      style={styles.tabButtonWrapper}
-    >
-      <Animated.View
-        style={[
-          styles.tabButton,
-          { backgroundColor },
-        ]}
-      >
-        <View style={styles.tabButtonContent}>
-          {children}
-        </View>
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
@@ -93,8 +53,6 @@ export default function TabsLayout() {
       loadAvatar();
     }, [loadAvatar])
   );
-
-  const tabBarWidth = SCREEN_WIDTH - MARGIN * 2 - FAB_SIZE - GAP_BETWEEN;
 
   const toggleFab = () => {
     hapticMedium();
@@ -183,33 +141,20 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.secondary,
-          tabBarShowLabel: false,
-          tabBarButton: (props) => <CustomTabButton {...props} themeColors={colors} />,
           tabBarStyle: {
-            position: "absolute",
-            bottom: tabBarBottom,
-            left: MARGIN,
-            width: tabBarWidth,
-            height: TAB_BAR_HEIGHT,
-            backgroundColor: isDark ? colors.card : colors.background,
-            borderTopWidth: 0,
-            borderRadius: 28,
-            elevation: 8,
-            shadowColor: "#000",
-            shadowOpacity: isDark ? 0.3 : 0.08,
-            shadowRadius: 24,
-            shadowOffset: { width: 0, height: 4 },
-            paddingHorizontal: 6,
-            paddingTop: 0,
-            paddingBottom: 0,
             display: showSplash ? "none" : "flex",
+            height: 0,
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
           },
           sceneStyle: {
             backgroundColor: colors.background,
           },
         }}
+        tabBar={(props: any) => (
+          <CustomTabBar {...props} avatarUri={avatarUri} showSplash={showSplash} />
+        )}
       >
         <Tabs.Screen
           name="index"
