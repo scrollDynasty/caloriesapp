@@ -153,10 +153,6 @@ export default function ProgressScreen() {
     );
   };
 
-  const getSelectedCalorieStats = () => {
-    return calorieStats.find(stat => stat.period === selectedCaloriePeriod);
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
@@ -168,12 +164,11 @@ export default function ProgressScreen() {
   }
 
   const filteredWeightHistory = getFilteredWeightHistory();
-  const selectedCalorieStat = getSelectedCalorieStats();
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]} edges={["top"]}>
       <ScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor: themeColors.background }]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -182,7 +177,7 @@ export default function ProgressScreen() {
       >
         <Text style={[styles.title, { color: themeColors.text }]}>Прогресс</Text>
 
-        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <View style={styles.currentWeightHeader}>
             <View>
               <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
@@ -193,14 +188,14 @@ export default function ProgressScreen() {
               </Text>
             </View>
             <TouchableOpacity
-              style={[styles.recordWeightButtonDark]}
+              style={[styles.recordWeightButtonDark, { backgroundColor: isDark ? '#000000' : '#FFFFF0' }]}
               onPress={() => {
                 hapticMedium();
                 router.push("/add-weight" as any);
               }}
             >
-              <Text style={styles.recordWeightButtonDarkText}>Записать вес</Text>
-              <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+              <Text style={[styles.recordWeightButtonDarkText, { color: isDark ? '#FFFFFF' : '#2D2A26' }]}>Записать вес</Text>
+              <Ionicons name="arrow-forward" size={16} color={isDark ? "#FFFFFF" : "#2D2A26"} />
             </TouchableOpacity>
           </View>
 
@@ -211,7 +206,7 @@ export default function ProgressScreen() {
                   style={[
                     styles.progressBarFill,
                     {
-                      backgroundColor: '#000000',
+                      backgroundColor: isDark ? themeColors.primary : '#1A1A1A',
                       width: `${(() => {
                         const start = weightStats.start_weight;
                         const current = weightStats.current_weight;
@@ -243,7 +238,7 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <View style={styles.sectionTitleRow}>
             <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
               Динамика веса
@@ -300,7 +295,7 @@ export default function ProgressScreen() {
           <WeightChart data={filteredWeightHistory} targetWeight={weightStats?.target_weight} />
         </View>
 
-        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения веса
           </Text>
@@ -326,7 +321,7 @@ export default function ProgressScreen() {
           )}
         </View>
 
-        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Фото прогресса
           </Text>
@@ -363,61 +358,7 @@ export default function ProgressScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Среднее количество калорий в день
-          </Text>
-
-          <View style={styles.periodSelector}>
-            {(Object.keys(CALORIE_PERIOD_LABELS) as CaloriePeriod[]).map((period) => (
-              <TouchableOpacity
-                key={period}
-                style={[
-                  styles.periodButton,
-                  { backgroundColor: isDark ? '#2C2C2E' : '#F5F5F5' },
-                  selectedCaloriePeriod === period && { backgroundColor: isDark ? '#3A3A3C' : '#E0E0E0' },
-                ]}
-                onPress={() => {
-                  hapticLight();
-                  setSelectedCaloriePeriod(period);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.periodButtonText,
-                    { color: themeColors.textSecondary },
-                    selectedCaloriePeriod === period && { color: themeColors.text, fontFamily: 'Inter_600SemiBold' },
-                  ]}
-                >
-                  {CALORIE_PERIOD_LABELS[period]}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {selectedCalorieStat?.status === "insufficient_data" ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="bar-chart-outline" size={40} color={themeColors.textSecondary} />
-              <Text style={[styles.emptyStateText, { color: themeColors.text }]}>
-                Нет данных для отображения
-              </Text>
-              <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
-                Это обновится по мере того, как ты будешь добавлять больше еды.
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.calorieStatsContainer}>
-              <Text style={[styles.calorieValue, { color: themeColors.text }]}>
-                {selectedCalorieStat?.average_calories?.toFixed(0) || "0"} ккал
-              </Text>
-              <Text style={[styles.calorieLabel, { color: themeColors.textSecondary }]}>
-                в среднем в день
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Энергия за неделю
           </Text>
@@ -536,7 +477,7 @@ export default function ProgressScreen() {
           })()}
         </View>
 
-        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+        <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
             Изменения расхода
           </Text>
@@ -728,12 +669,10 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: 18,
-    backgroundColor: '#000000',
   },
   recordWeightButtonDarkText: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: 'Inter_600SemiBold',
-    color: '#FFFFFF',
   },
   recordWeightButton: {
     flexDirection: 'row',

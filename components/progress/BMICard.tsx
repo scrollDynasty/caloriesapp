@@ -40,7 +40,7 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
 
   if (!bmi || !bmiCategory) {
     return (
-      <View style={[styles.container, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+      <View style={[styles.container, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: colors.text }]}>Твой ИМТ</Text>
           <TouchableOpacity onPress={handleInfoPress}>
@@ -57,7 +57,7 @@ export function BMICard({ bmi, bmiCategory, currentWeight, targetWeight }: BMICa
   const categoryInfo = BMI_CATEGORIES[bmiCategory];
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF' }]}>
+    <View style={[styles.container, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Твой ИМТ</Text>
         <TouchableOpacity onPress={handleInfoPress}>
