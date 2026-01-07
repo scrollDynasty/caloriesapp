@@ -1,10 +1,8 @@
 import { Image } from "expo-image";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Dimensions, Easing, StyleSheet, View, useColorScheme } from "react-native";
-import { hapticLight, hapticMedium } from "../../utils/haptics";
-
-const { width, height } = Dimensions.get("window");
+import { Animated, Easing, StyleSheet, View } from "react-native";
+import { hapticLight } from "../../utils/haptics";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,78 +11,39 @@ interface AnimatedSplashProps {
 }
 
 export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.5)).current;
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
   
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     hapticLight();
 
-    let breathingInterval: ReturnType<typeof setInterval>;
     let timeoutId: ReturnType<typeof setTimeout>;
 
-    breathingInterval = setInterval(() => {
-      hapticLight();
-    }, 1600); 
-
+    // Простая анимация появления
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 900,
-        easing: Easing.out(Easing.cubic),
+        duration: 600,
+        easing: Easing.out(Easing.ease),
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
-        tension: 40,
-        friction: 6,
+        tension: 50,
+        friction: 7,
         useNativeDriver: true,
       }),
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 1200,
-        easing: Easing.out(Easing.back(1.8)),
-        useNativeDriver: true,
-      }),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(glowAnim, {
-            toValue: 1,
-            duration: 800,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(glowAnim, {
-            toValue: 0,
-            duration: 800,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-        ])
-      ),
     ]).start();
 
+    // Скрываем через 1.5 секунды
     timeoutId = setTimeout(() => {
-      clearInterval(breathingInterval);
-      hapticMedium();
-      
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 600,
-          easing: Easing.in(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(scaleAnim, {
-          toValue: 1.3,
-          duration: 600,
-          easing: Easing.in(Easing.cubic),
+          duration: 400,
+          easing: Easing.in(Easing.ease),
           useNativeDriver: true,
         }),
       ]).start(async () => {
@@ -92,18 +51,15 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
         setIsVisible(false);
         onFinish();
       });
-    }, 2500);
+    }, 1500);
 
     return () => {
-      clearInterval(breathingInterval);
       clearTimeout(timeoutId);
     };
-  }, []);
+  }, [fadeAnim, scaleAnim, onFinish]);
 
   if (!isVisible) return null;
 
-  const backgroundColor = isDark ? "#000000" : "#FFFFF0";
-  
   let logoSource;
   try {
     logoSource = require("../../assets/images/bright_logo.png");
@@ -112,48 +68,15 @@ export function AnimatedSplash({ onFinish }: AnimatedSplashProps) {
     logoSource = null;
   }
 
-  const rotation = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
-  const glowOpacity = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 1],
-  });
-
-  const glowScale = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.15],
-  });
-
   return (
-    <View style={[styles.container, { backgroundColor }]}>
-      <Animated.View
-        style={[
-          styles.glowContainer,
-          {
-            opacity: glowOpacity,
-            transform: [
-              { scale: Animated.multiply(scaleAnim, glowScale) },
-              { rotate: rotation },
-            ],
-          },
-        ]}
-      >
-        <View style={styles.glow} />
-      </Animated.View>
-
+    <View style={styles.container}>
       {logoSource && (
         <Animated.View
           style={[
             styles.logoContainer,
             {
               opacity: fadeAnim,
-              transform: [
-                { scale: scaleAnim },
-                { rotate: rotation },
-              ],
+              transform: [{ scale: scaleAnim }],
             },
           ]}
         >
@@ -181,23 +104,9 @@ const styles = StyleSheet.create({
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#FFFFF0",
     zIndex: 99999,
     elevation: 99999,
-  },
-  glowContainer: {
-    position: "absolute",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  glow: {
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    shadowColor: "#FFFFF0",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 40,
   },
   logoContainer: {
     justifyContent: "center",

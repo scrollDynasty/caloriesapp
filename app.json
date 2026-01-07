@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "Yeb-Ich",
-    "slug": "caloriesapp",
+    "name": "",
+    "slug": "yeb-ich",
     "version": "1.0.0",
+    "scheme": "yeb-ich",
     "orientation": "portrait",
     "icon": "./assets/images/dark_logo.png",
     "userInterfaceStyle": "dark",
@@ -10,7 +11,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.scrolldynasty.yebich",
-      "displayName": "Yeb-Ich",
+      "splash": {
+        "image": "./assets/images/bright_logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FFFFF0"
+      },
       "infoPlist": {
         "NSCameraUsageDescription": "Приложению необходим доступ к камере для сканирования еды и штрих-кодов",
         "NSMicrophoneUsageDescription": "Приложению необходим доступ к микрофону для записи видео",
@@ -29,12 +34,16 @@
       }
     },
     "android": {
+      "splash": {
+        "image": "./assets/images/bright_logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#FFFFF0"
+      },
       "adaptiveIcon": {
         "backgroundColor": "#FFFFF0",
         "foregroundImage": "./assets/images/android-adaptive-icon.png",
         "monochromeImage": "./assets/images/android-adaptive-icon.png"
       },
-      "minSdkVersion": 26,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.scrolldynasty.yebich",
