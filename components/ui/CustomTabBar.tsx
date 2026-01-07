@@ -2,8 +2,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
     interpolate,
     useAnimatedStyle,
@@ -18,8 +19,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const TAB_BAR_HEIGHT = 70;
 const INDICATOR_SIZE = 50;
-const TAB_WIDTH = (SCREEN_WIDTH - 40) / 4; // Учитываем отступы left: 20, right: 20
+const FAB_SIZE = 70;
 const HORIZONTAL_PADDING = 20;
+const GAP_BETWEEN = 12;
+const TAB_BAR_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2 - FAB_SIZE - GAP_BETWEEN;
+const TAB_WIDTH = TAB_BAR_WIDTH / 4;
 const BORDER_RADIUS = 35;
 
 interface CustomTabBarProps extends BottomTabBarProps {
@@ -71,6 +75,30 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
   const bottomInset = Math.max(insets.bottom, 0);
   const bottomOffset = 20 + bottomInset;
 
+  const blurTint = isDark ? "dark" : "light";
+  const overlayColor = isDark 
+    ? "rgba(20, 20, 20, 0.5)" 
+    : "rgba(255, 255, 240, 0.85)";
+  const indicatorColor = isDark 
+    ? "rgba(43, 75, 242, 0.85)" 
+    : "rgba(255, 255, 255, 0.9)";
+  const gradientColors = isDark
+    ? [
+        "rgba(255, 255, 255, 0.15)",
+        "rgba(255, 255, 255, 0.08)",
+        "rgba(255, 255, 255, 0.03)",
+        "rgba(0, 0, 0, 0.05)",
+      ] as const
+    : [
+        "rgba(255, 255, 255, 0.3)",
+        "rgba(255, 255, 240, 0.2)",
+        "rgba(255, 255, 240, 0.15)",
+        "rgba(255, 255, 240, 0.1)",
+      ] as const;
+  const depthGradient = isDark
+    ? (["transparent", "rgba(0, 0, 0, 0.1)"] as const)
+    : (["transparent", "rgba(0, 0, 0, 0.05)"] as const);
+
   return (
     <View
       style={[
@@ -82,20 +110,36 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
       pointerEvents="box-none"
     >
       <BlurView
-        intensity={80}
-        tint="dark"
+        intensity={100}
+        tint={blurTint}
         style={styles.blurContainer}
       >
-        <View style={styles.overlay} />
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        
+        <View style={[styles.overlay, { backgroundColor: overlayColor }]} />
+        
+        <LinearGradient
+          colors={depthGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
 
-      <Animated.View
-        style={[
-          styles.indicator,
-          indicatorStyle,
-        ]}
-      />
+        <Animated.View
+          style={[
+            styles.indicator,
+            { backgroundColor: indicatorColor },
+            indicatorStyle,
+          ]}
+        />
 
-      <View style={styles.tabsContainer}>
+        <View style={styles.tabsContainer}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const label = typeof options.tabBarLabel === 'string' 
@@ -126,7 +170,9 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
           };
 
           let iconElement: React.ReactNode;
-          const iconColor = isFocused ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)";
+          const iconColor = isDark
+            ? (isFocused ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)")
+            : (isFocused ? "#1A1A1A" : "rgba(0, 0, 0, 0.5)");
           const iconSize = 24;
 
           if (route.name === "index") {
@@ -178,19 +224,12 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
             }
           }
 
-          const tabLabels: Record<string, string> = {
-            index: "Главная",
-            progress: "Прогресс",
-            "food-database": "База",
-            settings: "Профиль",
-          };
-
           return (
             <TouchableOpacity
               key={route.key}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={options.tabBarAccessibilityLabel}
+              accessibilityLabel={options.tabBarAccessibilityLabel || label}
               onPress={onPress}
               onLongPress={onLongPress}
               style={styles.tabButton}
@@ -200,17 +239,6 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
                 <View style={styles.iconContainer}>
                   {iconElement}
                 </View>
-                <Text
-                  style={[
-                    styles.tabLabel,
-                    {
-                      color: iconColor,
-                    },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {tabLabels[route.name] || label}
-                </Text>
               </View>
             </TouchableOpacity>
           );
@@ -226,29 +254,27 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     left: HORIZONTAL_PADDING,
-    right: HORIZONTAL_PADDING,
+    width: TAB_BAR_WIDTH,
     zIndex: 1000,
-    elevation: 0, // Убираем тень на Android для прозрачности
+    elevation: 0,
   },
   blurContainer: {
     borderRadius: BORDER_RADIUS,
-    overflow: "hidden", // Важно: чтобы контент не вылезал за закругленные края
+    overflow: "hidden",
     height: TAB_BAR_HEIGHT,
     position: "relative",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(30, 30, 30, 0.7)", // Полупрозрачный темно-серый фон
   },
   indicator: {
     position: "absolute",
     width: INDICATOR_SIZE,
     height: INDICATOR_SIZE,
     borderRadius: INDICATOR_SIZE / 2,
-    backgroundColor: "#2b4bf2",
-    top: (TAB_BAR_HEIGHT - INDICATOR_SIZE) / 2, // Вертикальное центрирование
+    top: (TAB_BAR_HEIGHT - INDICATOR_SIZE) / 2,
     left: (TAB_WIDTH - INDICATOR_SIZE) / 2,
-    zIndex: 0, // Позади иконок и текста
+    zIndex: 0,
   },
   tabsContainer: {
     flexDirection: "row",
@@ -261,13 +287,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
     position: "relative",
   },
   tabContent: {
     alignItems: "center",
     justifyContent: "center",
-    gap: 4,
     position: "relative",
   },
   iconContainer: {
@@ -275,13 +299,7 @@ const styles = StyleSheet.create({
     height: INDICATOR_SIZE,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2, // Поверх индикатора
-  },
-  tabLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_500Medium",
-    textAlign: "center",
-    zIndex: 2, // Поверх индикатора
+    zIndex: 2,
   },
 });
 

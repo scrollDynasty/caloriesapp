@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { Tabs, useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomTabBar from "../../components/ui/CustomTabBar";
 import { useSplash } from "../../context/SplashContext";
-import { defaultColors, useTheme } from "../../context/ThemeContext";
+import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { hapticMedium } from "../../utils/haptics";
 
@@ -33,8 +34,11 @@ export default function TabsLayout() {
   const { colors, isDark } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const modalAnimation = useRef(new Animated.Value(0)).current;
-  const tabBarBottom = Math.max(insets.bottom, 12);
   const { showSplash } = useSplash();
+  
+  // Синхронизируем позиционирование с CustomTabBar
+  const bottomInset = Math.max(insets.bottom, 0);
+  const bottomOffset = 20 + bottomInset; // Такое же как в CustomTabBar
 
   const loadAvatar = useCallback(async () => {
     try {
@@ -286,25 +290,72 @@ export default function TabsLayout() {
         </Animated.View>
       )}
 
-      <TouchableOpacity 
+      <View
         style={[
-          styles.fab, 
-          { 
+          styles.fabContainer,
+          {
             right: MARGIN,
-            bottom: tabBarBottom + (TAB_BAR_HEIGHT - FAB_SIZE) / 2,
+            bottom: bottomOffset + (TAB_BAR_HEIGHT - FAB_SIZE) / 2,
           }
         ]}
-        onPress={toggleFab}
-        activeOpacity={0.9}
       >
-        <Animated.View style={{ transform: [{ rotate: fabRotation }] }}>
-          <Ionicons 
-            name="add" 
-            size={32} 
-            color="#FFFFF0" 
+        <BlurView
+          intensity={100}
+          tint={isDark ? "dark" : "light"}
+          style={styles.fabBlur}
+        >
+          <LinearGradient
+            colors={isDark
+              ? [
+                  "rgba(255, 255, 255, 0.15)",
+                  "rgba(255, 255, 255, 0.08)",
+                  "rgba(255, 255, 255, 0.03)",
+                  "rgba(0, 0, 0, 0.05)",
+                ]
+              : [
+                  "rgba(255, 255, 255, 0.3)",
+                  "rgba(255, 255, 240, 0.2)",
+                  "rgba(255, 255, 240, 0.15)",
+                  "rgba(255, 255, 240, 0.1)",
+                ]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill}
           />
-        </Animated.View>
-      </TouchableOpacity>
+          <View 
+            style={[
+              styles.fabOverlay,
+              {
+                backgroundColor: isDark 
+                  ? "rgba(20, 20, 20, 0.5)" 
+                  : "rgba(255, 255, 240, 0.85)",
+              }
+            ]} 
+          />
+          <LinearGradient
+            colors={isDark
+              ? ["transparent", "rgba(0, 0, 0, 0.1)"]
+              : ["transparent", "rgba(0, 0, 0, 0.05)"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          <TouchableOpacity
+            onPress={toggleFab}
+            activeOpacity={0.8}
+            style={styles.fabButton}
+          >
+            <Animated.View style={{ transform: [{ rotate: fabRotation }] }}>
+              <Ionicons 
+                name="add" 
+                size={32} 
+                color={isDark ? "#FFFFFF" : "#1A1A1A"} 
+              />
+            </Animated.View>
+          </TouchableOpacity>
+        </BlurView>
+      </View>
     </View>
   );
 }
@@ -378,20 +429,27 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     letterSpacing: -0.2,
   },
-  fab: {
+  fabContainer: {
     position: "absolute",
     width: FAB_SIZE,
     height: FAB_SIZE,
+    zIndex: 100,
+  },
+  fabBlur: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
-    backgroundColor: defaultColors.primary,
+    overflow: "hidden",
+  },
+  fabOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  fabButton: {
+    width: "100%",
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 10,
-    zIndex: 100,
+    zIndex: 1,
   },
   fabSubButtonContainer: {
     position: "absolute",
