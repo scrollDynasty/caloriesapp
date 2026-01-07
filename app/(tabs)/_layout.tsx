@@ -36,9 +36,8 @@ export default function TabsLayout() {
   const modalAnimation = useRef(new Animated.Value(0)).current;
   const { showSplash } = useSplash();
   
-  // Синхронизируем позиционирование с CustomTabBar
   const bottomInset = Math.max(insets.bottom, 0);
-  const bottomOffset = 20 + bottomInset; // Такое же как в CustomTabBar
+  const bottomOffset = 20 + bottomInset;
 
   const loadAvatar = useCallback(async () => {
     try {
@@ -295,7 +294,7 @@ export default function TabsLayout() {
           styles.fabContainer,
           {
             right: MARGIN,
-            bottom: bottomOffset + (TAB_BAR_HEIGHT - FAB_SIZE) / 2,
+            bottom: bottomOffset,
           }
         ]}
       >
