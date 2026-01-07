@@ -661,8 +661,8 @@ const styles = StyleSheet.create({
   caloriesCard: {
     marginHorizontal: 20,
     marginBottom: Platform.OS === "ios" ? 14 : 12,
-    paddingVertical: Platform.OS === "ios" ? 44 : 36,
-    paddingHorizontal: Platform.OS === "ios" ? 30 : 24,
+    paddingVertical: Platform.OS === "ios" ? 48 : 40,
+    paddingHorizontal: Platform.OS === "ios" ? 32 : 26,
     borderRadius: 24,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -676,18 +676,18 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   caloriesValue: {
-    fontSize: 32,
+    fontSize: Platform.OS === "ios" ? 40 : 36,
     fontFamily: "Inter_700Bold",
-    lineHeight: 36,
+    lineHeight: Platform.OS === "ios" ? 44 : 40,
     letterSpacing: -1,
   },
   caloriesTarget: {
-    fontSize: 14,
+    fontSize: Platform.OS === "ios" ? 16 : 15,
     fontFamily: "Inter_500Medium",
     letterSpacing: -0.3,
   },
   caloriesLabel: {
-    fontSize: 11,
+    fontSize: Platform.OS === "ios" ? 13 : 12,
     fontFamily: "Inter_500Medium",
     letterSpacing: -0.1,
   },

@@ -76,22 +76,18 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
   const bottomOffset = 20 + bottomInset;
 
   const blurTint = isDark ? "dark" : "light";
-  // На iOS убираем блюр, оставляем только прозрачность
-  const blurIntensity = Platform.OS === "ios" ? 0 : (isDark ? 70 : 60);
+  const blurIntensity = Platform.OS === "ios" ? 0 : (isDark ? 80 : 70);
   
-  // Для iOS используем только прозрачный фон без блюра
-  // Для Android оставляем блюр с overlay
   const overlayColor = isDark 
     ? Platform.OS === "ios" 
-      ? "rgba(10, 10, 10, 0.6)"  // Более непрозрачный фон для iOS без блюра
-      : "rgba(10, 10, 10, 0.18)"   // Android с блюром
+      ? "rgba(10, 10, 10, 0.75)"
+      : "rgba(10, 10, 10, 0.35)"
     : Platform.OS === "ios"
-      ? "rgba(255, 255, 240, 0.7)" // Более непрозрачный фон для iOS без блюра
-      : "rgba(255, 255, 240, 0.45)"; // Android с блюром
+      ? "rgba(255, 255, 240, 0.85)"
+      : "rgba(255, 255, 240, 0.6)";
   
   const indicatorColor = "rgba(255, 255, 255, 0.4)";
   
-  // Унифицируем градиенты для одинакового визуального эффекта
   const gradientColors = isDark
     ? [
         "rgba(255, 255, 255, 0.12)",
@@ -384,7 +380,6 @@ const styles = StyleSheet.create({
     left: HORIZONTAL_PADDING,
     width: TAB_BAR_WIDTH,
     zIndex: 1000,
-    // Мягкие тени для эффекта глубины
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -396,10 +391,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     height: TAB_BAR_HEIGHT,
     position: "relative",
-    // Тонкая обводка для блика (inner glow)
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
-    // Мягкая тень для отделения от фона
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,

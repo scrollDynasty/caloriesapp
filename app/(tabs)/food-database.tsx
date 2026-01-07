@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -247,12 +248,7 @@ export default function FoodDatabaseScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
       <View style={[styles.header, { backgroundColor: colors.background }]}>
-        <TouchableOpacity
-          style={[styles.backButton, { backgroundColor: colors.card }]}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={22} color={colors.text} />
-        </TouchableOpacity>
+        <View style={styles.headerPlaceholder} />
         <Text style={[styles.headerTitle, { color: colors.text }]}>База продуктов</Text>
         <View style={styles.headerPlaceholder} />
       </View>
@@ -272,39 +268,48 @@ export default function FoodDatabaseScreen() {
         <View style={styles.sourceTabsContainer}>
           {SOURCES.map((source) => {
             const isSelected = selectedSource === source.id;
-            // В темной теме: темный фон с белым текстом для невыбранных
-            // В светлой теме: светлый фон с темным текстом для невыбранных
             const unselectedBgColor = isDark ? "#1A1A1A" : "#FFFFFF";
             const unselectedTextColor = isDark ? "#FFFFFF" : "#1A1A1A";
             
             return (
-              <TouchableOpacity
+              <Pressable
                 key={source.id}
-                activeOpacity={0.7}
-                style={[
+                style={({ pressed }: { pressed: boolean }) => [
                   styles.sourceTab,
                   isSelected 
-                    ? { backgroundColor: colors.primary }
-                    : { backgroundColor: unselectedBgColor },
+                    ? { 
+                        backgroundColor: colors.primary,
+                        borderWidth: 0,
+                      }
+                    : { 
+                        backgroundColor: unselectedBgColor,
+                        borderWidth: 1,
+                        borderColor: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                      },
+                  pressed && !isSelected && isDark && {
+                    backgroundColor: "#2A2A2A",
+                  },
                 ]}
                 onPress={() => handleSourceChange(source.id)}
               >
-                <Ionicons
-                  name={source.icon}
-                  size={16}
-                  color={isSelected ? "white" : unselectedTextColor}
-                />
-                <Text
-                  style={[
-                    styles.sourceTabText,
-                    {
-                      color: isSelected ? "white" : unselectedTextColor,
-                    },
-                  ]}
-                >
-                  {source.label}
-                </Text>
-              </TouchableOpacity>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Ionicons
+                    name={source.icon}
+                    size={18}
+                    color={isSelected ? (isDark ? "white" : "#1A1A1A") : unselectedTextColor}
+                  />
+                  <Text
+                    style={[
+                      styles.sourceTabText,
+                      {
+                        color: isSelected ? (isDark ? "white" : "#1A1A1A") : unselectedTextColor,
+                      },
+                    ]}
+                  >
+                    {source.label}
+                  </Text>
+                </View>
+              </Pressable>
             );
           })}
         </View>
@@ -352,13 +357,6 @@ const createStyles = (colors: any, isDark: boolean) =>
       paddingHorizontal: 14,
       paddingVertical: 10,
     },
-    backButton: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     headerTitle: {
       fontSize: 17,
       fontFamily: "Inter_600SemiBold",
@@ -389,22 +387,33 @@ const createStyles = (colors: any, isDark: boolean) =>
     },
     sourceTabsContainer: {
       flexDirection: "row",
-      gap: 6,
-      marginBottom: 12,
+      gap: 10,
+      marginTop: 16,
+      marginBottom: 20,
+      marginHorizontal: 0,
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 0,
     },
     sourceTab: {
       flex: 1,
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      paddingVertical: 8,
-      paddingHorizontal: 8,
-      borderRadius: 10,
-      backgroundColor: colors.backgroundSecondary,
-      gap: 4,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      borderRadius: 12,
+      minHeight: 48,
+      overflow: "hidden",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
     },
     sourceTabText: {
-      fontSize: 11,
+      fontSize: 13,
       fontFamily: "Inter_600SemiBold",
     },
     resultsTitle: {

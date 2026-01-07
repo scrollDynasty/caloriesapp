@@ -303,8 +303,8 @@ export default function TabsLayout() {
             styles.fabBlur,
             {
               backgroundColor: isDark 
-                ? "rgba(10, 10, 10, 0.6)"
-                : "rgba(255, 255, 240, 0.7)",
+                ? "rgba(10, 10, 10, 0.75)"
+                : "rgba(255, 255, 240, 0.85)",
             }
           ]}>
             <TouchableOpacity
@@ -323,7 +323,7 @@ export default function TabsLayout() {
           </View>
         ) : (
           <BlurView
-            intensity={isDark ? 70 : 60}
+            intensity={isDark ? 80 : 70}
             tint={isDark ? "dark" : "light"}
             style={styles.fabBlur}
           >
@@ -345,16 +345,16 @@ export default function TabsLayout() {
               end={{ x: 0, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
-            <View 
-              style={[
-                styles.fabOverlay,
-                {
-                  backgroundColor: isDark 
-                    ? "rgba(10, 10, 10, 0.18)"
-                    : "rgba(255, 255, 240, 0.45)",
-                }
-              ]} 
-            />
+              <View 
+                style={[
+                  styles.fabOverlay,
+                  {
+                    backgroundColor: isDark 
+                      ? "rgba(10, 10, 10, 0.35)"
+                      : "rgba(255, 255, 240, 0.6)",
+                  }
+                ]} 
+              />
             <LinearGradient
               colors={isDark
                 ? ["transparent", "rgba(0, 0, 0, 0.06)"]
@@ -464,10 +464,8 @@ const styles = StyleSheet.create({
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
     overflow: "hidden",
-    // Тонкая обводка для блика (inner glow)
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.1)",
-    // Мягкая тень для отделения от фона
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
