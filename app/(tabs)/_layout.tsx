@@ -4,7 +4,7 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Tabs, useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomTabBar from "../../components/ui/CustomTabBar";
 import { useSplash } from "../../context/SplashContext";
@@ -298,62 +298,87 @@ export default function TabsLayout() {
           }
         ]}
       >
-        <BlurView
-          intensity={80}
-          tint={isDark ? "dark" : "light"}
-          style={styles.fabBlur}
-        >
-          <LinearGradient
-            colors={isDark
-              ? [
-                  "rgba(255, 255, 255, 0.15)",
-                  "rgba(255, 255, 255, 0.08)",
-                  "rgba(255, 255, 255, 0.03)",
-                  "rgba(0, 0, 0, 0.05)",
-                ]
-              : [
-                  "rgba(255, 255, 255, 0.3)",
-                  "rgba(255, 255, 240, 0.2)",
-                  "rgba(255, 255, 240, 0.15)",
-                  "rgba(255, 255, 240, 0.1)",
-                ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
-          <View 
-            style={[
-              styles.fabOverlay,
-              {
-                backgroundColor: isDark 
-                  ? "rgba(10, 10, 10, 0.25)" 
-                  : "rgba(255, 255, 240, 0.7)",
-              }
-            ]} 
-          />
-          <LinearGradient
-            colors={isDark
-              ? ["transparent", "rgba(0, 0, 0, 0.1)"]
-              : ["transparent", "rgba(0, 0, 0, 0.05)"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-          <TouchableOpacity
-            onPress={toggleFab}
-            activeOpacity={0.8}
-            style={styles.fabButton}
+        {Platform.OS === "ios" ? (
+          <View style={[
+            styles.fabBlur,
+            {
+              backgroundColor: isDark 
+                ? "rgba(10, 10, 10, 0.6)"
+                : "rgba(255, 255, 240, 0.7)",
+            }
+          ]}>
+            <TouchableOpacity
+              onPress={toggleFab}
+              activeOpacity={0.8}
+              style={styles.fabButton}
+            >
+              <Animated.View style={{ transform: [{ rotate: fabRotation }] }}>
+                <Ionicons 
+                  name="add" 
+                  size={32} 
+                  color={isDark ? "#FFFFFF" : "#1A1A1A"} 
+                />
+              </Animated.View>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <BlurView
+            intensity={isDark ? 70 : 60}
+            tint={isDark ? "dark" : "light"}
+            style={styles.fabBlur}
           >
-            <Animated.View style={{ transform: [{ rotate: fabRotation }] }}>
-              <Ionicons 
-                name="add" 
-                size={32} 
-                color={isDark ? "#FFFFFF" : "#1A1A1A"} 
-              />
-            </Animated.View>
-          </TouchableOpacity>
-        </BlurView>
+            <LinearGradient
+              colors={isDark
+                ? [
+                    "rgba(255, 255, 255, 0.12)",
+                    "rgba(255, 255, 255, 0.06)",
+                    "rgba(255, 255, 255, 0.02)",
+                    "rgba(0, 0, 0, 0.05)",
+                  ]
+                : [
+                    "rgba(255, 255, 255, 0.2)",
+                    "rgba(255, 255, 240, 0.15)",
+                    "rgba(255, 255, 240, 0.1)",
+                    "rgba(255, 255, 240, 0.05)",
+                  ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View 
+              style={[
+                styles.fabOverlay,
+                {
+                  backgroundColor: isDark 
+                    ? "rgba(10, 10, 10, 0.18)"
+                    : "rgba(255, 255, 240, 0.45)",
+                }
+              ]} 
+            />
+            <LinearGradient
+              colors={isDark
+                ? ["transparent", "rgba(0, 0, 0, 0.06)"]
+                : ["transparent", "rgba(0, 0, 0, 0.03)"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+            />
+            <TouchableOpacity
+              onPress={toggleFab}
+              activeOpacity={0.8}
+              style={styles.fabButton}
+            >
+              <Animated.View style={{ transform: [{ rotate: fabRotation }] }}>
+                <Ionicons 
+                  name="add" 
+                  size={32} 
+                  color={isDark ? "#FFFFFF" : "#1A1A1A"} 
+                />
+              </Animated.View>
+            </TouchableOpacity>
+          </BlurView>
+        )}
       </View>
     </View>
   );
@@ -444,10 +469,10 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.1)",
     // Мягкая тень для отделения от фона
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   fabOverlay: {
     ...StyleSheet.absoluteFillObject,

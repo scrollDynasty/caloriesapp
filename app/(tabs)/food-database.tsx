@@ -270,34 +270,43 @@ export default function FoodDatabaseScreen() {
         </View>
 
         <View style={styles.sourceTabsContainer}>
-          {SOURCES.map((source) => (
-            <TouchableOpacity
-              key={source.id}
-              style={[
-                styles.sourceTab,
-                selectedSource === source.id && {
-                  backgroundColor: colors.primary,
-                },
-              ]}
-              onPress={() => handleSourceChange(source.id)}
-            >
-              <Ionicons
-                name={source.icon}
-                size={16}
-                color={selectedSource === source.id ? "white" : colors.textSecondary}
-              />
-              <Text
+          {SOURCES.map((source) => {
+            const isSelected = selectedSource === source.id;
+            // В темной теме: темный фон с белым текстом для невыбранных
+            // В светлой теме: светлый фон с темным текстом для невыбранных
+            const unselectedBgColor = isDark ? "#1A1A1A" : "#FFFFFF";
+            const unselectedTextColor = isDark ? "#FFFFFF" : "#1A1A1A";
+            
+            return (
+              <TouchableOpacity
+                key={source.id}
+                activeOpacity={0.7}
                 style={[
-                  styles.sourceTabText,
-                  {
-                    color: selectedSource === source.id ? "white" : colors.textSecondary,
-                  },
+                  styles.sourceTab,
+                  isSelected 
+                    ? { backgroundColor: colors.primary }
+                    : { backgroundColor: unselectedBgColor },
                 ]}
+                onPress={() => handleSourceChange(source.id)}
               >
-                {source.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Ionicons
+                  name={source.icon}
+                  size={16}
+                  color={isSelected ? "white" : unselectedTextColor}
+                />
+                <Text
+                  style={[
+                    styles.sourceTabText,
+                    {
+                      color: isSelected ? "white" : unselectedTextColor,
+                    },
+                  ]}
+                >
+                  {source.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <Text style={[styles.resultsTitle, { color: colors.text }]}>

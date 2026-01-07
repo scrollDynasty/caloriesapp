@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticLight } from "../../utils/haptics";
@@ -13,8 +13,8 @@ interface WeekCalendarProps {
   achievedDates?: Record<string, boolean>;
   dailyProgress?: Record<string, number>;
 }
-const CIRCLE_SIZE = 36;
-const STROKE_WIDTH = 2.5;
+const CIRCLE_SIZE = Platform.OS === "ios" ? 40 : 36;
+const STROKE_WIDTH = Platform.OS === "ios" ? 3 : 2.5;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   calendarDayName: {
-    fontSize: 10,
+    fontSize: Platform.OS === "ios" ? 12 : 10,
     fontFamily: "Inter_600SemiBold",
     letterSpacing: -0.05,
   },
@@ -239,12 +239,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   calendarDateText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_600SemiBold",
     letterSpacing: -0.1,
   },
   calendarDateTextActive: {
-    fontSize: 13,
+    fontSize: Platform.OS === "ios" ? 15 : 13,
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.15,
   },

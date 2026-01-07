@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { memo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     height: 80,
   },
   appName: {
-    fontSize: 18,
+    fontSize: Platform.OS === "ios" ? 20 : 18,
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.3,
   },
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   streakText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.1,
   },

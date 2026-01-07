@@ -2,18 +2,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
-    ViewToken
+  Dimensions,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewToken
 } from "react-native";
 import Animated, {
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useAppSettings } from "../../context/AppSettingsContext";
@@ -40,13 +41,13 @@ interface CardsPagerProps {
   onAddWater?: () => void;
 }
 
-const CIRCLE_SIZE = 100;
-const STROKE_WIDTH = 6;
+const CIRCLE_SIZE = Platform.OS === "ios" ? 110 : 100;
+const STROKE_WIDTH = Platform.OS === "ios" ? 7 : 6;
 const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-const SMALL_CIRCLE_SIZE = 44;
-const SMALL_STROKE_WIDTH = 3;
+const SMALL_CIRCLE_SIZE = Platform.OS === "ios" ? 48 : 44;
+const SMALL_STROKE_WIDTH = Platform.OS === "ios" ? 4 : 3;
 const SMALL_RADIUS = (SMALL_CIRCLE_SIZE - SMALL_STROKE_WIDTH) / 2;
 const SMALL_CIRCUMFERENCE = 2 * Math.PI * SMALL_RADIUS;
 
@@ -227,7 +228,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
                 />
               </Svg>
               <View style={styles.caloriesIconCenter}>
-                <Ionicons name="flame" size={28} color={themeColors.text} />
+                <Ionicons name="flame" size={Platform.OS === "ios" ? 32 : 28} color={themeColors.text} />
               </View>
             </View>
           </View>
@@ -659,9 +660,9 @@ const styles = StyleSheet.create({
 
   caloriesCard: {
     marginHorizontal: 20,
-    marginBottom: 12,
-    paddingVertical: 36,
-    paddingHorizontal: 24,
+    marginBottom: Platform.OS === "ios" ? 14 : 12,
+    paddingVertical: Platform.OS === "ios" ? 44 : 36,
+    paddingHorizontal: Platform.OS === "ios" ? 30 : 24,
     borderRadius: 24,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -720,7 +721,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   macroCard: {
-    padding: 10,
+    padding: Platform.OS === "ios" ? 14 : 10,
     borderRadius: 14,
     alignItems: "flex-start",
   },
@@ -729,16 +730,16 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   macroValue: {
-    fontSize: 14,
+    fontSize: Platform.OS === "ios" ? 16 : 14,
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.2,
   },
   macroTarget: {
-    fontSize: 10,
+    fontSize: Platform.OS === "ios" ? 12 : 10,
     fontFamily: "Inter_500Medium",
   },
   macroLabel: {
-    fontSize: 10,
+    fontSize: Platform.OS === "ios" ? 12 : 10,
     fontFamily: "Inter_500Medium",
     marginTop: 1,
     marginBottom: 6,
@@ -757,12 +758,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   macroIcon: {
-    fontSize: 14,
+    fontSize: Platform.OS === "ios" ? 16 : 14,
   },
 
   healthScoreCard: {
     marginHorizontal: 16,
-    padding: 14,
+    padding: Platform.OS === "ios" ? 16 : 14,
     borderRadius: 14,
   },
   healthScoreHeader: {
@@ -790,9 +791,9 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   healthScoreText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_400Regular",
-    lineHeight: 17,
+    lineHeight: Platform.OS === "ios" ? 20 : 17,
   },
 
   activityRow: {
@@ -803,11 +804,11 @@ const styles = StyleSheet.create({
   },
   appleHealthCard: {
     flex: 1,
-    padding: 14,
+    padding: Platform.OS === "ios" ? 18 : 14,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
-    minHeight: 110,
+    minHeight: Platform.OS === "ios" ? 130 : 110,
   },
   appleHealthContent: {
     alignItems: "center",
@@ -821,7 +822,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   appleHealthText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_500Medium",
     textAlign: "center",
   },
@@ -830,7 +831,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   healthConnectedTitle: {
-    fontSize: 11,
+    fontSize: Platform.OS === "ios" ? 13 : 11,
     fontFamily: "Inter_600SemiBold",
   },
   healthStatsRow: {
@@ -844,7 +845,7 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   healthStatValue: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_600SemiBold",
   },
   healthArrow: {
@@ -852,11 +853,11 @@ const styles = StyleSheet.create({
   },
   burnedCard: {
     flex: 1,
-    padding: 14,
+    padding: Platform.OS === "ios" ? 18 : 14,
     borderRadius: 14,
   },
   burnedLabel: {
-    fontSize: 11,
+    fontSize: Platform.OS === "ios" ? 13 : 11,
     fontFamily: "Inter_500Medium",
     marginBottom: 3,
   },
@@ -867,11 +868,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   burnedValue: {
-    fontSize: 20,
+    fontSize: Platform.OS === "ios" ? 24 : 20,
     fontFamily: "Inter_700Bold",
   },
   burnedUnit: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_500Medium",
   },
   stepsRow: {
@@ -880,11 +881,11 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   stepsLabel: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_600SemiBold",
   },
   stepsValue: {
-    fontSize: 11,
+    fontSize: Platform.OS === "ios" ? 13 : 11,
     fontFamily: "Inter_500Medium",
     marginTop: 1,
   },
@@ -900,18 +901,18 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   rolloverTitle: {
-    fontSize: 11,
+    fontSize: Platform.OS === "ios" ? 13 : 11,
     fontFamily: "Inter_600SemiBold",
     marginTop: 3,
   },
   rolloverValue: {
-    fontSize: 20,
+    fontSize: Platform.OS === "ios" ? 24 : 20,
     fontFamily: "Inter_700Bold",
   },
 
   waterCard: {
     marginHorizontal: 16,
-    padding: 12,
+    padding: Platform.OS === "ios" ? 16 : 12,
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -929,7 +930,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   waterLabel: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_600SemiBold",
   },
   waterValueRow: {
@@ -938,7 +939,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   waterValue: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_500Medium",
   },
   waterButtons: {

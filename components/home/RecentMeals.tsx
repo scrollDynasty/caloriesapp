@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { memo, useEffect, useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
   Easing,
   FadeIn,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: Platform.OS === "ios" ? 16 : 14,
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.2,
   },
@@ -443,7 +443,7 @@ const styles = StyleSheet.create({
   },
   errorBox: {},
   stateText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_500Medium",
     textAlign: "center",
   },
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     color: "#C62828",
   },
   linkText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_600SemiBold",
   },
 
@@ -504,12 +504,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_600SemiBold",
     flex: 1,
   },
   progressPercent: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_700Bold",
     marginLeft: 6,
   },
@@ -565,14 +565,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mealName: {
-    fontSize: 13,
+    fontSize: Platform.OS === "ios" ? 15 : 13,
     fontFamily: "Inter_600SemiBold",
     flex: 1,
     marginRight: 6,
     letterSpacing: -0.1,
   },
   mealTime: {
-    fontSize: 11,
+    fontSize: Platform.OS === "ios" ? 13 : 11,
     fontFamily: "Inter_500Medium",
   },
   mealCaloriesRow: {
@@ -581,7 +581,7 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   mealCalories: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_700Bold",
     letterSpacing: -0.1,
   },
@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     fontSize: 9,
   },
   macroText: {
-    fontSize: 10,
+    fontSize: Platform.OS === "ios" ? 12 : 10,
     fontFamily: "Inter_600SemiBold",
   },
   emptyUploadCard: {
@@ -637,10 +637,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   emptyUploadText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_400Regular",
     textAlign: "center",
-    lineHeight: 16,
+    lineHeight: Platform.OS === "ios" ? 20 : 16,
   },
   hiddenAddArea: {
     position: "absolute",
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadMoreText: {
-    fontSize: 12,
+    fontSize: Platform.OS === "ios" ? 14 : 12,
     fontFamily: "Inter_600SemiBold",
   },
 });

@@ -4,7 +4,7 @@ import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
-import { Dimensions, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Dimensions, Platform, StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
     interpolate,
     useAnimatedStyle,
@@ -76,29 +76,38 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
   const bottomOffset = 20 + bottomInset;
 
   const blurTint = isDark ? "dark" : "light";
-  // Более прозрачный overlay для усиления эффекта стекла
+  // На iOS убираем блюр, оставляем только прозрачность
+  const blurIntensity = Platform.OS === "ios" ? 0 : (isDark ? 70 : 60);
+  
+  // Для iOS используем только прозрачный фон без блюра
+  // Для Android оставляем блюр с overlay
   const overlayColor = isDark 
-    ? "rgba(10, 10, 10, 0.25)" 
-    : "rgba(255, 255, 240, 0.7)";
-  // Полупрозрачный белый индикатор для обеих тем
-  const indicatorColor = "rgba(255, 255, 255, 0.25)";
-  // Градиенты для эффекта глубины и вибрации (Vibrancy)
+    ? Platform.OS === "ios" 
+      ? "rgba(10, 10, 10, 0.6)"  // Более непрозрачный фон для iOS без блюра
+      : "rgba(10, 10, 10, 0.18)"   // Android с блюром
+    : Platform.OS === "ios"
+      ? "rgba(255, 255, 240, 0.7)" // Более непрозрачный фон для iOS без блюра
+      : "rgba(255, 255, 240, 0.45)"; // Android с блюром
+  
+  const indicatorColor = "rgba(255, 255, 255, 0.4)";
+  
+  // Унифицируем градиенты для одинакового визуального эффекта
   const gradientColors = isDark
     ? [
         "rgba(255, 255, 255, 0.12)",
         "rgba(255, 255, 255, 0.06)",
         "rgba(255, 255, 255, 0.02)",
-        "rgba(0, 0, 0, 0.08)",
+        "rgba(0, 0, 0, 0.05)",
       ] as const
     : [
-        "rgba(255, 255, 255, 0.3)",
-        "rgba(255, 255, 240, 0.2)",
+        "rgba(255, 255, 255, 0.2)",
         "rgba(255, 255, 240, 0.15)",
         "rgba(255, 255, 240, 0.1)",
+        "rgba(255, 255, 240, 0.05)",
       ] as const;
   const depthGradient = isDark
-    ? (["transparent", "rgba(0, 0, 0, 0.15)"] as const)
-    : (["transparent", "rgba(0, 0, 0, 0.05)"] as const);
+    ? (["transparent", "rgba(0, 0, 0, 0.06)"] as const)
+    : (["transparent", "rgba(0, 0, 0, 0.03)"] as const);
 
   return (
     <View
@@ -110,38 +119,18 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
       ]}
       pointerEvents="box-none"
     >
-      <BlurView
-        intensity={80}
-        tint={blurTint}
-        style={styles.blurContainer}
-      >
-        <LinearGradient
-          colors={gradientColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        
-        <View style={[styles.overlay, { backgroundColor: overlayColor }]} />
-        
-        <LinearGradient
-          colors={depthGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
+      {Platform.OS === "ios" ? (
+        <View style={[styles.blurContainer, { backgroundColor: overlayColor }]}>
+          <Animated.View
+            style={[
+              styles.indicator,
+              { backgroundColor: indicatorColor },
+              indicatorStyle,
+            ]}
+          />
 
-        <Animated.View
-          style={[
-            styles.indicator,
-            { backgroundColor: indicatorColor },
-            indicatorStyle,
-          ]}
-        />
-
-        <View style={styles.tabsContainer}>
-        {state.routes.map((route, index) => {
+          <View style={styles.tabsContainer}>
+          {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
           const label = typeof options.tabBarLabel === 'string' 
             ? options.tabBarLabel 
@@ -243,9 +232,147 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
               </View>
             </TouchableOpacity>
           );
-        })}
-      </View>
-      </BlurView>
+          })}
+        </View>
+        </View>
+      ) : (
+        <BlurView
+          intensity={blurIntensity}
+          tint={blurTint}
+          style={styles.blurContainer}
+        >
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          
+          <View style={[styles.overlay, { backgroundColor: overlayColor }]} />
+          
+          <LinearGradient
+            colors={depthGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+
+          <Animated.View
+            style={[
+              styles.indicator,
+              { backgroundColor: indicatorColor },
+              indicatorStyle,
+            ]}
+          />
+
+          <View style={styles.tabsContainer}>
+          {state.routes.map((route, index) => {
+            const { options } = descriptors[route.key];
+            const label = typeof options.tabBarLabel === 'string' 
+              ? options.tabBarLabel 
+              : typeof options.title === 'string' 
+              ? options.title 
+              : route.name;
+            const isFocused = state.index === index;
+
+            const onPress = () => {
+              hapticLight();
+              const event = navigation.emit({
+                type: "tabPress",
+                target: route.key,
+                canPreventDefault: true,
+              });
+
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name, route.params);
+              }
+            };
+
+            const onLongPress = () => {
+              navigation.emit({
+                type: "tabLongPress",
+                target: route.key,
+              });
+            };
+
+            let iconElement: React.ReactNode;
+            const iconColor = isDark
+              ? (isFocused ? "#FFFFFF" : "rgba(255, 255, 255, 0.5)")
+              : (isFocused ? "#1A1A1A" : "rgba(0, 0, 0, 0.5)");
+            const iconSize = 24;
+
+            if (route.name === "index") {
+              iconElement = (
+                <Ionicons
+                  name={isFocused ? "home" : "home-outline"}
+                  size={iconSize}
+                  color={iconColor}
+                />
+              );
+            } else if (route.name === "progress") {
+              iconElement = <ProgressIcon color={iconColor} size={22} />;
+            } else if (route.name === "food-database") {
+              iconElement = (
+                <Ionicons
+                  name={isFocused ? "restaurant" : "restaurant-outline"}
+                  size={iconSize}
+                  color={iconColor}
+                />
+              );
+            } else if (route.name === "settings") {
+              if (avatarUri) {
+                iconElement = (
+                  <View
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 14,
+                      overflow: "hidden",
+                      opacity: isFocused ? 1 : 0.7,
+                    }}
+                  >
+                    <Image
+                      source={{ uri: avatarUri }}
+                      style={{ width: "100%", height: "100%" }}
+                      contentFit="cover"
+                      cachePolicy="memory-disk"
+                    />
+                  </View>
+                );
+              } else {
+                iconElement = (
+                  <Ionicons
+                    name={isFocused ? "person-circle" : "person-circle-outline"}
+                    size={26}
+                    color={iconColor}
+                  />
+                );
+              }
+            }
+
+            return (
+              <TouchableOpacity
+                key={route.key}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={options.tabBarAccessibilityLabel || label}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                style={styles.tabButton}
+                activeOpacity={0.7}
+              >
+                <View style={styles.tabContent}>
+                  <View style={styles.iconContainer}>
+                    {iconElement}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        </BlurView>
+      )}
     </View>
   );
 }
@@ -257,7 +384,12 @@ const styles = StyleSheet.create({
     left: HORIZONTAL_PADDING,
     width: TAB_BAR_WIDTH,
     zIndex: 1000,
-    elevation: 0,
+    // Мягкие тени для эффекта глубины
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   blurContainer: {
     borderRadius: BORDER_RADIUS,
@@ -269,10 +401,10 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.1)",
     // Мягкая тень для отделения от фона
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -312,4 +444,3 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
 });
-
