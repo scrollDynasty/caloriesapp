@@ -299,7 +299,7 @@ export default function TabsLayout() {
         ]}
       >
         <BlurView
-          intensity={100}
+          intensity={80}
           tint={isDark ? "dark" : "light"}
           style={styles.fabBlur}
         >
@@ -326,8 +326,8 @@ export default function TabsLayout() {
               styles.fabOverlay,
               {
                 backgroundColor: isDark 
-                  ? "rgba(20, 20, 20, 0.5)" 
-                  : "rgba(255, 255, 240, 0.85)",
+                  ? "rgba(10, 10, 10, 0.25)" 
+                  : "rgba(255, 255, 240, 0.7)",
               }
             ]} 
           />
@@ -439,6 +439,15 @@ const styles = StyleSheet.create({
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
     overflow: "hidden",
+    // Тонкая обводка для блика (inner glow)
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    // Мягкая тень для отделения от фона
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5,
   },
   fabOverlay: {
     ...StyleSheet.absoluteFillObject,

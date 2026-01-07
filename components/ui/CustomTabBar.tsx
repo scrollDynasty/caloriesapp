@@ -76,18 +76,19 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
   const bottomOffset = 20 + bottomInset;
 
   const blurTint = isDark ? "dark" : "light";
+  // Более прозрачный overlay для усиления эффекта стекла
   const overlayColor = isDark 
-    ? "rgba(20, 20, 20, 0.5)" 
-    : "rgba(255, 255, 240, 0.85)";
-  const indicatorColor = isDark 
-    ? "rgba(43, 75, 242, 0.85)" 
-    : "rgba(255, 255, 255, 0.9)";
+    ? "rgba(10, 10, 10, 0.25)" 
+    : "rgba(255, 255, 240, 0.7)";
+  // Полупрозрачный белый индикатор для обеих тем
+  const indicatorColor = "rgba(255, 255, 255, 0.25)";
+  // Градиенты для эффекта глубины и вибрации (Vibrancy)
   const gradientColors = isDark
     ? [
-        "rgba(255, 255, 255, 0.15)",
-        "rgba(255, 255, 255, 0.08)",
-        "rgba(255, 255, 255, 0.03)",
-        "rgba(0, 0, 0, 0.05)",
+        "rgba(255, 255, 255, 0.12)",
+        "rgba(255, 255, 255, 0.06)",
+        "rgba(255, 255, 255, 0.02)",
+        "rgba(0, 0, 0, 0.08)",
       ] as const
     : [
         "rgba(255, 255, 255, 0.3)",
@@ -96,7 +97,7 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
         "rgba(255, 255, 240, 0.1)",
       ] as const;
   const depthGradient = isDark
-    ? (["transparent", "rgba(0, 0, 0, 0.1)"] as const)
+    ? (["transparent", "rgba(0, 0, 0, 0.15)"] as const)
     : (["transparent", "rgba(0, 0, 0, 0.05)"] as const);
 
   return (
@@ -110,7 +111,7 @@ export default function CustomTabBar({ state, descriptors, navigation, avatarUri
       pointerEvents="box-none"
     >
       <BlurView
-        intensity={100}
+        intensity={80}
         tint={blurTint}
         style={styles.blurContainer}
       >
@@ -263,6 +264,15 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     height: TAB_BAR_HEIGHT,
     position: "relative",
+    // Тонкая обводка для блика (inner glow)
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    // Мягкая тень для отделения от фона
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
