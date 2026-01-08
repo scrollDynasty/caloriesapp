@@ -67,8 +67,8 @@ export default function PrivacyPage() {
                   использование, передачу, обезличивание, удаление.
                 </div>
                 <div className={styles.definition}>
-                  <strong>Оператор</strong> — ИП Матёкубов Умар Русланбекович,
-                  зарегистрированный в Республике Узбекистан.
+                  <strong>Оператор</strong> — ООО "Yeb-Ich",
+                  зарегистрированное в Республике Узбекистан.
                 </div>
               </div>
             </section>
@@ -286,7 +286,13 @@ export default function PrivacyPage() {
               </p>
               <div className={styles.contactInfo}>
                 <p className={styles.contactItem}>
-                  <strong>Оператор:</strong> ИП Матёкубов Умар Русланбекович
+                  <strong>Оператор:</strong> ООО "Yeb-Ich"
+                </p>
+                <p className={styles.contactItem}>
+                  <strong>Электронная почта:</strong>{" "}
+                  <a href="mailto:info@yeb-ich.com" className={styles.link}>
+                    info@yeb-ich.com
+                  </a>
                 </p>
                 <p className={styles.contactItem}>
                   <strong>Телефон:</strong>{" "}

@@ -62,7 +62,7 @@ export default function TermsPage() {
                   <strong>Приложение</strong> означает мобильное приложение под названием «Yeb-Ich», включая все связанные с ним функции, инструменты, контент и обновления.
                 </div>
                 <div className={styles.definition}>
-                  <strong>Компания, Мы, Нас или Наш</strong> означает [Название Вашей Компании в Узбекистане], [Юридический адрес Компании в Узбекистане], [рег. номер, если есть].
+                  <strong>Компания, Мы, Нас или Наш</strong> означает ООО "Yeb-Ich", зарегистрированное в Республике Узбекистан.
                 </div>
                 <div className={styles.definition}>
                   <strong>Устройство</strong> означает любое устройство, способное получить доступ к Сервису.
@@ -225,9 +225,12 @@ export default function TermsPage() {
               </p>
               <div className={styles.contactInfo}>
                 <p className={styles.contactItem}>
+                  <strong>Компания:</strong> ООО "Yeb-Ich"
+                </p>
+                <p className={styles.contactItem}>
                   <strong>Электронная почта:</strong>{" "}
-                  <a href="mailto:ymarumar502@gmail.com" className={styles.link}>
-                    ymarumar502@gmail.com
+                  <a href="mailto:info@yeb-ich.com" className={styles.link}>
+                    info@yeb-ich.com
                   </a>
                 </p>
               </div>

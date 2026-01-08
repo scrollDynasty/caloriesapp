@@ -46,7 +46,7 @@ class PressInquiryCreate(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "email": "reporter@example.com",
+                "email": "info@yeb-ich.com",
                 "subject": "Media inquiry about new features",
                 "message": "I would like to schedule an interview about the new features in your app."
             }
