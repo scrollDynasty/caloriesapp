@@ -129,22 +129,34 @@ class AIService:
             logger.info(f"Analyzing image: {file_path.name}, type: {mime_type}, hint: {meal_name_hint}")
             
             system_prompt = (
-                "You are an expert nutrition assistant. Analyze food photos and estimate nutritional values accurately. "
+                "You are an expert nutrition scientist and food analyst. Your task is to carefully and accurately identify "
+                "the specific food items in photos and estimate their nutritional values. Take your time to examine every detail. "
                 "Always respond with valid JSON only, no additional text or markdown."
             )
             
             user_prompt_text = (
-                "Analyze this food photo and estimate the complete nutritional content. "
+                "CAREFULLY analyze this food photo and identify the EXACT food items. Take your time to examine every detail.\n\n"
+                "IDENTIFICATION CHECKLIST:\n"
+                "1. FRUIT/VEGETABLE TYPE: Look at color, texture, shape, size carefully\n"
+                "   - Coconut: white/cream flesh, large round brown shell, hairy appearance (NOT chocolate)\n"
+                "   - Chocolate: brown color, smooth shiny surface, often in rectangular shapes\n"
+                "   - Pomegranate: reddish-brown exterior, visible seeds, bumpy skin (NOT grapefruit)\n"
+                "   - Grapefruit: large round yellow/pink citrus, similar to orange but larger, smooth skin\n"
+                "2. EXAMINE EVERY VISIBLE ELEMENT: count items, measure portions, identify mixed items\n"
+                "3. LOOK FOR DISTINGUISHING FEATURES: seeds, skins, textures, leaves, stems\n"
+                "4. CROSS-CHECK YOUR IDENTIFICATION: does this really match what I see?\n\n"
                 "Respond ONLY with a JSON object in this exact format:\n"
-                '{"name": "dish name in Russian", "calories": number, "protein": number, "fat": number, '
+                '{"name": "detailed dish description in Russian with specific food items", "calories": number, "protein": number, "fat": number, '
                 '"carbs": number, "fiber": number, "sugar": number, "sodium": number, "health_score": number}\n'
                 "Rules:\n"
                 "- Use integers only, no decimal points\n"
                 "- Values should be per portion shown in the photo\n"
                 "- calories in kcal, protein/fat/carbs/fiber/sugar in grams, sodium in mg\n"
                 "- health_score: 0-3 unhealthy, 4-6 moderate, 7-10 healthy\n"
-                "- name in Russian language\n"
-                "- If uncertain, use reasonable estimates, NOT 0"
+                "- name in Russian language, be specific about what you see (e.g., 'Гранат нарезанный с семенами' not just 'фрукт')\n"
+                "- If uncertain about portion size, estimate based on visible reference objects\n"
+                "- If uncertain about specific identification, describe what you see in detail in the name field\n"
+                "- NEVER guess, use reasonable estimates based on actual identification, NOT 0"
             )
             
             if meal_name_hint:
