@@ -82,7 +82,7 @@ export default function HomeScreen() {
     calculateRollover,
     setPendingBadgeCelebration 
   } = useAppSettings();
-  const { setOnMealCompleted, processingMeals } = useProcessingMeals();
+  const { setOnMealCompleted, processingMeals, removeProcessingMeal } = useProcessingMeals();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dailyLoading, setDailyLoading] = useState(false);
@@ -271,7 +271,12 @@ export default function HomeScreen() {
     if (!force && lastLoadedDateRef.current === dateTimestamp) {
       return;
     }
-    lastLoadedDateRef.current = dateTimestamp;
+    
+    if (force) {
+      lastLoadedDateRef.current = null;
+    } else {
+      lastLoadedDateRef.current = dateTimestamp;
+    }
     
     try {
       if (!cachedDaily) {
@@ -370,7 +375,48 @@ export default function HomeScreen() {
   useEffect(() => {
     const handleMealCompleted = async (completedMeal: ProcessingMeal) => {
         if (completedMeal.result) {
-          await loadDailyData(selectedDateTimestamp, true);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          let retryCount = 0;
+          const maxRetries = 5;
+          
+          const loadWithRetry = async (): Promise<boolean> => {
+            await loadDailyData(selectedDateTimestamp, true);
+            
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            const { dateStr } = getLocalDayRange(selectedDateTimestamp);
+            const cachedDaily = dataCache.getDailyMeals(dateStr);
+            const photoId = completedMeal.result?.photoId;
+            
+            if (!cachedDaily || !cachedDaily.meals) {
+              if (retryCount < maxRetries) {
+                retryCount++;
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                return await loadWithRetry();
+              }
+              return false;
+            }
+            
+            const mealExists = cachedDaily.meals.some((m: any) => {
+              const mealId = m.id;
+              return mealId === photoId || mealId === Number(photoId) || String(mealId) === String(photoId);
+            });
+            
+            if (!mealExists && retryCount < maxRetries) {
+              retryCount++;
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              return await loadWithRetry();
+            }
+            
+            return mealExists;
+          };
+          
+          await loadWithRetry();
+          
+          setTimeout(() => {
+            removeProcessingMeal(completedMeal.id);
+          }, 3000);
           
           if (settings.badgeCelebrations) {
             try {
@@ -408,7 +454,7 @@ export default function HomeScreen() {
     setOnMealCompleted(handleMealCompleted);
     
     return () => setOnMealCompleted(undefined);
-  }, [setOnMealCompleted, loadDailyData, selectedDateTimestamp, settings.badgeCelebrations, setPendingBadgeCelebration]);
+  }, [setOnMealCompleted, loadDailyData, selectedDateTimestamp, settings.badgeCelebrations, setPendingBadgeCelebration, removeProcessingMeal]);
 
   const prevGoalReachedRef = useRef(false);
   useEffect(() => {

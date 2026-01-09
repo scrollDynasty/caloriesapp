@@ -147,11 +147,11 @@ export function ProcessingMealsProvider({ children }: { children: React.ReactNod
       
       if (onMealCompletedRef.current) {
         onMealCompletedRef.current(completedMeal);
+      } else {
+        setTimeout(() => {
+          setProcessingMeals(prev => prev.filter(m => m.id !== id));
+        }, 5000);
       }
-      
-      setTimeout(() => {
-        setProcessingMeals(prev => prev.filter(m => m.id !== id));
-      }, 2000);
       
     } catch (error: any) {
       updateMeal(id, {
