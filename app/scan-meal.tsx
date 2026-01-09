@@ -5,10 +5,10 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LottieLoader } from "../components/ui/LottieLoader";
@@ -24,7 +24,7 @@ export default function ScanMealScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, colors: themeColors } = useTheme();
   const { addProcessingMeal } = useProcessingMeals();
   const [permission, requestPermission] = useCameraPermissions();
   const [galleryPermission, requestGalleryPermission] = ImagePicker.useMediaLibraryPermissions();
@@ -384,6 +384,22 @@ export default function ScanMealScreen() {
 
       <View style={styles.controls}>
         <TouchableOpacity
+          style={styles.modeToggle}
+          onPress={handleBarcodePress}
+        >
+          <View style={[styles.modeToggleCircle, { backgroundColor: cameraMode === "barcode" ? themeColors.primary : colors.card }]}>
+            <Ionicons 
+              name={cameraMode === "barcode" ? "camera" : "barcode-outline"} 
+              size={24} 
+              color={cameraMode === "barcode" ? colors.buttonPrimaryText : themeColors.text} 
+            />
+          </View>
+          <Text style={[styles.modeToggleText, { color: themeColors.text }]}>
+            {cameraMode === "barcode" ? "Фото" : "Баркод"}
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
           style={styles.shutterButton}
           onPress={handleTakePicture}
         >
@@ -391,6 +407,8 @@ export default function ScanMealScreen() {
             <View style={styles.shutterButtonInner} />
           </View>
         </TouchableOpacity>
+        
+        <View style={styles.modeTogglePlaceholder} />
       </View>
 
       {cameraMode === "barcode" && (
@@ -592,16 +610,39 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
     controls: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 0,
+      justifyContent: "space-between",
+      paddingHorizontal: 40,
       paddingVertical: 8,
       paddingBottom: 50,
       backgroundColor: "transparent",
-      gap: 0,
       position: "absolute",
       bottom: 0,
       left: 0,
       right: 0,
+    },
+    modeToggle: {
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 4,
+    },
+    modeToggleCircle: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 4,
+    },
+    modeToggleText: {
+      fontSize: 11,
+      fontFamily: "Inter_600SemiBold",
+    },
+    modeTogglePlaceholder: {
+      width: 52,
     },
     controlButton: {
       width: 56,
