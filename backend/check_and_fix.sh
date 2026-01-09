@@ -20,12 +20,10 @@ else
     fi
 fi
 
-# 2. Проверка .env файла
 echo ""
 echo "2. Проверка настроек .env..."
 if grep -q "^ANTHROPIC_API_KEY=" .env; then
     echo "✓ ANTHROPIC_API_KEY найден"
-    # Убираем лишние пробелы
     sed -i 's/^ANTHROPIC_API_KEY=\(.*\) $/ANTHROPIC_API_KEY=\1/' .env
 else
     echo "✗ ANTHROPIC_API_KEY не найден в .env"
@@ -39,7 +37,6 @@ else
     echo "ANTHROPIC_MODEL=claude-3-5-sonnet-20241022" >> .env
 fi
 
-# 3. Проверка импорта
 echo ""
 echo "3. Проверка импорта в Python..."
 python << 'EOF'

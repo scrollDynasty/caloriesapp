@@ -42,7 +42,7 @@ class AIService:
     
     def __init__(self):
         self.api_key = settings.anthropic_api_key
-        self.model = getattr(settings, "anthropic_model", "claude-3-5-sonnet-20241022")
+        self.model = getattr(settings, "anthropic_model", "claude-3-5-sonnet-20240620")
         self.timeout = getattr(settings, "anthropic_timeout", 30)
     
     @property
