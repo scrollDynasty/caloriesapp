@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     apple_private_key_path: str = ""
 
     anthropic_api_key: str = ""
-    anthropic_model: str = "claude-3-5-sonnet-20240620"
+    anthropic_model: str = "claude-3-sonnet-20240229"
     anthropic_timeout: int = 30
 
     yandex_storage_access_key: str = ""
