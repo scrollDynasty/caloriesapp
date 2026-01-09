@@ -33,9 +33,9 @@ class Settings(BaseSettings):
     apple_key_id: str = ""
     apple_private_key_path: str = ""
 
-    openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
-    openai_timeout: int = 30
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-3-5-sonnet-20241022"
+    anthropic_timeout: int = 30
 
     yandex_storage_access_key: str = ""
     yandex_storage_secret_key: str = ""

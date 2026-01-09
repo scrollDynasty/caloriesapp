@@ -300,23 +300,36 @@ export default function ScanMealScreen() {
             style={styles.headerButton}
             onPress={() => router.back()}
           >
-            <View style={styles.headerButtonCircle}>
-              <Ionicons name="close" size={22} color={colors.text} />
+            <View style={[styles.headerButtonCircle, isDark ? styles.headerButtonDark : styles.headerButtonLight]}>
+              <Ionicons name="close" size={22} color={isDark ? "#FFFFFF" : colors.text} />
             </View>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Scan Meal</Text>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={toggleFlash}
-          >
-            <View style={styles.headerButtonCircle}>
-              <Ionicons
-                name={flashEnabled ? "flash" : "flash-off"}
-                size={20}
-                color={colors.text}
-              />
-            </View>
-          </TouchableOpacity>
+          <View style={styles.headerCenter}>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={toggleFlash}
+            >
+              <View style={[styles.headerButtonCircle, isDark ? styles.headerButtonDark : styles.headerButtonLight]}>
+                <Ionicons
+                  name={flashEnabled ? "flash" : "flash-off"}
+                  size={20}
+                  color={isDark ? "#FFFFFF" : colors.text}
+                />
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={handleGalleryPress}
+            >
+              <View style={[styles.headerButtonCircle, isDark ? styles.headerButtonDark : styles.headerButtonLight]}>
+                <Ionicons
+                  name="images"
+                  size={20}
+                  color={isDark ? "#FFFFFF" : colors.text}
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.cameraContainer}>
@@ -453,6 +466,11 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       alignItems: "center",
       justifyContent: "space-between",
     },
+    headerCenter: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
     headerButton: {
       width: 44,
       height: 44,
@@ -463,11 +481,16 @@ const createStyles = (colors: any, isDark: boolean, insetTop: number) =>
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: "#FFFFFF",
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 0,
       borderColor: "transparent",
+    },
+    headerButtonDark: {
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+    },
+    headerButtonLight: {
+      backgroundColor: "#F5F5DC",
     },
     headerTitle: {
       fontSize: 16,

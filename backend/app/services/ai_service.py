@@ -5,7 +5,7 @@ import base64
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic
 from app.core.config import settings
 
 
@@ -41,15 +41,15 @@ def _extract_json(text: str) -> Optional[Dict[str, Any]]:
 class AIService:
     
     def __init__(self):
-        self.api_key = settings.openai_api_key
-        self.model = getattr(settings, "openai_model", "gpt-4o-mini")
-        self.timeout = getattr(settings, "openai_timeout", 30)
+        self.api_key = settings.anthropic_api_key
+        self.model = getattr(settings, "anthropic_model", "claude-3-5-sonnet-20241022")
+        self.timeout = getattr(settings, "anthropic_timeout", 30)
     
     @property
     def is_configured(self) -> bool:
         return bool(self.api_key)
     
-    async def _call_openai(
+    async def _call_claude(
         self,
         system_prompt: str,
         user_content: Any,
@@ -60,22 +60,31 @@ class AIService:
             return None
         
         try:
-            async with AsyncOpenAI(
+            async with AsyncAnthropic(
                 api_key=self.api_key,
                 timeout=self.timeout
             ) as client:
-                response = await client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content},
-                    ],
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                )
+                # If user_content is a list (for vision), handle it directly
+                if isinstance(user_content, list):
+                    message = await client.messages.create(
+                        model=self.model,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        system=system_prompt,
+                        messages=[{"role": "user", "content": user_content}]
+                    )
+                else:
+                    # Simple text content
+                    message = await client.messages.create(
+                        model=self.model,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        system=system_prompt,
+                        messages=[{"role": "user", "content": user_content}]
+                    )
             
-            if response.choices and len(response.choices) > 0:
-                return response.choices[0].message.content
+            if message.content and len(message.content) > 0:
+                return message.content[0].text
             return None
             
         except Exception as e:
@@ -107,7 +116,7 @@ class AIService:
                 "Always respond with valid JSON only, no additional text or markdown."
             )
             
-            user_prompt = (
+            user_prompt_text = (
                 "Analyze this food photo and estimate the complete nutritional content. "
                 "Respond ONLY with a JSON object in this exact format:\n"
                 '{"name": "dish name in Russian", "calories": number, "protein": number, "fat": number, '
@@ -122,37 +131,29 @@ class AIService:
             )
             
             if meal_name_hint:
-                user_prompt += f"\n\nHint: the dish might be '{meal_name_hint}'"
+                user_prompt_text += f"\n\nHint: the dish might be '{meal_name_hint}'"
             
             user_content = [
-                {"type": "text", "text": user_prompt},
+                {"type": "text", "text": user_prompt_text},
                 {
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:{mime_type};base64,{b64_image}",
-                        "detail": "high"
-                    },
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": mime_type,
+                        "data": b64_image,
+                    }
                 }
             ]
             
-            async with AsyncOpenAI(
-                api_key=self.api_key,
-                timeout=self.timeout
-            ) as client:
-                response = await client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_content},
-                    ],
-                    max_tokens=256,
-                    temperature=0.1,
-                )
+            generated_text = await self._call_claude(
+                system_prompt,
+                user_content,
+                max_tokens=512,
+                temperature=0.1
+            )
             
-            if not response.choices:
+            if not generated_text:
                 return None
-                
-            generated_text = response.choices[0].message.content
             
             extracted = _extract_json(generated_text)
             if not extracted:
@@ -202,7 +203,7 @@ class AIService:
                 "fiber/sugar in grams, sodium in mg, health_score 0-10"
             )
             
-            response_text = await self._call_openai(system_prompt, user_prompt)
+            response_text = await self._call_claude(system_prompt, user_prompt)
             if not response_text:
                 return None
             
@@ -245,7 +246,7 @@ class AIService:
                 "Only change values mentioned by user. Name in Russian."
             )
             
-            response_text = await self._call_openai(
+            response_text = await self._call_claude(
                 system_prompt, 
                 user_prompt, 
                 max_tokens=512,
@@ -312,7 +313,7 @@ class AIService:
                 "- Make it healthy and balanced"
             )
             
-            response_text = await self._call_openai(
+            response_text = await self._call_claude(
                 system_prompt,
                 user_prompt,
                 max_tokens=1024,
