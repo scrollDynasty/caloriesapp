@@ -56,10 +56,16 @@ class AIService:
         max_tokens: int = 256,
         temperature: float = 0.1
     ) -> Optional[str]:
+        import logging
+        logger = logging.getLogger(__name__)
+        
         if not self.is_configured:
+            logger.error("Claude API not configured")
             return None
         
         try:
+            logger.info(f"Calling Claude API: model={self.model}, max_tokens={max_tokens}")
+            
             async with AsyncAnthropic(
                 api_key=self.api_key,
                 timeout=self.timeout
@@ -84,10 +90,15 @@ class AIService:
                     )
             
             if message.content and len(message.content) > 0:
-                return message.content[0].text
+                response_text = message.content[0].text
+                logger.info(f"Claude response received: {len(response_text)} chars")
+                return response_text
+            
+            logger.warning("Claude returned empty response")
             return None
             
         except Exception as e:
+            logger.error(f"Error calling Claude API: {str(e)}", exc_info=True)
             return None
 
     async def analyze_meal_photo(
@@ -95,7 +106,11 @@ class AIService:
         file_path: Path,
         meal_name_hint: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
+        import logging
+        logger = logging.getLogger(__name__)
+        
         if not self.is_configured:
+            logger.error("AI service not configured - missing API key")
             return None
         
         try:
@@ -110,6 +125,8 @@ class AIService:
             
             with open(file_path, "rb") as f:
                 b64_image = base64.b64encode(f.read()).decode("utf-8")
+            
+            logger.info(f"Analyzing image: {file_path.name}, type: {mime_type}, hint: {meal_name_hint}")
             
             system_prompt = (
                 "You are an expert nutrition assistant. Analyze food photos and estimate nutritional values accurately. "
@@ -127,7 +144,7 @@ class AIService:
                 "- calories in kcal, protein/fat/carbs/fiber/sugar in grams, sodium in mg\n"
                 "- health_score: 0-3 unhealthy, 4-6 moderate, 7-10 healthy\n"
                 "- name in Russian language\n"
-                "- If uncertain, use 0"
+                "- If uncertain, use reasonable estimates, NOT 0"
             )
             
             if meal_name_hint:
@@ -153,13 +170,17 @@ class AIService:
             )
             
             if not generated_text:
+                logger.error("Claude API returned no response")
                 return None
+            
+            logger.info(f"Claude response: {generated_text[:200]}...")
             
             extracted = _extract_json(generated_text)
             if not extracted:
+                logger.error(f"Failed to extract JSON from response: {generated_text}")
                 return None
             
-            return {
+            result = {
                 "calories": _parse_number(extracted.get("calories")),
                 "protein": _parse_number(extracted.get("protein")),
                 "fat": _parse_number(extracted.get("fat")),
@@ -171,7 +192,11 @@ class AIService:
                 "detected_meal_name": extracted.get("name") or meal_name_hint,
             }
             
+            logger.info(f"Parsed nutrition data: {result}")
+            return result
+            
         except Exception as e:
+            logger.error(f"Error analyzing meal photo: {str(e)}", exc_info=True)
             return None
 
     async def analyze_barcode_product(

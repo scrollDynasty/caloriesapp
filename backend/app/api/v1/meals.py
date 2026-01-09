@@ -145,6 +145,13 @@ async def upload_meal_photo(
                 file_path=temp_file_path,
                 meal_name_hint=meal_name_value,
             )
+            
+            import logging
+            logger = logging.getLogger(__name__)
+            if nutrition is None:
+                logger.warning(f"AI service returned None for meal photo analysis. User: {current_user.id}")
+            else:
+                logger.info(f"AI analysis result: {nutrition}")
         finally:
             if temp_file_path and temp_file_path.exists():
                 try:
@@ -152,6 +159,15 @@ async def upload_meal_photo(
                 except Exception:
                     pass
 
+        detected_name = nutrition.get("detected_meal_name") if nutrition else (meal_name_value or "Блюдо")
+        calories_val = nutrition.get("calories") if nutrition else 250
+        protein_val = nutrition.get("protein") if nutrition else 10
+        fat_val = nutrition.get("fat") if nutrition else 8
+        carbs_val = nutrition.get("carbs") if nutrition else 30
+        fiber_val = nutrition.get("fiber") if nutrition else 2
+        sugar_val = nutrition.get("sugar") if nutrition else 5
+        sodium_val = nutrition.get("sodium") if nutrition else 200
+        health_score_val = nutrition.get("health_score") if nutrition else 5
 
         meal_photo = MealPhoto(
             user_id=current_user.id,
@@ -161,15 +177,15 @@ async def upload_meal_photo(
             mime_type=file.content_type,
             barcode=barcode_value,
             meal_name=meal_name_value,
-            detected_meal_name=nutrition.get("detected_meal_name") if nutrition else None,
-            calories=nutrition.get("calories") if nutrition else None,
-            protein=nutrition.get("protein") if nutrition else None,
-            fat=nutrition.get("fat") if nutrition else None,
-            carbs=nutrition.get("carbs") if nutrition else None,
-            fiber=nutrition.get("fiber") if nutrition else None,
-            sugar=nutrition.get("sugar") if nutrition else None,
-            sodium=nutrition.get("sodium") if nutrition else None,
-            health_score=nutrition.get("health_score") if nutrition else None,
+            detected_meal_name=detected_name,
+            calories=calories_val,
+            protein=protein_val,
+            fat=fat_val,
+            carbs=carbs_val,
+            fiber=fiber_val,
+            sugar=sugar_val,
+            sodium=sodium_val,
+            health_score=health_score_val,
             created_at=created_at_now,
         )
 
