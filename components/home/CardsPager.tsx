@@ -2,22 +2,23 @@ import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import {
-  Dimensions,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewToken
+    Dimensions,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ViewToken
 } from "react-native";
 import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
 } from "react-native-reanimated";
 import Svg, { Circle } from "react-native-svg";
 import { useAppSettings } from "../../context/AppSettingsContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticLight } from "../../utils/haptics";
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -56,18 +57,18 @@ interface FlippableNutritionCardProps {
   stats: CardsPagerProps["stats"];
 }
 
-const getPrimaryData = (stats: CardsPagerProps["stats"]) => ({
+const getPrimaryData = (stats: CardsPagerProps["stats"], t: (key: string) => string) => ({
   main: {
     consumed: stats.consumedCalories,
     target: stats.targetCalories,
-    label: "Съеденные калории",
+    label: t('nutrition.caloriesConsumed'),
     progress: stats.targetCalories > 0 ? Math.min(1, stats.consumedCalories / stats.targetCalories) : 0,
   },
   macros: [
     {
       consumed: stats.protein.consumed,
       target: stats.protein.target,
-      label: "Белки",
+      label: t('nutrition.protein'),
       progress: stats.protein.target > 0 ? stats.protein.consumed / stats.protein.target : 0,
       color: "#FF6B6B",
       icon: "🍖",
@@ -75,7 +76,7 @@ const getPrimaryData = (stats: CardsPagerProps["stats"]) => ({
     {
       consumed: stats.carbs.consumed,
       target: stats.carbs.target,
-      label: "Углеводы",
+      label: t('nutrition.carbs'),
       progress: stats.carbs.target > 0 ? stats.carbs.consumed / stats.carbs.target : 0,
       color: "#FCA549",
       icon: "🌾",
@@ -83,7 +84,7 @@ const getPrimaryData = (stats: CardsPagerProps["stats"]) => ({
     {
       consumed: stats.fats.consumed,
       target: stats.fats.target,
-      label: "Жиры",
+      label: t('nutrition.fats'),
       progress: stats.fats.target > 0 ? stats.fats.consumed / stats.fats.target : 0,
       color: "#4D96FF",
       icon: "🫒",
@@ -91,13 +92,13 @@ const getPrimaryData = (stats: CardsPagerProps["stats"]) => ({
   ],
 });
 
-const getSecondaryData = (stats: CardsPagerProps["stats"]) => ({
+const getSecondaryData = (stats: CardsPagerProps["stats"], t: (key: string) => string) => ({
   macros: [
     { 
       consumed: stats.fiber.consumed, 
       target: stats.fiber.target, 
       unit: "g", 
-      label: "Клетчатка", 
+      label: t('nutrition.fiber'), 
       icon: "🥦", 
       color: "#4CAF50",
       progress: stats.fiber.target > 0 ? Math.min(1, stats.fiber.consumed / stats.fiber.target) : 0,
@@ -106,7 +107,7 @@ const getSecondaryData = (stats: CardsPagerProps["stats"]) => ({
       consumed: stats.sugar.consumed, 
       target: stats.sugar.target, 
       unit: "g", 
-      label: "Сахар", 
+      label: t('nutrition.sugar'), 
       icon: "🍬", 
       color: "#E91E63",
       progress: stats.sugar.target > 0 ? Math.min(1, stats.sugar.consumed / stats.sugar.target) : 0,
@@ -115,8 +116,8 @@ const getSecondaryData = (stats: CardsPagerProps["stats"]) => ({
     { 
       consumed: stats.sodium.consumed, 
       target: stats.sodium.target, 
-      unit: "мг", 
-      label: "Натрий", 
+      unit: t('units.mg'), 
+      label: t('nutrition.sodium'), 
       icon: "🧂", 
       color: "#FF9800",
       progress: stats.sodium.target > 0 ? Math.min(1, stats.sodium.consumed / stats.sodium.target) : 0,
@@ -130,12 +131,13 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
   const { colors: themeColors, isDark } = useTheme();
+  const { t } = useLanguage();
   const [isFlipped, setIsFlipped] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const flipAnim = useSharedValue(0);
 
-  const primaryData = useMemo(() => getPrimaryData(stats), [stats]);
-  const secondaryData = useMemo(() => getSecondaryData(stats), [stats]);
+  const primaryData = useMemo(() => getPrimaryData(stats, t), [stats, t]);
+  const secondaryData = useMemo(() => getSecondaryData(stats, t), [stats, t]);
 
   const finishFlip = useCallback(() => {
     setIsFlipped(!isFlipped);
@@ -248,7 +250,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
                   <Text style={[styles.macroValue, { color: themeColors.text }]}>{Math.round(macro.consumed)}</Text>
                   <Text style={[styles.macroTarget, { color: themeColors.textSecondary }]}>/{macro.target}g</Text>
                 </View>
-                <Text style={[styles.macroLabel, { color: themeColors.textSecondary }]}>{macro.label} съедено</Text>
+                <Text style={[styles.macroLabel, { color: themeColors.textSecondary }]}>{macro.label} {t('nutrition.consumed')}</Text>
                 <View style={styles.macroCircleContainer}>
                   <Svg width={SMALL_CIRCLE_SIZE} height={SMALL_CIRCLE_SIZE}>
                     <Circle
@@ -353,7 +355,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
         >
           <View style={[styles.healthScoreCard, { backgroundColor: themeColors.card }]}>
             <View style={styles.healthScoreHeader}>
-              <Text style={[styles.healthScoreTitle, { color: themeColors.text }]}>Оценка здоровья</Text>
+              <Text style={[styles.healthScoreTitle, { color: themeColors.text }]}>{t('nutrition.healthScore')}</Text>
               <Text style={[
                 styles.healthScoreValue,
                 { color: secondaryData.healthScore !== null 
@@ -382,11 +384,11 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
             <Text style={[styles.healthScoreText, { color: themeColors.textSecondary }]}>
               {secondaryData.healthScore !== null 
                 ? (secondaryData.healthScore >= 7 
-                    ? "Отличный баланс питательных веществ! Продолжай в том же духе 💪"
+                    ? t('nutrition.excellentBalance')
                     : secondaryData.healthScore >= 4 
-                    ? "Неплохо! Добавь больше клетчатки и уменьши сахар для улучшения"
-                    : "Попробуй добавить больше овощей и снизить потребление сахара")
-                : "Добавь блюда, чтобы получить оценку здоровья за день"}
+                    ? t('nutrition.goodBalance')
+                    : t('nutrition.poorBalance'))
+                : t('nutrition.noScoreYet')}
             </Text>
           </View>
         </TouchableOpacity>
@@ -406,10 +408,10 @@ function AppleHealthCard() {
           <View style={[styles.appleHealthIcon, { backgroundColor: isDark ? themeColors.gray5 : "#E8F5E9" }]}>
             <Ionicons name="arrow-forward-circle" size={24} color="#4CAF50" />
           </View>
-          <Text style={[styles.rolloverTitle, { color: themeColors.text }]}>Перенос калорий</Text>
+          <Text style={[styles.rolloverTitle, { color: themeColors.text }]}>{t('nutrition.calorieRollover')}</Text>
           <Text style={[styles.rolloverValue, { color: "#4CAF50" }]}>+{rolloverCalories.amount}</Text>
           <Text style={[styles.appleHealthText, { color: themeColors.textSecondary }]}>
-            С {rolloverCalories.fromDate}
+            {t('common.from')} {rolloverCalories.fromDate}
           </Text>
         </View>
       </View>
@@ -424,7 +426,7 @@ function AppleHealthCard() {
             <Ionicons name="checkmark-circle" size={24} color="#34C759" />
           </View>
           <View style={styles.healthConnectedInfo}>
-            <Text style={[styles.healthConnectedTitle, { color: themeColors.text }]}>Health подключён</Text>
+            <Text style={[styles.healthConnectedTitle, { color: themeColors.text }]}>{t('appSettings.healthConnected')}</Text>
             <View style={styles.healthStatsRow}>
               <View style={styles.healthStatItem}>
                 <Ionicons name="walk" size={14} color="#007AFF" />
@@ -459,7 +461,7 @@ function AppleHealthCard() {
           <Ionicons name="heart" size={24} color="#FF6B6B" />
         </View>
         <Text style={[styles.appleHealthText, { color: themeColors.textSecondary }]}>
-          Нажмите чтобы подключить Health
+          {t('appSettings.tapToConnectHealth')}
         </Text>
         <Ionicons name="chevron-forward" size={16} color={themeColors.textTertiary} style={styles.healthArrow} />
       </View>
@@ -481,18 +483,18 @@ function BurnedCaloriesCard() {
   
   return (
     <View style={[styles.burnedCard, { backgroundColor: themeColors.card }]}>
-      <Text style={[styles.burnedLabel, { color: themeColors.textSecondary }]}>Сожжённые калории</Text>
+      <Text style={[styles.burnedLabel, { color: themeColors.textSecondary }]}>{t('nutrition.burnedCalories')}</Text>
       <View style={styles.burnedRow}>
         <Text style={[styles.burnedValue, { color: activeCalories > 0 ? themeColors.warning : themeColors.text }]}>
           {activeCalories}
         </Text>
-        <Text style={[styles.burnedUnit, { color: themeColors.textSecondary }]}>ккал</Text>
+        <Text style={[styles.burnedUnit, { color: themeColors.textSecondary }]}>{t('units.kcal')}</Text>
       </View>
       <View style={styles.stepsRow}>
         <Ionicons name="walk" size={18} color={themeColors.textSecondary} />
-        <Text style={[styles.stepsLabel, { color: themeColors.text }]}>{steps.toLocaleString()} шаги</Text>
+        <Text style={[styles.stepsLabel, { color: themeColors.text }]}>{steps.toLocaleString()} {t('units.steps')}</Text>
       </View>
-      <Text style={[styles.stepsValue, { color: themeColors.textSecondary }]}>~{stepsCalories} ккал</Text>
+      <Text style={[styles.stepsValue, { color: themeColors.textSecondary }]}>~{stepsCalories} {t('units.kcal')}</Text>
       
       {!settings.burnedCalories && (
         <View style={[styles.burnedDisabledOverlay, { backgroundColor: isDark ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)" }]}>

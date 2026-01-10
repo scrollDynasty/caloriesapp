@@ -25,6 +25,20 @@ export default function ProgressScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("90_days");
   const [selectedCaloriePeriod, setSelectedCaloriePeriod] = useState<CaloriePeriod>("this_week");
   
+  const TIME_PERIOD_LABELS: Record<TimePeriod, string> = {
+    "90_days": t('progress.period90Days'),
+    "6_months": t('progress.period6Months'),
+    "1_year": t('progress.period1Year'),
+    "all": t('progress.periodAll'),
+  };
+  
+  const CALORIE_PERIOD_LABELS: Record<CaloriePeriod, string> = {
+    "this_week": t('progress.thisWeek'),
+    "last_week": t('progress.lastWeek'),
+    "2_weeks_ago": t('progress.2weeksAgo'),
+    "3_weeks_ago": t('progress.3weeksAgo'),
+  };
+  
   const [streakCount, setStreakCount] = useState(0);
   const [weightStats, setWeightStats] = useState<any>(null);
   const [lastWeightDate, setLastWeightDate] = useState<Date | null>(null);
@@ -62,7 +76,7 @@ export default function ProgressScreen() {
       setBmiCategory(progressData.bmi_category);
       setProgressPhotos(photos);
     } catch {
-      Alert.alert("Ошибка", "Не удалось загрузить данные прогресса");
+      Alert.alert(t('common.error'), t('error.tryAgain'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -87,7 +101,7 @@ export default function ProgressScreen() {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Ошибка", "Необходимо разрешение на доступ к галерее");
+        Alert.alert(t('common.error'), t('profile.photoPermission'));
         return;
       }
 
@@ -109,12 +123,12 @@ export default function ProgressScreen() {
         const photos = await apiService.getProgressPhotos();
         setProgressPhotos(photos);
         
-        Alert.alert("Успешно", "Фото прогресса добавлено");
+        Alert.alert(t('common.success'), t('progress.photoAdded'));
       }
     } catch {
-      Alert.alert("Ошибка", "Не удалось загрузить фото");
+      Alert.alert(t('common.error'), t('progress.photoFailed'));
     }
-  }, []);
+  }, [t]);
 
   const getFilteredWeightHistory = useCallback(() => {
     if (!weightStats?.history) return [];
@@ -182,7 +196,7 @@ export default function ProgressScreen() {
                 router.push("/add-weight" as any);
               }}
             >
-              <Text style={[styles.recordWeightButtonDarkText, { color: isDark ? '#FFFFFF' : '#2D2A26' }]}>Записать вес</Text>
+              <Text style={[styles.recordWeightButtonDarkText, { color: isDark ? '#FFFFFF' : '#2D2A26' }]}>{t('weight.addWeight')}</Text>
               <Ionicons name="arrow-forward" size={16} color={isDark ? "#FFFFFF" : "#2D2A26"} />
             </TouchableOpacity>
           </View>
@@ -216,10 +230,10 @@ export default function ProgressScreen() {
               </View>
               <View style={styles.progressLabels}>
                 <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
-                  Старт: {weightStats.start_weight?.toFixed(1)} кг
+                  {t('progress.start')}: {weightStats.start_weight?.toFixed(1)} {t('weight.kg')}
                 </Text>
                 <Text style={[styles.progressLabel, { color: themeColors.textSecondary }]}>
-                  Цель: {weightStats.target_weight?.toFixed(1)} кг
+                  {t('goals.targetWeight')}: {weightStats.target_weight?.toFixed(1)} {t('weight.kg')}
                 </Text>
               </View>
             </View>
@@ -229,7 +243,7 @@ export default function ProgressScreen() {
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <View style={styles.sectionTitleRow}>
             <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-              Динамика веса
+              {t('progress.weightChanges')}
             </Text>
             {weightStats?.current_weight && weightStats?.target_weight && weightStats?.start_weight && (
               <View style={styles.progressPercentageRow}>
@@ -249,7 +263,7 @@ export default function ProgressScreen() {
                       if (current >= target) return "100%";
                       progress = ((current - start) / (target - start)) * 100;
                     }
-                    return `${Math.round(Math.min(100, Math.max(0, progress)))}% от цели`;
+                    return `${Math.round(Math.min(100, Math.max(0, progress)))}% ${t('progress.ofGoal')}`;
                   })()}
                 </Text>
               </View>
@@ -285,7 +299,7 @@ export default function ProgressScreen() {
 
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Изменения веса
+            {t('progress.weightChanges')}
           </Text>
           {weightStats?.changes && weightStats.changes.length > 0 ? (
             weightStats.changes.map((change: any, index: number) => (
@@ -303,7 +317,7 @@ export default function ProgressScreen() {
           ) : (
             <View style={styles.emptyStateSmall}>
               <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
-                Добавьте несколько записей веса для отслеживания изменений
+                {t('progress.noData')}
               </Text>
             </View>
           )}
@@ -311,10 +325,10 @@ export default function ProgressScreen() {
 
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Фото прогресса
+            {t('progress.photos')}
           </Text>
           <Text style={[styles.sectionSubtitle, { color: themeColors.textSecondary }]}>
-            Хочешь добавить фото, чтобы отслеживать прогресс?
+            {t('progress.addPhotoPrompt')}
           </Text>
           
           {progressPhotos.length > 0 ? (
@@ -341,14 +355,14 @@ export default function ProgressScreen() {
           >
             <Ionicons name="add" size={18} color={themeColors.text} />
             <Text style={[styles.uploadButtonText, { color: themeColors.text }]}>
-              Загрузить фото
+              {t('progress.addPhoto')}
             </Text>
           </TouchableOpacity>
         </View>
 
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Энергия за неделю
+            {t('progress.energy')}
           </Text>
 
           <View style={styles.periodSelector}>
@@ -385,10 +399,10 @@ export default function ProgressScreen() {
                 <View style={styles.emptyState}>
                   <Ionicons name="bar-chart-outline" size={40} color={themeColors.textSecondary} />
                   <Text style={[styles.emptyStateText, { color: themeColors.text }]}>
-                    Нет данных для отображения
+                    {t('progress.noData')}
                   </Text>
                   <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
-                    Добавляйте приемы пищи для отслеживания энергии
+                    {t('progress.noData')}
                   </Text>
                 </View>
               );
@@ -405,11 +419,11 @@ export default function ProgressScreen() {
                       {Math.round(avgCalories)}
                     </Text>
                     <Text style={[styles.calorieUnit, { color: themeColors.textSecondary }]}>
-                      ккал/день
+                      {t('units.kcal')}/{t('progress.days')}
                     </Text>
                   </View>
                   <Text style={[styles.calorieLabel, { color: themeColors.textSecondary, textAlign: 'center' }]}>
-                    Установите целевые калории в настройках для отслеживания прогресса
+                    {t('progress.noData')}
                   </Text>
                 </View>
               );
@@ -425,17 +439,17 @@ export default function ProgressScreen() {
                     {Math.round(avgCalories)}
                   </Text>
                   <Text style={[styles.calorieUnit, { color: themeColors.textSecondary }]}>
-                    ккал/день
+                    {t('units.kcal')}/{t('progress.days')}
                   </Text>
                 </View>
 
                 <View style={styles.calorieProgressContainer}>
                   <View style={styles.calorieProgressLabels}>
                     <Text style={[styles.calorieProgressLabel, { color: themeColors.textSecondary }]}>
-                      Среднее потребление
+                      {t('progress.avgCalories')}
                     </Text>
                     <Text style={[styles.calorieProgressValue, { color: isOverTarget ? '#FF6B6B' : '#51CF66' }]}>
-                      {percentage}% от цели
+                      {percentage}% {t('progress.ofGoal')}
                     </Text>
                   </View>
                   <View style={[styles.calorieProgressBar, { backgroundColor: isDark ? '#2C2C2E' : '#F0F0F0' }]}>
@@ -451,11 +465,11 @@ export default function ProgressScreen() {
                   </View>
                   <View style={styles.calorieTargetRow}>
                     <Text style={[styles.calorieTargetLabel, { color: themeColors.textSecondary }]}>
-                      Цель: {targetCalories} ккал
+                      {t('goals.targetWeight')}: {targetCalories} {t('units.kcal')}
                     </Text>
                     {isOverTarget && (
                       <Text style={[styles.calorieOverTarget, { color: '#FF6B6B' }]}>
-                        +{Math.round(avgCalories - targetCalories)} ккал
+                        +{Math.round(avgCalories - targetCalories)} {t('units.kcal')}
                       </Text>
                     )}
                   </View>
@@ -467,29 +481,29 @@ export default function ProgressScreen() {
 
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-            Изменения расхода
+            {t('progress.energy')}
           </Text>
           {energyChanges.length === 0 ? (
             <View style={styles.emptyStateSmall}>
               <Text style={[styles.emptyStateSubtext, { color: themeColors.textSecondary }]}>
-                Недостаточно данных
+                {t('progress.insufficientData')}
               </Text>
             </View>
           ) : (
             energyChanges.map((change: any, index: number) => {
               const periodLabels: Record<string, string> = {
-                "3_days": "3 дня",
-                "7_days": "7 дней", 
-                "14_days": "14 дней",
-                "30_days": "30 дней",
-                "90_days": "90 дней"
+                "3_days": t('progress.period90Days'),
+                "7_days": t('progress.thisWeek'), 
+                "14_days": t('progress.lastWeek'),
+                "30_days": t('progress.2weeksAgo'),
+                "90_days": t('progress.period90Days')
               };
 
               const hasData = change.status === "ok" && change.change_calories !== null;
               const isPositive = hasData && change.change_calories > 0;
               const changeText = hasData 
-                ? `${isPositive ? '+' : ''}${Math.round(change.change_calories)} ккал`
-                : change.status === "waiting" ? "Ожидание..." : "Нет данных";
+                ? `${isPositive ? '+' : ''}${Math.round(change.change_calories)} ${t('units.kcal')}`
+                : change.status === "waiting" ? t('common.loading') : t('progress.noData');
               
               const statusColor = !hasData 
                 ? themeColors.textSecondary 

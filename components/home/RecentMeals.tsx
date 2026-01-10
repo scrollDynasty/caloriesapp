@@ -3,16 +3,17 @@ import { Image } from "expo-image";
 import { memo, useEffect, useMemo } from "react";
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, {
-  Easing,
-  FadeIn,
-  FadeOut,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withSpring,
-  withTiming,
+    Easing,
+    FadeIn,
+    FadeOut,
+    useAnimatedStyle,
+    useSharedValue,
+    withRepeat,
+    withSequence,
+    withSpring,
+    withTiming,
 } from "react-native-reanimated";
+import { useLanguage } from "../../context/LanguageContext";
 import { ProcessingMeal, useProcessingMeals } from "../../context/ProcessingMealsContext";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticLight } from "../../utils/haptics";
@@ -45,6 +46,7 @@ const ProcessingMealCard = memo(function ProcessingMealCard({
 }: {
   meal: ProcessingMeal;
 }) {
+  const { t } = useLanguage();
   const { colors: themeColors, isDark } = useTheme();
   const progressWidth = useSharedValue(0);
   const pulseScale = useSharedValue(1);
@@ -198,10 +200,10 @@ const ProcessingMealCard = memo(function ProcessingMealCard({
           numberOfLines={1}
         >
           {isError
-            ? meal.error || "Попробуйте снова"
+            ? meal.error || t('common.tryAgain')
             : isCompleted
-            ? "Блюдо добавлено!"
-            : "Мы уведомим по готовности"}
+            ? t('meals.dishAdded')
+            : t('meals.notifyWhenReady')}
         </Text>
       </View>
     </Animated.View>
@@ -225,7 +227,7 @@ export const RecentMeals = memo(function RecentMeals({
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
         <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-          Недавно съедено
+          {t('meals.recentlyEaten')}
         </Text>
       </View>
 
@@ -247,7 +249,7 @@ export const RecentMeals = memo(function RecentMeals({
           <Text style={[styles.stateText, styles.errorText]}>{error}</Text>
           {onRetry ? (
             <Text style={[styles.linkText, { color: themeColors.primary }]}>
-              Повторить
+              {t('meals.repeat')}
             </Text>
           ) : null}
         </TouchableOpacity>
@@ -308,7 +310,7 @@ export const RecentMeals = memo(function RecentMeals({
                 <View style={styles.mealCaloriesRow}>
                   <Ionicons name="flame" size={14} color={themeColors.text} />
                   <Text style={[styles.mealCalories, { color: themeColors.text }]}>
-                    {meal.calories} ккал
+                    {meal.calories} {t('units.kcal')}
                   </Text>
                 </View>
                 <View style={styles.mealMacros}>
@@ -320,7 +322,7 @@ export const RecentMeals = memo(function RecentMeals({
                         { color: themeColors.textTertiary },
                       ]}
                     >
-                      {meal.protein}г
+                      {meal.protein}{t('units.g')}
                     </Text>
                   </View>
                   <View style={styles.macroItem}>
@@ -331,7 +333,7 @@ export const RecentMeals = memo(function RecentMeals({
                         { color: themeColors.textTertiary },
                       ]}
                     >
-                      {meal.carbs}г
+                      {meal.carbs}{t('units.g')}
                     </Text>
                   </View>
                   <View style={styles.macroItem}>
@@ -342,7 +344,7 @@ export const RecentMeals = memo(function RecentMeals({
                         { color: themeColors.textTertiary },
                       ]}
                     >
-                      {meal.fats}г
+                      {meal.fats}{t('units.g')}
                     </Text>
                   </View>
                 </View>
@@ -356,7 +358,7 @@ export const RecentMeals = memo(function RecentMeals({
               activeOpacity={0.8}
             >
               <Text style={[styles.loadMoreText, { color: themeColors.primary }]}>
-                Показать ещё
+                {t('common.showMore')}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -399,7 +401,7 @@ export const RecentMeals = memo(function RecentMeals({
           <Text
             style={[styles.emptyUploadText, { color: themeColors.textSecondary }]}
           >
-            Нажми +, чтобы добавить первый приём пищи{"\n"}за день
+            {t('meals.addFirstMeal')}
           </Text>
           {onAddPress ? (
             <TouchableOpacity

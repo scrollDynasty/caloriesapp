@@ -359,7 +359,7 @@ export default function HomeScreen() {
     } catch {
       if (!isMountedRef.current) return;
       if (!cachedDaily) {
-        setDailyError("Ошибка загрузки данных");  
+        setDailyError(t('error.loadingData'));  
       }
     } finally {
       if (isMountedRef.current) {
@@ -498,7 +498,7 @@ export default function HomeScreen() {
 
   const handleScanFood = useCallback(async () => {
     if (!isTodaySelected) {
-      showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
+      showToast.warning(t('home.currentDayOnly'), t('home.onlyToday'));
       return;
     }
     
@@ -522,23 +522,23 @@ export default function HomeScreen() {
     } else {
       router.push("/scan-meal" as any);
     }
-  }, [isTodaySelected, cameraPermission, requestCameraPermission, router]);
+  }, [isTodaySelected, cameraPermission, requestCameraPermission, router, t]);
 
   const handleAddManually = useCallback(() => {
     if (!isTodaySelected) {
-      showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
+      showToast.warning(t('home.currentDayOnly'), t('home.onlyToday'));
       return;
     }
     router.push("/add-manual" as any);
-  }, [isTodaySelected, router]);
+  }, [isTodaySelected, router, t]);
 
   const handleAddWater = useCallback(() => {
     if (!isTodaySelected) {
-      showToast.warning("Добавлять можно только в текущий день.", "Доступно только сегодня");
+      showToast.warning(t('home.currentDayOnly'), t('home.onlyToday'));
       return;
     }
     router.push("/add-water" as any);
-  }, [isTodaySelected, router]);
+  }, [isTodaySelected, router, t]);
 
   const handleMealPress = useCallback((meal: {
     id: number;

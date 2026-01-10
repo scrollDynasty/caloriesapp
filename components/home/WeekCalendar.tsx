@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useRef } from "react";
 import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 import { hapticLight } from "../../utils/haptics";
 import { getTodayLocal } from "../../utils/timezone";
@@ -19,7 +20,7 @@ const RADIUS = (CIRCLE_SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSelect, achievedDates, dailyProgress }: WeekCalendarProps) {
-  
+  const { t } = useLanguage();
   const today = useMemo(() => getTodayLocal(), []);
 
   const selectedDateTimestamp = useMemo(() => {
@@ -47,7 +48,10 @@ export const WeekCalendar = memo(function WeekCalendar({ selectedDate, onDateSel
     return days;
   }, [selectedDateTimestamp]);
 
-  const daysOfWeek = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  const daysOfWeek = useMemo(() => {
+    const daysStr = t('common.daysShort');
+    return JSON.parse(daysStr) as string[];
+  }, [t]);
 
   return (
     <View style={styles.calendarContainer}>

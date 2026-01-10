@@ -47,6 +47,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
 
     // Nutrition
     'nutrition.calories': 'Calories',
+    'nutrition.caloriesConsumed': 'Calories consumed',
     'nutrition.protein': 'Protein',
     'nutrition.carbs': 'Carbs',
     'nutrition.fats': 'Fats',
@@ -56,8 +57,15 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'nutrition.water': 'Water',
     'nutrition.goals': 'Nutrition Goals',
     'nutrition.target': 'Target',
-    'nutrition.consumed': 'Consumed',
+    'nutrition.consumed': 'consumed',
     'nutrition.remaining': 'Remaining',
+    'nutrition.healthScore': 'Health Score',
+    'nutrition.excellentBalance': 'Excellent nutrient balance! Keep it up 💪',
+    'nutrition.goodBalance': 'Not bad! Add more fiber and reduce sugar to improve',
+    'nutrition.poorBalance': 'Try adding more vegetables and reducing sugar intake',
+    'nutrition.noScoreYet': 'Add meals to get your health score for the day',
+    'nutrition.calorieRollover': 'Calorie Rollover',
+    'nutrition.burnedCalories': 'Burned Calories',
 
     // Meals
     'meals.breakfast': 'Breakfast',
@@ -70,21 +78,12 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'meals.editMeal': 'Edit Meal',
     'meals.deleteMeal': 'Delete Meal',
     'meals.mealDetails': 'Meal Details',
-
-    // Progress
-    'progress.title': 'Progress',
-    'progress.currentWeight': 'Current Weight',
-    'progress.goalWeight': 'Goal Weight',
-    'progress.weightChange': 'Weight Change',
-    'progress.thisWeek': 'This Week',
-    'progress.lastWeek': 'Last Week',
-    'progress.twoWeeksAgo': '2 Weeks Ago',
-    'progress.threeWeeksAgo': '3 Weeks Ago',
-    'progress.energyExpenditure': 'Energy Expenditure',
-    'progress.steps': 'Steps',
-    'progress.distance': 'Distance',
-    'progress.flightsClimbed': 'Flights Climbed',
-    'progress.insufficientData': 'Insufficient Data',
+    'meals.dish': 'Dish',
+    'meals.dishAdded': 'Dish added!',
+    'meals.notifyWhenReady': 'We\'ll notify you when ready',
+    'meals.recentlyEaten': 'Recently Eaten',
+    'meals.repeat': 'Repeat',
+    'meals.addFirstMeal': 'Tap + to add your first meal\nfor the day',
 
     // Home
     'home.title': 'Today',
@@ -97,6 +96,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'home.addFood': 'Add Food',
     'home.healthScore': 'Health Score',
     'home.badges': 'Badges',
+    'home.currentDayOnly': 'You can only add meals for the current day.',
+    'home.onlyToday': 'Only available today',
 
     // Badges
     'badges.title': 'Badges',
@@ -109,7 +110,6 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'water.ml': 'ml',
 
     // Weight
-    'weight.addWeight': 'Add Weight',
     'weight.changeWeight': 'Change Weight',
     'weight.history': 'Weight History',
     'weight.kg': 'kg',
@@ -146,6 +146,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'error.permissionDenied': 'Permission denied',
     'error.cameraPermission': 'Camera permission is required to scan meals',
     'error.photoPermission': 'Photo permission is required',
+    'error.loadingData': 'Error loading data',
 
     // Units
     'units.g': 'g',
@@ -177,6 +178,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'common.actions': 'Actions',
     'common.share': 'Share',
     'common.dish': 'Dish',
+    'common.tryAgain': 'Try Again',
+    'common.daysShort': '["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]',
+    'common.showMore': 'Show More',
+    'common.from': 'From',
     
     // App Settings
     'appSettings.title': 'App Settings',
@@ -187,6 +192,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'appSettings.healthKit': 'Health App',
     'appSettings.appleWatch': 'Apple Watch',
     'appSettings.connectedSuccess': 'Successfully connected',
+    'appSettings.healthConnected': 'Health Connected',
+    'appSettings.tapToConnectHealth': 'Tap to connect Health',
     'appSettings.disconnectConfirm': 'Disconnect integration?',
     'appSettings.disconnect': 'Disconnect',
     'appSettings.featureUnavailable': 'Feature unavailable',
@@ -331,6 +338,45 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'step9.energy': 'Boost energy and mood',
     'step9.motivated': 'Stay motivated',
     
+    // Progress screen
+    'progress.title': 'Progress',
+    'progress.weightChanges': 'Weight Changes',
+    'progress.noData': 'No data',
+    'progress.streak': 'Streak',
+    'progress.days': 'days',
+    'progress.currentWeight': 'Current Weight',
+    'progress.targetWeight': 'Target Weight',
+    'progress.bmi': 'BMI',
+    'progress.ofGoal': 'of goal',
+    'progress.period90Days': '90 Days',
+    'progress.period6Months': '6 Months',
+    'progress.period1Year': '1 Year',
+    'progress.periodAll': 'All Time',
+    'progress.calories': 'Calories',
+    'progress.avgCalories': 'Avg. Calories',
+    'progress.thisWeek': 'This Week',
+    'progress.lastWeek': 'Last Week',
+    'progress.2weeksAgo': '2 Weeks Ago',
+    'progress.3weeksAgo': '3 Weeks Ago',
+    'progress.energy': 'Energy',
+    'progress.averageEnergy': 'Average Energy',
+    'progress.steps': 'Steps',
+    'progress.distance': 'Distance',
+    'progress.flights': 'Flights',
+    'progress.insufficientData': 'Insufficient Data',
+    'progress.photos': 'Progress Photos',
+    'progress.addPhoto': 'Add Photo',
+    'progress.deleteConfirm': 'Delete this photo?',
+    'progress.photoDeleted': 'Photo deleted',
+    'progress.deleteFailed': 'Failed to delete photo',
+    'progress.photoAdded': 'Photo added successfully',
+    'progress.photoFailed': 'Failed to add photo',
+    'progress.start': 'Start',
+    'progress.addPhotoPrompt': 'Want to add a photo to track progress?',
+    
+    // Weight
+    'weight.addWeight': 'Record Weight',
+    
     // Months
     'month.jan': 'Jan',
     'month.feb': 'Feb',
@@ -415,6 +461,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
 
     // Питание
     'nutrition.calories': 'Калории',
+    'nutrition.caloriesConsumed': 'Съеденные калории',
     'nutrition.protein': 'Белки',
     'nutrition.carbs': 'Углеводы',
     'nutrition.fats': 'Жиры',
@@ -424,8 +471,15 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'nutrition.water': 'Вода',
     'nutrition.goals': 'Цели питания',
     'nutrition.target': 'Цель',
-    'nutrition.consumed': 'Потреблено',
+    'nutrition.consumed': 'съедено',
     'nutrition.remaining': 'Осталось',
+    'nutrition.healthScore': 'Оценка здоровья',
+    'nutrition.excellentBalance': 'Отличный баланс питательных веществ! Продолжай в том же духе 💪',
+    'nutrition.goodBalance': 'Неплохо! Добавь больше клетчатки и уменьши сахар для улучшения',
+    'nutrition.poorBalance': 'Попробуй добавить больше овощей и снизить потребление сахара',
+    'nutrition.noScoreYet': 'Добавь блюда, чтобы получить оценку здоровья за день',
+    'nutrition.calorieRollover': 'Перенос калорий',
+    'nutrition.burnedCalories': 'Сожжённые калории',
 
     // Приёмы пищи
     'meals.breakfast': 'Завтрак',
@@ -438,6 +492,12 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'meals.editMeal': 'Редактировать приём пищи',
     'meals.deleteMeal': 'Удалить приём пищи',
     'meals.mealDetails': 'Детали приёма пищи',
+    'meals.dish': 'Блюдо',
+    'meals.dishAdded': 'Блюдо добавлено!',
+    'meals.notifyWhenReady': 'Мы уведомим по готовности',
+    'meals.recentlyEaten': 'Недавно съедено',
+    'meals.repeat': 'Повторить',
+    'meals.addFirstMeal': 'Нажми +, чтобы добавить первый приём пищи\nза день',
 
     // Прогресс
     'progress.title': 'Прогресс',
@@ -465,6 +525,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'home.addFood': 'Добавить продукт',
     'home.healthScore': 'Оценка здоровья',
     'home.badges': 'Достижения',
+    'home.currentDayOnly': 'Добавлять можно только в текущий день.',
+    'home.onlyToday': 'Доступно только сегодня',
 
     // Достижения
     'badges.title': 'Достижения',
@@ -524,6 +586,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'error.permissionDenied': 'Доступ запрещён',
     'error.cameraPermission': 'Требуется разрешение на доступ к камере',
     'error.photoPermission': 'Требуется разрешение на доступ к фотографиям',
+    'error.loadingData': 'Ошибка загрузки данных',
 
     // Единицы измерения
     'units.g': 'г',
@@ -555,6 +618,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'common.actions': 'Действия',
     'common.share': 'Поделиться',
     'common.dish': 'Блюдо',
+    'common.tryAgain': 'Попробовать ещё раз',
+    'common.daysShort': '["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]',
+    'common.showMore': 'Показать ещё',
+    'common.from': 'С',
     
     // Настройки приложения
     'appSettings.title': 'Настройки приложения',
@@ -565,6 +632,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'appSettings.healthKit': 'Здоровье',
     'appSettings.appleWatch': 'Apple Watch',
     'appSettings.connectedSuccess': 'Успешно подключено',
+    'appSettings.healthConnected': 'Health подключён',
+    'appSettings.tapToConnectHealth': 'Нажмите чтобы подключить Health',
     'appSettings.disconnectConfirm': 'Отключить интеграцию?',
     'appSettings.disconnect': 'Отключить',
     'appSettings.featureUnavailable': 'Функция недоступна',
@@ -669,6 +738,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'step9.eatHealthy': 'Питаться и жить здорово',
     'step9.energy': 'Повысить энергию и настроение',
     'step9.motivated': 'Оставаться мотивированным',
+    
+
     
     // Аккаунт
     'account.logout': 'Выйти',
@@ -797,6 +868,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
 
     // Oziqlanish
     'nutrition.calories': 'Kaloriyalar',
+    'nutrition.caloriesConsumed': 'Iste\'mol qilingan kaloriyalar',
     'nutrition.protein': 'Oqsil',
     'nutrition.carbs': 'Uglevodlar',
     'nutrition.fats': 'Yog\'lar',
@@ -806,8 +878,15 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'nutrition.water': 'Suv',
     'nutrition.goals': 'Oziqlanish maqsadlari',
     'nutrition.target': 'Maqsad',
-    'nutrition.consumed': 'Iste\'mol qilindi',
+    'nutrition.consumed': 'iste\'mol qilindi',
     'nutrition.remaining': 'Qolgan',
+    'nutrition.healthScore': 'Salomatlik bali',
+    'nutrition.excellentBalance': 'Ajoyib ozuqaviy muvozanat! Davom eting 💪',
+    'nutrition.goodBalance': 'Yomon emas! Yaxshilash uchun ko\'proq tolalar qo\'shing va shakarni kamaytiring',
+    'nutrition.poorBalance': 'Ko\'proq sabzavot qo\'shishga va shakar iste\'molini kamaytirishga harakat qiling',
+    'nutrition.noScoreYet': 'Kun uchun salomatlik balini olish uchun ovqatlar qo\'shing',
+    'nutrition.calorieRollover': 'Kaloriyalarni ko\'chirish',
+    'nutrition.burnedCalories': 'Yondirilgan kaloriyalar',
 
     // Ovqat nomi
     'meals.breakfast': 'Nonushta',
@@ -820,6 +899,12 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'meals.editMeal': 'Ovqatni tahrirlash',
     'meals.deleteMeal': 'Ovqatni o\'chirish',
     'meals.mealDetails': 'Ovqat tafsilotlari',
+    'meals.dish': 'Taom',
+    'meals.dishAdded': 'Taom qo\'shildi!',
+    'meals.notifyWhenReady': 'Tayyor bo\'lganda xabar beramiz',
+    'meals.recentlyEaten': 'Yaqinda iste\'mol qilingan',
+    'meals.repeat': 'Takrorlash',
+    'meals.addFirstMeal': 'Birinchi ovqat qo\'shish uchun + tugmasini bosing\nbugungi kun uchun',
 
     // Taraqqiyot
     'progress.title': 'Taraqqiyot',
@@ -847,6 +932,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'home.addFood': 'Mahsulot qo\'shish',
     'home.healthScore': 'Salomatlik bali',
     'home.badges': 'Yutuqlar',
+    'home.currentDayOnly': 'Faqat joriy kunga taom qo\'shish mumkin.',
+    'home.onlyToday': 'Faqat bugun mavjud',
 
     // Yutuqlar
     'badges.title': 'Yutuqlar',
@@ -906,6 +993,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'error.permissionDenied': 'Ruxsat berilmadi',
     'error.cameraPermission': 'Kamera uchun ruxsat kerak',
     'error.photoPermission': 'Suratlar uchun ruxsat kerak',
+    'error.loadingData': 'Ma\'lumotlarni yuklashda xato',
 
     // O\'lchov birliklar
     'units.g': 'g',
@@ -937,6 +1025,10 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'common.actions': 'Harakatlar',
     'common.share': 'Ulashish',
     'common.dish': 'Taom',
+    'common.tryAgain': 'Qayta urinish',
+    'common.daysShort': '["Du", "Se", "Cho", "Pa", "Ju", "Sha", "Ya"]',
+    'common.showMore': 'Ko\'proq ko\'rsatish',
+    'common.from': 'Dan',
     
     // Ilova sozlamalari
     'appSettings.title': 'Ilova sozlamalari',
@@ -947,6 +1039,8 @@ export const TRANSLATIONS: Record<SupportedLanguage, Record<string, string>> = {
     'appSettings.healthKit': 'Sog\'liq',
     'appSettings.appleWatch': 'Apple Watch',
     'appSettings.connectedSuccess': 'Muvaffaqiyatli ulandi',
+    'appSettings.healthConnected': 'Health ulandi',
+    'appSettings.tapToConnectHealth': 'Health ni ulash uchun bosing',
     'appSettings.disconnectConfirm': 'Integratsiyani o\'chirish?',
     'appSettings.disconnect': 'Uzish',
     'appSettings.featureUnavailable': 'Funksiya mavjud emas',
