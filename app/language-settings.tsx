@@ -9,13 +9,10 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { hapticLight } from "../utils/haptics";
-import {
-    getUserLanguage,
-    setUserLanguage,
-    SupportedLanguage
-} from "../utils/language";
+import { SupportedLanguage } from "../utils/language";
 
 const LANGUAGES: { id: SupportedLanguage; name: string; flag: string }[] = [
   { id: "ru", name: "Русский", flag: "🇷🇺" },
@@ -26,16 +23,17 @@ const LANGUAGES: { id: SupportedLanguage; name: string; flag: string }[] = [
 export default function LanguageSettingsScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
-  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>("en");
+  const { language, setLanguage, t } = useLanguage();
+  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>(language);
 
   useEffect(() => {
-    getUserLanguage().then(setSelectedLang);
-  }, []);
+    setSelectedLang(language);
+  }, [language]);
 
   const handleSelectLanguage = async (lang: SupportedLanguage) => {
     hapticLight();
     setSelectedLang(lang);
-    await setUserLanguage(lang);
+    await setLanguage(lang);
   };
 
   return (
@@ -51,7 +49,7 @@ export default function LanguageSettingsScreen() {
         >
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Язык приложения</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('settings.language.title')}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -61,7 +59,7 @@ export default function LanguageSettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Text style={[styles.description, { color: colors.textSecondary }]}>
-          Выберите язык для отображения продуктов в базе данных
+          {t('food.search.placeholder')}
         </Text>
 
         <View style={[styles.section, { backgroundColor: colors.card }]}>
@@ -94,7 +92,7 @@ export default function LanguageSettingsScreen() {
         </View>
 
         <Text style={[styles.hint, { color: colors.textTertiary }]}>
-          Названия продуктов будут отображаться на выбранном языке, если доступен перевод. В противном случае будет показан английский вариант.
+          {t('food.database')}
         </Text>
       </ScrollView>
     </SafeAreaView>

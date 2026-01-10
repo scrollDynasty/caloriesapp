@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { DatePicker } from "../components/ui/DatePicker";
 import { HeightWeightPicker } from "../components/ui/HeightWeightPicker";
 import { LottieLoader } from "../components/ui/LottieLoader";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { dataCache } from "../stores/dataCache";
@@ -211,6 +212,7 @@ const NumericInput = React.memo(function NumericInput({
 export default function GoalsWeightScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -363,11 +365,11 @@ export default function GoalsWeightScreen() {
       setEditField(null);
       
     } catch {
-      Alert.alert("Ошибка", "Не удалось сохранить изменения");
+      Alert.alert(t('common.error'), t('goals.saveFailed'));
     } finally {
       setSaving(false);
     }
-  }, [data]);
+  }, [data, t]);
 
   const openEditModal = (field: EditField) => {
     if (!field) return;
@@ -404,17 +406,17 @@ export default function GoalsWeightScreen() {
   };
 
   const formatGender = (gender: string | null) => {
-    if (gender === "male") return "Мужской";
-    if (gender === "female") return "Женский";
-    return "Не указано";
+    if (gender === "male") return t('common.male');
+    if (gender === "female") return t('common.female');
+    return t('common.notSpecified');
   };
 
   const getFieldTitle = (field: EditField) => {
     switch (field) {
-      case "weight": return "Текущий вес";
-      case "height": return "Рост";
-      case "stepGoal": return "Ежедневная цель";
-      case "targetWeight": return "Целевой вес";
+      case "weight": return t('goals.currentWeight');
+      case "height": return t('goals.height');
+      case "stepGoal": return t('goals.dailyGoal');
+      case "targetWeight": return t('goals.targetWeight');
       default: return "";
     }
   };
@@ -423,11 +425,11 @@ export default function GoalsWeightScreen() {
     switch (field) {
       case "weight":
       case "targetWeight":
-        return "кг";
+        return t('weight.kg');
       case "height":
-        return "см";
+        return t('units.cm');
       case "stepGoal":
-        return "шагов";
+        return t('units.steps');
       default:
         return "";
     }
@@ -490,29 +492,29 @@ export default function GoalsWeightScreen() {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Цели и текущий вес</Text>
+        <Text style={styles.headerTitle}>{t('goals.goalsAndWeight')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.targetCard}>
           <View>
-            <Text style={styles.targetLabel}>Целевой вес</Text>
-            <Text style={styles.targetValue}>{data.targetWeight || data.weight || "--"} кг</Text>
+            <Text style={styles.targetLabel}>{t('goals.targetWeight')}</Text>
+            <Text style={styles.targetValue}>{data.targetWeight || data.weight || "--"} {t('weight.kg')}</Text>
           </View>
           <TouchableOpacity 
             style={styles.changeGoalButton}
             onPress={() => openEditModal("targetWeight")}
           >
-            <Text style={styles.changeGoalText}>Изменить цель</Text>
+            <Text style={styles.changeGoalText}>{t('goals.changeGoal')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("weight")} activeOpacity={0.6}>
-            <Text style={styles.rowLabel}>Текущий вес</Text>
+            <Text style={styles.rowLabel}>{t('goals.currentWeight')}</Text>
             <View style={styles.rowRight}>
-              <Text style={styles.rowValue}>{data.weight || "--"} кг</Text>
+              <Text style={styles.rowValue}>{data.weight || "--"} {t('weight.kg')}</Text>
               <View style={styles.editIcon}>
                 <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
@@ -522,9 +524,9 @@ export default function GoalsWeightScreen() {
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("height")} activeOpacity={0.6}>
-            <Text style={styles.rowLabel}>Рост</Text>
+            <Text style={styles.rowLabel}>{t('goals.height')}</Text>
             <View style={styles.rowRight}>
-              <Text style={styles.rowValue}>{data.height || "--"} см</Text>
+              <Text style={styles.rowValue}>{data.height || "--"} {t('units.cm')}</Text>
               <View style={styles.editIcon}>
                 <Ionicons name="create-outline" size={16} color={colors.textSecondary} />
               </View>
@@ -534,7 +536,7 @@ export default function GoalsWeightScreen() {
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={() => openEditModal("birthDate")} activeOpacity={0.6}>
-            <Text style={styles.rowLabel}>Дата рождения</Text>
+            <Text style={styles.rowLabel}>{t('goals.birthDate')}</Text>
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{formatDate(data.birthDate)}</Text>
               <View style={styles.editIcon}>
@@ -546,7 +548,7 @@ export default function GoalsWeightScreen() {
           <View style={styles.divider} />
 
           <TouchableOpacity style={styles.row} onPress={() => setEditField("gender")} activeOpacity={0.6}>
-            <Text style={styles.rowLabel}>Пол</Text>
+            <Text style={styles.rowLabel}>{t('goals.gender')}</Text>
             <View style={styles.rowRight}>
               <Text style={styles.rowValue}>{formatGender(data.gender)}</Text>
               <View style={styles.editIcon}>
@@ -706,7 +708,7 @@ export default function GoalsWeightScreen() {
                     styles.genderOptionText,
                     data.gender === "male" && styles.genderOptionTextSelected,
                   ]}>
-                    Мужской
+                    {t('common.male')}
                   </Text>
                   {data.gender === "male" && (
                     <Ionicons name="checkmark-circle" size={22} color={colors.success || "#4CAF50"} />
@@ -725,7 +727,7 @@ export default function GoalsWeightScreen() {
                     styles.genderOptionText,
                     data.gender === "female" && styles.genderOptionTextSelected,
                   ]}>
-                    Женский
+                    {t('common.female')}
                   </Text>
                   {data.gender === "female" && (
                     <Ionicons name="checkmark-circle" size={22} color={colors.success || "#4CAF50"} />
@@ -736,7 +738,7 @@ export default function GoalsWeightScreen() {
                   style={styles.modalButtonCancelFull} 
                   onPress={() => setEditField(null)}
                 >
-                  <Text style={styles.modalButtonCancelText}>Отмена</Text>
+                  <Text style={styles.modalButtonCancelText}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>

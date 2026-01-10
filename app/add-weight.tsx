@@ -2,20 +2,22 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 
 export default function AddWeightScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const [weight, setWeight] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,10 +31,10 @@ export default function AddWeightScreen() {
   };
 
   const validate = () => {
-    if (!weight.trim()) return "Введите вес";
+    if (!weight.trim()) return t('weight.enterWeight');
     const val = parseFloat(weight.replace(',', '.'));
-    if (isNaN(val) || val <= 0) return "Некорректное значение";
-    if (val < 30 || val > 300) return "Вес должен быть от 30 до 300 кг";
+    if (isNaN(val) || val <= 0) return t('weight.invalidValue');
+    if (val < 30 || val > 300) return t('weight.rangeError');
     return null;
   };
 
@@ -114,7 +116,7 @@ export default function AddWeightScreen() {
             disabled={saving}
           >
             <Text style={[styles.saveButtonText, { color: colors.text }]}>
-              {saving ? "Сохраняем..." : "Сохранить"}
+              {saving ? t('weight.saving') : t('common.save')}
             </Text>
           </TouchableOpacity>
         </View>

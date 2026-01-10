@@ -7,31 +7,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BMICard } from "../../components/progress/BMICard";
 import { WeightChangeItem } from "../../components/progress/WeightChangeItem";
 import { WeightChart } from "../../components/progress/WeightChart";
+import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { hapticLight, hapticMedium } from "../../utils/haptics";
 
 type TimePeriod = "90_days" | "6_months" | "1_year" | "all";
 
-const TIME_PERIOD_LABELS: Record<TimePeriod, string> = {
-  "90_days": "90 дн.",
-  "6_months": "6 мес.",
-  "1_year": "1 г.",
-  "all": "ВСЁ",
-};
-
 type CaloriePeriod = "this_week" | "last_week" | "2_weeks_ago" | "3_weeks_ago";
-
-const CALORIE_PERIOD_LABELS: Record<CaloriePeriod, string> = {
-  "this_week": "Эта нед.",
-  "last_week": "Прошлая нед.",
-  "2_weeks_ago": "2 нед. назад",
-  "3_weeks_ago": "3 нед. назад",
-};
 
 export default function ProgressScreen() {
   const router = useRouter();
   const { colors: themeColors, isDark } = useTheme();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("90_days");
@@ -175,16 +163,16 @@ export default function ProgressScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={themeColors.primary} />
         }
       >
-        <Text style={[styles.title, { color: themeColors.text }]}>Прогресс</Text>
+        <Text style={[styles.title, { color: themeColors.text }]}>{t('progress.title')}</Text>
 
         <View style={[styles.section, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFF0' }]}>
           <View style={styles.currentWeightHeader}>
             <View>
               <Text style={[styles.sectionTitle, { color: themeColors.text }]}>
-                Текущий вес
+                {t('progress.currentWeight')}
               </Text>
               <Text style={[styles.bigWeight, { color: themeColors.text }]}>
-                {weightStats?.current_weight ? `${weightStats.current_weight} кг` : "-- кг"}
+                {weightStats?.current_weight ? `${weightStats.current_weight} ${t('weight.kg')}` : `-- ${t('weight.kg')}`}
               </Text>
             </View>
             <TouchableOpacity

@@ -6,6 +6,7 @@ import { BadgeCelebration } from "../components/ui/BadgeCelebration";
 import { CustomToast } from "../components/ui/CustomToast";
 import { SnowOverlay } from "../components/ui/SnowOverlay";
 import { AppSettingsProvider, useAppSettings } from "../context/AppSettingsContext";
+import { LanguageProvider } from "../context/LanguageContext";
 import { OnboardingProvider } from "../context/OnboardingContext";
 import { ProcessingMealsProvider } from "../context/ProcessingMealsContext";
 import { SnowProvider } from "../context/SnowContext";
@@ -146,17 +147,19 @@ function BadgeCelebrationWrapper() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <AppSettingsProvider>
-        <ProcessingMealsProvider>
-          <SnowProvider>
-            <SplashProvider>
-              <OnboardingProvider>
-                <RootLayoutContent />
-              </OnboardingProvider>
-            </SplashProvider>
-          </SnowProvider>
-        </ProcessingMealsProvider>
-      </AppSettingsProvider>
+      <LanguageProvider>
+        <AppSettingsProvider>
+          <ProcessingMealsProvider>
+            <SnowProvider>
+              <SplashProvider>
+                <OnboardingProvider>
+                  <RootLayoutContent />
+                </OnboardingProvider>
+              </SplashProvider>
+            </SnowProvider>
+          </ProcessingMealsProvider>
+        </AppSettingsProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

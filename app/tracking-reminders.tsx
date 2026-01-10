@@ -3,22 +3,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    Modal,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import DatePicker from "react-native-date-picker";
 import Animated, {
-    FadeIn,
-    FadeInDown,
-    FadeOut,
+  FadeIn,
+  FadeInDown,
+  FadeOut,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { hapticLight, hapticMedium } from "../utils/haptics";
 
@@ -46,14 +47,6 @@ const defaultReminders: RemindersData = {
 };
 
 type ReminderKey = keyof RemindersData;
-
-const reminderLabels: Record<ReminderKey, string> = {
-  breakfast: "Завтрак",
-  lunch: "Обед",
-  snack: "Перекус",
-  dinner: "Ужин",
-  endOfDay: "Конец дня",
-};
 
 function formatTime(date: Date): string {
   const hours = date.getHours();
@@ -117,6 +110,7 @@ function ReminderRow({
 export default function TrackingRemindersScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const [reminders, setReminders] = useState<RemindersData>(defaultReminders);
   const [editingReminder, setEditingReminder] = useState<ReminderKey | null>(null);
   const [tempTime, setTempTime] = useState<Date>(new Date());
@@ -246,7 +240,7 @@ export default function TrackingRemindersScreen() {
         {}
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <ReminderRow
-            label={reminderLabels.breakfast}
+            label={t('reminders.breakfast')}
             time={reminders.breakfast.time}
             enabled={reminders.breakfast.enabled}
             onTimePress={() => handleTimePress("breakfast")}
@@ -255,7 +249,7 @@ export default function TrackingRemindersScreen() {
             isDark={isDark}
           />
           <ReminderRow
-            label={reminderLabels.lunch}
+            label={t('reminders.lunch')}
             time={reminders.lunch.time}
             enabled={reminders.lunch.enabled}
             onTimePress={() => handleTimePress("lunch")}
@@ -264,7 +258,7 @@ export default function TrackingRemindersScreen() {
             isDark={isDark}
           />
           <ReminderRow
-            label={reminderLabels.snack}
+            label={t('reminders.snack')}
             time={reminders.snack.time}
             enabled={reminders.snack.enabled}
             onTimePress={() => handleTimePress("snack")}
@@ -273,7 +267,7 @@ export default function TrackingRemindersScreen() {
             isDark={isDark}
           />
           <ReminderRow
-            label={reminderLabels.dinner}
+            label={t('reminders.dinner')}
             time={reminders.dinner.time}
             enabled={reminders.dinner.enabled}
             onTimePress={() => handleTimePress("dinner")}
@@ -287,7 +281,7 @@ export default function TrackingRemindersScreen() {
         {}
         <View style={[styles.section, styles.endOfDaySection, { backgroundColor: colors.card }]}>
           <ReminderRow
-            label={reminderLabels.endOfDay}
+            label={t('reminders.endOfDay')}
             time={reminders.endOfDay.time}
             enabled={reminders.endOfDay.enabled}
             onTimePress={() => handleTimePress("endOfDay")}
@@ -335,13 +329,13 @@ export default function TrackingRemindersScreen() {
             >
               <View style={styles.modalHeader}>
                 <TouchableOpacity onPress={handleTimeCancel} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                  <Text style={[styles.modalCancel, { color: colors.textSecondary }]}>Отмена</Text>
+                  <Text style={[styles.modalCancel, { color: colors.textSecondary }]}>{t('common.cancel')}</Text>
                 </TouchableOpacity>
                 <Text style={[styles.modalTitle, { color: colors.text }]}>
-                  {editingReminder ? reminderLabels[editingReminder] : ""}
+                  {editingReminder ? t(`reminders.${editingReminder}`) : ""}
                 </Text>
                 <TouchableOpacity onPress={handleTimeConfirm} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                  <Text style={[styles.modalDone, { color: colors.primary }]}>Готово</Text>
+                  <Text style={[styles.modalDone, { color: colors.primary }]}>{t('reminders.done')}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.timePickerContainer}>
@@ -383,9 +377,9 @@ export default function TrackingRemindersScreen() {
           onCancel={() => {
             setShowTimePicker(false);
           }}
-          title={editingReminder ? reminderLabels[editingReminder] : ""}
-          confirmText="Готово"
-          cancelText="Отмена"
+          title={editingReminder ? t(`reminders.${editingReminder}`) : ""}
+          confirmText={t('reminders.done')}
+          cancelText={t('common.cancel')}
         />
       )}
     </SafeAreaView>

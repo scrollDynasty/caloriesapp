@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WeightChart } from "../components/progress/WeightChart";
 import { LottieLoader } from "../components/ui/LottieLoader";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 
@@ -34,44 +35,59 @@ interface WeightStats {
   history: WeightEntry[];
 }
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const day = date.getDate();
-  const months = [
-    "января", "февраля", "марта", "апреля", "мая", "июня",
-    "июля", "августа", "сентября", "октября", "ноября", "декабря"
-  ];
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  
-  return `${day} ${month} ${year}, ${hours}:${minutes}`;
-}
+function WeightHistoryScreen() {
+  const router = useRouter();
+  const { colors: themeColors, isDark } = useTheme();
+  const { t } = useLanguage();
+  const [stats, setStats] = useState<WeightStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-function formatDateShort(dateString: string): string {
-  const date = new Date(dateString);
-  const day = date.getDate();
-  const months = [
-    "янв", "фев", "мар", "апр", "мая", "июн",
-    "июл", "авг", "сен", "окт", "ноя", "дек"
-  ];
-  const month = months[date.getMonth()];
-  return `${day} ${month}`;
-}
+  const formatDate = useCallback((dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const months = [
+      t('month.january'), t('month.february'), t('month.march'), 
+      t('month.april'), t('month.may'), t('month.june'),
+      t('month.july'), t('month.august'), t('month.september'), 
+      t('month.october'), t('month.november'), t('month.december')
+    ];
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    
+    return `${day} ${month} ${year}, ${hours}:${minutes}`;
+  }, [t]);
+
+  const formatDateShort = useCallback((dateString: string): string => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const months = [
+      t('month.jan'), t('month.feb'), t('month.mar'), 
+      t('month.apr'), t('month.may'), t('month.jun'),
+      t('month.jul'), t('month.aug'), t('month.sep'), 
+      t('month.oct'), t('month.nov'), t('month.dec')
+    ];
+    const month = months[date.getMonth()];
+    return `${day} ${month}`;
+  }, [t]);
 
 function WeightEntryItem({ 
   item, 
   previousWeight, 
   colors,
   isDark,
+  formatDate,
 }: { 
   item: WeightEntry; 
   previousWeight: number | null; 
   colors: any;
   isDark: boolean;
+  formatDate: (dateString: string) => string;
 }) {
   const change = previousWeight ? item.weight - previousWeight : null;
+  const { t } = useLanguage();
   
   return (
     <View style={[styles.entryItem, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
@@ -80,7 +96,7 @@ function WeightEntryItem({
           {formatDate(item.created_at)}
         </Text>
         <Text style={[styles.entryWeight, { color: colors.text }]}>
-          {item.weight.toFixed(1)} кг
+          {item.weight.toFixed(1)} {t('units.kg')}
         </Text>
       </View>
       {change !== null && (
@@ -97,20 +113,13 @@ function WeightEntryItem({
             styles.changeText,
             { color: change > 0 ? "#EF5350" : change < 0 ? "#4CAF50" : colors.textSecondary }
           ]}>
-            {Math.abs(change).toFixed(1)} кг
+            {Math.abs(change).toFixed(1)} {t('units.kg')}
           </Text>
         </View>
       )}
     </View>
   );
 }
-
-function WeightHistoryScreen() {
-  const router = useRouter();
-  const { colors, isDark } = useTheme();
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [stats, setStats] = useState<WeightStats | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -153,18 +162,19 @@ function WeightHistoryScreen() {
           previousWeight={previousWeight}
           colors={colors}
           isDark={isDark}
+          formatDate={formatDate}
         />
       );
     },
-    [sortedHistory, colors, isDark]
+    [sortedHistory, colors, isDark, formatDate]
   );
 
   const getPeriodLabel = (period: string): string => {
     switch (period) {
-      case "week": return "За неделю";
-      case "month": return "За месяц";
-      case "3months": return "За 3 месяца";
-      case "total": return "Всего";
+      case "week": return t('weight.periodWeek');
+      case "month": return t('weight.periodMonth');
+      case "3months": return t('weight.period3Months');
+      case "total": return t('weight.periodTotal');
       default: return period;
     }
   };
@@ -174,19 +184,19 @@ function WeightHistoryScreen() {
       {}
       <View style={styles.statsContainer}>
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Текущий</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('weight.currentWeight')}</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>
-            {stats?.current_weight?.toFixed(1) || "--"} кг
+            {stats?.current_weight?.toFixed(1) || "--"} {t('units.kg')}
           </Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Цель</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('weight.targetWeight')}</Text>
           <Text style={[styles.statValue, { color: colors.text }]}>
-            {stats?.target_weight?.toFixed(1) || "--"} кг
+            {stats?.target_weight?.toFixed(1) || "--"} {t('units.kg')}
           </Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Изменение</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t('weight.change')}</Text>
           <Text style={[
             styles.statValue, 
             { 
@@ -199,14 +209,14 @@ function WeightHistoryScreen() {
           ]}>
             {stats?.total_change 
               ? `${stats.total_change > 0 ? "+" : ""}${stats.total_change.toFixed(1)}` 
-              : "--"} кг
+              : "--"} {t('units.kg')}
           </Text>
         </View>
       </View>
 
       {}
       <View style={[styles.chartCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>График веса</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('weight.history')}</Text>
         <WeightChart 
           data={stats?.history || []} 
           targetWeight={stats?.target_weight}
@@ -216,7 +226,7 @@ function WeightHistoryScreen() {
       {}
       {stats?.changes && stats.changes.length > 0 && (
         <View style={[styles.changesCard, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Изменения</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('weight.change')}</Text>
           <View style={styles.changesGrid}>
             {stats.changes.map((change, index) => (
               <View key={index} style={styles.changeItem}>
@@ -236,7 +246,7 @@ function WeightHistoryScreen() {
                   }
                 ]}>
                   {change.change_kg !== null 
-                    ? `${(change.change_kg || 0) > 0 ? "+" : ""}${change.change_kg.toFixed(1)} кг`
+                    ? `${(change.change_kg || 0) > 0 ? "+" : ""}${change.change_kg.toFixed(1)} ${t('units.kg')}`
                     : "—"}
                 </Text>
               </View>
@@ -247,7 +257,7 @@ function WeightHistoryScreen() {
 
       {}
       <View style={styles.historyHeader}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>История</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('weight.history')}</Text>
       </View>
     </>
   );
@@ -256,10 +266,10 @@ function WeightHistoryScreen() {
     <View style={[styles.emptyContainer, { backgroundColor: colors.card }, isDark && styles.noShadow]}>
       <Ionicons name="scale-outline" size={48} color={colors.textTertiary} />
       <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-        Нет записей о весе
+        {t('weight.noHistory')}
       </Text>
       <Text style={[styles.emptyHint, { color: colors.textTertiary }]}>
-        Добавьте первую запись для отслеживания прогресса
+        {t('weight.noHistoryDescription')}
       </Text>
       <TouchableOpacity 
         style={[
@@ -268,7 +278,7 @@ function WeightHistoryScreen() {
         ]}
         onPress={() => router.push("/add-weight" as any)}
       >
-        <Text style={[styles.addButtonText, { color: colors.text }]}>Добавить вес</Text>
+        <Text style={[styles.addButtonText, { color: colors.text }]}>{t('weight.addWeight')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -283,7 +293,7 @@ function WeightHistoryScreen() {
           >
             <Ionicons name="chevron-back" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>История веса</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('weight.history')}</Text>
           <View style={styles.headerPlaceholder} />
         </View>
         <View style={styles.loadingContainer}>
@@ -303,7 +313,7 @@ function WeightHistoryScreen() {
         >
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>История веса</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('weight.history')}</Text>
         <TouchableOpacity 
           style={[
             styles.addWeightButton,

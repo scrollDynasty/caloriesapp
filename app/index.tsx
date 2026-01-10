@@ -6,6 +6,7 @@ import FoodImagePreview from "../components/features/FoodImagePreview";
 import TextContent from "../components/features/TextContent";
 import { PrimaryButton, SecondaryButton } from "../components/ui/Button";
 import { LottieLoader } from "../components/ui/LottieLoader";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { authService } from "../services/auth";
@@ -23,6 +24,7 @@ import Step9 from "./steps/step9";
 
 export default function Index() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const fontsLoaded = useFonts();
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -126,16 +128,16 @@ export default function Index() {
         {}
         <View style={styles.textContainer}>
           <TextContent
-            title="Умный подсчет калорий"
-            subtitle="Наведите камеру на еду, чтобы узнать ее калорийность"
+            title={t('welcome.title')}
+            subtitle={t('welcome.subtitle')}
           />
 
           {}
-          <PrimaryButton label="Начать" onPress={handleStartPress} />
+          <PrimaryButton label={t('welcome.start')} onPress={handleStartPress} />
 
           {}
           <SecondaryButton
-            label="Уже есть аккаунт? Войти"
+            label={t('auth.alreadyHaveAccount')}
             onPress={handleLoginPress}
           />
         </View>

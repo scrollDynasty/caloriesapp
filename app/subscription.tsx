@@ -3,15 +3,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-  Alert,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Alert,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 
 type PlanType = {
@@ -26,51 +27,52 @@ type PlanType = {
   popular: boolean;
 };
 
-const PLANS: { free: PlanType; premium: PlanType } = {
-  free: {
-    id: "free",
-    name: "Базовый",
-    price: "Бесплатно",
-    priceValue: 0,
-    features: [
-      "Оценка калорийности для основных узбекских блюд",
-      "Health Score для блюд",
-      "Базовый трекинг воды",
-      "Базовая активность",
-    ],
-    gradient: ["#6B7280", "#9CA3AF"],
-    buttonText: "Текущий план",
-    popular: false,
-  },
-  premium: {
-    id: "premium",
-    name: "Премиум",
-    price: "30 000 сум",
-    priceDetail: "в месяц",
-    priceValue: 30000,
-    features: [
-      "Полный доступ к базе данных",
-      "Анализ микронутриентов",
-      "Персонализированные планы питания",
-      "Адаптация планов с помощью ИИ",
-      "Приоритетная поддержка",
-    ],
-    gradient: ["#FFFFF0", "#F5F5DC"],
-    buttonText: "Попробовать Premium",
-    popular: true,
-  },
-};
-
 export default function SubscriptionScreen() {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const [selectedPlan] = useState<"premium">("premium");
 
+  const PLANS: { free: PlanType; premium: PlanType } = {
+    free: {
+      id: "free",
+      name: t('subscription.basic'),
+      price: t('common.free'),
+      priceValue: 0,
+      features: [
+        t('subscription.basicFeature1'),
+        "Health Score для блюд",
+        t('subscription.basicFeature2'),
+        t('subscription.basicFeature3'),
+      ],
+      gradient: ["#6B7280", "#9CA3AF"],
+      buttonText: t('common.currentPlan'),
+      popular: false,
+    },
+    premium: {
+      id: "premium",
+      name: t('subscription.premium'),
+      price: "30 000 сум",
+      priceDetail: t('common.perMonth'),
+      priceValue: 30000,
+      features: [
+        t('subscription.premiumFeature1'),
+        t('subscription.premiumFeature2'),
+        t('subscription.premiumFeature3'),
+        t('subscription.premiumFeature4'),
+        t('subscription.premiumFeature5'),
+      ],
+      gradient: ["#FFFFF0", "#F5F5DC"],
+      buttonText: t('common.tryPremium'),
+      popular: true,
+    },
+  };
+
   const handlePurchase = () => {
     Alert.alert(
-      "Скоро доступно",
-      "Оплата Premium подписки скоро будет доступна. Мы оповестим вас!",
-      [{ text: "Хорошо" }]
+      t('common.comingSoon'),
+      t('subscription.comingSoonMessage'),
+      [{ text: t('common.ok') }]
     );
   };
 
@@ -96,13 +98,13 @@ export default function SubscriptionScreen() {
           >
             <Ionicons name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Выберите план</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('subscription.choosePlan')}</Text>
           <View style={styles.placeholder} />
         </View>
 
         <View style={styles.titleSection}>
           <Text style={[styles.mainTitle, { color: colors.text }]}>
-            Премиум для{"\n"}быстрых результатов
+            {t('subscription.premiumTitle')}
           </Text>
         </View>
 
@@ -146,7 +148,7 @@ export default function SubscriptionScreen() {
 
         <View style={styles.noPaymentContainer}>
           <Text style={[styles.noPaymentText, { color: colors.textSecondary }]}>
-            ✓ Платеж не требуется сейчас
+            ✓ {t('subscription.noPayment')}
           </Text>
         </View>
 
@@ -163,7 +165,7 @@ export default function SubscriptionScreen() {
         >
           <View style={[styles.purchaseButtonContent, { backgroundColor: isDark ? "#1C1C1E" : "#000000" }]}>
             <Text style={[styles.purchaseButtonText, { color: "#FFFFFF" }]}>
-              Продолжить
+              {t('common.continue')}
             </Text>
           </View>
         </TouchableOpacity>

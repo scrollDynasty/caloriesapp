@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppSettings, useAppSettings } from "../context/AppSettingsContext";
+import { useLanguage } from "../context/LanguageContext";
 import { ThemeMode, useTheme } from "../context/ThemeContext";
 import { hapticLight } from "../utils/haptics";
 
@@ -22,12 +23,14 @@ function ThemePreviewCard({
   onPress,
   isDarkTheme,
   colors,
+  t,
 }: {
   mode: ThemeMode;
   selected: boolean;
   onPress: () => void;
   isDarkTheme: boolean;
   colors: any;
+  t: (key: string) => string;
 }) {
   const isDark = mode === "dark";
   
@@ -36,7 +39,7 @@ function ThemePreviewCard({
   const dotColors = ["#FF6B6B", "#34C759", "#007AFF"];
   
   const getLabel = () => {
-    return mode === "light" ? "Светлая" : "Тёмная";
+    return mode === "light" ? t('appSettings.themeLight') : t('appSettings.themeDark');
   };
 
   return (
@@ -195,6 +198,7 @@ function InfoRow({
 export default function AppSettingsScreen() {
   const router = useRouter();
   const { themeMode, setThemeMode, colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const { 
     settings, 
     featureStatus,
@@ -221,21 +225,21 @@ export default function AppSettingsScreen() {
     const granted = await requestHealthPermission();
     if (granted) {
       Alert.alert(
-        "Успешно подключено",
-        `${Platform.OS === "ios" ? "Apple Health" : "Health Connect"} успешно подключён. Данные о шагах и активности будут синхронизироваться автоматически.`,
-        [{ text: "Отлично!" }]
+        t('appSettings.connectedSuccess'),
+        `${Platform.OS === "ios" ? "Apple Health" : "Health Connect"} ${t('appSettings.connectedSuccess').toLowerCase()}.`,
+        [{ text: t('common.great') }]
       );
     }
   };
 
   const handleHealthDisconnect = () => {
     Alert.alert(
-      "Отключить интеграцию?",
-      `Данные о шагах и сожжённых калориях больше не будут синхронизироваться.`,
+      t('appSettings.disconnectConfirm'),
+      t('appSettings.disconnect'),
       [
-        { text: "Отмена", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         { 
-          text: "Отключить",
+          text: t('appSettings.disconnect'),
           style: "destructive",
           onPress: async () => {
             await disconnectHealth();
@@ -248,11 +252,11 @@ export default function AppSettingsScreen() {
   const handleLiveActivityToggle = (value: boolean) => {
     if (value && !featureStatus.liveActivityAvailable) {
       Alert.alert(
-        "Функция недоступна",
+        t('appSettings.featureUnavailable'),
         Platform.OS === "ios"
           ? "Live Activity требует iOS 16.1 или новее."
           : "Live Activity доступна только на iOS.",
-        [{ text: "Понятно" }]
+        [{ text: t('common.understood') }]
       );
       return;
     }
@@ -271,7 +275,7 @@ export default function AppSettingsScreen() {
         >
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Настройки</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('appSettings.title')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
@@ -280,7 +284,7 @@ export default function AppSettingsScreen() {
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ВНЕШНИЙ ВИД</Text>
           <View style={[styles.section, { backgroundColor: colors.card }]}>
             <View style={styles.sectionContent}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Тема оформления</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('appSettings.theme')}</Text>
               <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
                 Выбери светлую или тёмную тему для приложения
               </Text>
@@ -293,6 +297,7 @@ export default function AppSettingsScreen() {
                 onPress={() => setThemeMode("light")}
                 isDarkTheme={isDark}
                 colors={colors}
+                t={t}
               />
               <ThemePreviewCard
                 mode="dark"
@@ -300,6 +305,7 @@ export default function AppSettingsScreen() {
                 onPress={() => setThemeMode("dark")}
                 isDarkTheme={isDark}
                 colors={colors}
+                t={t}
               />
             </View>
           </View>
@@ -309,8 +315,8 @@ export default function AppSettingsScreen() {
           <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>ФУНКЦИИ</Text>
           <View style={[styles.togglesSection, { backgroundColor: colors.card }]}>
             <SettingToggle
-              title="Празднования значков"
-              subtitle="Показывать полноэкранную анимацию при получении нового значка"
+              title={t('appSettings.badgeCelebrations')}
+              subtitle={t('appSettings.badgeCelebrationsDesc')}
               value={settings.badgeCelebrations}
               onValueChange={(value) => handleToggle("badgeCelebrations", value)}
               colors={colors}
@@ -318,8 +324,8 @@ export default function AppSettingsScreen() {
             />
 
             <SettingToggle
-              title="Живая активность"
-              subtitle="Показывать калории и макроэлементы на экране блокировки"
+              title={t('appSettings.liveActivity')}
+              subtitle={t('appSettings.liveActivityDesc')}
               value={settings.liveActivity}
               onValueChange={handleLiveActivityToggle}
               disabled={!featureStatus.liveActivityAvailable}
@@ -333,8 +339,8 @@ export default function AppSettingsScreen() {
             />
 
             <SettingToggle
-              title="Добавить сожжённые калории"
-              subtitle="Добавить сожжённые калории к суточной норме"
+              title={t('appSettings.addBurnedCalories')}
+              subtitle={t('appSettings.addBurnedCaloriesDesc')}
               value={settings.burnedCalories}
               onValueChange={(value) => handleToggle("burnedCalories", value)}
               disabled={!featureStatus.healthAuthorized}
@@ -351,8 +357,8 @@ export default function AppSettingsScreen() {
             />
 
             <SettingToggle
-              title="Перенос калорий"
-              subtitle="Перенести до 200 калорий с вчерашнего дня"
+              title={t('appSettings.calorieRollover')}
+              subtitle={t('appSettings.calorieRolloverDesc')}
               value={settings.calorieRollover}
               onValueChange={(value) => handleToggle("calorieRollover", value)}
               colors={colors}
@@ -360,8 +366,8 @@ export default function AppSettingsScreen() {
             />
 
             <SettingToggle
-              title="Авто-корректировка макроэлементов"
-              subtitle="Автоматически корректировать макронутриенты при изменении калорий"
+              title={t('appSettings.autoAdjustMacros')}
+              subtitle={t('appSettings.autoAdjustMacrosDesc')}
               value={settings.autoMacroAdjust}
               onValueChange={(value) => handleToggle("autoMacroAdjust", value)}
               isLast

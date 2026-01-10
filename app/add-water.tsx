@@ -2,14 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 
@@ -18,6 +19,7 @@ const QUICK_AMOUNTS = [200, 300, 500];
 export default function AddWaterScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const [amount, setAmount] = useState("");
@@ -29,9 +31,9 @@ export default function AddWaterScreen() {
     const toNum = (v: string) => (v.trim() ? Number(v) : 0);
     const ml = toNum(amount);
     const g = toNum(goal);
-    if (!ml) return "Введите объём воды";
-    if (isNaN(ml) || ml <= 0) return "Объём должен быть > 0";
-    if (isNaN(g) || g < 0) return "Цель должна быть 0 или больше";
+    if (!ml) return t('water.enterVolume');
+    if (isNaN(ml) || ml <= 0) return t('water.volumeError');
+    if (isNaN(g) || g < 0) return t('water.goalError');
     return null;
   };
 
@@ -67,7 +69,7 @@ export default function AddWaterScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Вода</Text>
         <TouchableOpacity style={styles.headerButton} onPress={handleSave} disabled={saving}>
-          <Text style={[styles.saveText, saving && { opacity: 0.5 }]}>{saving ? "..." : "Сохранить"}</Text>
+          <Text style={[styles.saveText, saving && { opacity: 0.5 }]}>{saving ? "..." : t('common.save')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -76,7 +78,7 @@ export default function AddWaterScreen() {
           <Text style={styles.label}>Объём, мл</Text>
           <TextInput
             style={styles.input}
-            placeholder="Например, 250"
+            placeholder={t('water.placeholder')}
             placeholderTextColor={colors.textSecondary}
             keyboardType="numeric"
             value={amount}
@@ -108,7 +110,7 @@ export default function AddWaterScreen() {
             onPress={handleSave}
             disabled={saving}
           >
-            <Text style={styles.saveButtonText}>{saving ? "Сохраняем..." : "Сохранить"}</Text>
+            <Text style={styles.saveButtonText}>{saving ? t('water.saving') : t('common.save')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

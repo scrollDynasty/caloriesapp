@@ -4,6 +4,7 @@ import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
+import { useLanguage } from "../context/LanguageContext";
 import { useOnboarding } from "../context/OnboardingContext";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
@@ -148,6 +149,7 @@ export default function Results() {
   const fontsLoaded = useFonts();
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const { data: onboardingData } = useOnboarding();
 
   if (!fontsLoaded) {
@@ -184,10 +186,10 @@ export default function Results() {
   };
 
   const goalText = onboardingData.goal === "lose" 
-    ? "похудеть до" 
+    ? t('results.loseTo')
     : onboardingData.goal === "gain" 
-    ? "набрать до" 
-    : "поддерживать";
+    ? t('results.gainTo')
+    : t('results.maintain');
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={["top"]}>
@@ -291,21 +293,21 @@ export default function Results() {
           
           <TipItem
             icon="💪"
-            text="Используй оценки здоровья, чтобы улучшить свои привычки"
+            text={t('results.useHealthScore')}
             delay={1000}
             isDark={isDark}
             colors={colors}
           />
           <TipItem
             icon="🥑"
-            text="Отслеживай питание"
+            text={t('results.trackNutrition')}
             delay={1100}
             isDark={isDark}
             colors={colors}
           />
           <TipItem
             icon="🎯"
-            text="Следуй своей дневной норме калорий"
+            text={t('results.followCalories')}
             delay={1200}
             isDark={isDark}
             colors={colors}

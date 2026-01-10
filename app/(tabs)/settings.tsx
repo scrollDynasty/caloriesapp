@@ -15,13 +15,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LottieLoader } from "../../components/ui/LottieLoader";
+import { useLanguage } from "../../context/LanguageContext";
 import { useSnow } from "../../context/SnowContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
 import { authService } from "../../services/auth";
 import { dataCache } from "../../stores/dataCache";
 import { hapticLight } from "../../utils/haptics";
-import { LANGUAGE_NAMES, SupportedLanguage, getUserLanguage } from "../../utils/language";
 import { getLocalDayRange, getLocalTimezoneOffset } from "../../utils/timezone";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -111,10 +111,10 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors: themeColors, isDark } = useTheme();
   const { isSnowEnabled, setSnowEnabled } = useSnow();
+  const { language: currentLang, t } = useLanguage();
   const [user, setUser] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
-  const [currentLang, setCurrentLang] = useState<SupportedLanguage>("en");
   
   const [dailyData, setDailyData] = useState({
     consumedCalories: 0,
@@ -131,7 +131,7 @@ export default function SettingsScreen() {
       const data = await apiService.getProfile();
       const fullName = data?.first_name && data?.last_name
         ? `${data.first_name} ${data.last_name}`
-        : data?.first_name || "Пользователь";
+        : data?.first_name || t('common.user');
       setUser({
         name: fullName,
         email: data?.email || "",
@@ -158,7 +158,6 @@ export default function SettingsScreen() {
       if (!loading) {
         loadUser();
       }
-      getUserLanguage().then(setCurrentLang);
     }, [loading, loadUser])
   );
 
@@ -208,19 +207,19 @@ export default function SettingsScreen() {
 
   const handleLogout = async () => {
     Alert.alert(
-      "Выйти из аккаунта",
-      "Вы уверены, что хотите выйти?",
+      t('account.logout'),
+      t('account.logoutConfirm'),
       [
-        { text: "Отмена", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Выйти",
+          text: t('account.logout'),
           style: "destructive",
           onPress: async () => {
             try {
               await authService.signOut();
               router.replace("/auth/login" as any);
             } catch {
-              Alert.alert("Ошибка", "Не удалось выйти из аккаунта");  
+              Alert.alert(t('error.tryAgain'), t('account.logoutFailed'));  
             }
           },
         },
@@ -230,15 +229,15 @@ export default function SettingsScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      "Удалить аккаунт",
-      "Это действие необратимо. Все ваши данные будут удалены. Вы уверены?",
+      t('account.deleteAccount'),
+      t('account.deleteConfirm'),
       [
-        { text: "Отмена", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Удалить",
+          text: t('common.delete'),
           style: "destructive",
           onPress: () => {
-            Alert.alert("Удаление аккаунта", "Для удаления аккаунта напишите в поддержку.");
+            Alert.alert(t('account.deleteAccount'), t('account.deleteInstruction'));
           },
         },
       ]
@@ -251,7 +250,7 @@ export default function SettingsScreen() {
 
   const openLink = (url: string) => {
     Linking.openURL(url).catch(() => {
-      Alert.alert("Ошибка", "Не удалось открыть ссылку");
+      Alert.alert(t('error.tryAgain'), t('account.linkError'));
     });
   };
 
@@ -259,7 +258,7 @@ export default function SettingsScreen() {
   const displayUsername = user?.username || user?.email?.split("@")[0] || "user";
   const displayName = user?.first_name && user?.last_name 
     ? `${user.first_name} ${user.last_name}` 
-    : user?.name || "Пользователь";
+    : user?.name || t('common.user');
 
   if (loading) {
     return (
@@ -276,7 +275,7 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.headerTitle, { color: themeColors.text }]}>Профиль</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.text }]}>{t('settings.personalData')}</Text>
 
         <TouchableOpacity 
           style={[styles.profileCard, { backgroundColor: themeColors.card }]} 
@@ -297,14 +296,14 @@ export default function SettingsScreen() {
           <Ionicons name="chevron-forward" size={18} color={themeColors.textTertiary} />
         </TouchableOpacity>
 
-        <SectionHeader title="Тема приложения" />
+        <SectionHeader title={t('settings.theme')} />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <View style={styles.themeItem}>
             <View style={[styles.themeIconBox, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }]}>
               <Text style={styles.themeIcon}>🎄</Text>
             </View>
             <View style={styles.themeInfo}>
-              <Text style={[styles.themeTitle, { color: themeColors.text }]}>Почувствуй праздничное настроение</Text>
+              <Text style={[styles.themeTitle, { color: themeColors.text }]}>{t('settings.newYearTheme')}</Text>
             </View>
             <Switch 
               value={isSnowEnabled} 
@@ -315,54 +314,54 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <SectionHeader title="Пригласить друзей" />
+        <SectionHeader title={t('settings.referralProgram')} />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
           <TouchableOpacity style={styles.referralCard} activeOpacity={0.7}>
             <View style={[styles.referralIcon, { backgroundColor: isDark ? themeColors.gray5 : "#F5F5F5" }]}>
               <Ionicons name="person-add-outline" size={18} color={themeColors.text} />
             </View>
             <View style={styles.referralInfo}>
-              <Text style={[styles.referralTitle, { color: themeColors.text }]}>Пригласи друга и получи $10</Text>
+              <Text style={[styles.referralTitle, { color: themeColors.text }]}>{t('settings.referralProgram')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={themeColors.textTertiary} />
           </TouchableOpacity>
         </View>
 
-        <SectionHeader title="Аккаунт" />
+        <SectionHeader title={t('settings.account')} />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <MenuItem icon="person-outline" title="Личные данные" onPress={() => router.push("/personal-data" as any)} />
-          <MenuItem icon="settings-outline" title="Настройки" onPress={() => router.push("/app-settings" as any)} />
-          <MenuItem icon="diamond-outline" title="Подписка и тарифы" onPress={() => router.push("/subscription" as any)} />
-          <MenuItem icon="language-outline" title="Язык" rightText={LANGUAGE_NAMES[currentLang]} onPress={() => router.push("/language-settings" as any)} />
-          <MenuItem icon="people-outline" title="Обновиться до семейного плана" isLast />
+          <MenuItem icon="person-outline" title={t('settings.personalData')} onPress={() => router.push("/personal-data" as any)} />
+          <MenuItem icon="settings-outline" title={t('settings.settings')} onPress={() => router.push("/app-settings" as any)} />
+          <MenuItem icon="diamond-outline" title={t('settings.subscription')} onPress={() => router.push("/subscription" as any)} />
+          <MenuItem icon="language-outline" title={t('settings.language')} rightText={currentLang.toUpperCase()} onPress={() => router.push("/language-settings" as any)} />
+          <MenuItem icon="people-outline" title={t('settings.family')} isLast />
         </View>
 
-        <SectionHeader title="Цели и отслеживание" />
+        <SectionHeader title={t('settings.goalsTracking')} />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <MenuItem icon="navigate-outline" title="Изменить цели питания" onPress={() => router.push("/nutrition-goals" as any)} />
-          <MenuItem icon="flag-outline" title="Цели и текущий вес" onPress={() => router.push("/goals-weight" as any)} />
-          <MenuItem icon="notifications-outline" title="Напоминания об отслеживании" onPress={() => router.push("/tracking-reminders" as any)} />
-          <MenuItem icon="time-outline" title="История веса" onPress={() => router.push("/weight-history" as any)} isLast />
+          <MenuItem icon="navigate-outline" title={t('nutrition.goals')} onPress={() => router.push("/nutrition-goals" as any)} />
+          <MenuItem icon="flag-outline" title={t('progress.goalWeight')} onPress={() => router.push("/goals-weight" as any)} />
+          <MenuItem icon="notifications-outline" title={t('settings.notifications')} onPress={() => router.push("/tracking-reminders" as any)} />
+          <MenuItem icon="time-outline" title={t('weight.history')} onPress={() => router.push("/weight-history" as any)} isLast />
         </View>
 
-        <SectionHeader title="Поддержка и юридическая информация" />
+        <SectionHeader title={t('support.contact')} />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <MenuItem icon="mail-outline" title="Написать в поддержку" onPress={() => openLink("https://yeb-ich.com/press/")} />
-          <MenuItem icon="document-text-outline" title="Условия использования" onPress={() => openLink("https://yeb-ich.com/terms/")} />
-          <MenuItem icon="shield-checkmark-outline" title="Политика конфиденциальности" onPress={() => openLink("https://yeb-ich.com/privacy/")} isLast />
+          <MenuItem icon="mail-outline" title={t('support.contact')} onPress={() => openLink("https://yeb-ich.com/press/")} />
+          <MenuItem icon="document-text-outline" title={t('support.terms')} onPress={() => openLink("https://yeb-ich.com/terms/")} />
+          <MenuItem icon="shield-checkmark-outline" title={t('support.privacy')} onPress={() => openLink("https://yeb-ich.com/privacy/")} isLast />
         </View>
 
-        <SectionHeader title="Следи за нами" />
+        <SectionHeader title={t('social.followUs')} />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <MenuItem icon="logo-instagram" title="Instagram" onPress={() => openLink("https://instagram.com")} />
-          <MenuItem icon="logo-tiktok" title="TikTok" onPress={() => openLink("https://tiktok.com")} />
-          <MenuItem icon="logo-twitter" title="X" onPress={() => openLink("https://twitter.com")} />
+          <MenuItem icon="logo-instagram" title={t('social.instagram')} onPress={() => openLink("https://instagram.com")} />
+          <MenuItem icon="logo-tiktok" title={t('social.tiktok')} onPress={() => openLink("https://tiktok.com")} />
+          <MenuItem icon="logo-twitter" title={t('social.twitter')} onPress={() => openLink("https://twitter.com")} />
         </View>
 
-        <SectionHeader title="Действия с аккаунтом" />
+        <SectionHeader title={t('settings.account')} />
         <View style={[styles.section, { backgroundColor: themeColors.card }]}>
-          <MenuItem icon="log-out-outline" title="Выйти" onPress={handleLogout} />
-          <MenuItem icon="trash-outline" title="Удалить аккаунт" onPress={handleDeleteAccount} danger isLast />
+          <MenuItem icon="log-out-outline" title={t('account.logout')} onPress={handleLogout} />
+          <MenuItem icon="trash-outline" title={t('account.deleteAccount')} onPress={handleDeleteAccount} danger isLast />
         </View>
 
         <View style={styles.bottomSpacer} />

@@ -2,12 +2,12 @@ import { useCameraPermissions } from "expo-camera";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { CardsPager } from "../../components/home/CardsPager";
@@ -17,6 +17,7 @@ import { WeekCalendar } from "../../components/home/WeekCalendar";
 import { LottieLoader } from "../../components/ui/LottieLoader";
 import { NutritionCardSkeleton } from "../../components/ui/Skeleton";
 import { useAppSettings } from "../../context/AppSettingsContext";
+import { useLanguage } from "../../context/LanguageContext";
 import { ProcessingMeal, useProcessingMeals } from "../../context/ProcessingMealsContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useFonts } from "../../hooks/use-fonts";
@@ -74,6 +75,7 @@ export default function HomeScreen() {
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
   const { colors: themeColors, isDark } = useTheme();
+  const { t } = useLanguage();
   const { 
     settings, 
     burnedCalories, 
@@ -735,7 +737,7 @@ export default function HomeScreen() {
       <SafeAreaView style={[styles.safeArea, { backgroundColor: themeColors.background }]}>
         <View style={styles.loadingContainer}>
           <LottieLoader size="large" />
-          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>Загрузка данных...</Text>
+          <Text style={[styles.loadingText, { color: themeColors.textSecondary }]}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );

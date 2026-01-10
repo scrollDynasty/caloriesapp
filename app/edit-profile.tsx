@@ -4,19 +4,20 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    Keyboard,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { LottieLoader } from "../components/ui/LottieLoader";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { showToast } from "../utils/toast";
@@ -31,6 +32,7 @@ interface ProfileData {
 export default function EditProfileScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   
   const [loading, setLoading] = useState(true);
@@ -102,11 +104,11 @@ export default function EditProfileScreen() {
       if (galleryPermission?.canAskAgain) {
         const result = await requestGalleryPermission();
         if (!result.granted) {
-          showToast.warning("Разрешите доступ к фотографиям для выбора аватара", "Разрешение");
+          showToast.warning(t('profile.photoPermission'), t('profile.permission'));
           return;
         }
       } else {
-        showToast.warning("Разрешите доступ к фотографиям в настройках устройства", "Разрешение");
+        showToast.warning(t('profile.photoPermissionSettings'), t('profile.permission'));
         return;
       }
     }

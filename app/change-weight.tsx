@@ -2,16 +2,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
-  Dimensions,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { apiService } from "../services/api";
 import { showToast } from "../utils/toast";
@@ -27,6 +28,7 @@ const VISIBLE_TICKS = Math.floor(SCREEN_WIDTH / TICK_WIDTH);
 export default function ChangeWeightScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const params = useLocalSearchParams<{ currentWeight: string }>();
   
   const initialWeight = params.currentWeight ? parseFloat(params.currentWeight) : 70;
@@ -185,7 +187,7 @@ export default function ChangeWeightScreen() {
           disabled={saving}
         >
           <Text style={[styles.saveButtonText, { color: colors.background }]}>
-            {saving ? "Сохраняем..." : "Сохранить изменения"}
+            {saving ? t('weight.saving') : t('weight.saveChanges')}
           </Text>
         </TouchableOpacity>
       </View>

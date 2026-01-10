@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LottieLoader } from "../components/ui/LottieLoader";
 import SnowOverlay from "../components/ui/SnowOverlay";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { useFonts } from "../hooks/use-fonts";
 import { apiService } from "../services/api";
@@ -35,11 +36,12 @@ function MealDetailScreen() {
   const params = useLocalSearchParams();
   const fontsLoaded = useFonts();
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
   const mealId = Number(params.id || 0);
   const imageUrl = params.imageUrl as string | undefined;
-  const mealName = (params.name as string) || "Блюдо";
+  const mealName = (params.name as string) || t('common.dish');
   const mealTime = (params.time as string) || "";
   const calories = Number(params.calories || 0);
   const protein = Number(params.protein || 0);
@@ -130,33 +132,33 @@ function MealDetailScreen() {
   };
 
   const handleShare = () => {
-    Alert.alert("Поделиться", "Функция в разработке");
+    Alert.alert(t('common.share'), t('mealDetail.shareDev'));
   };
 
   const handleMore = () => {
     Alert.alert(
-      "Действия",
+      t('common.actions'),
       undefined,
       [
-        { text: "Редактировать", onPress: () => setIsEditing(true) },
+        { text: t('common.edit'), onPress: () => setIsEditing(true) },
         {
-          text: "Удалить",
+          text: t('common.delete'),
           style: "destructive",
           onPress: handleDelete,
         },
-        { text: "Отмена", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
       ]
     );
   };
 
   const handleDelete = async () => {
     Alert.alert(
-      "Удалить блюдо",
-      "Вы уверены, что хотите удалить это блюдо?",
+      t('mealDetail.deleteDish'),
+      t('mealDetail.deleteConfirm'),
       [
-        { text: "Отмена", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Удалить",
+          text: t('common.delete'),
           style: "destructive",
           onPress: async () => {
             try {
@@ -167,7 +169,7 @@ function MealDetailScreen() {
                 params: { refresh: Date.now().toString() },
               } as any);
             } catch (error: any) {
-              Alert.alert("Ошибка", "Не удалось удалить блюдо");
+              Alert.alert(t('common.error'), t('mealDetail.deleteFailed'));
             } finally {
               setDeleting(false);
             }
@@ -193,7 +195,7 @@ function MealDetailScreen() {
         params: { refresh: Date.now().toString() },
       } as any);
     } catch (error: any) {
-      Alert.alert("Ошибка", "Не удалось сохранить изменения");
+      Alert.alert(t('common.error'), t('mealDetail.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -205,18 +207,18 @@ function MealDetailScreen() {
 
   const handleAddIngredient = () => {
     Alert.prompt(
-      "Добавить ингредиент",
-      "Введите название ингредиента и калории (например: Помидор, 20)",
+      t('mealDetail.addIngredient'),
+      t('mealDetail.addIngredientPrompt'),
       [
-        { text: "Отмена", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Добавить",
+          text: t('common.add'),
           onPress: async (text?: string) => {
             if (!text || !text.trim()) return;
             
             const parts = text.split(",").map((p: string) => p.trim());
             if (parts.length < 2) {
-              Alert.alert("Ошибка", "Укажите название и калории через запятую");
+              Alert.alert(t('common.error'), t('mealDetail.ingredientError'));
               return;
             }
             
@@ -224,16 +226,16 @@ function MealDetailScreen() {
             const calories = Number(parts[1]);
             
             if (!name || isNaN(calories)) {
-              Alert.alert("Ошибка", "Неверный формат. Пример: Помидор, 20");
+              Alert.alert(t('common.error'), t('mealDetail.ingredientFormatError'));
               return;
             }
             
             try {
               await apiService.addMealIngredient(mealId, { name, calories });
               setIngredients([...ingredients, { name, calories }]);
-              Alert.alert("Успешно", "Ингредиент добавлен");
+              Alert.alert(t('common.success'), t('mealDetail.ingredientAdded'));
             } catch (error: any) {
-              Alert.alert("Ошибка", "Не удалось добавить ингредиент");
+              Alert.alert(t('common.error'), t('mealDetail.ingredientError'));
             }
           },
         },
@@ -244,12 +246,12 @@ function MealDetailScreen() {
 
   const handleCorrectMeal = () => {
     Alert.prompt(
-      "Исправить блюдо",
-      "Опишите, что нужно исправить (состав, ингредиенты, описание)",
+      t('mealDetail.correctDish'),
+      t('mealDetail.correctPrompt'),
       [
-        { text: "Отмена", style: "cancel" },
+        { text: t('common.cancel'), style: "cancel" },
         {
-          text: "Исправить",
+          text: t('mealDetail.correct'),
           onPress: async (correctionText?: string) => {
             if (!correctionText || !correctionText.trim()) return;
             
@@ -272,9 +274,9 @@ function MealDetailScreen() {
               }
               if (corrected.health_score !== undefined) setHealthScore(corrected.health_score);
               
-              Alert.alert("Успешно", "Блюдо обновлено на основе анализа AI");
+              Alert.alert(t('common.success'), t('mealDetail.dishUpdated'));
             } catch (error: any) {
-              Alert.alert("Ошибка", error.message || "Не удалось исправить блюдо");
+              Alert.alert(t('common.error'), error.message || t('mealDetail.correctFailed'));
             } finally {
               setSaving(false);
             }
@@ -504,7 +506,7 @@ function MealDetailScreen() {
                 style={styles.titleInput}
                 value={editName}
                 onChangeText={setEditName}
-                placeholder="Название блюда"
+                placeholder={t('mealDetail.dishNamePlaceholder')}
               />
             ) : (
               <Text style={styles.mealTitle} numberOfLines={2}>{mealName}</Text>

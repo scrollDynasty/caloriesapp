@@ -13,9 +13,9 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../../context/LanguageContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiService } from "../../services/api";
-import { SupportedLanguage, initLanguage, t } from "../../utils/language";
 
 interface FoodItem {
   fdc_id: string;
@@ -30,14 +30,15 @@ interface FoodItem {
 }
 
 const SOURCES = [
-  { id: "foundation", label: "Основные", icon: "leaf" as const },
-  { id: "branded", label: "Бренды", icon: "storefront" as const },
-  { id: "survey", label: "Survey", icon: "pulse" as const },
+  { id: "foundation", labelKey: "food.sources.foundation", icon: "leaf" as const },
+  { id: "branded", labelKey: "food.sources.branded", icon: "storefront" as const },
+  { id: "survey", labelKey: "food.sources.survey", icon: "pulse" as const },
 ];
 
 export default function FoodDatabaseScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSource, setSelectedSource] = useState("foundation");
   const [foods, setFoods] = useState<FoodItem[]>([]);
@@ -46,15 +47,10 @@ export default function FoodDatabaseScreen() {
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
-  const [lang, setLang] = useState<SupportedLanguage>("en");
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    initLanguage().then(setLang);
-  }, []);
 
   const loadInitialFoods = useCallback(async (source: string) => {
     try {
@@ -62,7 +58,7 @@ export default function FoodDatabaseScreen() {
       setOffset(0);
       setHasMore(true);
       
-      const response = await apiService.getFoods(0, 20, source, lang);
+      const response = await apiService.getFoods(0, 20, source, language);
       const result = response.foods || [];
       
       setFoods(result);
@@ -71,11 +67,11 @@ export default function FoodDatabaseScreen() {
     } catch (err: any) {
       setFoods([]);
       setHasMore(false);
-      setError(err?.message || t('common.loading', lang));
+      setError(err?.message || t('common.loading'));
     } finally {
       setLoading(false);
     }
-  }, [lang]);
+  }, [language, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -92,7 +88,7 @@ export default function FoodDatabaseScreen() {
       setLoadingMore(true);
       const newOffset = offset + 20;
       
-      const response = await apiService.getFoods(newOffset, 20, selectedSource, lang);
+      const response = await apiService.getFoods(newOffset, 20, selectedSource, language);
       const result = response.foods || [];
       
       setFoods(prev => [...prev, ...result]);
@@ -101,7 +97,7 @@ export default function FoodDatabaseScreen() {
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, searchQuery, offset, selectedSource, lang]);
+  }, [loadingMore, hasMore, searchQuery, offset, selectedSource, language, t]);
 
   const searchFoods = useCallback(async (query: string, source: string) => {
     if (!query.trim()) {
@@ -112,22 +108,22 @@ export default function FoodDatabaseScreen() {
     try {
       setLoading(true);
       
-      const response = await apiService.searchFoods(query, 50, source, lang);
+      const response = await apiService.searchFoods(query, 50, source, language);
       const result = response.foods || [];
       
       setFoods(result);
       setHasMore(false);
       setError(null);
     } catch (err: any) {
-      const errorMsg = err?.message || "Ошибка поиска";
+      const errorMsg = err?.message || t('error.oopsomething');
       
       setFoods([]);
       setHasMore(false);
-      setError(`Ошибка: ${errorMsg}`);
+      setError(`${t('error.oopsomething')}: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
-  }, [lang, loadInitialFoods]);
+  }, [language, loadInitialFoods, t]);
 
   useEffect(() => {
     if (isInitialMount.current) {
@@ -198,7 +194,7 @@ export default function FoodDatabaseScreen() {
           </Text>
         )}
         <Text style={[styles.foodDetails, { color: colors.textSecondary }]}>
-          {item.calories ? `${item.calories} ккал` : "Нет данных"} {item.portion && `· ${item.portion}`}
+          {item.calories ? `${item.calories} ${t('units.kcal')}` : t('common.noData')} {item.portion && `· ${item.portion}`}
         </Text>
         {item.calories !== undefined && item.protein !== undefined && (
           <Text style={[styles.foodMacros, { color: colors.textTertiary }]}>
@@ -240,7 +236,7 @@ export default function FoodDatabaseScreen() {
           color={error ? colors.error : colors.textTertiary} 
         />
         <Text style={[styles.emptyText, { color: error ? colors.error : colors.textSecondary }]}>
-          {error || "Продукты не найдены"}
+          {error || t('common.noResults')}
         </Text>
       </View>
     );
@@ -250,7 +246,7 @@ export default function FoodDatabaseScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={["top"]}>
       <View style={[styles.header, { backgroundColor: colors.background }]}>
         <View style={styles.headerPlaceholder} />
-        <Text style={[styles.headerTitle, { color: colors.text }]}>База продуктов</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>{t('food.database')}</Text>
         <View style={styles.headerPlaceholder} />
       </View>
 
@@ -259,7 +255,7 @@ export default function FoodDatabaseScreen() {
           <Ionicons name="search" size={16} color={colors.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Поиск продуктов..."
+            placeholder={t('food.search.placeholder')}
             placeholderTextColor={colors.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -307,7 +303,7 @@ export default function FoodDatabaseScreen() {
                       },
                     ]}
                   >
-                    {source.label}
+                    {t(source.labelKey)}
                   </Text>
                 </View>
               </Pressable>
@@ -316,7 +312,7 @@ export default function FoodDatabaseScreen() {
         </View>
 
         <Text style={[styles.resultsTitle, { color: colors.text }]}>
-          {searchQuery ? "Результаты поиска" : `${SOURCES.find(s => s.id === selectedSource)?.label || ""} продукты`}
+          {searchQuery ? t('food.search.placeholder') : `${t(SOURCES.find(s => s.id === selectedSource)?.labelKey || 'food.database')} ${t('food.database')}`}
         </Text>
 
         {loading ? (

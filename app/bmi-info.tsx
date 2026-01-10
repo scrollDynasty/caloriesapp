@@ -2,18 +2,20 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
-
-const BMI_CATEGORIES = {
-  underweight: { label: "Недостаточный вес", color: "#4DABF7", range: "<18.5" },
-  normal: { label: "Нормальный вес", color: "#51CF66", range: "18.5–24.9" },
-  overweight: { label: "Избыточный вес", color: "#FFD43B", range: "25.0–29.9" },
-  obese: { label: "Ожирение", color: "#FF6B6B", range: ">30.0" },
-};
 
 export default function BMIInfoScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useLanguage();
+  
+  const BMI_CATEGORIES = {
+    underweight: { label: t('bmi.underweight'), color: "#4DABF7", range: "<18.5" },
+    normal: { label: t('bmi.normal'), color: "#51CF66", range: "18.5–24.9" },
+    overweight: { label: t('bmi.overweight'), color: "#FFD43B", range: "25.0–29.9" },
+    obese: { label: t('bmi.obese'), color: "#FF6B6B", range: ">30.0" },
+  };
   const params = useLocalSearchParams<{ bmi: string; category: string }>();
   
   const bmi = params.bmi ? parseFloat(params.bmi) : null;
