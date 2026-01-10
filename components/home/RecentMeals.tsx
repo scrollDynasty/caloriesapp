@@ -219,6 +219,7 @@ export const RecentMeals = memo(function RecentMeals({
   onLoadMore,
   onMealPress,
 }: RecentMealsProps) {
+  const { t } = useLanguage();
   const { colors: themeColors, isDark } = useTheme();
   const { processingMeals } = useProcessingMeals();
   const hasMeals = useMemo(() => meals.length > 0 || processingMeals.length > 0, [meals.length, processingMeals.length]);

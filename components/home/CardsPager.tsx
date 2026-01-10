@@ -398,6 +398,7 @@ function FlippableNutritionCard({ stats }: FlippableNutritionCardProps) {
 }
 
 function AppleHealthCard() {
+  const { t } = useLanguage();
   const { colors: themeColors, isDark } = useTheme();
   const { settings, rolloverCalories, featureStatus, burnedCalories, requestHealthPermission } = useAppSettings();
   
@@ -470,6 +471,7 @@ function AppleHealthCard() {
 }
 
 function BurnedCaloriesCard() {
+  const { t } = useLanguage();
   const { colors: themeColors, isDark } = useTheme();
   const { settings, burnedCalories } = useAppSettings();
   
@@ -508,6 +510,7 @@ function BurnedCaloriesCard() {
 }
 
 function WaterCard({ consumed, target, onAdd }: { consumed: number; target: number; onAdd?: () => void }) {
+  const { t } = useLanguage();
   const { colors: themeColors, isDark } = useTheme();
   return (
     <View
